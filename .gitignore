@@ -1,0 +1,8 @@
+# Compiled binaries (anchored to repo root so internal/codec is NOT matched)
+/bin/
+/codec
+/codec.exe
+
+# Test artifacts
+*.out
+*.test
