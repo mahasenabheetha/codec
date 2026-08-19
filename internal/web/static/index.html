@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>codec</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="stylesheet" href="/style.css">
 </head>
 <body>
@@ -22,6 +23,7 @@
       <label><input type="radio" name="mode" value="json-min"><span>Minify</span></label>
       <label><input type="radio" name="mode" value="validate"><span>Validate</span></label>
       <label><input type="radio" name="mode" value="jwt"><span>JWT</span></label>
+      <label><input type="radio" name="mode" value="ansible"><span>Ansible</span></label>
     </fieldset>
 
     <label class="toggle" id="urlsafe-label" title="use - and _ instead of + and / (JWTs, URLs)">
@@ -32,9 +34,8 @@
   <div class="toolbar">
     <button id="go" class="primary" title="Ctrl+Enter">Transform</button>
     <button id="swap" class="ghost" title="move output back to input">&#8646; Swap</button>
-    <span id="kind"></span>
-    <span class="spacer"></span>
     <button id="copy" class="ghost" title="Alt+C">Copy output</button>
+    <span id="kind"></span>
   </div>
 
   <div id="error" title="click to jump to the error"></div>
@@ -47,6 +48,7 @@
     <section class="pane">
       <div class="pane-head">Output</div>
       <textarea id="output" readonly placeholder="result appears here" spellcheck="false"></textarea>
+      <div id="logview" class="logview" hidden></div>
     </section>
   </div>
 
