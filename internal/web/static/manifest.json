@@ -1,0 +1,14 @@
+{
+  "name": "codec",
+  "short_name": "codec",
+  "description": "Local base64, JSON, JWT and Ansible log toolbox. Everything runs on your machine.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0c1016",
+  "theme_color": "#0c1016",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
