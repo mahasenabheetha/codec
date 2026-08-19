@@ -13,6 +13,7 @@ const (
 	KindJSON         // valid JSON
 	KindJWT          // three base64url segments, first two decode to JSON
 	KindBase64       // valid base64 (and not one of the above)
+	KindAnsible      // an ansible -vv task block with a JSON result
 )
 
 // String returns a human-readable name for the Kind.
@@ -24,6 +25,8 @@ func (k Kind) String() string {
 		return "jwt"
 	case KindBase64:
 		return "base64"
+	case KindAnsible:
+		return "ansible"
 	default:
 		return "unknown"
 	}
@@ -36,6 +39,12 @@ func Detect(s string) Kind {
 	s = strings.TrimSpace(s)
 	if s == "" {
 		return KindUnknown
+	}
+
+	// Most specific first: an ansible block contains JSON but is not
+	// itself valid JSON, and its detection marker is unambiguous.
+	if _, err := ParseAnsible(s); err == nil {
+		return KindAnsible
 	}
 
 	if _, err := DecodeJWT(s); err == nil {
@@ -61,6 +70,13 @@ func Transform(s string) (string, Kind, error) {
 	kind := Detect(s)
 
 	switch kind {
+	case KindAnsible:
+		task, err := ParseAnsible(s)
+		if err != nil {
+			return "", kind, err
+		}
+		return task.Text(), kind, nil
+
 	case KindJWT:
 		jwt, err := DecodeJWT(s)
 		if err != nil {

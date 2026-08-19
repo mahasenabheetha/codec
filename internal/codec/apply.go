@@ -19,6 +19,7 @@ const (
 	ModeJSONMin    Mode = "json-min"
 	ModeValidate   Mode = "validate"
 	ModeJWT        Mode = "jwt"
+	ModeAnsible    Mode = "ansible"
 )
 
 // ErrUnknownMode is returned when Apply receives a mode it does not
@@ -88,6 +89,13 @@ func Apply(mode Mode, input string, opts Options) (string, Kind, error) {
 			return "", KindJWT, err
 		}
 		return formatJWT(jwt), KindJWT, nil
+
+	case ModeAnsible:
+		task, err := ParseAnsible(input)
+		if err != nil {
+			return "", KindAnsible, err
+		}
+		return task.Text(), KindAnsible, nil
 
 	default:
 		return "", KindUnknown, fmt.Errorf("%w: %q", ErrUnknownMode, mode)

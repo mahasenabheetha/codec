@@ -32,10 +32,14 @@ type transformRequest struct {
 	URLSafe bool   `json:"urlSafe"`
 }
 
-// transformResponse is what a successful transform returns.
+// transformResponse is what a successful transform returns. Task is
+// only present for ansible results: it carries the structured form so
+// the frontend can render a rich, color-coded view, while Output always
+// holds the plain-text rendering (used by Copy and Swap).
 type transformResponse struct {
-	Output string `json:"output"`
-	Kind   string `json:"kind"`
+	Output string            `json:"output"`
+	Kind   string            `json:"kind"`
+	Task   *codec.ParsedTask `json:"task,omitempty"`
 }
 
 // errorResponse is returned for any failure. Line and Column are only
@@ -126,10 +130,17 @@ func handleTransform(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusOK, transformResponse{
-		Output: out,
-		Kind:   kind.String(),
-	})
+	resp := transformResponse{Output: out, Kind: kind.String()}
+
+	// Attach the structured task for ansible results, whether the
+	// user picked the mode explicitly or auto-detect found it.
+	if kind == codec.KindAnsible {
+		if task, perr := codec.ParseAnsible(req.Input); perr == nil {
+			resp.Task = task
+		}
+	}
+
+	writeJSON(w, http.StatusOK, resp)
 }
 
 // writeJSON sends v as a JSON response with the given status code.
