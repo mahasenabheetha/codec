@@ -2,19 +2,22 @@
 
 [![CI](https://github.com/mahasenabheetha/codec/actions/workflows/ci.yml/badge.svg)](https://github.com/mahasenabheetha/codec/actions/workflows/ci.yml)
 
-A fast, single-binary CLI for the transformations a DevOps engineer does all day: **base64 encode/decode, JSON pretty-print/minify/validate, JWT inspection** — with auto-detection and clipboard integration.
+A fast, single-binary toolbox for the transformations a DevOps engineer does all day: **base64 encode/decode, JSON pretty-print/minify/validate, JWT inspection, and Ansible log analysis** — available as a CLI, a clipboard watcher, and a local web app you can install like a desktop application.
 
-Copy a Kubernetes secret, get readable JSON. Paste a JSON payload, get base64. Decode a JWT without pasting it into a website.
+Copy a Kubernetes secret, get readable JSON. Paste an Ansible `-vv` failure, get the root cause in a banner. Everything runs locally; nothing ever leaves your machine.
 
 ## Features
 
-- **Auto-detect** — `codec auto` figures out whether input is JSON, base64, or a JWT and applies the obvious transformation. Base64 that decodes to JSON is pretty-printed automatically (the Kubernetes secret case).
-- **Watch mode** — `codec watch` monitors the clipboard: copy JSON anywhere, paste base64; copy base64, paste decoded JSON. No terminal round-trip.
-- **Clipboard flag** — `-c` on any command copies the output to the system clipboard as well as printing it.
-- **Lenient input** — tolerates wrapped lines, surrounding whitespace, and missing base64 padding (as found in JWTs and k8s manifests).
-- **Positioned JSON errors** — invalid JSON reports `line 3, column 8`, not a useless byte offset.
-- **Pipe-friendly** — data on stdout, commentary on stderr, meaningful exit codes. Drops cleanly into CI jobs and shell pipelines.
-- **Single static binary** — no runtime, no dependencies, no installer. Cross-compiles to any OS/arch.
+- **Auto-detect** — paste anything; codec figures out whether it's JSON, base64, a JWT, or an Ansible task log and applies the obvious transformation. Base64 containing JSON is pretty-printed automatically.
+- **Explicit modes** — encode/decode (standard or URL-safe alphabet), pretty/minify/validate JSON, decode JWTs, parse Ansible logs. Explicit modes accept *any* text, no detection required.
+- **Ansible log analysis** — parses `-vv` task output into a structured view: status badge, probable-cause banner (the engine's diagnosis of *why* it failed), summary chips (`rc`, `msg`, timings) with problems highlighted, prettified commands (one `--flag` per line), severity-colored stderr/stdout, an errors-only filter, and support for loop items, retries, skipped tasks, and wrapper-prefixed logs (Packer, CI pipelines).
+- **Web UI** — `codec serve` hosts a local page with side-by-side input/output panes, segmented mode selector, transform-on-paste, click-to-jump JSON error positions, swap, and keyboard-complete flow. Installable as a PWA: it gets its own window and taskbar icon.
+- **Watch mode** — `codec watch` monitors the clipboard: copy JSON anywhere, paste base64; copy base64, paste decoded JSON.
+- **Clipboard flag** — `-c` on any CLI command also copies the output.
+- **Lenient input** — tolerates wrapped lines, whitespace, missing base64 padding, ANSI color codes in logs.
+- **Positioned JSON errors** — invalid JSON reports `line 3, column 8` and the web UI jumps your cursor there on click.
+- **Pipe-friendly** — data on stdout, commentary on stderr, meaningful exit codes; drops cleanly into CI jobs.
+- **Single static binary** — the web frontend is embedded via `go:embed`; ship one file, no runtime, no installer.
 
 ## Install
 
@@ -37,12 +40,28 @@ Or open the repo in VS Code with the Dev Containers extension — a ready-made G
 
 ## Usage
 
-Input comes from an argument or stdin — both work everywhere:
+### Web UI
 
 ```bash
-codec auto '{"a":1}'
-echo '{"a":1}' | codec auto
+codec serve            # http://localhost:8765
+codec serve --port 9000
 ```
+
+Paste into the input pane — transformation runs instantly on paste. Pick an explicit mode from the segmented control when auto-detect isn't what you want. Shortcuts: Ctrl+Enter run, Alt+C copy, Esc clear.
+
+**Install as an app:** in Edge, menu → Apps → *Install this site as an app* (Chrome: install icon in the address bar). codec gets its own window, taskbar icon, and Start-menu entry. Note the server (`codec serve`) must be running for the app to work — there is deliberately no offline cache, because the "site" *is* the local binary.
+
+The server binds to `127.0.0.1` only: nothing on your network can reach it.
+
+### Ansible log analysis
+
+Paste a failed (or successful) `ansible -vv` task block into the web UI — auto-detect handles it — or pipe it through the CLI:
+
+```bash
+codec auto < failed-task.log
+```
+
+You get: probable cause up top, `rc`/`msg` chips, the command prettified one flag per line, and stderr with SEVERE/ERROR lines highlighted. Lines that declare their own level (`- INFO:`) are trusted over keyword guessing, so an INFO line mentioning "not found" stays neutral.
 
 ### Auto-detect
 
@@ -58,29 +77,16 @@ detected: base64
 }
 ```
 
-### Base64
+### Base64 / JSON / JWT
 
 ```bash
-codec b64 encode 'some text'          # standard alphabet
-codec b64 encode --url 'some text'    # URL-safe alphabet (-_ instead of +/)
-codec b64 decode aGVsbG8=             # tolerates missing padding & wrapped lines
+codec b64 encode 'any text at all'     # --url for the URL-safe alphabet
+codec b64 decode aGVsbG8=              # tolerates missing padding
+codec json pretty '{"a":{"b":1}}'      # --indent to customize
+codec json min < big.json
+codec json validate '{"a":}'           # exit 1 + "line 1, column 6"
+codec jwt decode "$TOKEN"              # does NOT verify the signature
 ```
-
-### JSON
-
-```bash
-codec json pretty '{"a":{"b":1}}'     # two-space indent (--indent to change)
-codec json min    "$(cat big.json)"   # single line
-codec json validate '{"a":}'          # exit code 1 + "line 1, column 6: ..."
-```
-
-### JWT
-
-```bash
-codec jwt decode "$TOKEN"
-```
-
-Prints the decoded header and payload. **Does not verify the signature** — this is an inspection tool, not an authentication library.
 
 ### Watch mode
 
@@ -89,27 +95,11 @@ codec watch                # poll every 300ms; Ctrl+C to stop
 codec watch --interval 1s
 ```
 
-While running, anything recognizable you copy is transformed and placed back on the clipboard, ready to paste. Content it doesn't recognize (prose, URLs, passwords) is left untouched and unlogged.
+While running, anything recognizable you copy is transformed and placed back on the clipboard. Content it doesn't recognize is left untouched. Run it deliberately during batch work — while active, *all* recognizable clipboard content is transformed.
 
-> **Note:** while watch mode is active, *all* recognizable clipboard content is transformed — including JSON you may have wanted to paste as JSON. Run it deliberately during batch work rather than all day. An on-demand hotkey mode is planned (see Roadmap).
+### PowerShell note
 
-### Clipboard flag
-
-```bash
-kubectl get secret db -o jsonpath='{.data.password}' | codec b64 decode -c
-```
-
-Prints the result *and* copies it. Clipboard failures (e.g. headless environments) are warnings, never errors.
-
-### PowerShell users
-
-Windows PowerShell 5.1 strips inner double quotes from arguments passed to native executables. Pipe instead:
-
-```powershell
-'{"name":"mahasen"}' | .\codec.exe auto -c
-```
-
-PowerShell 7+ (`pwsh`) does not have this problem.
+Windows PowerShell 5.1 strips inner double quotes from arguments to native executables. Pipe instead: `'{"a":1}' | .\codec.exe auto`. PowerShell 7+ doesn't have this problem.
 
 ## Exit codes
 
@@ -118,7 +108,7 @@ PowerShell 7+ (`pwsh`) does not have this problem.
 | 0 | success |
 | 1 | invalid input, unrecognized content, or usage error |
 
-This makes `codec json validate` usable as a CI gate:
+Usable as a CI gate:
 
 ```yaml
 validate-payloads:
@@ -131,31 +121,36 @@ validate-payloads:
 ```
 cmd/codec/          main() — 5 lines, calls the CLI layer
 internal/cli/       presentation: cobra commands, flags, stdin/stdout,
-                    clipboard, exit codes. Contains no encoding logic.
-internal/codec/     the engine: base64, JSON, JWT, detection. Pure
-                    functions, no I/O, no knowledge of how it's invoked.
+                    clipboard, exit codes
+internal/web/       presentation: HTTP handlers, JSON API, embedded
+                    frontend (vanilla JS, zero dependencies, no build step)
+internal/codec/     the engine: base64, JSON, JWT, ansible parsing,
+                    detection, mode dispatch. Pure functions, no I/O,
+                    fully unit-tested, no knowledge of how it's invoked
 ```
 
-The split is deliberate: `internal/codec` is fully unit-tested and UI-agnostic, so future front-ends (web UI, desktop app, system tray) reuse it unchanged. `internal/` is compiler-enforced private — nothing outside this module can import the engine.
+The engine defines *what things are* (including per-line severity of log output); the presentation layers decide what that looks like (colors, exit codes, HTTP statuses). New front-ends reuse the engine unchanged — that's how the CLI, web UI, and watch mode share one implementation. `internal/` is compiler-enforced private.
+
+The API is one endpoint: `POST /api/transform` with `{"input", "mode", "urlSafe"}` returning `{"output", "kind"}` plus a structured `task` object for Ansible results. Unknown mode → 400; untransformable input → 422 with `line`/`column` for JSON syntax errors.
 
 ## Development
 
 ```bash
-go test ./...        # run all tests
-go vet ./...         # static analysis
-go build ./...       # compile everything
+go test ./...        # unit tests, incl. real-log ansible fixtures
+go vet ./...
+go build ./...
 ```
 
-Tests are table-driven and live next to the code they test. CI runs vet, tests, and a full build on every push and pull request.
-
-Contributions follow a PR workflow: branch from `main`, open a pull request, let CI pass, merge. No direct pushes to `main`.
+Tests are table-driven; the Ansible parser's test suite is built from real logs, and every parsing bug fixed becomes a named regression test. CI runs vet, tests, build, and a Windows cross-compile on every push and PR. Changes go through pull requests — no direct pushes to `main`.
 
 ## Roadmap
 
 - [x] Stage 1 — CLI with auto-detect, clipboard flag, watch mode
-- [ ] Stage 2 — local web UI (Go + embedded static page)
+- [x] Stage 2 — local web UI: explicit modes, Ansible log analysis, PWA
 - [ ] Stage 3 — native desktop app (Wails, reusing the web UI)
 - [ ] Stage 4 — system tray + global hotkey + on-demand clipboard transform
+
+Parked ideas: Kubernetes Secret manifest decoder, JWT claims view with expiry countdown, recursive decode (base64-in-base64, gzip), multi-task Ansible runs with PLAY RECAP scoreboard, duration-gap timing analysis, user-defined error-hint rules, copy-as-markdown error summaries, URL/hex/YAML codecs, JSON diff.
 
 ## Acknowledgements
 

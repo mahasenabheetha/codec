@@ -416,6 +416,25 @@ textarea::-webkit-scrollbar-thumb:hover { background: var(--muted); }
   margin-top: 1.25rem;
 }
 
+footer {
+  margin-top: 0.5rem;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+footer a { color: var(--accent); text-decoration: none; }
+footer a:hover { text-decoration: underline; }
+
+.privacy { white-space: nowrap; }
+.privacy .dot {
+  display: inline-block;
+  width: 7px; height: 7px;
+  border-radius: 99px;
+  background: var(--ok);
+  margin-right: 0.35rem;
+  box-shadow: 0 0 6px rgb(63 185 111 / 0.7);
+}
+
 /* ---------- success flash ---------- */
 
 .flash { animation: flash 0.45s ease-out; }
