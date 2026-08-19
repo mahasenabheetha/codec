@@ -22,9 +22,14 @@ import (
 //go:embed static
 var staticFiles embed.FS
 
-// transformRequest is the JSON body the browser sends.
+// transformRequest is the JSON body the browser sends. Mode and
+// URLSafe are optional: a request carrying only "input" behaves
+// exactly as before this field existed (auto-detect, standard
+// alphabet), because their zero values select those defaults.
 type transformRequest struct {
-	Input string `json:"input"`
+	Input   string `json:"input"`
+	Mode    string `json:"mode"`
+	URLSafe bool   `json:"urlSafe"`
 }
 
 // transformResponse is what a successful transform returns.
@@ -59,6 +64,16 @@ func Handler() http.Handler {
 	mux.Handle("/", http.FileServer(http.FS(staticRoot)))
 	mux.HandleFunc("POST /api/transform", handleTransform)
 
+	// Non-POST requests to the API path would otherwise fall through
+	// to the "/" file server above and produce a confusing 404. This
+	// method-less pattern is more specific than "/" (so it wins for
+	// GET etc.) but less specific than "POST /api/transform" (so real
+	// API calls never land here).
+	mux.HandleFunc("/api/transform", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Allow", "POST")
+		http.Error(w, "method not allowed; use POST", http.StatusMethodNotAllowed)
+	})
+
 	return mux
 }
 
@@ -78,8 +93,25 @@ func handleTransform(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	out, kind, err := codec.Transform(req.Input)
+	mode := codec.Mode(req.Mode)
+	if mode == "" {
+		mode = codec.ModeAuto
+	}
+
+	opts := codec.Options{}
+	if req.URLSafe {
+		opts.Variant = codec.VariantURL
+	}
+
+	out, kind, err := codec.Apply(mode, req.Input, opts)
 	if err != nil {
+		// An unknown mode is the caller's bug (400); input that
+		// cannot be transformed is the input's fault (422).
+		status := http.StatusUnprocessableEntity
+		if errors.Is(err, codec.ErrUnknownMode) {
+			status = http.StatusBadRequest
+		}
+
 		resp := errorResponse{Error: err.Error()}
 
 		// If the failure was a JSON syntax error, surface the
@@ -90,7 +122,7 @@ func handleTransform(w http.ResponseWriter, r *http.Request) {
 			resp.Line, resp.Column = syn.Line, syn.Column
 		}
 
-		writeJSON(w, http.StatusUnprocessableEntity, resp)
+		writeJSON(w, status, resp)
 		return
 	}
 

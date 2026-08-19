@@ -44,6 +44,12 @@ func DecodeJWT(token string) (*JWT, error) {
 	}, nil
 }
 
+// formatJWT renders a decoded token for human display. It lives here
+// so Transform and Apply present JWTs identically.
+func formatJWT(j *JWT) string {
+	return "header:\n" + j.Header + "\n\npayload:\n" + j.Payload
+}
+
 // decodeSegment base64url-decodes one JWT segment and pretty-prints
 // the JSON inside it.
 func decodeSegment(seg string) (string, error) {
