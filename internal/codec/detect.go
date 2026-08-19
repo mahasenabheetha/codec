@@ -66,7 +66,7 @@ func Transform(s string) (string, Kind, error) {
 		if err != nil {
 			return "", kind, err
 		}
-		return "header:\n" + jwt.Header + "\n\npayload:\n" + jwt.Payload, kind, nil
+		return formatJWT(jwt), kind, nil
 
 	case KindJSON:
 		return Encode([]byte(strings.TrimSpace(s)), VariantStd), kind, nil
