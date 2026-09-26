@@ -145,6 +145,8 @@ go build ./...
 
 Tests are table-driven; the Ansible parser's test suite is built from real logs, and every parsing bug fixed becomes a named regression test. CI runs vet, tests, build, and a Windows cross-compile on every push and PR. Changes go through pull requests — no direct pushes to `main`.
 
+Design notes, conventions and plans for contributors and AI agents live in [design/](design/README.md).
+
 ### Versioning and releases
 
 codec follows [Semantic Versioning](https://semver.org/); every release is listed in [CHANGELOG.md](CHANGELOG.md). A release is cut by tagging a commit that is already on `main`:
