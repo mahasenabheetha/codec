@@ -134,6 +134,18 @@ codec yaml flatten values.yaml              # path: value lines; --reverse to un
 
 Syntax errors are explained in plain English with a fix, e.g. `Tab character used for indentation` or `A value contains ": " but isn't quoted`, and duplicate keys are flagged.
 
+### Helm
+
+Renders charts with the embedded Helm 4 SDK — the same output as `helm template`, without installing helm. Nothing is downloaded: vendor dependencies into `charts/` first.
+
+```bash
+codec helm render ./charts/app -f values-prod.yaml --set image.tag=1.27   # like helm template
+codec helm values ./charts/app -f values-prod.yaml --provenance           # merged values, each line annotated
+#   replicaCount: 3  # ← values-prod.yaml:1 (overrides values.yaml:6)
+```
+
+In the web UI, open a chart from the palette (**Helm: render …**) or the **Render** button on any chart file: pick values layers, `--set` and release options (save them as a profile), and see the rendered manifests, the merged values with where each came from, NOTES and problems. Edits in open tabs render live as what-if.
+
 ### Watch mode
 
 ```bash

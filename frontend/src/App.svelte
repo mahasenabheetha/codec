@@ -9,6 +9,7 @@
   import PanelLeft from '@lucide/svelte/icons/panel-left'
   import RotateCw from '@lucide/svelte/icons/rotate-cw'
   import Search from '@lucide/svelte/icons/search'
+  import Ship from '@lucide/svelte/icons/ship'
   import X from '@lucide/svelte/icons/x'
   import Rail from './lib/shell/Rail.svelte'
   import TabBar from './lib/shell/TabBar.svelte'
@@ -19,11 +20,13 @@
   import Home from './features/home/Home.svelte'
   import Explorer from './features/workspace/Explorer.svelte'
   import FileView from './features/workspace/FileView.svelte'
+  import HelmView from './features/helm/HelmView.svelte'
+  import { charts } from './features/helm/helm.svelte'
   import OpenFolderDialog from './features/workspace/OpenFolderDialog.svelte'
   import QuickOpen from './features/workspace/QuickOpen.svelte'
   import { openFolder, workspace } from './features/workspace/workspace.svelte'
   import { tools, toolById } from './lib/tools'
-  import { router, routeFile, routeTool } from './lib/stores/router.svelte'
+  import { router, routeFile, routeHelm, routeTool } from './lib/stores/router.svelte'
   import { layout } from './lib/stores/layout.svelte'
   import { shortcut } from './lib/stores/shortcuts.svelte'
   import { commands } from './lib/stores/commands.svelte'
@@ -35,10 +38,10 @@
   // would re-add the current route before navigation catches up.
   $effect(() => {
     const route = router.path
-    if (toolById(routeTool(route)) || routeFile(route)) untrack(() => layout.ensureTab(route))
+    if (toolById(routeTool(route)) || routeFile(route) || routeHelm(route)) untrack(() => layout.ensureTab(route))
   })
 
-  const showHome = $derived(!toolById(router.toolId) && !router.filePath)
+  const showHome = $derived(!toolById(router.toolId) && !router.filePath && !routeHelm(router.path))
 
   // Tool code loads on first open and is cached, so switching tabs is
   // instant and each tool keeps its state while its tab stays open.
@@ -117,6 +120,26 @@
     },
   ])
 
+
+  // Charts in the open folder: reload when it changes, and offer each
+  // one in the palette.
+  $effect(() => {
+    void workspace.info?.root
+    void workspace.files
+    untrack(() => charts.load())
+  })
+  $effect(() =>
+    commands.register(
+      charts.list.map((c) => ({
+        id: `helm.${c.path}`,
+        title: `Helm: render ${c.name}${c.path === '.' ? '' : ' (' + c.path + ')'}`,
+        group: 'Helm',
+        icon: Ship,
+        keywords: ['helm', 'template', 'chart', c.path],
+        run: () => layout.openHelm(c.path),
+      })),
+    ),
+  )
   // Recent folders, one palette entry each; re-registered as they change.
   $effect(() => {
     const recent = workspace.info?.recent ?? []
@@ -186,6 +209,10 @@
           {:else if file}
             <div class="panel" hidden={router.path !== route}>
               <FileView path={file} active={router.path === route} />
+            </div>
+          {:else if routeHelm(route)}
+            <div class="panel" hidden={router.path !== route}>
+              <HelmView chart={routeHelm(route)!} active={router.path === route} />
             </div>
           {/if}
         {/each}

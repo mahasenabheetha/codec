@@ -19,6 +19,26 @@ All notable changes to codec are documented here. The format follows
 - Plain-English syntax errors with fix hints (tabs, bad indentation,
   unquoted colons, unclosed quotes) and duplicate-key detection.
 
+### Added (Helm)
+
+- Render charts with the embedded Helm 4.3 SDK — byte-for-byte the same
+  output as `helm template`, no helm install, no cluster, no downloads
+  (dependencies must be vendored in `charts/`, `.tgz` or folders).
+- Helm view per chart: values layers (add, reorder, toggle), `--set`,
+  release/namespace/Kubernetes version, saved profiles (kept in your
+  settings), rendered manifests grouped by template, NOTES, problems
+  with jump-to-line, and live re-render including what-if edits from
+  open tabs.
+- Values provenance: every merged value says which layer set it and what
+  it overrode (hover in the Values view, or on `.Values.*` in a
+  template); `null` deletions, subchart defaults and globals included.
+- Checks: `.Values` paths used but set nowhere (unguarded uses only),
+  defaults no template uses, template errors mapped to file:line, and a
+  note where `lookup` returns empty without a cluster.
+- `codec helm render <chart> -f … --set …` and
+  `codec helm values <chart> -f … --provenance`.
+- Helm templates get template-aware syntax highlighting.
+
 ### Added (editor)
 
 - YAML files open in an editor: Helm/Jinja (template-time) and Argo/

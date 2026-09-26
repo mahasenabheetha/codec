@@ -5,7 +5,8 @@
   import FileIcon from '../../features/workspace/FileIcon.svelte'
   import { workspace } from '../../features/workspace/workspace.svelte'
   import { layout } from '../stores/layout.svelte'
-  import { router, routeFile, routeTool } from '../stores/router.svelte'
+  import { router, routeFile, routeHelm, routeTool } from '../stores/router.svelte'
+  import { charts } from '../../features/helm/helm.svelte'
   import { toolById } from '../tools'
 
   // Open tools and files as tabs. Middle-click closes, like an editor.
@@ -41,10 +42,11 @@
     {#each layout.tabs as route (route)}
       {@const tool = toolById(routeTool(route))}
       {@const file = routeFile(route)}
-      {#if tool || file}
+      {@const chart = routeHelm(route)}
+      {#if tool || file || chart}
         {@const selected = router.path === route}
-        {@const title = tool ? tool.title : names.get(file!)?.name}
-        <div class="tab" class:selected title={file ?? undefined}>
+        {@const title = tool ? tool.title : file ? names.get(file)?.name : `Helm · ${charts.byPath(chart!)?.name ?? chart}`}
+        <div class="tab" class:selected title={file ?? (chart ? `Helm view of ${chart}` : undefined)}>
           <button
             type="button"
             role="tab"
@@ -55,6 +57,8 @@
           >
             {#if tool}
               <tool.icon size={14} strokeWidth={1.75} />
+            {:else if chart}
+              <FileIcon file="helm-chart" />
             {:else}
               <FileIcon file={workspace.byPath.get(file!) ?? { lang: 'text' }} />
             {/if}

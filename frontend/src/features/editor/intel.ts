@@ -211,44 +211,49 @@ export function yamlIntel(hooks: IntelHooks): Extension {
       '.cm-lintPoint:after': { borderBottomColor: 'var(--err)' },
       '.cm-gutter-lint': { width: '14px' },
       '.cm-lint-marker': { width: '10px', height: '10px' },
-
-      '.cm-tooltip': {
-        backgroundColor: 'var(--bg-2)',
-        color: 'var(--fg-0)',
-        border: 'none',
-        borderRadius: 'var(--r-md)',
-        boxShadow: 'var(--shadow-pop)',
-        fontFamily: 'var(--font-ui)',
-        fontSize: 'var(--fs-sm)',
-      },
-      '.cm-tooltip-lint': { padding: 0 },
-      '.cm-diagnostic': { padding: 'var(--s-2) var(--s-3)', borderLeftWidth: '3px' },
-      '.cm-diagnostic-error': { borderLeftColor: 'var(--err)' },
-      '.cm-diagnostic-warning': { borderLeftColor: 'var(--warn)' },
-      '.cm-diagnostic-info': { borderLeftColor: 'var(--info)' },
-      '.cm-diag-hint': { marginTop: 'var(--s-1)', color: 'var(--fg-1)' },
-      '.cm-diagnosticSource': { color: 'var(--fg-2)', fontFamily: 'var(--font-mono)', fontSize: 'var(--fs-xs)' },
-
-      '.cm-hover': { maxWidth: '480px', padding: 'var(--s-2) var(--s-3)' },
-      '.cm-hover-title': { fontFamily: 'var(--font-mono)', color: 'var(--syn-key)', marginBottom: 'var(--s-1)', wordBreak: 'break-all' },
-      '.cm-hover dl': { display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '2px var(--s-3)', margin: 0 },
-      '.cm-hover dt': { color: 'var(--fg-2)' },
-      '.cm-hover dd': { margin: 0 },
-      '.cm-hover pre': {
-        margin: 'var(--s-2) 0 0',
-        padding: 'var(--s-2)',
-        fontFamily: 'var(--font-mono)',
-        fontSize: 'var(--fs-xs)',
-        background: 'var(--bg-0)',
-        borderRadius: 'var(--r-sm)',
-        whiteSpace: 'pre-wrap',
-        maxHeight: '220px',
-        overflow: 'auto',
-      },
-
-      '.cm-tooltip-autocomplete > ul': { fontFamily: 'var(--font-mono)', fontSize: 'var(--fs-sm)' },
-      '.cm-tooltip-autocomplete > ul > li[aria-selected]': { backgroundColor: 'var(--accent-soft)', color: 'var(--fg-0)' },
-      '.cm-completionDetail': { color: 'var(--fg-2)', fontStyle: 'normal', marginLeft: 'var(--s-2)' },
     }),
+    tooltipTheme,
   ]
 }
+
+/** Tooltip and hover-card styles, shared by every editor view that
+ *  shows tooltips (this one, the Helm values view). */
+export const tooltipTheme = EditorView.theme({
+  '.cm-tooltip': {
+    backgroundColor: 'var(--bg-2)',
+    color: 'var(--fg-0)',
+    border: 'none',
+    borderRadius: 'var(--r-md)',
+    boxShadow: 'var(--shadow-pop)',
+    fontFamily: 'var(--font-ui)',
+    fontSize: 'var(--fs-sm)',
+  },
+  '.cm-tooltip-lint': { padding: 0 },
+  '.cm-diagnostic': { padding: 'var(--s-2) var(--s-3)', borderLeftWidth: '3px' },
+  '.cm-diagnostic-error': { borderLeftColor: 'var(--err)' },
+  '.cm-diagnostic-warning': { borderLeftColor: 'var(--warn)' },
+  '.cm-diagnostic-info': { borderLeftColor: 'var(--info)' },
+  '.cm-diag-hint': { marginTop: 'var(--s-1)', color: 'var(--fg-1)' },
+  '.cm-diagnosticSource': { color: 'var(--fg-2)', fontFamily: 'var(--font-mono)', fontSize: 'var(--fs-xs)' },
+
+  '.cm-hover': { maxWidth: '480px', padding: 'var(--s-2) var(--s-3)' },
+  '.cm-hover-title': { fontFamily: 'var(--font-mono)', color: 'var(--syn-key)', marginBottom: 'var(--s-1)', wordBreak: 'break-all' },
+  '.cm-hover dl': { display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '2px var(--s-3)', margin: 0 },
+  '.cm-hover dt': { color: 'var(--fg-2)' },
+  '.cm-hover dd': { margin: 0 },
+  '.cm-hover pre': {
+    margin: 'var(--s-2) 0 0',
+    padding: 'var(--s-2)',
+    fontFamily: 'var(--font-mono)',
+    fontSize: 'var(--fs-xs)',
+    background: 'var(--bg-0)',
+    borderRadius: 'var(--r-sm)',
+    whiteSpace: 'pre-wrap',
+    maxHeight: '220px',
+    overflow: 'auto',
+  },
+
+  '.cm-tooltip-autocomplete > ul': { fontFamily: 'var(--font-mono)', fontSize: 'var(--fs-sm)' },
+  '.cm-tooltip-autocomplete > ul > li[aria-selected]': { backgroundColor: 'var(--accent-soft)', color: 'var(--fg-0)' },
+  '.cm-completionDetail': { color: 'var(--fg-2)', fontStyle: 'normal', marginLeft: 'var(--s-2)' },
+})

@@ -1,5 +1,7 @@
 <script module lang="ts">
-  export type Language = 'json' | 'yaml' | 'text'
+  /** yaml-template: Helm/Go-template YAML; a line-based mode that
+   *  doesn't lose its place after `{{- … }}` lines (decision #32). */
+  export type Language = 'json' | 'yaml' | 'yaml-template' | 'text'
 </script>
 
 <script lang="ts">
@@ -17,7 +19,8 @@
   } from '@codemirror/view'
   import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
   import { searchKeymap, highlightSelectionMatches } from '@codemirror/search'
-  import { syntaxHighlighting, bracketMatching, foldGutter, foldKeymap, HighlightStyle } from '@codemirror/language'
+  import { syntaxHighlighting, bracketMatching, foldGutter, foldKeymap, HighlightStyle, StreamLanguage } from '@codemirror/language'
+  import { yaml as yamlMode } from '@codemirror/legacy-modes/mode/yaml'
   import { json } from '@codemirror/lang-json'
   import { yaml } from '@codemirror/lang-yaml'
   import { tags as t } from '@lezer/highlight'
@@ -123,9 +126,16 @@
   // default binding (insert blank line) and let the key reach the app.
   const editorKeymap = defaultKeymap.filter((b) => b.key !== 'Mod-Enter')
 
+  // One per editor; cheap enough, and keeps the language local.
+  const yamlTemplate = StreamLanguage.define({
+    ...yamlMode,
+    tokenTable: { atom: t.propertyName, def: t.meta, meta: t.punctuation, variable: t.labelName, keyword: t.bool },
+  })
+
   function langExt(l: Language): Extension {
     if (l === 'json') return json()
     if (l === 'yaml') return yaml()
+    if (l === 'yaml-template') return yamlTemplate
     return []
   }
 

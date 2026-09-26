@@ -28,6 +28,25 @@ const MaxRecent = 10
 // older settings files keep loading.
 type Settings struct {
 	RecentFolders []string `json:"recentFolders,omitempty"`
+	// Helm holds render profiles per chart, keyed by the chart's
+	// absolute path (so they never live in the repository).
+	Helm map[string]HelmChart `json:"helm,omitempty"`
+}
+
+// HelmChart is the saved state of one chart's Helm view.
+type HelmChart struct {
+	Profiles map[string]HelmProfile `json:"profiles,omitempty"`
+	Active   string                 `json:"active,omitempty"`
+}
+
+// HelmProfile is a named way to render a chart, e.g. "prod": ordered
+// values files (workspace paths) plus --set overrides.
+type HelmProfile struct {
+	Values      []string `json:"values,omitempty"`
+	Set         []string `json:"set,omitempty"`
+	Release     string   `json:"release,omitempty"`
+	Namespace   string   `json:"namespace,omitempty"`
+	KubeVersion string   `json:"kubeVersion,omitempty"`
 }
 
 // Store is the settings file plus an in-memory copy. It is safe for
@@ -79,8 +98,10 @@ func Open() (*Store, error) {
 func (st *Store) Get() Settings {
 	st.mu.Lock()
 	defer st.mu.Unlock()
-	s := st.s
-	s.RecentFolders = append([]string(nil), st.s.RecentFolders...)
+	// A JSON round trip is the simplest deep copy of nested maps.
+	var s Settings
+	data, _ := json.Marshal(st.s)
+	_ = json.Unmarshal(data, &s)
 	return s
 }
 

@@ -27,6 +27,22 @@ export function routeFile(route: string): string | null {
   }
 }
 
+/** Route of a Helm view for a chart directory ("." = workspace root). */
+export function helmRoute(chart: string): string {
+  return '/helm/' + chart.split('/').map(encodeURIComponent).join('/')
+}
+
+/** The chart a Helm route points at, or null. */
+export function routeHelm(route: string): string | null {
+  const m = route.match(/^\/helm\/(.+)$/)
+  if (!m) return null
+  try {
+    return m[1].split('/').map(decodeURIComponent).join('/')
+  } catch {
+    return null
+  }
+}
+
 /** The tool id a route points at, or null. */
 export function routeTool(route: string): string | null {
   const m = route.match(/^\/tools\/([\w-]+)/)

@@ -1,6 +1,7 @@
 // The editor in the active tab, for app-wide UI (status bar breadcrumb,
 // problem counts) and the "open in" preference.
 
+import { SvelteMap } from 'svelte/reactivity'
 import { persisted } from '../../lib/stores/persist.svelte'
 import type { FileSession } from './session.svelte'
 
@@ -27,3 +28,19 @@ export function editorLink(editor: ExternalEditor, root: string, path: string, l
 /** Whether file tabs show the outline/problems panel. One store for all
  *  tabs: persisted() values are per call, not shared by key. */
 export const lensOpen = persisted('lensOpen', true)
+
+/** Every open file editor by path. The Helm view reads their what-if
+ *  buffers so a chart renders with unsaved edits. */
+export const openSessions = new SvelteMap<string, FileSession>()
+
+/** A request to show a position in a file tab; the tab's editor takes
+ *  it once it is ready (e.g. clicking a Helm problem). */
+class EditorNav {
+  pending = $state<{ path: string; line: number; col: number } | null>(null)
+
+  request(path: string, line: number, col = 1) {
+    this.pending = { path, line: Math.max(1, line), col: Math.max(1, col) }
+  }
+}
+
+export const editorNav = new EditorNav()

@@ -10,7 +10,10 @@ internal/
   yamlkit/            ENGINE YAML core: parse, positions, docs, detect,
                       outline, paths, format, convert, diagnostics
   provider/           ENGINE provider interface + registry
-  kube/ helm/ argo/   ENGINE lenses (one package per domain; ci/, ansible/,
+  helm/               ENGINE Helm 4 SDK render + values provenance (from
+                      in-memory files; the SDK is the only big dependency)
+  textdiff/           ENGINE Myers diff, git-applicable patches
+  kube/ argo/         ENGINE lenses (one package per domain; ci/, ansible/,
   ci/ ansible/        compose/ added in their phases)
   compose/
   workspace/          ADAPTER read-only folder access, index, watcher
@@ -63,6 +66,9 @@ resources, jobs, references) built by the workspace adapter.
   Editor calls (`/yaml/analyze|hover|definition|complete|path`,
   `/files/diff`) take `{path, content?, line, col}`; no content = the file
   on disk. Requests are cancelled via `r.Context()` when the editor moves on.
+  Helm: `GET /helm/charts`, `POST /helm/render` {chart, values[], set[],
+  overrides{path: content}, release, namespace, kubeVersion},
+  `POST /helm/profiles` (saved in user settings, keyed by chart path).
 - Errors: `{"error": "...", "line"?, "column"?, "file"?}` with 400 for
   caller bugs, 422 for bad input, 404 missing, 500 unexpected.
 - Push updates via Server-Sent Events, `GET /api/v2/events`: `workspace`

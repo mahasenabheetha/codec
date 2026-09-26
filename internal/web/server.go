@@ -63,6 +63,7 @@ type Server struct {
 	opts  Options
 	token string
 	hub   *hub
+	helm  helmCache
 
 	mu    sync.Mutex // guards the workspace fields
 	ws    *workspace.Workspace
@@ -126,6 +127,9 @@ func (s *Server) routes() http.Handler {
 	mux.HandleFunc("POST /api/v2/yaml/definition", s.handleDefinition)
 	mux.HandleFunc("POST /api/v2/yaml/complete", s.handleComplete)
 	mux.HandleFunc("POST /api/v2/yaml/path", s.handlePath)
+	mux.HandleFunc("GET /api/v2/helm/charts", s.handleHelmCharts)
+	mux.HandleFunc("POST /api/v2/helm/render", s.handleHelmRender)
+	mux.HandleFunc("POST /api/v2/helm/profiles", s.handleHelmProfiles)
 	mux.HandleFunc("/api/v2/", func(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusNotFound, "no such endpoint: "+r.Method+" "+r.URL.Path)
 	})

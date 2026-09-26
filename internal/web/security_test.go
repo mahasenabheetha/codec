@@ -7,8 +7,11 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
+
+	"github.com/mahasenabheetha/codec/v2/internal/helm"
 )
 
 // testServer backs do(); v1 routes need no workspace or token.
@@ -150,5 +153,43 @@ func TestYAMLAPI(t *testing.T) {
 	d := post("/api/v2/files/diff", `{"path":"v.yaml","content":"base: &b\n  x: 2\nuse: *b\n"}`)
 	if !strings.Contains(d["diff"].(string), "-  x: 1\n+  x: 2\n") {
 		t.Errorf("diff = %q", d["diff"])
+	}
+}
+
+func TestHelmAPI(t *testing.T) {
+	root, _ := filepath.Abs("../helm/testdata")
+	s := New(Options{Poll: true})
+	defer s.Close()
+	if err := s.OpenWorkspace(root); err != nil {
+		t.Fatal(err)
+	}
+	s.current().Classify(t.Context())
+	rec := call(s, "GET", "/api/v2/helm/charts", "127.0.0.1:8765", s.Token(), "", "")
+	var charts struct {
+		Charts []chartView `json:"charts"`
+	}
+	json.Unmarshal(rec.Body.Bytes(), &charts)
+	if len(charts.Charts) != 1 || charts.Charts[0].Path != "app" || !slices.Contains(charts.Charts[0].Candidates, "values-prod.yaml") {
+		t.Fatalf("charts = %+v", charts)
+	}
+
+	body := `{"chart":"app","values":["values-prod.yaml"],"overrides":{"values-prod.yaml":"replicaCount: 9\n"}}`
+	rec = call(s, "POST", "/api/v2/helm/render", "127.0.0.1:8765", s.Token(), "", body)
+	var res struct {
+		Manifest    string            `json:"manifest"`
+		ValuesYAML  string            `json:"valuesYAML"`
+		Diagnostics []helm.Diagnostic `json:"diagnostics"`
+	}
+	json.Unmarshal(rec.Body.Bytes(), &res)
+	if rec.Code != 200 || !strings.Contains(res.Manifest, "replicas: 9") || !strings.Contains(res.ValuesYAML, "replicaCount: 9") {
+		t.Fatalf("render: %d %s", rec.Code, rec.Body.String()[:min(400, rec.Body.Len())])
+	}
+	for _, d := range res.Diagnostics {
+		if d.Severity == "error" {
+			t.Errorf("unexpected error %+v", d)
+		}
+		if d.File != "" && !strings.HasPrefix(d.File, "app/") && d.File != "values-prod.yaml" {
+			t.Errorf("diagnostic path not workspace-relative: %+v", d)
+		}
 	}
 }

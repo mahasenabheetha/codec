@@ -102,3 +102,25 @@ Settled unless the user reopens them. Add new ones at the bottom:
     first character after a whole-line `{{- … }}`; the engine overlays
     are correct. A template-aware highlighting mode belongs to phase 05
     (2026-09-26).
+33. Helm values: the SDK computes the merged values (they are what Helm
+    renders with, by construction). Provenance is a lookup, not a second
+    merge: for each final path, every layer that defines it, highest
+    precedence first (--set, -f files, chart defaults; parent globals
+    before a subchart's own). Tests pin chains for lists, null deletion,
+    subcharts and globals (2026-09-26).
+34. Rendering runs `action.Install` in client-only dry-run mode, exactly
+    as `helm template` does, so output is byte-identical (verified with
+    the v4.3.0 CLI built from the same module; opt-in test via
+    HELM_BIN). Cost: binary 12.2 MB → 45.7 MB stripped; the engine alone
+    already needs client-go (≈36 MB), so re-implementing Install to save
+    ~10 MB isn't worth the drift risk (2026-09-26).
+35. Helm templates use CodeMirror's line-based legacy YAML mode
+    (`@codemirror/legacy-modes`) plus the engine's expression overlays;
+    this resolves #32 (2026-09-26).
+36. Provenance hovers live where they are exact: the merged-values view
+    and `.Values.*` expressions in templates (from the chart's last
+    render). A rendered field has no reliable link back to a value, so
+    it gets none (2026-09-26).
+37. The `.Values` reference check warns only for unguarded uses (not in
+    an if/with/range on the same path, nor with default/required/hasKey
+    and friends); unused chart defaults are infos (2026-09-26).

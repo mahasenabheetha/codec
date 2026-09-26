@@ -44,15 +44,26 @@ CLI: `codec helm render <chart> -f … --set …`,
 
 ## Acceptance
 
-- [ ] Output identical to `helm template` of the same Helm version on
-      fixture charts (verify manually, e.g. `docker run --rm -v "$PWD:/c"
-      alpine/helm:<ver> template /c/<chart> -f …`; command documented).
-- [ ] Provenance correct for lists, `null` deletion, subcharts, globals.
-- [ ] Typical chart renders < 300 ms; binary size before/after in PR.
+- [x] Output identical to `helm template` of the same Helm version on
+      fixture charts: `HELM_BIN=<helm v4.3> go test ./internal/helm -run
+      TestMatchesHelmCLI` (defaults, -f, --set, release/namespace/kube
+      version); build the CLI with `go build helm.sh/helm/v4/cmd/helm` in
+      a scratch module, or use `docker run --rm -v "$PWD:/c"
+      alpine/helm:4.3.0 template /c/<chart> -f …`. Also identical on the two
+      real charts in merge-delivery.
+- [x] Provenance correct for lists, `null` deletion, subcharts, globals
+      (`TestProvenance`).
+- [x] Typical chart renders < 300 ms (fixture: ~50 ms); binary size
+      12.2 MB → 45.7 MB stripped (decision #34).
 
 ## Notes
 
 Verify Helm 4 SDK package paths/APIs first. `lookup` returns empty in
 template mode — say so in the UI.
+
+Done with `helm.sh/helm/v4` v4.3.0: `loader.LoadFiles` (in-memory chart,
+`.helmignore` applied by the adapter), `action.Install` client-only,
+`util.CoalesceValues` for the final values. `lookup` use is an info
+problem plus a status-bar note.
 
 **Go concepts:** consuming a large SDK, recursion over `map[string]any`, type switches, interfaces for testability.

@@ -14,7 +14,7 @@
   import { workspace } from '../../features/workspace/workspace.svelte'
   import { getVersion, type VersionInfo } from '../api/version'
   import { layout } from '../stores/layout.svelte'
-  import { router } from '../stores/router.svelte'
+  import { router, routeHelm } from '../stores/router.svelte'
   import { toolById } from '../tools'
 
   let version = $state<VersionInfo | null>(null)
@@ -69,6 +69,9 @@
       {:else}
         <span class="path">{file}</span>
       {/if}
+    {:else if routeHelm(router.path)}
+      <span class="where type"><FileIcon file="helm-chart" size={12} /> Helm</span>
+      <span class="path">{routeHelm(router.path)} · rendered like helm template (no cluster; lookup returns empty)</span>
     {:else}
       <span class="where">Home</span>
     {/if}

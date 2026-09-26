@@ -27,7 +27,8 @@
   import { layout } from '../../lib/stores/layout.svelte'
   import { toast } from '../../lib/stores/toast.svelte'
   import { copyText } from '../../lib/utils/clipboard'
-  import { activeEditor, editorLink, editorNames, lensOpen, openIn, type ExternalEditor } from '../editor/active.svelte'
+  import { activeEditor, editorLink, editorNames, editorNav, lensOpen, openIn, openSessions, type ExternalEditor } from '../editor/active.svelte'
+  import { charts } from '../helm/helm.svelte'
   import { applyAnalysis, offsetOf, yamlIntel } from '../editor/intel'
   import Outline from '../editor/Outline.svelte'
   import Problems from '../editor/Problems.svelte'
@@ -99,7 +100,23 @@
     }
   })
 
+  openSessions.set(untrack(() => path), session)
+
+  // Take a "show this position" request (e.g. from a Helm problem)
+  // once this tab is showing and its text is loaded.
+  $effect(() => {
+    const req = editorNav.pending
+    if (!req || req.path !== path || !active || !session.disk) return
+    queueMicrotask(() => {
+      jump({ line: req.line, col: req.col, offset: 0 })
+      editorNav.pending = null
+    })
+  })
+
+  const chart = $derived(charts.of(path))
+
   onDestroy(() => {
+    openSessions.delete(path)
     session.dispose()
     ws.dirty.delete(path)
   })
@@ -210,6 +227,11 @@
         {lines} lines{session.disk.crlf ? ' · CRLF' : ''}{session.disk.bom ? ' · BOM' : ''}
       </span>
     {/if}
+    {#if chart}
+      <Button size="sm" variant="ghost" onclick={() => layout.openHelm(chart.path)} title="Render {chart.name} with the Helm view">
+        <span class="render"><FileIcon file="helm-chart" /> Render</span>
+      </Button>
+    {/if}
     <div class="actions">
       <span class="open-in">
         <IconButton
@@ -261,7 +283,7 @@
           bind:value={session.buffer}
           syncDelay={100}
           label={path}
-          language={editorLang(session.disk!.lang)}
+          language={editorLang(session.disk!.lang, kind)}
           extensions={session.isYAML ? intel : []}
         />
       {/snippet}
@@ -357,6 +379,11 @@
     color: var(--fg-2);
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
+  }
+  .render {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-1);
   }
   .actions,
   .open-in {

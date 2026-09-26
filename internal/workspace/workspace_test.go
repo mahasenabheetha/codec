@@ -222,3 +222,22 @@ func TestWatch(t *testing.T) {
 		})
 	}
 }
+
+func TestReadTree(t *testing.T) {
+	root := writeTree(t, map[string]string{"chart/Chart.yaml": "name: a\n", "chart/templates/a.yaml": "x: 1\n", "chart/tmp/skip.txt": "no", "other.yaml": "o: 1\n"})
+	w := open(t, root)
+	files, err := w.ReadTree("chart", func(rel string, isDir bool) bool { return rel == "tmp" })
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got []string
+	for _, f := range files {
+		got = append(got, f.Path)
+	}
+	if strings.Join(got, ",") != "Chart.yaml,templates/a.yaml" {
+		t.Errorf("ReadTree = %v", got)
+	}
+	if _, err := w.ReadTree("../x", nil); !errors.Is(err, ErrOutside) {
+		t.Errorf("escape: %v", err)
+	}
+}

@@ -152,7 +152,13 @@ func (s *Server) handleAnalyze(w http.ResponseWriter, r *http.Request) {
 // POST /api/v2/yaml/hover
 func (s *Server) handleHover(w http.ResponseWriter, r *http.Request) {
 	s.serveYAML(w, r, func(req *yamlRequest, f *provider.File, p provider.Provider) any {
-		return map[string]any{"hover": provider.HoverAt(p, f, pos(req, f))}
+		h := provider.HoverAt(p, f, pos(req, f))
+		if h != nil && strings.HasSuffix(h.Title, "template expression") {
+			if ws := s.current(); ws != nil {
+				h.Rows = append(h.Rows, s.helmHoverRows(ws, req.Path, h.Code)...)
+			}
+		}
+		return map[string]any{"hover": h}
 	})
 }
 

@@ -82,7 +82,8 @@ export function isSpecific(kind: string): boolean {
   return kind in types && kind !== 'yaml'
 }
 
-/** CodeMirror language for a file. */
-export function editorLang(lang: string): 'yaml' | 'json' | 'text' {
+/** CodeMirror language for a file; Helm templates get the template mode. */
+export function editorLang(lang: string, kind = ''): 'yaml' | 'yaml-template' | 'json' | 'text' {
+  if (kind === 'helm-template') return 'yaml-template'
   return lang === 'yaml' || lang === 'json' ? lang : 'text'
 }

@@ -3,7 +3,7 @@
 // agree.
 
 import { persisted } from './persist.svelte'
-import { router, fileRoute } from './router.svelte'
+import { router, fileRoute, helmRoute } from './router.svelte'
 
 const railCollapsed = persisted('railCollapsed', false)
 const explorerOpen = persisted('explorerOpen', true)
@@ -70,6 +70,10 @@ class Layout {
 
   openFile(path: string) {
     this.open(fileRoute(path))
+  }
+
+  openHelm(chart: string) {
+    this.open(helmRoute(chart))
   }
 
   /** Called when the URL points at a tab, e.g. from a bookmark. */

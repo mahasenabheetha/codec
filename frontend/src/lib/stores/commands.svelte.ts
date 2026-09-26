@@ -2,7 +2,7 @@
 // registered once at startup; tools register contextual commands while
 // they are the active tab.
 
-import type { Component } from 'svelte'
+import { untrack, type Component } from 'svelte'
 
 export interface Command {
   id: string
@@ -17,12 +17,14 @@ export interface Command {
 class Commands {
   list = $state<Command[]>([])
 
-  /** Add commands; returns a function that removes them again. */
+  /** Add commands; returns a function that removes them again. Safe to
+   *  call from an $effect: the list is read untracked, so registering
+   *  doesn't make the effect depend on (and re-run for) its own write. */
   register(cmds: Command[]): () => void {
-    this.list.push(...cmds)
+    untrack(() => this.list.push(...cmds))
     const ids = new Set(cmds.map((c) => c.id))
     return () => {
-      this.list = this.list.filter((c) => !ids.has(c.id))
+      this.list = untrack(() => this.list.filter((c) => !ids.has(c.id)))
     }
   }
 }
