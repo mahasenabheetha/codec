@@ -220,9 +220,14 @@ func exprHover(e yamlkit.Expression) *Hover {
 		"github":      "GitHub Actions expression",
 		"argo":        "Argo expression",
 	}[e.Syntax]
-	when := "at render time (helm template, ansible)"
-	if e.Phase == yamlkit.PhaseRuntime {
+	when := "at render time, before the YAML is parsed"
+	switch {
+	case e.Phase == yamlkit.PhaseRuntime:
 		when = "at run time, by the workflow engine"
+	case e.Syntax == "go-template":
+		when = "at render time (helm template)"
+	case e.Syntax == "jinja":
+		when = "at render time (Ansible/Jinja)"
 	}
 	h := &Hover{Range: e.Range, Title: title, Rows: []HoverRow{{"Evaluated", when}}, Code: clip(e.Text)}
 	if e.Standalone {

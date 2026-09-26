@@ -33,10 +33,40 @@
    (`.goreleaser.yaml`) builds linux/windows/darwin × amd64/arm64,
    archives them (`zip` on Windows, `tar.gz` elsewhere), and publishes
    a GitHub Release with `checksums.txt`. Suffixed tags become
-   pre-releases automatically.
+   pre-releases automatically. The same run pushes the Docker image.
+4. First release with an image only: the GHCR package starts private.
+   Make it public once: GitHub → Packages → codec → Package settings →
+   Change visibility.
 
-Local dry run: `goreleaser build --snapshot --clean --single-target`
-(output in `dist/`, gitignored).
+Local dry runs (output in `dist/`, gitignored):
+
+- `goreleaser build --snapshot --clean --single-target`: one binary.
+- `goreleaser release --snapshot --clean --skip=archive`: all six
+  binaries plus the Docker images, loaded into the local daemon and not
+  pushed (~10 min on Windows). The before-hook runs `npm ci`, which
+  fails if a running vite dev server holds `node_modules`; stop it, or
+  build the frontend yourself and add `before` to `--skip`.
+
+## Docker image
+
+- `dockers_v2` in `.goreleaser.yaml` builds `ghcr.io/mahasenabheetha/codec`
+  for linux/amd64 and linux/arm64 from the already-compiled binaries.
+  The `Dockerfile` only copies `<os>/<arch>/codec`: no Go build, no QEMU.
+- Base `gcr.io/distroless/static-debian12:nonroot`: no shell, user
+  65532, HOME `/home/nonroot` (settings land in `.config/codec` there).
+  About 70 MB, almost all of it the binary.
+- Entrypoint `codec serve --host 0.0.0.0 --root /work`, `EXPOSE 8765`.
+  codec detects the container (`/.dockerenv`, `/run/.containerenv`) and
+  polls for file changes; native events don't cross bind mounts from
+  Windows or macOS hosts.
+- Tags: `{{ .Version }}` (e.g. `2.0.0-alpha.1`) always; `latest` only
+  when the tag has no pre-release suffix.
+- The release workflow has `packages: write`, logs in to ghcr.io with
+  `GITHUB_TOKEN` and sets up buildx.
+- Documented run: `-p 127.0.0.1:8765:8765` (not reachable from the
+  network) and `-v <repo>:/work:ro`; `-v codec-home:/home/nonroot`
+  keeps settings between runs.
+- GHCR storage and bandwidth are free for public images.
 
 ## GitHub Releases: cost and limits
 

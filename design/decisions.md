@@ -124,3 +124,11 @@ Settled unless the user reopens them. Add new ones at the bottom:
 37. The `.Values` reference check warns only for unguarded uses (not in
     an if/with/range on the same path, nor with default/required/hasKey
     and friends); unused chart defaults are infos (2026-09-26).
+38. Docker image: GoReleaser `dockers_v2` on distroless `static:nonroot`,
+    copying the already-built binaries (no build stage, no QEMU). Docs
+    always publish the port on `127.0.0.1`: the server binds 0.0.0.0
+    inside the container, and anyone who can load the page gets its
+    token (2026-09-26).
+39. Saved tabs are tied to the folder they were opened in; on a first
+    visit (no folder recorded yet) a file tab opened by the URL is kept,
+    so links to `#/file/…` work (2026-09-26).

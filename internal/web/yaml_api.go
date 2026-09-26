@@ -77,7 +77,13 @@ func readError(err error) *httpError {
 	case errors.Is(err, workspace.ErrOutside):
 		return &httpError{http.StatusForbidden, err.Error()}
 	case errors.Is(err, fs.ErrNotExist):
-		return &httpError{http.StatusNotFound, err.Error()}
+		// The OS wording ("openat x: The system cannot find…") differs
+		// per platform and says too much; name the path only.
+		msg := "file not found"
+		if pe, ok := errors.AsType[*fs.PathError](err); ok {
+			msg = pe.Path + ": not found"
+		}
+		return &httpError{http.StatusNotFound, msg}
 	case errors.Is(err, workspace.ErrTooLarge):
 		return &httpError{http.StatusRequestEntityTooLarge, err.Error()}
 	case errors.Is(err, workspace.ErrBinary):

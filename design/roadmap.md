@@ -11,7 +11,7 @@ dependencies are listed in each phase file.
 | 03 | [Workspace](phases/03-workspace.md) | Open folder read-only, index, file tree, viewer | done |
 | 04 | [Editor intelligence](phases/04-editor.md) | Highlighting overlays, diagnostics, outline, hover, what-if edits | done |
 | 05 | [Helm](phases/05-helm.md) | Embedded render, values layers + provenance, live preview | done |
-| 06 | [MVP release](phases/06-mvp-release.md) | `v2.0.0-alpha.1`, Docker image, docs | todo |
+| 06 | [MVP release](phases/06-mvp-release.md) | `v2.0.0-alpha.1`, Docker image, docs | done (user checks + tag pending) |
 | 07 | [Lint + schemas](phases/07-lint.md) | Rules, JSON Schema, K8s checks, deprecations | todo |
 | 08 | [Compare + query](phases/08-compare.md) | Semantic diff, env diff, jq query | todo |
 | 09 | [Kubernetes lens](phases/09-kubernetes.md) | Cards, inventory, relations, neat, kustomize | todo |

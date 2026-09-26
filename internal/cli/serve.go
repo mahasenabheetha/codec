@@ -81,6 +81,10 @@ func runServe(cmd *cobra.Command, args []string) error {
 	url := "http://" + net.JoinHostPort(browserHost(serveHost), strconv.Itoa(port)) + "/"
 
 	fmt.Printf("codec %s running at %s — Ctrl+C to stop\n", version.Get().Version, url)
+	if inContainer() {
+		// The container can't know which host port -p mapped it to.
+		fmt.Printf("(in a container: open the host port you published, e.g. -p 127.0.0.1:%d:%d)\n", port, port)
+	}
 	if serveRoot != "" {
 		mode := "native events"
 		if poll {

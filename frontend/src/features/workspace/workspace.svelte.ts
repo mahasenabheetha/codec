@@ -117,7 +117,11 @@ class Workspace {
   private rootChanged() {
     const root = this.info?.open ? this.info.root! : ''
     if (root === lastRoot.value) return
+    const first = lastRoot.value === ''
     lastRoot.value = root
+    // Nothing was saved for another folder yet (first visit): keep a
+    // file tab the URL opened, e.g. a shared link.
+    if (first) return
     layout.closeWhere((r) => routeFile(r) !== null)
     this.expanded.clear()
     this.versions.clear()

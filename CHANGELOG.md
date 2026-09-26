@@ -6,6 +6,20 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+## [2.0.0-alpha.1] - 2026-09-26
+
+First 2.0 pre-release: the read-only YAML workbench (workspace, editor,
+Helm) on top of the v1 tools, as native binaries and a Docker image.
+
+### Added (release)
+
+- Docker image `ghcr.io/mahasenabheetha/codec` for linux/amd64 and
+  linux/arm64 (distroless, non-root): mount a repository read-only at
+  `/work`; file changes are detected by polling. Version tags on every
+  release, `latest` on stable ones only.
+- README rewritten for 2.0 with screenshots, Docker quick start and
+  notes for Windows SmartScreen and macOS Gatekeeper.
+
 ### Added (YAML)
 
 - `codec yaml identify|outline|path|fmt|convert|flatten`: detect 13 file
@@ -71,6 +85,10 @@ All notable changes to codec are documented here. The format follows
 
 ### Fixed
 
+- A link straight to a file (`#/file/…`) opened on a first visit no
+  longer lands on the home page.
+- "File not found" errors name the path instead of the raw OS message.
+- Hover on a Helm template expression no longer mentions Ansible.
 - A YAML file using Go templates without Helm's objects (e.g.
   `.goreleaser.yaml`) is no longer labelled a Helm template.
 
@@ -115,5 +133,6 @@ First tagged release: codec as it stood before the 2.0 work began.
 - Release pipeline: pushing a `v*` tag publishes binaries for Linux,
   Windows and macOS (amd64/arm64) to GitHub Releases via GoReleaser.
 
-[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v2.0.0-alpha.1...HEAD
+[2.0.0-alpha.1]: https://github.com/mahasenabheetha/codec/compare/v1.0.0...v2.0.0-alpha.1
 [1.0.0]: https://github.com/mahasenabheetha/codec/releases/tag/v1.0.0

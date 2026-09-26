@@ -101,4 +101,5 @@ Implemented in `internal/web/security.go`; every route passes the guard.
   fsnotify watches every directory, polling if that fails.
 - Docker: `codec serve --host 0.0.0.0 --root /work`, repo mounted `:ro`;
   polling is automatic in containers (bind-mount events are unreliable
-  on Windows), or forced with `--poll`.
+  on Windows), or forced with `--poll`. Image: `ghcr.io/mahasenabheetha/codec`
+  (distroless, non-root; run with `-p 127.0.0.1:8765:8765`), see releases.md.

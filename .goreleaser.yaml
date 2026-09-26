@@ -42,6 +42,26 @@ archives:
 checksum:
   name_template: checksums.txt
 
+# Multi-platform image from the Linux binaries above (see Dockerfile),
+# pushed to GitHub Container Registry. Every release gets its version
+# tag (2.0.0-alpha.1); only stable releases move "latest".
+dockers_v2:
+  - images:
+      - ghcr.io/mahasenabheetha/codec
+    tags:
+      - "{{ .Version }}"
+      - "{{ if not .Prerelease }}latest{{ end }}"
+    platforms:
+      - linux/amd64
+      - linux/arm64
+    labels:
+      org.opencontainers.image.title: codec
+      org.opencontainers.image.description: Read-only YAML workbench and DevOps toolbox (web UI)
+      org.opencontainers.image.source: https://github.com/mahasenabheetha/codec
+      org.opencontainers.image.version: "{{ .Version }}"
+      org.opencontainers.image.revision: "{{ .FullCommit }}"
+      org.opencontainers.image.created: "{{ .Date }}"
+
 changelog:
   sort: asc
   filters:
