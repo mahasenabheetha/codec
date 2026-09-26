@@ -14,7 +14,7 @@
   import { workspace } from '../../features/workspace/workspace.svelte'
   import { getVersion, type VersionInfo } from '../api/version'
   import { layout } from '../stores/layout.svelte'
-  import { compareRoute, lintSettingsRoute, problemsRoute, queryRoute, router, routeHelm } from '../stores/router.svelte'
+  import { compareRoute, lintSettingsRoute, problemsRoute, queryRoute, router, routeHelm, routeK8s, routeKustomize } from '../stores/router.svelte'
   import { toolById } from '../tools'
 
   let version = $state<VersionInfo | null>(null)
@@ -74,6 +74,12 @@
       <span class="path">{routeHelm(router.path)} · rendered like helm template (no cluster; lookup returns empty)</span>
     {:else if router.path === problemsRoute}
       <span class="where">Workspace problems</span>
+    {:else if routeK8s(router.path) !== null}
+      <span class="where">Kubernetes</span>
+      <span class="path">{routeK8s(router.path)} · files on disk; Helm templates are left out (render them)</span>
+    {:else if routeKustomize(router.path) !== null}
+      <span class="where">Kustomize</span>
+      <span class="path">{routeKustomize(router.path)} · built in-process like kubectl kustomize; remote bases not supported</span>
     {:else if router.path === compareRoute}
       <span class="where">Compare</span>
       <span class="path">by meaning: key and list order ignored, list items paired by name</span>

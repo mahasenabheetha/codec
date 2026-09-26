@@ -1,6 +1,8 @@
 <script lang="ts">
   import Search from '@lucide/svelte/icons/search'
+  import Boxes from '@lucide/svelte/icons/boxes'
   import GitCompare from '@lucide/svelte/icons/git-compare'
+  import Layers from '@lucide/svelte/icons/layers'
   import ListChecks from '@lucide/svelte/icons/list-checks'
   import TextSearch from '@lucide/svelte/icons/text-search'
   import Settings2 from '@lucide/svelte/icons/settings-2'
@@ -9,7 +11,18 @@
   import FileIcon from '../../features/workspace/FileIcon.svelte'
   import { workspace } from '../../features/workspace/workspace.svelte'
   import { layout } from '../stores/layout.svelte'
-  import { compareRoute, lintSettingsRoute, problemsRoute, queryRoute, router, routeFile, routeHelm, routeTool } from '../stores/router.svelte'
+  import {
+    compareRoute,
+    lintSettingsRoute,
+    problemsRoute,
+    queryRoute,
+    router,
+    routeFile,
+    routeHelm,
+    routeK8s,
+    routeKustomize,
+    routeTool,
+  } from '../stores/router.svelte'
   import { charts } from '../../features/helm/helm.svelte'
   import { toolById } from '../tools'
 
@@ -44,6 +57,15 @@
     [queryRoute]: { title: 'Query', icon: TextSearch },
   }
 
+  // Views over a folder: Kubernetes resources and Kustomize builds.
+  function scopedView(route: string): { title: string; icon: typeof X } | undefined {
+    const k8s = routeK8s(route)
+    if (k8s !== null) return { title: `K8s · ${k8s === '.' ? 'all' : base(k8s)}`, icon: Boxes }
+    const kz = routeKustomize(route)
+    if (kz !== null) return { title: `Kustomize · ${base(kz)}`, icon: Layers }
+    return undefined
+  }
+
   function base(p: string) {
     return p.slice(p.lastIndexOf('/') + 1)
   }
@@ -55,7 +77,7 @@
       {@const tool = toolById(routeTool(route))}
       {@const file = routeFile(route)}
       {@const chart = routeHelm(route)}
-      {@const view = views[route]}
+      {@const view = views[route] ?? scopedView(route)}
       {#if tool || file || chart || view}
         {@const selected = router.path === route}
         {@const title = tool ? tool.title : view ? view.title : file ? names.get(file)?.name : `Helm · ${charts.byPath(chart!)?.name ?? chart}`}

@@ -6,6 +6,27 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+### Added (Kubernetes)
+
+- Resources view for a folder, a Helm render or a Kustomize build:
+  objects as cards (replicas, containers, ports, keys, selectors, who
+  uses what), a relationship graph, an inventory (kinds, images and
+  tags, ports, ConfigMaps/Secrets used, requests/limits totals) and
+  reference problems.
+- Relationships: Service → pods (selector vs labels, named target
+  ports), Ingress → Service:port, workloads → ConfigMaps, Secrets, PVCs
+  and ServiceAccounts, RBAC bindings, HPA and PDB targets. References
+  that point outside the scope are warnings (they may live elsewhere).
+- Kubernetes files get an outline that says what things are
+  ("Container app · nginx:1.27 · 1 port", "Env DB_PASSWORD · from Secret
+  db/password"); hovering a Secret's data shows it decoded; Secret cards
+  mask values until you reveal them.
+- Neat: copy manifests without status, managedFields, uid,
+  resourceVersion, timestamps or last-applied annotations.
+- Kustomize built in-process — the same output as `kubectl kustomize`,
+  with what-if edits, lint and schema problems, and the resources view.
+- `codec k8s images|refs|neat` and `codec kustomize build <dir>`.
+
 ### Added (compare and query)
 
 - Semantic diff: key order and list order don't count; Kubernetes

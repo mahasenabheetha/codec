@@ -43,6 +43,31 @@ export function routeHelm(route: string): string | null {
   }
 }
 
+function prefixed(prefix: string) {
+  return {
+    route: (p: string) => prefix + p.split("/").map(encodeURIComponent).join("/"),
+    parse: (route: string): string | null => {
+      if (!route.startsWith(prefix)) return null
+      try {
+        return route.slice(prefix.length).split("/").map(decodeURIComponent).join("/") || "."
+      } catch {
+        return null
+      }
+    },
+  }
+}
+const k8s = prefixed("/k8s/")
+const kustomize = prefixed("/kustomize/")
+
+/** Route of the Kubernetes resources view of a folder ("." = root). */
+export const k8sRoute = k8s.route
+/** The folder a Kubernetes route points at, or null. */
+export const routeK8s = k8s.parse
+/** Route of a Kustomize build of a directory. */
+export const kustomizeRoute = kustomize.route
+/** The kustomization directory a route points at, or null. */
+export const routeKustomize = kustomize.parse
+
 /** Fixed app views that open as tabs. */
 export const problemsRoute = '/problems'
 export const lintSettingsRoute = '/settings/lint'
@@ -51,7 +76,7 @@ export const queryRoute = '/query'
 
 /** Is route one of the fixed views? */
 export function isView(route: string): boolean {
-  return [problemsRoute, lintSettingsRoute, compareRoute, queryRoute].includes(route)
+  return [problemsRoute, lintSettingsRoute, compareRoute, queryRoute].includes(route) || routeK8s(route) !== null || routeKustomize(route) !== null
 }
 
 /** The tool id a route points at, or null. */

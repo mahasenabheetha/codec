@@ -1,9 +1,11 @@
 <script lang="ts">
   import { onDestroy, untrack } from 'svelte'
   import { EditorView } from '@codemirror/view'
+  import Boxes from '@lucide/svelte/icons/boxes'
   import ChevronDown from '@lucide/svelte/icons/chevron-down'
   import ChevronRight from '@lucide/svelte/icons/chevron-right'
   import Copy from '@lucide/svelte/icons/copy'
+  import Eraser from '@lucide/svelte/icons/eraser'
   import ExternalLink from '@lucide/svelte/icons/external-link'
   import FileDiff from '@lucide/svelte/icons/file-diff'
   import FileWarning from '@lucide/svelte/icons/file-warning'
@@ -30,6 +32,8 @@
   import Tabs from '../../lib/components/Tabs.svelte'
   import { completeAt, definitionAt, diffFile, hoverAt, type Diagnostic, type Pos } from '../../lib/api/yaml'
   import { layout } from '../../lib/stores/layout.svelte'
+  import { k8sRoute, kustomizeRoute } from '../../lib/stores/router.svelte'
+  import { neat } from '../../lib/api/k8s'
   import { toast } from '../../lib/stores/toast.svelte'
   import { copyText } from '../../lib/utils/clipboard'
   import { activeEditor, editorLink, editorNames, editorNav, lensOpen, openIn, openSessions, type ExternalEditor } from '../editor/active.svelte'
@@ -144,6 +148,19 @@
     complete: (line, col) => completeAt(at(line, col)),
     cursor: (line, col) => (session.cursor = { line, col }),
   })
+
+  const dirOf = (p: string) => (p.includes('/') ? p.slice(0, p.lastIndexOf('/')) : '.')
+
+  async function copyNeat() {
+    const text = liveText()
+    try {
+      const r = await neat(path, text === session.diskText ? undefined : text)
+      if (r.error) toast(r.error, 'err')
+      else copyText(r.text ?? '', 'Neat YAML')
+    } catch (e) {
+      toast(e instanceof Error ? e.message : String(e), 'err')
+    }
+  }
 
   // What-if edits compare with the disk; otherwise pick the other file.
   function compareThis() {
@@ -262,8 +279,16 @@
       <Button size="sm" variant="ghost" onclick={() => layout.openHelm(chart.path)} title="Render {chart.name} with the Helm view">
         <span class="render"><FileIcon file="helm-chart" /> Render</span>
       </Button>
+    {:else if kind === 'kustomize'}
+      <Button size="sm" variant="ghost" onclick={() => layout.open(kustomizeRoute(dirOf(path)))} title="Build this kustomization">
+        <span class="render"><FileIcon file={{ type: 'kustomize', lang: 'yaml' }} /> Build</span>
+      </Button>
     {/if}
     <div class="actions">
+      {#if kind === 'kubernetes'}
+        <IconButton icon={Boxes} label="Kubernetes resources in this folder" size="sm" onclick={() => layout.open(k8sRoute(dirOf(path)))} />
+        <IconButton icon={Eraser} label="Copy without cluster noise (neat)" size="sm" onclick={copyNeat} />
+      {/if}
       <span class="open-in">
         <IconButton
           icon={ExternalLink}

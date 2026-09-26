@@ -25,8 +25,12 @@ it connects, what's broken.
 
 ## Acceptance
 
-- [ ] Service with non-matching selector flagged; matching one linked.
-- [ ] Kustomize output matches `kubectl kustomize` on fixtures.
-- [ ] Graph readable for ~50 resources.
+- [x] Service with non-matching selector flagged; matching one linked
+  (`internal/kube/kube_test.go`, also named-targetPort and Ingress port checks).
+- [x] Kustomize output matches `kubectl kustomize` on fixtures (goldens from
+  kubectl 1.36 / kustomize v5.8.1: base + overlay with namePrefix, labels,
+  component, images, replicas, patches, generators).
+- [x] Graph readable for ~50 resources (49-object fixture; fit keeps a
+  readable zoom, pan for the rest).
 
 **Go concepts:** graph modelling, label-selector matching, in-memory filesystems.

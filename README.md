@@ -32,6 +32,11 @@ codec **never writes to your files** and nothing leaves your machine.
   GitLab CI, Azure Pipelines, Compose) — each finding says why it
   matters and how to fix it. The same schemas drive key completion and
   field docs in the editor.
+- **Kubernetes and Kustomize.** See a folder, a render or a Kustomize
+  build as objects: cards, a relationship graph (Service → pods,
+  Ingress → Service, workloads → ConfigMaps and Secrets…), images,
+  ports and resource totals, and references that point nowhere. Build
+  Kustomize overlays without kubectl; copy "neat" manifests.
 - **Compare and query.** Diff two files, a what-if edit against disk, or
   a chart's dev and prod renders by meaning — key and list order don't
   count, containers and env pair up by name. Run jq over the workspace,
@@ -176,6 +181,16 @@ version and schema options are set in the web UI's **Lint settings** and
 shared with the CLI. Schemas are downloaded on first use and cached in
 your user cache folder; with **Offline** on, only the cache and your
 custom schema folder are used.
+
+### Kubernetes and Kustomize
+
+```bash
+codec k8s images deploy/                     # images, tags, who runs them
+codec k8s refs deploy/                       # how objects connect; exit 2 on broken references
+helm template ./chart | codec k8s refs       # also from stdin
+kubectl get deploy api -o yaml | codec k8s neat
+codec kustomize build overlays/prod          # like kubectl kustomize, no kubectl needed
+```
 
 ### Diff and query
 

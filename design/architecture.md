@@ -18,8 +18,10 @@ internal/
   lint/               ENGINE style rules, Kubernetes checks, API deprecations
   schema/             ENGINE schema choice per doc, JSON Schema validation,
                       schema-driven completion and hover
-  kube/ argo/         ENGINE lenses (one package per domain; ci/, ansible/,
-  ci/ ansible/        compose/ added in their phases)
+  kube/               ENGINE Kubernetes lens: objects, relationships graph,
+                      inventory, cards, neat, Secrets, Kustomize (memfs);
+                      registers its provider over the built-in detector
+  argo/ ci/ ansible/  ENGINE later lenses (one package per domain)
   compose/
   workspace/          ADAPTER read-only folder access, index, watcher
   config/             ADAPTER user settings in os.UserConfigDir()/codec

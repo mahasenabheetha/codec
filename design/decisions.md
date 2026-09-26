@@ -168,3 +168,22 @@ Settled unless the user reopens them. Add new ones at the bottom:
 46. Diff ignore patterns are globs over the displayed path ("*" = any
     run of characters), stored in user settings (`diffIgnore`) and
     shared by the Compare view and `codec yaml diff` (2026-09-26).
+47. Graph layout: @dagrejs/dagre (maintained dagre fork, ~48 KB ESM,
+    layered layout that suits dependency graphs), drawn by our own SVG
+    component so styling stays on tokens; shared by later lenses
+    (2026-09-26).
+48. Kustomize runs in-process (sigs.k8s.io/kustomize/api, already in the
+    module graph via Helm) on an in-memory filesystem holding only the
+    files the kustomization reaches (resources, bases, components,
+    patches, generator inputs), so what-if edits apply and nothing is
+    written. Reorder "unspecified" like kubectl. Remote bases and
+    helmCharts are refused (no downloads, no helm binary) (2026-09-26).
+49. Relationships are resolved within a scope (folder, render, build);
+    a target outside it is a warning, never an error, and well-known
+    objects (cluster-admin/view/edit/admin, system:*, default service
+    account, kube-root-ca.crt) and optional refs aren't reported. An
+    unset namespace matches any, since renders often omit it
+    (2026-09-26).
+50. Lenses register themselves in `provider.Default` from their
+    package's init, wrapping the built-in detector they replace
+    (`Registry.Lookup`); web and cli import them (2026-09-26).

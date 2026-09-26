@@ -30,6 +30,8 @@
   import FileIcon from '../workspace/FileIcon.svelte'
   import { workspace as ws } from '../workspace/workspace.svelte'
   import ProblemItem from '../lint/ProblemItem.svelte'
+  import ResourcesView from '../kube/ResourcesView.svelte'
+  import { analyzeK8s, type K8sAnalysis } from '../../lib/api/k8s'
   import { comparison, queries } from '../compare/compare.svelte'
   import { lint } from '../lint/lint.svelte'
   import { charts, helmNav, HelmSession, inChart } from './helm.svelte'
@@ -47,7 +49,22 @@
   const session = new HelmSession(untrack(() => chart))
   onDestroy(() => session.dispose())
 
-  let tab = $state<'rendered' | 'values' | 'notes' | 'problems'>('rendered')
+  let tab = $state<'rendered' | 'values' | 'resources' | 'notes' | 'problems'>('rendered')
+
+  // The rendered objects as the Kubernetes lens sees them; fetched when
+  // the Resources tab is shown, and again when the output changes.
+  let resources = $state.raw<K8sAnalysis | null>(null)
+  let resourcesFor = ''
+  $effect(() => {
+    const manifest = session.result?.manifest ?? ''
+    if (tab !== 'resources' || manifest === resourcesFor) return
+    resourcesFor = manifest
+    analyzeK8s({ kind: 'text', text: manifest })
+      .then((r) => {
+        if (resourcesFor === manifest) resources = r
+      })
+      .catch(() => {})
+  })
   let rendered = $state<CodeView>()
   let newProfile = $state('')
 
@@ -269,6 +286,7 @@
           tabs={[
             { value: 'rendered', label: 'Rendered', count: result?.docs.length ?? 0 },
             { value: 'values', label: 'Values' },
+            { value: 'resources', label: 'Resources' },
             { value: 'notes', label: 'Notes' },
             { value: 'problems', label: 'Problems', count: problems.length },
           ]}
@@ -324,6 +342,14 @@
         </div>
       {:else if tab === 'notes'}
         <pre class="notes">{result.notes || 'This chart has no NOTES.txt.'}</pre>
+      {:else if tab === 'resources'}
+        <div class="code">
+          {#if resources}
+            <ResourcesView data={resources} onopen={(s) => showManifestLine(s.line)} />
+          {:else}
+            <div class="loading">Reading the rendered objects…</div>
+          {/if}
+        </div>
       {:else}
         <ul class="problems">
           {#each [...problems, ...infos] as d, i (i)}

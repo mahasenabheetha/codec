@@ -9,7 +9,9 @@
   import PanelLeft from '@lucide/svelte/icons/panel-left'
   import RotateCw from '@lucide/svelte/icons/rotate-cw'
   import Search from '@lucide/svelte/icons/search'
+  import Boxes from '@lucide/svelte/icons/boxes'
   import GitCompare from '@lucide/svelte/icons/git-compare'
+  import Layers from '@lucide/svelte/icons/layers'
   import ListChecks from '@lucide/svelte/icons/list-checks'
   import TextSearch from '@lucide/svelte/icons/text-search'
   import Settings2 from '@lucide/svelte/icons/settings-2'
@@ -27,6 +29,8 @@
   import HelmView from './features/helm/HelmView.svelte'
   import LintSettings from './features/lint/LintSettings.svelte'
   import CompareView from './features/compare/CompareView.svelte'
+  import K8sFolderView from './features/kube/K8sFolderView.svelte'
+  import KustomizeView from './features/kube/KustomizeView.svelte'
   import QueryView from './features/compare/QueryView.svelte'
   import { comparison, queries } from './features/compare/compare.svelte'
   import WorkspaceProblems from './features/lint/WorkspaceProblems.svelte'
@@ -36,7 +40,7 @@
   import QuickOpen from './features/workspace/QuickOpen.svelte'
   import { openFolder, workspace } from './features/workspace/workspace.svelte'
   import { tools, toolById } from './lib/tools'
-  import { compareRoute, isView, lintSettingsRoute, problemsRoute, queryRoute, router, routeFile, routeHelm, routeTool } from './lib/stores/router.svelte'
+  import { compareRoute, isView, k8sRoute, kustomizeRoute, lintSettingsRoute, problemsRoute, queryRoute, router, routeFile, routeHelm, routeK8s, routeKustomize, routeTool } from './lib/stores/router.svelte'
   import { layout } from './lib/stores/layout.svelte'
   import { shortcut } from './lib/stores/shortcuts.svelte'
   import { commands } from './lib/stores/commands.svelte'
@@ -191,6 +195,32 @@
       })),
     ),
   )
+  // Kustomizations (build each) and the workspace's Kubernetes objects.
+  $effect(() =>
+    commands.register([
+      {
+        id: 'k8s.workspace',
+        title: 'Kubernetes: resources in this folder',
+        group: 'Kubernetes',
+        icon: Boxes,
+        keywords: ['k8s', 'graph', 'inventory', 'images', 'references', 'selector'],
+        run: () => layout.open(k8sRoute('.')),
+      },
+      ...workspace.files
+        .filter((f) => f.type === 'kustomize')
+        .map((f) => {
+          const dir = f.path.includes('/') ? f.path.slice(0, f.path.lastIndexOf('/')) : '.'
+          return {
+            id: `kustomize.${dir}`,
+            title: `Kustomize: build ${dir}`,
+            group: 'Kubernetes',
+            icon: Layers,
+            keywords: ['kustomize', 'overlay', 'build', dir],
+            run: () => layout.open(kustomizeRoute(dir)),
+          }
+        }),
+    ]),
+  )
   // Recent folders, one palette entry each; re-registered as they change.
   $effect(() => {
     const recent = workspace.info?.recent ?? []
@@ -268,6 +298,14 @@
           {:else if route === problemsRoute}
             <div class="panel" hidden={router.path !== route}>
               <WorkspaceProblems active={router.path === route} />
+            </div>
+          {:else if routeK8s(route) !== null}
+            <div class="panel" hidden={router.path !== route}>
+              <K8sFolderView path={routeK8s(route)!} active={router.path === route} />
+            </div>
+          {:else if routeKustomize(route) !== null}
+            <div class="panel" hidden={router.path !== route}>
+              <KustomizeView dir={routeKustomize(route)!} active={router.path === route} />
             </div>
           {:else if route === compareRoute}
             <div class="panel" hidden={router.path !== route}>

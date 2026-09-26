@@ -142,6 +142,8 @@ func (s *Server) routes() http.Handler {
 	mux.HandleFunc("GET /api/v2/compare/ignore", s.handleDiffIgnore)
 	mux.HandleFunc("POST /api/v2/compare/ignore", s.handleDiffIgnore)
 	mux.HandleFunc("POST /api/v2/query", s.handleQuery)
+	mux.HandleFunc("POST /api/v2/k8s/analyze", s.handleK8sAnalyze)
+	mux.HandleFunc("POST /api/v2/k8s/neat", s.handleK8sNeat)
 	mux.HandleFunc("/api/v2/", func(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusNotFound, "no such endpoint: "+r.Method+" "+r.URL.Path)
 	})

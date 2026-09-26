@@ -54,7 +54,8 @@ Expressions get a tinted background so they pop inside YAML:
 Button (primary/ghost/icon), IconButton, Tabs, SplitPane, TreeView,
 Badge (file type + logo), Tooltip, Popover, Dialog, Toast, Kbd,
 EmptyState (with "try a sample"), CodeView (CodeMirror wrapper),
-StatusBar, CommandPalette, Select, Toggle, SearchInput.
+StatusBar, CommandPalette, Select, Toggle, SearchInput, Graph (dagre layout,
+SVG, pan/zoom, hover highlights neighbours; colour groups via `g-<group>`).
 
 ## Icons and logos
 

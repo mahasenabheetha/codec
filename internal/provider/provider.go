@@ -73,6 +73,17 @@ func (r *Registry) Register(p Provider) {
 	r.providers = append(r.providers, p)
 }
 
+// Lookup returns the provider with id, or nil. A lens can wrap the
+// built-in one it replaces (keeping its detection).
+func (r *Registry) Lookup(id string) Provider {
+	for _, p := range r.providers {
+		if p.ID() == id {
+			return p
+		}
+	}
+	return nil
+}
+
 // Detect returns every provider that claims f, most confident first.
 func (r *Registry) Detect(f *File) []Match {
 	var out []Match
