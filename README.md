@@ -21,7 +21,9 @@ Copy a Kubernetes secret, get readable JSON. Paste an Ansible `-vv` failure, get
 
 ## Install
 
-Build from source (Go 1.23+):
+Download a prebuilt binary for Windows, Linux or macOS from [GitHub Releases](https://github.com/mahasenabheetha/codec/releases), unzip, and run. Check what you have with `codec version`.
+
+Or build from source (Go 1.23+):
 
 ```bash
 git clone https://github.com/mahasenabheetha/codec.git
@@ -142,6 +144,17 @@ go build ./...
 ```
 
 Tests are table-driven; the Ansible parser's test suite is built from real logs, and every parsing bug fixed becomes a named regression test. CI runs vet, tests, build, and a Windows cross-compile on every push and PR. Changes go through pull requests — no direct pushes to `main`.
+
+### Versioning and releases
+
+codec follows [Semantic Versioning](https://semver.org/); every release is listed in [CHANGELOG.md](CHANGELOG.md). A release is cut by tagging a commit that is already on `main`:
+
+```bash
+git tag -a v1.2.3 -m "codec v1.2.3"
+git push origin v1.2.3
+```
+
+The tag triggers the Release workflow, which runs vet and tests, then uses [GoReleaser](https://goreleaser.com/) to build Linux, Windows and macOS binaries with the version stamped in, and publishes them with checksums as a GitHub Release. Tags with a suffix (`v2.0.0-alpha.1`) are published as pre-releases. Local builds report `dev` plus their git commit.
 
 ## Roadmap
 
