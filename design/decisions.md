@@ -187,3 +187,30 @@ Settled unless the user reopens them. Add new ones at the bottom:
 50. Lenses register themselves in `provider.Default` from their
     package's init, wrapping the built-in detector they replace
     (`Registry.Lookup`); web and cli import them (2026-09-26).
+51. Argo values are resolved, never evaluated: a value is split into
+    parts (literal, resolved, run time, expression, Helm template,
+    missing). Step outputs, workflow.uid/status, event data and
+    `{{=expr}}` stay as written. `when` is evaluated only when every
+    part is known, with a small evaluator (comparisons, =~, && || !);
+    otherwise it says "known at run time". Loops expand up to 20
+    iterations, named like Argo (`build(0:linux)`) (2026-09-26).
+52. `workflow.parameters` always means the submitted workflow's, also
+    inside templateRef'd templates; a WorkflowTemplate's own
+    spec.arguments apply only when it is submitted. The entrypoint's
+    inputs bind from workflow arguments by name. A library's
+    entrypoint input with no argument is a warning, not an error
+    (callers pass it) (2026-09-26).
+53. Workflows a Sensor submits are first-class: arguments filled from
+    event data are run-time values, with the dependency filter's
+    accepted values as a hint. Filters are regexes, so they are never
+    treated as the value (2026-09-26).
+54. The Argo index spans the folder's Argo files, raw Helm templates
+    included (names are usually literal; Helm escapes like
+    ``{{ `{{…}}` }}`` are undone, Go-template values show "render the
+    chart"). It is built on demand, caching which files are Argo files
+    by mtime+size; the Helm view gets an Argo tab for exact values
+    (2026-09-26).
+55. "Render this app" links an Argo CD source to a chart in the folder
+    by path (suffix match) or by Chart.yaml name; value files resolve
+    relative to the chart, inline values become a virtual layer that
+    is never saved in a profile (2026-09-26).

@@ -21,7 +21,10 @@ internal/
   kube/               ENGINE Kubernetes lens: objects, relationships graph,
                       inventory, cards, neat, Secrets, Kustomize (memfs);
                       registers its provider over the built-in detector
-  argo/ ci/ ansible/  ENGINE later lenses (one package per domain)
+  argo/               ENGINE Argo lens: workflow specs (incl. Sensor-submitted),
+                      cross-file index, parameter resolution, depends parser,
+                      when evaluator, checks, Argo CD apps; registers providers
+  ci/ ansible/        ENGINE later lenses (one package per domain)
   compose/
   workspace/          ADAPTER read-only folder access, index, watcher
   config/             ADAPTER user settings in os.UserConfigDir()/codec
@@ -90,6 +93,12 @@ resources, jobs, references) built by the workspace adapter.
   changes with ranges on both texts (text diff if a side doesn't parse);
   `GET|POST /compare/ignore` (saved patterns); `POST /query` {expr, scope:
   file|workspace|helm, …side} → results with file, jq path, value, range.
+  Kubernetes: `POST /k8s/analyze` {kind: folder|text|kustomize|helm, …} →
+  cards, inventory, graph, problems; `POST /k8s/neat`. Argo: `POST
+  /argo/analyze` {kind: file|text, path|text, workflow, params, paramFile,
+  overrides} → workflows and apps in scope, the chosen workflow resolved
+  (nodes, edges, values in parts); `/yaml/hover|definition|analyze` also
+  resolve templateRef across the folder's Argo files.
 - Errors: `{"error": "...", "line"?, "column"?, "file"?}` with 400 for
   caller bugs, 422 for bad input, 404 missing, 500 unexpected.
 - Push updates via Server-Sent Events, `GET /api/v2/events`: `workspace`

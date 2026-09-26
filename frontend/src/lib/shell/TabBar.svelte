@@ -3,6 +3,7 @@
   import Boxes from '@lucide/svelte/icons/boxes'
   import GitCompare from '@lucide/svelte/icons/git-compare'
   import Layers from '@lucide/svelte/icons/layers'
+  import Workflow from '@lucide/svelte/icons/workflow'
   import ListChecks from '@lucide/svelte/icons/list-checks'
   import TextSearch from '@lucide/svelte/icons/text-search'
   import Settings2 from '@lucide/svelte/icons/settings-2'
@@ -21,6 +22,7 @@
     routeHelm,
     routeK8s,
     routeKustomize,
+    routeArgo,
     routeTool,
   } from '../stores/router.svelte'
   import { charts } from '../../features/helm/helm.svelte'
@@ -63,6 +65,8 @@
     if (k8s !== null) return { title: `K8s · ${k8s === '.' ? 'all' : base(k8s)}`, icon: Boxes }
     const kz = routeKustomize(route)
     if (kz !== null) return { title: `Kustomize · ${base(kz)}`, icon: Layers }
+    const ar = routeArgo(route)
+    if (ar !== null) return { title: `Argo · ${base(ar)}`, icon: Workflow }
     return undefined
   }
 

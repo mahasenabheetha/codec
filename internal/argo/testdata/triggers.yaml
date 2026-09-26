@@ -1,0 +1,53 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Sensor
+metadata:
+  name: push-sensor
+spec:
+  dependencies:
+    - name: push
+      eventSourceName: git-events
+      eventName: push
+      filters:
+        data:
+          - path: body.ref
+            type: string
+            value: [main, release]
+  triggers:
+    - template:
+        name: run-ci
+        argoWorkflow:
+          operation: submit
+          source:
+            resource:
+              apiVersion: argoproj.io/v1alpha1
+              kind: Workflow
+              metadata:
+                generateName: ci-
+              spec:
+                workflowTemplateRef:
+                  name: ci-pipeline
+                arguments:
+                  parameters:
+                    - name: branch
+                      value: ""
+                    - name: env
+                      value: staging
+          parameters:
+            - src:
+                dependencyName: push
+                dataKey: body.ref
+              dest: spec.arguments.parameters.0.value
+---
+apiVersion: argoproj.io/v1alpha1
+kind: CronWorkflow
+metadata:
+  name: nightly
+spec:
+  schedule: "0 2 * * *"
+  workflowSpec:
+    workflowTemplateRef:
+      name: ci-pipeline
+    arguments:
+      parameters:
+        - name: env
+          value: prod

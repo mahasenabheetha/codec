@@ -60,6 +60,7 @@ export class HelmSession {
   namespace = $state('')
   kubeVersion = $state('')
   profile = $state('') // active profile name, "" = unsaved
+  inline = $state<Record<string, string>>({}) // virtual layers (INLINE_LAYER paths) -> values text
 
   result = $state.raw<HelmResult | null>(null)
   error = $state<string | null>(null)
@@ -91,6 +92,7 @@ export class HelmSession {
     for (const [path, s] of openSessions) {
       if (s.dirty && (inChart(this.chart, path) || used.has(path))) out[path] = s.buffer
     }
+    for (const [path, text] of Object.entries(this.inline)) if (used.has(path)) out[path] = text
     return out
   })
 
@@ -99,6 +101,7 @@ export class HelmSession {
     const p: HelmProfile = (name && this.info?.profiles[name]) || {}
     this.profile = name
     const on = p.values ?? []
+    this.inline = {}
     this.layers = on.map((path) => ({ path, on: true }))
     this.setText = (p.set ?? []).join('\n')
     this.release = p.release ?? ''
@@ -106,9 +109,26 @@ export class HelmSession {
     this.kubeVersion = p.kubeVersion ?? ''
   }
 
+  /** Start from a preset (not a saved profile). */
+  applyPreset(p: HelmPreset) {
+    this.profile = ''
+    const layers = p.values.map((path) => ({ path, on: true }))
+    this.inline = {}
+    if (p.inline) {
+      const path = INLINE_LAYER + p.inline.name
+      this.inline = { [path]: p.inline.text }
+      layers.push({ path, on: true })
+    }
+    this.layers = layers
+    this.setText = p.set.join('\n')
+    this.release = p.release ?? ''
+    this.namespace = p.namespace ?? ''
+    this.kubeVersion = ''
+  }
+
   current(): HelmProfile {
     return {
-      values: this.layers.filter((l) => l.on).map((l) => l.path),
+      values: this.layers.filter((l) => l.on && !l.path.startsWith(INLINE_LAYER)).map((l) => l.path),
       set: this.sets,
       release: this.release || undefined,
       namespace: this.namespace || undefined,
@@ -172,13 +192,40 @@ export class HelmSession {
   }
 }
 
+/** Values, --set and release options to start a Helm view with, e.g.
+ *  from an Argo CD application. inline is a values layer that isn't a
+ *  file (the application's own values). */
+export interface HelmPreset {
+  values: string[]
+  set: string[]
+  release?: string
+  namespace?: string
+  inline?: { name: string; text: string }
+}
+
+/** Virtual layer paths (inline values) start with this. */
+export const INLINE_LAYER = 'inline:'
+
 /** A request to show a line of a chart's rendered output (e.g. a query
- *  result); the chart's Helm view takes it once it has rendered. */
+ *  result), to start from a preset, or to show a tab; the chart's Helm
+ *  view takes it once it is open. */
 class HelmNav {
   pending = $state<{ chart: string; line: number } | null>(null)
+  preset = $state<{ chart: string; preset: HelmPreset } | null>(null)
+  tab = $state<{ chart: string; tab: 'argo'; focus?: string } | null>(null)
 
   request(chart: string, line: number) {
     this.pending = { chart, line }
+    layout.openHelm(chart)
+  }
+
+  preload(chart: string, preset: HelmPreset) {
+    this.preset = { chart, preset }
+    layout.openHelm(chart)
+  }
+
+  showArgo(chart: string, focus?: string) {
+    this.tab = { chart, tab: 'argo', focus }
     layout.openHelm(chart)
   }
 }

@@ -31,10 +31,11 @@
   import { workspace as ws } from '../workspace/workspace.svelte'
   import ProblemItem from '../lint/ProblemItem.svelte'
   import ResourcesView from '../kube/ResourcesView.svelte'
+  import ArgoPanel from '../argo/ArgoPanel.svelte'
   import { analyzeK8s, type K8sAnalysis } from '../../lib/api/k8s'
   import { comparison, queries } from '../compare/compare.svelte'
   import { lint } from '../lint/lint.svelte'
-  import { charts, helmNav, HelmSession, inChart } from './helm.svelte'
+  import { charts, helmNav, HelmSession, inChart, INLINE_LAYER } from './helm.svelte'
   import { layerColors, provenanceView } from './provenance'
 
   // One chart rendered like `helm template`, with the values layers,
@@ -49,7 +50,8 @@
   const session = new HelmSession(untrack(() => chart))
   onDestroy(() => session.dispose())
 
-  let tab = $state<'rendered' | 'values' | 'resources' | 'notes' | 'problems'>('rendered')
+  let tab = $state<'rendered' | 'values' | 'resources' | 'argo' | 'notes' | 'problems'>('rendered')
+  let argoFocus = $state<string | undefined>()
 
   // The rendered objects as the Kubernetes lens sees them; fetched when
   // the Resources tab is shown, and again when the output changes.
@@ -70,8 +72,25 @@
 
   if (!charts.loaded) charts.load()
 
-  // Start from the chart's active profile once its info is known.
+  // Requests from elsewhere: start from a preset (an Argo CD app), or
+  // show the Argo tab on a workflow.
   let started = false
+  $effect(() => {
+    const p = helmNav.preset
+    if (!p || p.chart !== chart) return
+    helmNav.preset = null
+    started = true
+    untrack(() => session.applyPreset(p.preset))
+  })
+  $effect(() => {
+    const t = helmNav.tab
+    if (!t || t.chart !== chart) return
+    helmNav.tab = null
+    tab = t.tab
+    argoFocus = t.focus
+  })
+
+  // Start from the chart's active profile once its info is known.
   $effect(() => {
     if (started || !session.info) return
     started = true
@@ -97,7 +116,9 @@
   const errors = $derived(result?.diagnostics.filter((d) => d.severity === 'error') ?? [])
   const problems = $derived(result?.diagnostics.filter((d) => d.severity !== 'info') ?? [])
   const infos = $derived(result?.diagnostics.filter((d) => d.severity === 'info') ?? [])
-  const whatIf = $derived(Object.keys(session.overrides))
+  const whatIf = $derived(Object.keys(session.overrides).filter((p) => !p.startsWith(INLINE_LAYER)))
+  const argoKinds = new Set(['Workflow', 'WorkflowTemplate', 'ClusterWorkflowTemplate', 'CronWorkflow', 'Sensor', 'Application', 'ApplicationSet'])
+  const hasArgo = $derived((result?.docs ?? []).some((d) => d.kind && argoKinds.has(d.kind)))
 
   const candidates = $derived(
     (session.info?.candidates ?? []).filter((c) => !session.layers.some((l) => l.path === c)).map((c) => ({ value: c, label: c })),
@@ -175,7 +196,7 @@
   }
 
   function openLayer(path: string) {
-    layout.openFile(path)
+    if (!path.startsWith(INLINE_LAYER)) layout.openFile(path) // inline values have no file
   }
 
   const ms = $derived(result ? Math.round(result.durationNs / 1e6) : 0)
@@ -243,8 +264,13 @@
             <li class="layer" class:off={!l.on}>
               <input type="checkbox" bind:checked={l.on} aria-label="Use {l.path}" />
               <span class="swatch" style="background: {colors.get(l.path)}"></span>
-              <button type="button" class="name link" title="Open {l.path}" onclick={() => openLayer(l.path)}>{l.path.split('/').pop()}</button>
-              <span class="muted dir">{l.path.includes('/') ? l.path.slice(0, l.path.lastIndexOf('/')) : ''}</span>
+              {#if l.path.startsWith(INLINE_LAYER)}
+                <span class="name">{l.path.slice(INLINE_LAYER.length)}</span>
+                <span class="muted dir">inline</span>
+              {:else}
+                <button type="button" class="name link" title="Open {l.path}" onclick={() => openLayer(l.path)}>{l.path.split('/').pop()}</button>
+                <span class="muted dir">{l.path.includes('/') ? l.path.slice(0, l.path.lastIndexOf('/')) : ''}</span>
+              {/if}
               <span class="row-actions">
                 <IconButton icon={ArrowUp} label="Lower precedence" size="sm" disabled={i === 0} onclick={() => move(i, -1)} />
                 <IconButton icon={ArrowDown} label="Higher precedence" size="sm" disabled={i === session.layers.length - 1} onclick={() => move(i, 1)} />
@@ -287,6 +313,7 @@
             { value: 'rendered', label: 'Rendered', count: result?.docs.length ?? 0 },
             { value: 'values', label: 'Values' },
             { value: 'resources', label: 'Resources' },
+            ...(hasArgo || tab === 'argo' ? [{ value: 'argo', label: 'Argo' }] : []),
             { value: 'notes', label: 'Notes' },
             { value: 'problems', label: 'Problems', count: problems.length },
           ]}
@@ -342,6 +369,10 @@
         </div>
       {:else if tab === 'notes'}
         <pre class="notes">{result.notes || 'This chart has no NOTES.txt.'}</pre>
+      {:else if tab === 'argo'}
+        <div class="code">
+          <ArgoPanel source={{ kind: 'text', text: result.manifest }} focus={argoFocus} onopen={(s) => showManifestLine(s.line)} />
+        </div>
       {:else if tab === 'resources'}
         <div class="code">
           {#if resources}

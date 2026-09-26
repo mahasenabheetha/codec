@@ -67,6 +67,7 @@ type Server struct {
 	token string
 	hub   *hub
 	helm  helmCache
+	argo  argoCache
 	check *check.Checker // lint and schema settings live here
 
 	mu    sync.Mutex // guards the workspace fields
@@ -144,6 +145,7 @@ func (s *Server) routes() http.Handler {
 	mux.HandleFunc("POST /api/v2/query", s.handleQuery)
 	mux.HandleFunc("POST /api/v2/k8s/analyze", s.handleK8sAnalyze)
 	mux.HandleFunc("POST /api/v2/k8s/neat", s.handleK8sNeat)
+	mux.HandleFunc("POST /api/v2/argo/analyze", s.handleArgoAnalyze)
 	mux.HandleFunc("/api/v2/", func(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusNotFound, "no such endpoint: "+r.Method+" "+r.URL.Path)
 	})

@@ -6,6 +6,36 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+### Added (Argo)
+
+- Argo view for Workflows, WorkflowTemplates, ClusterWorkflowTemplates,
+  CronWorkflows and the workflows Argo Events sensors submit: every
+  step with the template it runs (templateRef followed across files)
+  and the inputs it gets, parameters resolved from arguments, call
+  sites, defaults and loop items. Values only known at run time (step
+  outputs, workflow.uid, event data) stay as written and are marked.
+- Steps and DAGs as graphs: parallel step groups, `dependencies` and
+  `depends` expressions (edges labelled Failed, AnySucceeded…),
+  drill into nested templates, click a step for its details and its
+  template with the values filled in; `when` conditions are evaluated
+  once their values are known ("skipped with these values").
+- What-if parameters (or a parameter file), never saved; enum values
+  are checked.
+- Helm-packaged workflows: an Argo tab on the Helm view resolves the
+  render; raw templates work too, with Helm's `{{ "{{" }}` escapes
+  understood.
+- Editor: templates outlined by type with the entrypoint marked; go to
+  definition and hover for template names, templateRef (other files,
+  raw Helm templates included), depends terms and parameters;
+  diagnostics for missing templates, bad depends expressions, unknown
+  tasks, undeclared inputs and missing or unused arguments.
+- Argo CD Applications and ApplicationSets: source, value files,
+  parameters, destination, sync policy and generators; "Render this
+  app" opens the chart in the Helm view with the app's values.
+- `codec argo resolve [files…] [-w workflow] [-p name=value]
+  [--parameter-file f] [--json]` (exit 2 on problems) and
+  `codec argo graph … [--template t] --format mermaid|dot`.
+
 ### Added (Kubernetes)
 
 - Resources view for a folder, a Helm render or a Kustomize build:

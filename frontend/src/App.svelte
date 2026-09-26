@@ -12,6 +12,7 @@
   import Boxes from '@lucide/svelte/icons/boxes'
   import GitCompare from '@lucide/svelte/icons/git-compare'
   import Layers from '@lucide/svelte/icons/layers'
+  import Workflow from '@lucide/svelte/icons/workflow'
   import ListChecks from '@lucide/svelte/icons/list-checks'
   import TextSearch from '@lucide/svelte/icons/text-search'
   import Settings2 from '@lucide/svelte/icons/settings-2'
@@ -31,6 +32,7 @@
   import CompareView from './features/compare/CompareView.svelte'
   import K8sFolderView from './features/kube/K8sFolderView.svelte'
   import KustomizeView from './features/kube/KustomizeView.svelte'
+  import ArgoFileView from './features/argo/ArgoFileView.svelte'
   import QueryView from './features/compare/QueryView.svelte'
   import { comparison, queries } from './features/compare/compare.svelte'
   import WorkspaceProblems from './features/lint/WorkspaceProblems.svelte'
@@ -40,7 +42,7 @@
   import QuickOpen from './features/workspace/QuickOpen.svelte'
   import { openFolder, workspace } from './features/workspace/workspace.svelte'
   import { tools, toolById } from './lib/tools'
-  import { compareRoute, isView, k8sRoute, kustomizeRoute, lintSettingsRoute, problemsRoute, queryRoute, router, routeFile, routeHelm, routeK8s, routeKustomize, routeTool } from './lib/stores/router.svelte'
+  import { argoRoute, compareRoute, isView, k8sRoute, kustomizeRoute, lintSettingsRoute, problemsRoute, queryRoute, router, routeArgo, routeFile, routeHelm, routeK8s, routeKustomize, routeTool } from './lib/stores/router.svelte'
   import { layout } from './lib/stores/layout.svelte'
   import { shortcut } from './lib/stores/shortcuts.svelte'
   import { commands } from './lib/stores/commands.svelte'
@@ -219,6 +221,16 @@
             run: () => layout.open(kustomizeRoute(dir)),
           }
         }),
+      ...workspace.files
+        .filter((f) => f.type === 'argo-workflows' || f.type === 'argocd')
+        .map((f) => ({
+          id: `argo.${f.path}`,
+          title: `Argo: ${f.path}`,
+          group: 'Argo',
+          icon: Workflow,
+          keywords: ['argo', 'workflow', 'dag', 'parameters', 'application', f.path],
+          run: () => layout.open(argoRoute(f.path)),
+        })),
     ]),
   )
   // Recent folders, one palette entry each; re-registered as they change.
@@ -306,6 +318,10 @@
           {:else if routeKustomize(route) !== null}
             <div class="panel" hidden={router.path !== route}>
               <KustomizeView dir={routeKustomize(route)!} active={router.path === route} />
+            </div>
+          {:else if routeArgo(route) !== null}
+            <div class="panel" hidden={router.path !== route}>
+              <ArgoFileView path={routeArgo(route)!} active={router.path === route} />
             </div>
           {:else if route === compareRoute}
             <div class="panel" hidden={router.path !== route}>

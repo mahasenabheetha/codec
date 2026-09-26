@@ -1,14 +1,18 @@
 package web
 
 import (
+	"bytes"
+	"cmp"
 	"context"
 	"encoding/json"
 	"errors"
 	"io/fs"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 
+	"github.com/mahasenabheetha/codec/v2/internal/argo"
 	"github.com/mahasenabheetha/codec/v2/internal/provider"
 	"github.com/mahasenabheetha/codec/v2/internal/textdiff"
 	"github.com/mahasenabheetha/codec/v2/internal/workspace"
@@ -155,15 +159,44 @@ func pos(req *yamlRequest, f *provider.File) yamlkit.Pos {
 // POST /api/v2/yaml/analyze
 func (s *Server) handleAnalyze(w http.ResponseWriter, r *http.Request) {
 	s.serveYAML(w, r, func(_ *yamlRequest, f *provider.File, _ provider.Provider) any {
-		return s.check.Analyze(r.Context(), f, editorSchemaWait)
+		a := s.check.Analyze(r.Context(), f, editorSchemaWait)
+		if a.Type == "argo-workflows" {
+			// templateRef targets live in other files of the folder.
+			if ix := s.argoIndexFor(r.Context(), f); ix != nil {
+				a.Diagnostics = append(a.Diagnostics, argo.CheckRefs(argo.Read(f.Path, f.Content, f.YAML), ix)...)
+				slices.SortStableFunc(a.Diagnostics, func(x, y yamlkit.Diagnostic) int { return cmp.Compare(x.Range.Start.Offset, y.Range.Start.Offset) })
+			}
+		}
+		return a
 	})
+}
+
+// argoIndexFor indexes the folder's Argo files for editor requests on
+// f, with f's buffer standing in for the file; nil when f isn't an
+// Argo file or no folder is open.
+func (s *Server) argoIndexFor(ctx context.Context, f *provider.File) *argo.Index {
+	ws := s.current()
+	if ws == nil || !bytes.Contains(f.Content, argoMarker) {
+		return nil
+	}
+	ix, err := s.argoIndex(ctx, ws, map[string]string{f.Path: string(f.Content)})
+	if err != nil {
+		return nil
+	}
+	return ix
 }
 
 // POST /api/v2/yaml/hover
 func (s *Server) handleHover(w http.ResponseWriter, r *http.Request) {
 	s.serveYAML(w, r, func(req *yamlRequest, f *provider.File, p provider.Provider) any {
 		at := pos(req, f)
-		h := provider.HoverAt(p, f, at)
+		var h *provider.Hover
+		if ix := s.argoIndexFor(r.Context(), f); ix != nil {
+			h = argo.HoverIn(f, at, ix) // also in raw Helm templates of Argo files
+		}
+		if h == nil {
+			h = provider.HoverAt(p, f, at)
+		}
 		if h != nil && strings.HasSuffix(h.Title, "template expression") {
 			if ws := s.current(); ws != nil {
 				h.Rows = append(h.Rows, s.helmHoverRows(ws, req.Path, h.Code)...)
@@ -180,7 +213,13 @@ func (s *Server) handleHover(w http.ResponseWriter, r *http.Request) {
 // POST /api/v2/yaml/definition
 func (s *Server) handleDefinition(w http.ResponseWriter, r *http.Request) {
 	s.serveYAML(w, r, func(req *yamlRequest, f *provider.File, p provider.Provider) any {
-		locs := provider.DefinitionAt(p, f, pos(req, f))
+		var locs []provider.Location
+		if ix := s.argoIndexFor(r.Context(), f); ix != nil {
+			locs = argo.DefinitionIn(f, pos(req, f), ix) // templateRef across files
+		}
+		if len(locs) == 0 {
+			locs = provider.DefinitionAt(p, f, pos(req, f))
+		}
 		if locs == nil {
 			locs = []provider.Location{}
 		}

@@ -37,6 +37,11 @@ codec **never writes to your files** and nothing leaves your machine.
   Ingress → Service, workloads → ConfigMaps and Secrets…), images,
   ports and resource totals, and references that point nowhere. Build
   Kustomize overlays without kubectl; copy "neat" manifests.
+- **Argo.** Read a workflow as it would run: every step with the
+  template it runs (templateRef across files) and the values it gets,
+  steps and DAGs as graphs (`depends` expressions included), what-if
+  parameters. Run-time values stay marked, never guessed. Argo CD apps
+  show where they deploy from and to, and render with their values.
 - **Compare and query.** Diff two files, a what-if edit against disk, or
   a chart's dev and prod renders by meaning — key and list order don't
   count, containers and env pair up by name. Run jq over the workspace,
@@ -114,7 +119,9 @@ Code/Cursor" jumps to the same file and line. **Problems** in the sidebar
 lints the whole folder, **Compare** diffs files or Helm profiles by meaning,
 **Query** runs jq; **Lint settings** sets rule levels, the target
 Kubernetes version and schema options. Ctrl+Space completes keys and
-values from the file's schema.
+values from the file's schema. **Argo** on a workflow or application
+file (or the Argo tab of a Helm render) opens the workflow as a graph
+with its parameters resolved.
 
 | Shortcut | Action |
 |---|---|
@@ -190,6 +197,18 @@ codec k8s refs deploy/                       # how objects connect; exit 2 on br
 helm template ./chart | codec k8s refs       # also from stdin
 kubectl get deploy api -o yaml | codec k8s neat
 codec kustomize build overlays/prod          # like kubectl kustomize, no kubectl needed
+```
+
+### Argo
+
+```bash
+codec argo resolve wf.yaml templates/ -p env=prod   # each step, its template, its inputs
+#   build(0:linux) → compile · script · golang:1.26
+#       target = linux-amd64
+#   diagnose → collect-logs · container
+#       from = {{tasks.test.outputs.parameters.report}}   (run time)
+helm template ./chart | codec argo resolve -w deploy-wf
+codec argo graph wf.yaml --template main --format mermaid   # or dot
 ```
 
 ### Diff and query

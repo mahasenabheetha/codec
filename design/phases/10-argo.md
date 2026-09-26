@@ -28,10 +28,14 @@ parameters, stitched templates, and a visual DAG.
 
 ## Acceptance
 
-- [ ] Real (anonymized) workflow from the user's repo resolves with
-      runtime values marked, not invented.
-- [ ] templateRef across files resolves and inlines.
-- [ ] DAG with `depends` expressions renders correctly.
+- [x] Real (anonymized) workflow from the user's repo resolves with
+      runtime values marked, not invented. (A Helm-packaged chart of 19
+      WorkflowTemplates and 5 Sensors: render and raw templates both
+      resolve; step outputs and event data stay marked.)
+- [x] templateRef across files resolves and inlines (CLI, Argo view,
+      editor go to definition and hover, also inside raw Helm templates).
+- [x] DAG with `depends` expressions renders correctly (edges labelled
+      with the result they wait for; fixture `testdata/ci-pipeline.yaml`).
 
 ## Notes
 

@@ -1,8 +1,8 @@
 # Status
 
-**Current phase:** 10 — Argo lens ([phases/10-argo.md](phases/10-argo.md))
-**State:** not started. Phases 00–09 are done and committed on `feature/mab/yaml-tools`; 06 still awaits the user's native checks and the `v2.0.0-alpha.1` tag.
-**Next step:** start phase 10 on `feature/mab/yaml-tools`.
+**Current phase:** 11 — CI pipelines lens ([phases/11-ci.md](phases/11-ci.md))
+**State:** not started. Phases 00–10 are done and committed on `feature/mab/yaml-tools`; 06 still awaits the user's native checks and the `v2.0.0-alpha.1` tag.
+**Next step:** start phase 11 on `feature/mab/yaml-tools`.
 **Blockers:** none. Open checks: phase 06 manual checklist (native Windows/macOS, typing on a 5k-line file).
 
 Released: `v1.0.0` (2026-09-26). All v2 work stays on `feature/mab/yaml-tools` until the user raises the PR.
@@ -10,6 +10,8 @@ Released: `v1.0.0` (2026-09-26). All v2 work stays on `feature/mab/yaml-tools` u
 ## Log
 
 One line per session, newest first: date · phase · what changed.
+
+- 2026-09-26 · 10 · `internal/argo` (workflow specs incl. Sensor-submitted and CronWorkflow, folder index, parameter resolution with run-time values kept as parts, depends parser, when evaluator, checks, Argo CD apps), argo providers (outline, definition, hover, diagnostics), `/api/v2/argo/analyze`, cross-file templateRef in the editor (raw Helm templates too), `codec argo resolve|graph`; UI: Argo view (workflow picker, what-if parameters and parameter file, steps/DAG graph with drill-down, step details with the template filled in, Argo CD cards with "Render this app"), Argo tab in the Helm view.
 
 - 2026-09-26 · 09 · `internal/kube` (objects, label selectors, relationship graph + soft broken-ref findings, inventory, cards, neat, Secret decode, in-process Kustomize = kubectl output), kube provider (meaningful outline, Secret hover), `/api/v2/k8s/*`, `codec k8s images|refs|neat`, `codec kustomize build`; UI: shared Graph (dagre), Resources view (objects/graph/inventory/references) for folders, Helm renders and Kustomize builds.
 

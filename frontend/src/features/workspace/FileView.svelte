@@ -32,12 +32,12 @@
   import Tabs from '../../lib/components/Tabs.svelte'
   import { completeAt, definitionAt, diffFile, hoverAt, type Diagnostic, type Pos } from '../../lib/api/yaml'
   import { layout } from '../../lib/stores/layout.svelte'
-  import { k8sRoute, kustomizeRoute } from '../../lib/stores/router.svelte'
+  import { argoRoute, k8sRoute, kustomizeRoute } from '../../lib/stores/router.svelte'
   import { neat } from '../../lib/api/k8s'
   import { toast } from '../../lib/stores/toast.svelte'
   import { copyText } from '../../lib/utils/clipboard'
   import { activeEditor, editorLink, editorNames, editorNav, lensOpen, openIn, openSessions, type ExternalEditor } from '../editor/active.svelte'
-  import { charts } from '../helm/helm.svelte'
+  import { charts, helmNav } from '../helm/helm.svelte'
   import { comparison, queries } from '../compare/compare.svelte'
   import { applyAnalysis, offsetOf, yamlIntel } from '../editor/intel'
   import Outline from '../editor/Outline.svelte'
@@ -70,6 +70,9 @@
   const kind = $derived(session.analysis?.type ?? session.disk?.type ?? session.disk?.lang ?? '')
   // The schema the document at the cursor was checked against.
   const schema = $derived(session.analysis?.docs.find((d) => d.index === session.currentDoc)?.schema)
+  // An Argo workflow or application in a raw Helm template: shown on the render.
+  const argoKinds = ['Workflow', 'WorkflowTemplate', 'ClusterWorkflowTemplate', 'CronWorkflow', 'Sensor', 'Application', 'ApplicationSet']
+  const argoDoc = $derived(session.analysis?.docs.find((d) => argoKinds.includes(d.name?.split('/')[0] ?? ''))?.name)
   const lines = $derived(session.buffer ? session.buffer.split('\n').length - (session.buffer.endsWith('\n') ? 1 : 0) : 0)
 
   // Load on open, and again whenever the watcher reports a change.
@@ -282,6 +285,15 @@
     {:else if kind === 'kustomize'}
       <Button size="sm" variant="ghost" onclick={() => layout.open(kustomizeRoute(dirOf(path)))} title="Build this kustomization">
         <span class="render"><FileIcon file={{ type: 'kustomize', lang: 'yaml' }} /> Build</span>
+      </Button>
+    {/if}
+    {#if kind === 'argo-workflows' || kind === 'argocd'}
+      <Button size="sm" variant="ghost" onclick={() => layout.open(argoRoute(path))} title="Resolve parameters and templates; see the steps as a graph">
+        <span class="render"><FileIcon file={{ type: kind, lang: 'yaml' }} /> Argo</span>
+      </Button>
+    {:else if chart && argoDoc}
+      <Button size="sm" variant="ghost" onclick={() => helmNav.showArgo(chart.path, argoDoc)} title="Render {chart.name} and open {argoDoc} in its Argo tab">
+        <span class="render"><FileIcon file={{ type: 'argo-workflows', lang: 'yaml' }} /> Argo</span>
       </Button>
     {/if}
     <div class="actions">
