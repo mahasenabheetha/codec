@@ -17,7 +17,7 @@ var pseudoVersion = regexp.MustCompile(`\d{14}-[0-9a-f]{12}$`)
 
 // Set at link time by release builds, e.g.
 //
-//	go build -ldflags "-X github.com/mahasenabheetha/codec/internal/version.Version=v1.0.0"
+//	go build -ldflags "-X github.com/mahasenabheetha/codec/v2/internal/version.Version=v1.0.0"
 //
 // They are vars rather than consts because -X can only overwrite
 // package-level string variables.

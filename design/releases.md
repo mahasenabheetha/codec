@@ -8,7 +8,7 @@
 - Pre-releases use a suffix: `v2.0.0-alpha.1`, `-beta.1`.
 - A `release/vN` branch is created from a tag only if an old major
   version needs a hotfix.
-- From v2 the Go module path must become
+- Since v2 the Go module path is
   `github.com/mahasenabheetha/codec/v2` (required for
   `go install ...@v2.x`).
 

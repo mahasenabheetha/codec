@@ -23,11 +23,12 @@ Copy a Kubernetes secret, get readable JSON. Paste an Ansible `-vv` failure, get
 
 Download a prebuilt binary for Windows, Linux or macOS from [GitHub Releases](https://github.com/mahasenabheetha/codec/releases), unzip, and run. Check what you have with `codec version`.
 
-Or build from source (Go 1.23+):
+Or build from source (Go 1.26+, Node.js 22+ for the web UI):
 
 ```bash
 git clone https://github.com/mahasenabheetha/codec.git
 cd codec
+npm --prefix frontend ci && npm --prefix frontend run build
 go build -o codec ./cmd/codec
 ```
 
@@ -38,7 +39,7 @@ GOOS=windows GOARCH=amd64 go build -o codec.exe ./cmd/codec
 GOOS=linux   GOARCH=arm64 go build -o codec-arm  ./cmd/codec
 ```
 
-Or open the repo in VS Code with the Dev Containers extension — a ready-made Go environment is included under `.devcontainer/`.
+Or open the repo in VS Code with the Dev Containers extension — a ready-made Go + Node environment is included under `.devcontainer/`.
 
 ## Usage
 
@@ -141,9 +142,15 @@ The API is one endpoint: `POST /api/transform` with `{"input", "mode", "urlSafe"
 go test ./...        # unit tests, incl. real-log ansible fixtures
 go vet ./...
 go build ./...
+
+npm --prefix frontend ci         # once: install frontend dependencies
+npm --prefix frontend run dev    # new UI with hot reload (API proxied to codec serve)
+npm --prefix frontend run build  # build into internal/web/dist, embedded by go build
 ```
 
-Tests are table-driven; the Ansible parser's test suite is built from real logs, and every parsing bug fixed becomes a named regression test. CI runs vet, tests, build, and a Windows cross-compile on every push and PR. Changes go through pull requests — no direct pushes to `main`.
+The new v2 UI (Svelte + TypeScript, in `frontend/`) is served at `/app/` while it's being built; the v1 UI stays at `/`. A binary built without the frontend still compiles and shows a "frontend not built" page there.
+
+Tests are table-driven; the Ansible parser's test suite is built from real logs, and every parsing bug fixed becomes a named regression test. CI builds the frontend, then runs vet, tests and build on Linux and Windows for every push and PR. Changes go through pull requests — no direct pushes to `main`.
 
 Design notes, conventions and plans for contributors and AI agents live in [design/](design/README.md).
 

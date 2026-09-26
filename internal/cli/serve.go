@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/mahasenabheetha/codec/internal/web"
+	"github.com/mahasenabheetha/codec/v2/internal/web"
 )
 
 var servePort int

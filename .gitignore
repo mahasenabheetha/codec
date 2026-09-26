@@ -9,3 +9,8 @@
 
 # GoReleaser output
 /dist/
+
+# Frontend build output, embedded by go:embed. The committed .keep
+# keeps the directory embeddable before the frontend is ever built.
+/internal/web/dist/*
+!/internal/web/dist/.keep

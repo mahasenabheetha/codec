@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/mahasenabheetha/codec/internal/version"
+	"github.com/mahasenabheetha/codec/v2/internal/version"
 )
 
 var versionCmd = &cobra.Command{

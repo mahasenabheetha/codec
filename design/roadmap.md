@@ -5,7 +5,7 @@ dependencies are listed in each phase file.
 
 | # | Phase | Output | Status |
 |---|---|---|---|
-| 00 | [Foundation](phases/00-foundation.md) | `/v2` module, Svelte toolchain, CI on Linux+Windows | todo |
+| 00 | [Foundation](phases/00-foundation.md) | `/v2` module, Svelte toolchain, CI on Linux+Windows | in review |
 | 01 | [UI shell + v1 port](phases/01-ui-shell.md) | Dark design system, app layout, v1 tools in Svelte | todo |
 | 02 | [YAML engine core](phases/02-yaml-engine.md) | `internal/yamlkit` + `codec yaml` CLI | todo |
 | 03 | [Workspace](phases/03-workspace.md) | Open folder read-only, index, file tree, viewer | todo |

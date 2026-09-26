@@ -26,19 +26,18 @@ Any UI design, components, YAML features.
 
 ## Acceptance
 
-- [ ] Fresh clone: `go build ./...` compiles even without a frontend
+- [x] Fresh clone: `go build ./...` compiles even without a frontend
       build (placeholder page), and serves the real app after `npm run build`.
-- [ ] `codec serve`: v1 UI at `/`, Svelte hello page at `/app/`, all v1
+- [x] `codec serve`: v1 UI at `/`, Svelte hello page at `/app/`, all v1
       API/CLI behaviour unchanged.
-- [ ] `npm run dev` hot-reloads and reaches the Go API.
-- [ ] CI green on Linux and Windows; `goreleaser build --snapshot` includes the frontend.
+- [x] `npm run dev` hot-reloads and reaches the Go API.
+- [ ] CI green on Linux and Windows (verify on the PR). `goreleaser build --snapshot` includes the frontend: verified locally.
 
 ## Notes
 
-- `go:embed` fails on an empty dir: use `//go:embed all:dist` with a
-  committed `internal/web/dist/.keep`, gitignore the rest of `dist/`,
-  and make sure the Vite build doesn't delete `.keep` (or the tree goes
-  dirty and GoReleaser refuses to release).
-- If `index.html` is missing from dist, serve a "frontend not built" page.
+- Done: `//go:embed all:dist` + committed `internal/web/dist/.keep`; Vite
+  writes only into `dist/app/` (emptied each build), so `.keep` survives
+  and the git tree stays clean for GoReleaser.
+- Missing `index.html` → `/app/` serves a 503 "frontend not built" page.
 
 **Go concepts:** major-version module paths, `go:embed` patterns, build tags vs. placeholders.

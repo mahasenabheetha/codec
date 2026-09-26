@@ -10,7 +10,7 @@ import (
 	"github.com/atotto/clipboard"
 	"github.com/spf13/cobra"
 
-	"github.com/mahasenabheetha/codec/internal/codec"
+	"github.com/mahasenabheetha/codec/v2/internal/codec"
 )
 
 // interval is bound to the --interval flag: how often to poll.

@@ -6,6 +6,16 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+### Changed
+
+- Go module path is now `github.com/mahasenabheetha/codec/v2`; requires Go 1.26+.
+- Building from source needs Node.js for the web UI (see README).
+
+### Added
+
+- Foundation for the v2 web UI (Svelte 5 + TypeScript) at `/app/`.
+- CI runs on Windows as well as Linux.
+
 ## [1.0.0] - 2026-09-26
 
 First tagged release: codec as it stood before the 2.0 work began.

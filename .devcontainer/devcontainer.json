@@ -1,15 +1,20 @@
 {
-  "name": "codec-go",
-  "image": "mcr.microsoft.com/devcontainers/go:1.23-bookworm",
+  "name": "codec",
+  "image": "mcr.microsoft.com/devcontainers/go:1",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": { "version": "lts" }
+  },
+  "forwardPorts": [8765, 5173],
   "customizations": {
     "vscode": {
       "extensions": [
-        "golang.go"
+        "golang.go",
+        "svelte.svelte-vscode"
       ],
       "settings": {
         "editor.formatOnSave": true
       }
     }
   },
-  "postCreateCommand": "go version"
+  "postCreateCommand": "go version && node --version && npm --prefix frontend ci"
 }

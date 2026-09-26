@@ -12,8 +12,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/mahasenabheetha/codec/internal/codec"
-	"github.com/mahasenabheetha/codec/internal/version"
+	"github.com/mahasenabheetha/codec/v2/internal/codec"
+	"github.com/mahasenabheetha/codec/v2/internal/version"
 )
 
 // staticFiles holds the frontend, compiled INTO the binary at build
@@ -22,6 +22,25 @@ import (
 //
 //go:embed static
 var staticFiles embed.FS
+
+// distFiles holds the Vite build of frontend/ (written to dist/app by
+// `npm run build`). The "all:" prefix also embeds the committed
+// dist/.keep, so the package compiles even before the frontend has
+// ever been built — go:embed rejects a directory with nothing in it.
+//
+//go:embed all:dist
+var distFiles embed.FS
+
+// notBuiltPage is served in place of the new UI when the binary was
+// compiled without a frontend build.
+const notBuiltPage = `<!doctype html>
+<title>codec</title>
+<body style="background:#0b0d12;color:#e6e8ee;font-family:system-ui;padding:2rem">
+<h1>Frontend not built</h1>
+<p>This binary was compiled without the web UI. Run
+<code>npm --prefix frontend ci &amp;&amp; npm --prefix frontend run build</code>,
+then rebuild codec.</p>
+</body>`
 
 // transformRequest is the JSON body the browser sends. Mode and
 // URLSafe are optional: a request carrying only "input" behaves
@@ -66,7 +85,14 @@ func Handler() http.Handler {
 		panic(err)
 	}
 
+	appRoot, err := fs.Sub(distFiles, "dist/app")
+	if err != nil {
+		panic(err) // same reasoning as above: only a bad literal path fails
+	}
+
 	mux.Handle("/", http.FileServer(http.FS(staticRoot)))
+	// The new Svelte UI lives under /app/ until it replaces the v1 UI.
+	mux.Handle("/app/", http.StripPrefix("/app/", appHandler(appRoot)))
 	mux.HandleFunc("POST /api/transform", handleTransform)
 	mux.HandleFunc("GET /api/version", handleVersion)
 
@@ -81,6 +107,20 @@ func Handler() http.Handler {
 	})
 
 	return mux
+}
+
+// appHandler serves the built frontend from fsys, or a short "not
+// built" page when fsys holds no index.html. It takes the FS as a
+// parameter so tests can exercise both cases without a real build.
+func appHandler(fsys fs.FS) http.Handler {
+	if _, err := fs.Stat(fsys, "index.html"); err != nil {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			w.WriteHeader(http.StatusServiceUnavailable)
+			fmt.Fprint(w, notBuiltPage)
+		})
+	}
+	return http.FileServer(http.FS(fsys))
 }
 
 // Serve blocks forever, listening on addr.

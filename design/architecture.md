@@ -17,7 +17,7 @@ internal/
   config/             ADAPTER user settings in os.UserConfigDir()/codec
   version/            build identity
   cli/                ADAPTER cobra commands
-  web/                ADAPTER HTTP API + embedded frontend (web/dist)
+  web/                ADAPTER HTTP API + embedded frontend (web/dist/app)
 ```
 
 Engine packages take bytes/structs and return structs. They never touch

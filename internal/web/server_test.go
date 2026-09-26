@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"testing/fstest"
 )
 
 // do sends one request through the full route table and returns the
@@ -157,5 +158,41 @@ func TestVersionEndpoint(t *testing.T) {
 	}
 	if resp.Version == "" {
 		t.Error("version is empty")
+	}
+}
+
+func TestAppHandler(t *testing.T) {
+	tests := []struct {
+		name       string
+		fsys       fstest.MapFS
+		wantStatus int
+		wantBody   string
+	}{
+		{
+			name:       "built frontend is served",
+			fsys:       fstest.MapFS{"index.html": {Data: []byte("<h1>app</h1>")}},
+			wantStatus: http.StatusOK,
+			wantBody:   "<h1>app</h1>",
+		},
+		{
+			name:       "missing build shows the not-built page",
+			fsys:       fstest.MapFS{},
+			wantStatus: http.StatusServiceUnavailable,
+			wantBody:   "Frontend not built",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rec := httptest.NewRecorder()
+			appHandler(tt.fsys).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
+
+			if rec.Code != tt.wantStatus {
+				t.Errorf("status = %d, want %d", rec.Code, tt.wantStatus)
+			}
+			if !strings.Contains(rec.Body.String(), tt.wantBody) {
+				t.Errorf("body = %q, want it to contain %q", rec.Body, tt.wantBody)
+			}
+		})
 	}
 }

@@ -43,7 +43,8 @@ companion to VS Code/Cursor, not a replacement.
 
 ```bash
 go vet ./... && go test ./internal/<pkg>/...   # backend
-cd frontend && npm run dev                      # UI dev server (from phase 00)
-cd frontend && npm run build                    # builds into internal/web/dist
+npm --prefix frontend ci                        # once, installs UI deps
+npm --prefix frontend run dev                   # UI dev server; CODEC_API=http://127.0.0.1:<port> if not 8765
+npm --prefix frontend run build                 # builds into internal/web/dist/app
 go build -o codec ./cmd/codec                   # binary (needs frontend built)
 ```
