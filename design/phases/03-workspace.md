@@ -1,7 +1,7 @@
 # 03 — Workspace
 
 **Goal:** open any repo folder read-only, browse it, view files.
-**Depends on:** 01, 02 · **Branch:** `feature/mab/p03-workspace`
+**Depends on:** 01, 02 · **Branch:** `feature/mab/yaml-tools`
 **Read:** architecture.md (security, runtime modes), ui.md (layout)
 
 ## Scope

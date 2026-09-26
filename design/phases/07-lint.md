@@ -2,7 +2,7 @@
 
 **Goal:** catch mistakes before they reach a cluster or pipeline, and
 give schema-aware completion and hover docs.
-**Depends on:** 06 · **Branch:** `feature/mab/p07-lint`
+**Depends on:** 06 · **Branch:** `feature/mab/yaml-tools`
 
 ## Scope
 

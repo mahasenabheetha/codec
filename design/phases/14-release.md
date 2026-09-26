@@ -1,7 +1,7 @@
 # 14 — v2.0.0 release
 
 **Goal:** polish everything to a stable, shareable 2.0.
-**Depends on:** 13 · **Branch:** `feature/mab/p14-release`
+**Depends on:** 13 · **Branch:** `feature/mab/yaml-tools`
 
 ## Scope
 

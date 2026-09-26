@@ -17,8 +17,10 @@ companion to VS Code/Cursor, not a replacement.
 1. Read `design/status.md` for the current phase and next step.
 2. Read that phase file in `design/phases/`. Follow its scope exactly;
    do not pull in work from later phases.
-3. Work on a feature branch (`feature/mab/<topic>`). **Never commit to
-   `main`.** Don't push or merge unless the user asks.
+3. Work on `feature/mab/yaml-tools`, the single v2 integration branch;
+   commit there when a phase (or a solid slice of one) is done. **Never
+   commit to `main`.** Don't push or open PRs unless asked; the user
+   raises one PR when v2 is ready.
 4. Before finishing: tick completed acceptance items in the phase file,
    update `design/status.md` (state, next step, one log line), and add
    any new decision to `design/decisions.md`.

@@ -11,9 +11,20 @@ All notable changes to codec are documented here. The format follows
 - Go module path is now `github.com/mahasenabheetha/codec/v2`; requires Go 1.26+.
 - Building from source needs Node.js for the web UI (see README).
 
+### Changed (web UI)
+
+- Brand-new dark web UI replaces the v1 page: collapsible tool sidebar,
+  tabs that keep state, Ctrl+K command palette, live transform-as-you-type
+  in syntax-highlighted editors, resizable panes, and a status bar.
+- JWT view shows claims as a table with expiry/validity at a glance;
+  Ansible view adds line filtering and collapsible sections.
+- New shortcuts: Alt+S (use output as input), Ctrl+B (sidebar), ? (help).
+  Base64 swap also flips encode/decode.
+
 ### Added
 
-- Foundation for the v2 web UI (Svelte 5 + TypeScript) at `/app/`.
+- `/api/transform`: optional `indent` for json-pretty; structured `jwt`
+  field in responses. `/app/` redirects to `/`.
 - CI runs on Windows as well as Linux.
 
 ## [1.0.0] - 2026-09-26

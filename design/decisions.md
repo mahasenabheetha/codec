@@ -39,3 +39,13 @@ Settled unless the user reopens them. Add new ones at the bottom:
 15. Brand logos (Kubernetes, Helm, Argo, GitHub Actions, …) are bundled
     locally as SVG, never fetched at runtime; sources recorded in
     `frontend/src/assets/logos/SOURCES.md` (2026-09-26).
+16. All v2 work happens on one integration branch, `feature/mab/yaml-tools`;
+    the user raises a single PR at the end. Per-phase branches are not
+    used (2026-09-26).
+17. Icons: `@lucide/svelte` (the Svelte 5 package). Fonts: Inter and
+    JetBrains Mono via `@fontsource-variable/*`, bundled (2026-09-26).
+18. Rich views get structured data from the API rather than re-parsing
+    text in the browser: `/api/transform` returns `task` (Ansible) and
+    `jwt` alongside `output` (2026-09-26).
+19. Tool input/output is never persisted to browser storage (may contain
+    secrets); only UI preferences are (2026-09-26).

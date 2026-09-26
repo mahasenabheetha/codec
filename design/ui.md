@@ -58,7 +58,7 @@ StatusBar, CommandPalette, Select, Toggle, SearchInput.
 
 ## Icons and logos
 
-- UI icons: `lucide-svelte`, 16px, stroke 1.75, `currentColor`.
+- UI icons: `@lucide/svelte` (per-icon imports), 16px, stroke 1.75, `currentColor`.
 - Brand logos (Kubernetes, Helm, Argo, GitHub Actions, GitLab, Azure
   Pipelines, Ansible, Docker/Compose, YAML): local SVGs in
   `frontend/src/assets/logos/`, used only to label file types. Record

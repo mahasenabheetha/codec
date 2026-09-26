@@ -1,7 +1,7 @@
 # 12 — Ansible + Compose lens
 
 **Goal:** make playbooks and Compose stacks readable and connected.
-**Depends on:** 09 · **Branch:** `feature/mab/p12-ansible-compose`
+**Depends on:** 09 · **Branch:** `feature/mab/yaml-tools`
 
 ## Scope
 

@@ -2,7 +2,7 @@
 
 **Goal:** speed up creating new YAML. Output is always text to copy
 (or a what-if tab) — codec never writes files.
-**Depends on:** 10, 11, 12 · **Branch:** `feature/mab/p13-scaffolding`
+**Depends on:** 10, 11, 12 · **Branch:** `feature/mab/yaml-tools`
 
 ## Scope (in priority order)
 

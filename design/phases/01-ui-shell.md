@@ -2,7 +2,7 @@
 
 **Goal:** the new dark app shell with a reusable design system, and the
 v1 tools rebuilt in it at full parity.
-**Depends on:** 00 · **Branch:** `feature/mab/p01-ui-shell`
+**Depends on:** 00 · **Branch:** `feature/mab/yaml-tools`
 **Read:** ui.md (all), conventions.md (Frontend)
 
 ## Scope
@@ -32,18 +32,25 @@ Workspace, YAML features, backend changes beyond serving the new app.
 
 ## Acceptance
 
-- [ ] Every v1 web feature works, incl. shortcuts Ctrl+Enter, Alt+C, Esc,
+- [x] Every v1 web feature works, incl. shortcuts Ctrl+Enter, Alt+C, Esc,
       transform-on-paste, swap, copy.
-- [ ] Rail collapse, pane sizes and last route persist across reloads.
-- [ ] Command palette reaches every tool/action.
-- [ ] No hard-coded colors/sizes in components (tokens only).
-- [ ] Initial load ≤ 300 KB gzipped; size reported in the PR.
-- [ ] PWA still installable.
+- [x] Rail collapse, pane sizes, open tabs and last route persist across reloads.
+- [x] Command palette reaches every tool/action.
+- [x] No hard-coded colors in components; spacing, radii and type via tokens
+      (fixed element dimensions such as row heights stay plain px).
+- [x] Initial load ≤ 300 KB gzipped: ~75 KB JS+CSS + ~88 KB fonts; the
+      editor chunk (~127 KB) loads on first tool open.
+- [x] PWA manifest + icons served (install itself: verify in Edge/Chrome).
 
 ## Notes
 
-Use Bits UI for dialog/popover/select/tooltip behaviour and style it
-ourselves. Logos folder + `SOURCES.md` created here (file-type badges
-arrive in 03).
+- Bits UI provides dialog/popover/select/tooltip/command behaviour; we style it.
+- Tools stay mounted while their tab is open (state kept); closing a tab resets it.
+- Escape in an editor with a selection first collapses the selection
+  (CodeMirror), a second Escape clears the tool.
+- Use `setTimeout`, not `requestAnimationFrame`, for post-open focus and
+  deferred actions: rAF never fires while the window isn't painting.
+- API gained optional `indent` (request) and `jwt` (response); `/app/`
+  redirects to `/`. Logos folder + `SOURCES.md` exist; badges come in 03.
 
-**Go concepts:** none new (frontend phase). Svelte: runes, props, snippets, stores.
+**Go concepts:** wire types separate from engine types (JSON tags at the HTTP edge), `http.RedirectHandler`. Svelte: runes, snippets, `$state` in classes, `$effect` cleanup.

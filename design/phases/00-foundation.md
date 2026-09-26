@@ -1,7 +1,7 @@
 # 00 — Foundation
 
 **Goal:** v2 toolchain in place without changing any user-visible v1 behaviour.
-**Depends on:** v1.0.0 · **Branch:** `feature/mab/p00-foundation`
+**Depends on:** v1.0.0 · **Branch:** `feature/mab/yaml-tools`
 **Read:** architecture.md (layout), conventions.md
 
 ## Scope

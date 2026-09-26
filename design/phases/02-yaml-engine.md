@@ -1,7 +1,7 @@
 # 02 — YAML engine core
 
 **Goal:** a pure, well-tested YAML engine every later feature builds on.
-**Depends on:** 00 (can run in parallel with 01) · **Branch:** `feature/mab/p02-yaml-engine`
+**Depends on:** 00 (can run in parallel with 01) · **Branch:** `feature/mab/yaml-tools`
 **Read:** architecture.md (layout, provider model)
 
 ## Scope

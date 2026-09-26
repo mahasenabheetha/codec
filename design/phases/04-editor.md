@@ -2,7 +2,7 @@
 
 **Goal:** YAML becomes easy to read: overlays, diagnostics, outline,
 paths, hover — plus in-memory what-if edits.
-**Depends on:** 03 · **Branch:** `feature/mab/p04-editor`
+**Depends on:** 03 · **Branch:** `feature/mab/yaml-tools`
 **Read:** architecture.md (provider model, API), ui.md (syntax colors)
 
 ## Scope

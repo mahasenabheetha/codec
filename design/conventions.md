@@ -25,13 +25,18 @@
 ## Frontend
 
 - Svelte 5 runes (`$state`, `$derived`, `$props`), TypeScript strict.
-- Structure: `frontend/src/lib/{api,components,features,stores,styles}`;
-  one folder per feature (`features/helm/…`).
+- Structure: `frontend/src/lib/{api,components,shell,stores,styles,utils}`
+  for shared code; `frontend/src/features/<feature>/` per tool/lens, with
+  cross-tool pieces in `features/shared/`. New tools register in
+  `lib/tools.ts` (rail, tabs, home and palette are generated from it).
 - Styling: only design tokens from [ui.md](ui.md) — no hard-coded
   colors, sizes or fonts in components. Shared primitives in
   `lib/components` before any feature-specific variant.
-- Dependencies allowed: CodeMirror 6 packages, `lucide-svelte`, Bits UI
-  (headless primitives). Anything else needs a reason.
+- Dependencies allowed: CodeMirror 6 packages, `@lucide/svelte` (import
+  per icon: `@lucide/svelte/icons/<name>`), Bits UI (headless primitives),
+  `@fontsource-variable/*`. Anything else needs a reason.
+- Tool content the user pastes is never persisted (it may hold secrets);
+  `persisted()` is for UI preferences only.
 - No runtime network calls to third parties. All assets bundled.
 
 ## Testing
@@ -46,9 +51,9 @@
 
 ## Git
 
-- Never commit to `main`. Branch `feature/mab/<topic>` (phases:
-  `feature/mab/pNN-<slug>`), PR, CI green, merge commit. Only the user
-  merges unless told otherwise.
+- Never commit to `main`. v2 work lives on one integration branch,
+  `feature/mab/yaml-tools`; commit phases there. The user raises the PR
+  (CI green, merge commit) and merges. Other work: `feature/mab/<topic>`.
 - AI-assisted commits carry a `Co-Authored-By` trailer; README
   Acknowledgements disclose AI assistance.
 - Update `CHANGELOG.md` `[Unreleased]` for user-visible changes.

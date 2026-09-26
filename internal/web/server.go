@@ -16,22 +16,16 @@ import (
 	"github.com/mahasenabheetha/codec/v2/internal/version"
 )
 
-// staticFiles holds the frontend, compiled INTO the binary at build
-// time by the go:embed directive below. The shipped executable needs
-// no files next to it — the web page travels inside it.
-//
-//go:embed static
-var staticFiles embed.FS
-
 // distFiles holds the Vite build of frontend/ (written to dist/app by
-// `npm run build`). The "all:" prefix also embeds the committed
-// dist/.keep, so the package compiles even before the frontend has
-// ever been built — go:embed rejects a directory with nothing in it.
+// `npm run build`), compiled INTO the binary so the shipped executable
+// needs no files next to it. The "all:" prefix also embeds the
+// committed dist/.keep, so the package compiles even before the
+// frontend has ever been built — go:embed rejects an empty directory.
 //
 //go:embed all:dist
 var distFiles embed.FS
 
-// notBuiltPage is served in place of the new UI when the binary was
+// notBuiltPage is served in place of the UI when the binary was
 // compiled without a frontend build.
 const notBuiltPage = `<!doctype html>
 <title>codec</title>
@@ -42,24 +36,34 @@ const notBuiltPage = `<!doctype html>
 then rebuild codec.</p>
 </body>`
 
-// transformRequest is the JSON body the browser sends. Mode and
-// URLSafe are optional: a request carrying only "input" behaves
-// exactly as before this field existed (auto-detect, standard
-// alphabet), because their zero values select those defaults.
+// transformRequest is the JSON body the browser sends. Every field but
+// Input is optional: a request carrying only "input" behaves exactly as
+// before the others existed (auto-detect, standard alphabet, default
+// indentation), because their zero values select those defaults.
 type transformRequest struct {
 	Input   string `json:"input"`
 	Mode    string `json:"mode"`
 	URLSafe bool   `json:"urlSafe"`
+	Indent  string `json:"indent"` // json-pretty only; "" = two spaces
 }
 
-// transformResponse is what a successful transform returns. Task is
-// only present for ansible results: it carries the structured form so
-// the frontend can render a rich, color-coded view, while Output always
-// holds the plain-text rendering (used by Copy and Swap).
+// transformResponse is what a successful transform returns. Output
+// always holds the plain-text rendering (used by Copy and Swap). Task
+// and JWT carry structured forms of the same result, so the frontend
+// can render rich views without re-parsing anything itself.
 type transformResponse struct {
 	Output string            `json:"output"`
 	Kind   string            `json:"kind"`
 	Task   *codec.ParsedTask `json:"task,omitempty"`
+	JWT    *jwtView          `json:"jwt,omitempty"`
+}
+
+// jwtView is the wire form of codec.JWT. The engine type has no JSON
+// tags on purpose: how a token looks over HTTP is this layer's call.
+type jwtView struct {
+	Header    string `json:"header"`    // pretty-printed JSON
+	Payload   string `json:"payload"`   // pretty-printed JSON
+	Signature string `json:"signature"` // base64url, not verified
 }
 
 // errorResponse is returned for any failure. Line and Column are only
@@ -76,25 +80,22 @@ type errorResponse struct {
 func Handler() http.Handler {
 	mux := http.NewServeMux()
 
-	// The embedded FS is rooted above "static/"; strip that prefix so
-	// the browser can request /index.html, not /static/index.html.
-	staticRoot, err := fs.Sub(staticFiles, "static")
+	// The embedded FS is rooted above "dist/app"; re-root it so the
+	// browser requests /index.html, not /dist/app/index.html.
+	appRoot, err := fs.Sub(distFiles, "dist/app")
 	if err != nil {
-		// Unreachable unless the embed directive itself is broken,
-		// which would be a compile-time mistake, not a runtime one.
+		// Unreachable unless the literal path above is malformed,
+		// which would be a programming mistake, not a runtime one.
 		panic(err)
 	}
 
-	appRoot, err := fs.Sub(distFiles, "dist/app")
-	if err != nil {
-		panic(err) // same reasoning as above: only a bad literal path fails
-	}
-
-	mux.Handle("/", http.FileServer(http.FS(staticRoot)))
-	// The new Svelte UI lives under /app/ until it replaces the v1 UI.
-	mux.Handle("/app/", http.StripPrefix("/app/", appHandler(appRoot)))
+	mux.Handle("/", appHandler(appRoot))
 	mux.HandleFunc("POST /api/transform", handleTransform)
 	mux.HandleFunc("GET /api/version", handleVersion)
+
+	// The v2 UI was previewed under /app/ before it replaced v1;
+	// send old bookmarks and installed shortcuts to the real page.
+	mux.Handle("/app/", http.RedirectHandler("/", http.StatusMovedPermanently))
 
 	// Non-POST requests to the API path would otherwise fall through
 	// to the "/" file server above and produce a confusing 404. This
@@ -144,7 +145,7 @@ func handleTransform(w http.ResponseWriter, r *http.Request) {
 		mode = codec.ModeAuto
 	}
 
-	opts := codec.Options{}
+	opts := codec.Options{Indent: req.Indent}
 	if req.URLSafe {
 		opts.Variant = codec.VariantURL
 	}
@@ -174,11 +175,17 @@ func handleTransform(w http.ResponseWriter, r *http.Request) {
 
 	resp := transformResponse{Output: out, Kind: kind.String()}
 
-	// Attach the structured task for ansible results, whether the
-	// user picked the mode explicitly or auto-detect found it.
-	if kind == codec.KindAnsible {
+	// Attach structured forms for rich views, whether the user picked
+	// the mode explicitly or auto-detect found it. The second parse is
+	// cheap and keeps codec.Apply's signature free of UI concerns.
+	switch kind {
+	case codec.KindAnsible:
 		if task, perr := codec.ParseAnsible(req.Input); perr == nil {
 			resp.Task = task
+		}
+	case codec.KindJWT:
+		if tok, perr := codec.DecodeJWT(req.Input); perr == nil {
+			resp.JWT = &jwtView{Header: tok.Header, Payload: tok.Payload, Signature: tok.Signature}
 		}
 	}
 

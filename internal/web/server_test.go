@@ -132,14 +132,84 @@ func TestTransformWrongMethod(t *testing.T) {
 	}
 }
 
-func TestStaticPageIsServed(t *testing.T) {
+// TestAppIsServedAtRoot checks routing only: whether this test binary
+// embedded a real frontend build (200) or not (503 placeholder) depends
+// on how it was built, so both are accepted. TestAppHandler covers the
+// two cases themselves.
+func TestAppIsServedAtRoot(t *testing.T) {
 	rec := do(t, http.MethodGet, "/", "")
 
-	if rec.Code != http.StatusOK {
-		t.Fatalf("status = %d, want 200", rec.Code)
+	if rec.Code != http.StatusOK && rec.Code != http.StatusServiceUnavailable {
+		t.Fatalf("status = %d, want 200 or 503", rec.Code)
 	}
 	if !strings.Contains(rec.Body.String(), "<title>codec</title>") {
-		t.Error("index.html does not appear to be served at /")
+		t.Error("the codec page does not appear to be served at /")
+	}
+}
+
+func TestOldAppPathRedirects(t *testing.T) {
+	rec := do(t, http.MethodGet, "/app/", "")
+
+	if rec.Code != http.StatusMovedPermanently {
+		t.Fatalf("status = %d, want 301", rec.Code)
+	}
+	if loc := rec.Header().Get("Location"); loc != "/" {
+		t.Errorf("Location = %q, want %q", loc, "/")
+	}
+}
+
+func TestPrettyIndent(t *testing.T) {
+	tests := []struct {
+		name   string
+		indent string
+		want   string
+	}{
+		{"default is two spaces", "", "{\n  \"a\": 1\n}"},
+		{"four spaces", "    ", "{\n    \"a\": 1\n}"},
+		{"tab", "\t", "{\n\t\"a\": 1\n}"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			body, _ := json.Marshal(transformRequest{Input: `{"a":1}`, Mode: "json-pretty", Indent: tt.indent})
+			rec := do(t, http.MethodPost, "/api/transform", string(body))
+
+			var resp transformResponse
+			if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+				t.Fatalf("response is not valid JSON: %v", err)
+			}
+			if resp.Output != tt.want {
+				t.Errorf("Output = %q, want %q", resp.Output, tt.want)
+			}
+		})
+	}
+}
+
+// TestJWTStructured checks the structured jwt field is attached both
+// in explicit jwt mode and when auto-detect finds a token.
+func TestJWTStructured(t *testing.T) {
+	// {"alg":"HS256"} . {"sub":"1"} . signature
+	const token = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.c2ln"
+
+	for _, mode := range []string{"jwt", "auto"} {
+		t.Run(mode, func(t *testing.T) {
+			rec := do(t, http.MethodPost, "/api/transform",
+				`{"input":"`+token+`","mode":"`+mode+`"}`)
+
+			var resp transformResponse
+			if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+				t.Fatalf("response is not valid JSON: %v", err)
+			}
+			if resp.JWT == nil {
+				t.Fatalf("jwt field missing; body: %s", rec.Body)
+			}
+			if !strings.Contains(resp.JWT.Payload, `"sub": "1"`) {
+				t.Errorf("Payload = %q, want it to contain the sub claim", resp.JWT.Payload)
+			}
+			if resp.JWT.Signature != "c2ln" {
+				t.Errorf("Signature = %q, want %q", resp.JWT.Signature, "c2ln")
+			}
+		})
 	}
 }
 

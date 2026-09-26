@@ -1,7 +1,7 @@
 # 06 — MVP release (`v2.0.0-alpha.1`)
 
 **Goal:** ship phases 00–05 as a usable pre-release, native + Docker.
-**Depends on:** 05 · **Branch:** `feature/mab/p06-mvp-release`
+**Depends on:** 05 · **Branch:** `feature/mab/yaml-tools`
 **Read:** releases.md
 
 ## Scope

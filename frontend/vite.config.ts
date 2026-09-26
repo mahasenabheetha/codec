@@ -5,9 +5,6 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   plugins: [svelte()],
 
-  // Served by the Go binary under /app/ until phase 01 moves it to /.
-  base: '/app/',
-
   build: {
     // Built straight into the folder the Go binary embeds. Only the
     // app/ subfolder is emptied, so the committed dist/.keep survives

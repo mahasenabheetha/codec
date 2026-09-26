@@ -2,7 +2,7 @@
 
 **Goal:** read Argo workflows as what they really do: resolved
 parameters, stitched templates, and a visual DAG.
-**Depends on:** 09 · **Branch:** `feature/mab/p10-argo`
+**Depends on:** 09 · **Branch:** `feature/mab/yaml-tools`
 
 ## Scope
 

@@ -11,7 +11,7 @@ Copy a Kubernetes secret, get readable JSON. Paste an Ansible `-vv` failure, get
 - **Auto-detect** — paste anything; codec figures out whether it's JSON, base64, a JWT, or an Ansible task log and applies the obvious transformation. Base64 containing JSON is pretty-printed automatically.
 - **Explicit modes** — encode/decode (standard or URL-safe alphabet), pretty/minify/validate JSON, decode JWTs, parse Ansible logs. Explicit modes accept *any* text, no detection required.
 - **Ansible log analysis** — parses `-vv` task output into a structured view: status badge, probable-cause banner (the engine's diagnosis of *why* it failed), summary chips (`rc`, `msg`, timings) with problems highlighted, prettified commands (one `--flag` per line), severity-colored stderr/stdout, an errors-only filter, and support for loop items, retries, skipped tasks, and wrapper-prefixed logs (Packer, CI pipelines).
-- **Web UI** — `codec serve` hosts a local page with side-by-side input/output panes, segmented mode selector, transform-on-paste, click-to-jump JSON error positions, swap, and keyboard-complete flow. Installable as a PWA: it gets its own window and taskbar icon.
+- **Web UI** — `codec serve` hosts a fast, dark, keyboard-first app: a collapsible sidebar of tools, tabs that keep each tool's state, a Ctrl+K command palette, live transform-as-you-type with syntax-highlighted editors, resizable panes, click-to-jump JSON errors, rich JWT (claims, expiry) and Ansible views. Installable as a PWA: it gets its own window and taskbar icon.
 - **Watch mode** — `codec watch` monitors the clipboard: copy JSON anywhere, paste base64; copy base64, paste decoded JSON.
 - **Clipboard flag** — `-c` on any CLI command also copies the output.
 - **Lenient input** — tolerates wrapped lines, whitespace, missing base64 padding, ANSI color codes in logs.
@@ -50,7 +50,19 @@ codec serve            # http://localhost:8765
 codec serve --port 9000
 ```
 
-Paste into the input pane — transformation runs instantly on paste. Pick an explicit mode from the segmented control when auto-detect isn't what you want. Shortcuts: Ctrl+Enter run, Alt+C copy, Esc clear.
+Pick a tool from the sidebar (or press Ctrl+K and type), then paste or type — output updates as you go. **Smart paste** auto-detects; the other tools are explicit.
+
+| Shortcut | Action |
+|---|---|
+| Ctrl+K | Search tools and actions |
+| Ctrl+Enter | Run the transform |
+| Alt+C | Copy output |
+| Alt+S | Use output as input |
+| Esc | Clear the tool |
+| Ctrl+B | Toggle the sidebar |
+| ? | Show all shortcuts |
+
+On macOS, Ctrl is ⌘. Nothing you paste is stored — only layout preferences are remembered.
 
 **Install as an app:** in Edge, menu → Apps → *Install this site as an app* (Chrome: install icon in the address bar). codec gets its own window, taskbar icon, and Start-menu entry. Note the server (`codec serve`) must be running for the app to work — there is deliberately no offline cache, because the "site" *is* the local binary.
 
@@ -150,7 +162,7 @@ npm --prefix frontend run build  # build into internal/web/dist, embedded by go 
 
 Or let `scripts/dev.sh` (bash; Git Bash on Windows) do it all: `build` (frontend + `./codec-dev`), `run [port]` (build and serve, default 8766), `ui [port]` (build, serve, and the hot-reload UI at http://localhost:5173/app/).
 
-The new v2 UI (Svelte + TypeScript, in `frontend/`) is served at `/app/` while it's being built; the v1 UI stays at `/`. A binary built without the frontend still compiles and shows a "frontend not built" page there.
+The web UI (Svelte 5 + TypeScript, in `frontend/`) is embedded into the binary. A binary built without the frontend still compiles and shows a "frontend not built" page instead.
 
 Tests are table-driven; the Ansible parser's test suite is built from real logs, and every parsing bug fixed becomes a named regression test. CI builds the frontend, then runs vet, tests and build on Linux and Windows for every push and PR. Changes go through pull requests — no direct pushes to `main`.
 

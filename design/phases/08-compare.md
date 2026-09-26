@@ -1,7 +1,7 @@
 # 08 — Compare + query
 
 **Goal:** answer "what's different?" and "where is X?" precisely.
-**Depends on:** 06 · **Branch:** `feature/mab/p08-compare`
+**Depends on:** 06 · **Branch:** `feature/mab/yaml-tools`
 
 ## Scope
 

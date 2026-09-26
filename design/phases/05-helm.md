@@ -2,7 +2,7 @@
 
 **Goal:** render any chart in the workspace with layered values, see
 exactly where every value came from, and preview what-if changes live.
-**Depends on:** 04 · **Branch:** `feature/mab/p05-helm`
+**Depends on:** 04 · **Branch:** `feature/mab/yaml-tools`
 **Read:** decisions.md (#9), architecture.md
 
 ## Scope

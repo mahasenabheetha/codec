@@ -2,7 +2,7 @@
 
 **Goal:** understand a set of manifests at a glance — what's there, how
 it connects, what's broken.
-**Depends on:** 07 · **Branch:** `feature/mab/p09-kubernetes`
+**Depends on:** 07 · **Branch:** `feature/mab/yaml-tools`
 
 ## Scope
 
