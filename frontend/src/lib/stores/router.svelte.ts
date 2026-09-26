@@ -59,6 +59,7 @@ function prefixed(prefix: string) {
 const k8s = prefixed("/k8s/")
 const kustomize = prefixed("/kustomize/")
 const argo = prefixed("/argo/")
+const ciPrefix = prefixed("/ci/")
 
 /** Route of the Kubernetes resources view of a folder ("." = root). */
 export const k8sRoute = k8s.route
@@ -72,6 +73,10 @@ export const routeKustomize = kustomize.parse
 export const argoRoute = argo.route
 /** The file an Argo route points at, or null. */
 export const routeArgo = argo.parse
+/** Route of the pipeline view of a CI file. */
+export const ciRoute = ciPrefix.route
+/** The file a pipeline route points at, or null. */
+export const routeCI = ciPrefix.parse
 
 /** Fixed app views that open as tabs. */
 export const problemsRoute = '/problems'
@@ -81,7 +86,7 @@ export const queryRoute = '/query'
 
 /** Is route one of the fixed views? */
 export function isView(route: string): boolean {
-  return [problemsRoute, lintSettingsRoute, compareRoute, queryRoute].includes(route) || routeK8s(route) !== null || routeKustomize(route) !== null || routeArgo(route) !== null
+  return [problemsRoute, lintSettingsRoute, compareRoute, queryRoute].includes(route) || routeK8s(route) !== null || routeKustomize(route) !== null || routeArgo(route) !== null || routeCI(route) !== null
 }
 
 /** The tool id a route points at, or null. */

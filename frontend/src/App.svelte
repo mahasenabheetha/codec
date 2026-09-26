@@ -13,6 +13,7 @@
   import GitCompare from '@lucide/svelte/icons/git-compare'
   import Layers from '@lucide/svelte/icons/layers'
   import Workflow from '@lucide/svelte/icons/workflow'
+  import GitBranch from '@lucide/svelte/icons/git-branch'
   import ListChecks from '@lucide/svelte/icons/list-checks'
   import TextSearch from '@lucide/svelte/icons/text-search'
   import Settings2 from '@lucide/svelte/icons/settings-2'
@@ -33,6 +34,7 @@
   import K8sFolderView from './features/kube/K8sFolderView.svelte'
   import KustomizeView from './features/kube/KustomizeView.svelte'
   import ArgoFileView from './features/argo/ArgoFileView.svelte'
+  import CIFileView from './features/ci/CIFileView.svelte'
   import QueryView from './features/compare/QueryView.svelte'
   import { comparison, queries } from './features/compare/compare.svelte'
   import WorkspaceProblems from './features/lint/WorkspaceProblems.svelte'
@@ -42,7 +44,7 @@
   import QuickOpen from './features/workspace/QuickOpen.svelte'
   import { openFolder, workspace } from './features/workspace/workspace.svelte'
   import { tools, toolById } from './lib/tools'
-  import { argoRoute, compareRoute, isView, k8sRoute, kustomizeRoute, lintSettingsRoute, problemsRoute, queryRoute, router, routeArgo, routeFile, routeHelm, routeK8s, routeKustomize, routeTool } from './lib/stores/router.svelte'
+  import { argoRoute, ciRoute, compareRoute, isView, k8sRoute, kustomizeRoute, lintSettingsRoute, problemsRoute, queryRoute, router, routeArgo, routeCI, routeFile, routeHelm, routeK8s, routeKustomize, routeTool } from './lib/stores/router.svelte'
   import { layout } from './lib/stores/layout.svelte'
   import { shortcut } from './lib/stores/shortcuts.svelte'
   import { commands } from './lib/stores/commands.svelte'
@@ -231,6 +233,16 @@
           keywords: ['argo', 'workflow', 'dag', 'parameters', 'application', f.path],
           run: () => layout.open(argoRoute(f.path)),
         })),
+      ...workspace.files
+        .filter((f) => f.type === 'github-actions' || f.type === 'gitlab-ci' || f.type === 'azure-pipelines')
+        .map((f) => ({
+          id: `ci.${f.path}`,
+          title: `Pipeline: ${f.path}`,
+          group: 'CI',
+          icon: GitBranch,
+          keywords: ['pipeline', 'ci', 'jobs', 'stages', 'matrix', 'gitlab', 'github', 'azure', f.path],
+          run: () => layout.open(ciRoute(f.path)),
+        })),
     ]),
   )
   // Recent folders, one palette entry each; re-registered as they change.
@@ -322,6 +334,10 @@
           {:else if routeArgo(route) !== null}
             <div class="panel" hidden={router.path !== route}>
               <ArgoFileView path={routeArgo(route)!} active={router.path === route} />
+            </div>
+          {:else if routeCI(route) !== null}
+            <div class="panel" hidden={router.path !== route}>
+              <CIFileView path={routeCI(route)!} active={router.path === route} />
             </div>
           {:else if route === compareRoute}
             <div class="panel" hidden={router.path !== route}>

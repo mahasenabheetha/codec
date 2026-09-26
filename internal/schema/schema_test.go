@@ -3,6 +3,7 @@ package schema
 import (
 	"bytes"
 	"compress/gzip"
+	"encoding/json"
 	"fmt"
 	"os"
 	"slices"
@@ -202,5 +203,37 @@ func TestInfoAt(t *testing.T) {
 	i, _ = InfoAt(sch, []Step{{Key: "spec"}, {Key: "template"}, {Key: "spec"}, {Key: "containers"}, {Item: true}, {Key: "imagePullPolicy"}})
 	if !slices.Contains(i.Enum, "IfNotPresent") {
 		t.Errorf("imagePullPolicy enum = %v", i.Enum)
+	}
+}
+
+// Regression: Azure template directives were reported as unknown fields.
+func TestSpliceDirectives(t *testing.T) {
+	src := `steps:
+  - script: build
+  - ${{ if eq(parameters.test, true) }}:
+    - script: test
+  - ${{ else }}:
+    - script: skip
+  - ${{ parameters.extraSteps }}
+pool:
+  vmImage: ubuntu-latest
+  ${{ if parameters.big }}:
+    demands: [big]
+`
+	f := yamlkit.Parse([]byte(src))
+	got, changed := splice(f.Docs[0].Root)
+	if !changed {
+		t.Fatal("not changed")
+	}
+	b, _ := json.Marshal(Value(got))
+	want := `{"pool":{"demands":["big"],"vmImage":"ubuntu-latest"},"steps":[{"script":"build"},{"script":"test"},{"script":"skip"}]}`
+	if string(b) != want {
+		t.Errorf("got  %s\nwant %s", b, want)
+	}
+	if got.Get("steps").Items[1].Range.Start.Line != 4 {
+		t.Errorf("positions not kept")
+	}
+	if _, changed := splice(yamlkit.Parse([]byte("a: ${{ x }}\n")).Docs[0].Root); changed {
+		t.Error("a templated value is not a directive")
 	}
 }

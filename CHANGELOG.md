@@ -6,6 +6,36 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+### Added (CI pipelines)
+
+- Pipeline view for GitHub Actions, GitLab CI and Azure Pipelines: jobs
+  as a graph in real execution order (needs, stage order, dependsOn)
+  or as a list by stage; for each job its steps, what it waits for,
+  rules/conditions and its effective configuration, each line saying
+  where it came from (the job, `extends .base`, `default`, global
+  variables, `!reference`, a template file).
+- GitLab: `include: local` (globs too) followed, project/remote/
+  template/component includes listed as not read; anchors and merge
+  keys, `!reference`, `extends` and `default:`/`inherit:` merged the
+  way GitLab does; `parallel: matrix` jobs named; child pipelines.
+- GitHub: matrix preview with every combination, include/exclude
+  applied (and marked); local reusable workflows run in the caller's
+  place, with the inputs it passes checked; local composite actions
+  show their steps.
+- Azure: local `template:` files inserted with their parameters,
+  `${{ if }}`/`${{ each }}`/parameters evaluated (what-if parameters
+  in the view), `extends:` templates, deployment jobs.
+- Editor: jobs, stages and steps in the outline; go to definition and
+  hover for needs, extends, `!reference`, local includes, `uses:`,
+  `template:`, dependsOn and `${{ }}` contexts (inputs, env, secrets
+  by name only, matrix, needs outputs, steps); diagnostics for unknown
+  jobs and templates, missing files, needs across stages, undeclared
+  inputs and more; Azure `$(var)` and `$[ ]`, GitLab `$[[ inputs ]]`
+  highlighted.
+- `codec ci jobs <file> [-p name=value] [--json]` (exit 2 on problems),
+  `codec ci job <file> <job>` (effective config with origins) and
+  `codec ci graph <file> --format mermaid|dot`.
+
 ### Added (Argo)
 
 - Argo view for Workflows, WorkflowTemplates, ClusterWorkflowTemplates,

@@ -14,7 +14,7 @@
   import { workspace } from '../../features/workspace/workspace.svelte'
   import { getVersion, type VersionInfo } from '../api/version'
   import { layout } from '../stores/layout.svelte'
-  import { compareRoute, lintSettingsRoute, problemsRoute, queryRoute, router, routeArgo, routeHelm, routeK8s, routeKustomize } from '../stores/router.svelte'
+  import { compareRoute, lintSettingsRoute, problemsRoute, queryRoute, router, routeArgo, routeCI, routeHelm, routeK8s, routeKustomize } from '../stores/router.svelte'
   import { toolById } from '../tools'
 
   let version = $state<VersionInfo | null>(null)
@@ -83,6 +83,9 @@
     {:else if routeArgo(router.path) !== null}
       <span class="where type"><FileIcon file="argo-workflows" size={12} /> Argo</span>
       <span class="path">{routeArgo(router.path)} · resolved without a cluster; run-time values stay as written</span>
+    {:else if routeCI(router.path) !== null}
+      <span class="where">Pipeline</span>
+      <span class="path">{routeCI(router.path)} · local includes and templates followed; remote ones listed, never fetched</span>
     {:else if router.path === compareRoute}
       <span class="where">Compare</span>
       <span class="path">by meaning: key and list order ignored, list items paired by name</span>

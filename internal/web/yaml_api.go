@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/mahasenabheetha/codec/v2/internal/argo"
+	"github.com/mahasenabheetha/codec/v2/internal/ci"
 	"github.com/mahasenabheetha/codec/v2/internal/provider"
 	"github.com/mahasenabheetha/codec/v2/internal/textdiff"
 	"github.com/mahasenabheetha/codec/v2/internal/workspace"
@@ -167,6 +168,13 @@ func (s *Server) handleAnalyze(w http.ResponseWriter, r *http.Request) {
 				slices.SortStableFunc(a.Diagnostics, func(x, y yamlkit.Diagnostic) int { return cmp.Compare(x.Range.Start.Offset, y.Range.Start.Offset) })
 			}
 		}
+		if opts, ok := s.ciFor(r.Context(), f, a.Type); ok {
+			// With the repository, includes and templates are followed:
+			// replace the file-only findings.
+			a.Diagnostics = slices.DeleteFunc(a.Diagnostics, func(d yamlkit.Diagnostic) bool { return d.Source == "ci" })
+			a.Diagnostics = append(a.Diagnostics, ci.Diagnose(ci.Analyze(a.Type, f.Path, f.Content, f.YAML, opts), f.Path)...)
+			slices.SortStableFunc(a.Diagnostics, func(x, y yamlkit.Diagnostic) int { return cmp.Compare(x.Range.Start.Offset, y.Range.Start.Offset) })
+		}
 		return a
 	})
 }
@@ -194,6 +202,9 @@ func (s *Server) handleHover(w http.ResponseWriter, r *http.Request) {
 		if ix := s.argoIndexFor(r.Context(), f); ix != nil {
 			h = argo.HoverIn(f, at, ix) // also in raw Helm templates of Argo files
 		}
+		if opts, ok := s.ciFor(r.Context(), f, p.ID()); ok && h == nil {
+			h = ci.HoverIn(p.ID(), f, at, opts) // includes and templates too
+		}
 		if h == nil {
 			h = provider.HoverAt(p, f, at)
 		}
@@ -216,6 +227,9 @@ func (s *Server) handleDefinition(w http.ResponseWriter, r *http.Request) {
 		var locs []provider.Location
 		if ix := s.argoIndexFor(r.Context(), f); ix != nil {
 			locs = argo.DefinitionIn(f, pos(req, f), ix) // templateRef across files
+		}
+		if opts, ok := s.ciFor(r.Context(), f, p.ID()); ok && len(locs) == 0 {
+			locs = ci.DefinitionIn(p.ID(), f, pos(req, f), opts) // extends, templates, actions in other files
 		}
 		if len(locs) == 0 {
 			locs = provider.DefinitionAt(p, f, pos(req, f))

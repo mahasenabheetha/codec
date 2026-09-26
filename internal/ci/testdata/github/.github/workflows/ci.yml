@@ -1,0 +1,48 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      env:
+        type: choice
+        options: [dev, prod]
+        default: dev
+env:
+  GO: "1.26"
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        fruit: [apple, pear]
+        animal: [cat, dog]
+        include:
+          - color: green
+          - color: pink
+            animal: cat
+          - fruit: apple
+            shape: circle
+          - fruit: banana
+          - fruit: banana
+            animal: cat
+    outputs:
+      version: ${{ steps.build.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: build
+        run: make
+      - uses: ./.github/actions/setup
+      - run: echo ${{ steps.biuld.outputs.x }} ${{ matrix.colour }} ${{ matrix.fruit }}
+  release:
+    needs: test
+    uses: ./.github/workflows/release.yml
+    with:
+      version: ${{ needs.test.outputs.version }}
+      extra: 1
+  notify:
+    needs: [release]
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo ${{ needs.test.result }} ${{ inputs.envv }} ${{ inputs.env }} '${{ 'needs.x' }}'

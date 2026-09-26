@@ -169,7 +169,7 @@ func (r *resolver) resolve(n *Node, depth int) (*Node, error) {
 		}
 		return r.resolve(target, depth+1)
 	case KindSeq:
-		out := &Node{Kind: KindSeq, Range: n.Range, Flow: n.Flow, Items: []*Node{}}
+		out := &Node{Kind: KindSeq, Range: n.Range, Flow: n.Flow, Tag: n.Tag, Items: []*Node{}}
 		for _, it := range n.Items {
 			v, err := r.resolve(it, depth+1)
 			if err != nil {
@@ -191,7 +191,7 @@ func (r *resolver) resolve(n *Node, depth int) (*Node, error) {
 // where the merge key sits, unless the map sets the key explicitly
 // (explicit keys always win) or an earlier source already provided it.
 func (r *resolver) resolveMap(n *Node, depth int) (*Node, error) {
-	out := &Node{Kind: KindMap, Range: n.Range, Flow: n.Flow, Pairs: []*Pair{}}
+	out := &Node{Kind: KindMap, Range: n.Range, Flow: n.Flow, Tag: n.Tag, Pairs: []*Pair{}}
 	explicit := map[string]bool{}
 	for _, p := range n.Pairs {
 		if p.Key.Tag != TagMerge {

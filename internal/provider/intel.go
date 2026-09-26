@@ -60,6 +60,12 @@ type (
 	Diagnoser interface {
 		Diagnostics(f *File) []yamlkit.Diagnostic
 	}
+	// Expresser re-reads a file's expressions for its tool: Azure's
+	// ${{ }} is compiled before the run (not at run time like
+	// GitHub's), and tools add syntax of their own ($(var), $[[ ]]).
+	Expresser interface {
+		Expressions(f *File) []yamlkit.Expression
+	}
 )
 
 // HoverAt asks p first, then falls back to the generic hover.
@@ -388,6 +394,9 @@ func (r *Registry) Analyze(f *File) *Analysis {
 	}
 	if d, ok := p.(Diagnoser); ok {
 		a.Diagnostics = append(a.Diagnostics, d.Diagnostics(f)...)
+	}
+	if x, ok := p.(Expresser); ok {
+		a.Expressions = x.Expressions(f)
 	}
 	slices.SortStableFunc(a.Diagnostics, func(x, y yamlkit.Diagnostic) int {
 		switch {

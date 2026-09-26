@@ -42,6 +42,11 @@ codec **never writes to your files** and nothing leaves your machine.
   steps and DAGs as graphs (`depends` expressions included), what-if
   parameters. Run-time values stay marked, never guessed. Argo CD apps
   show where they deploy from and to, and render with their values.
+- **CI pipelines.** GitHub Actions, GitLab CI and Azure Pipelines as
+  they run: jobs in execution order as a graph, every GitHub matrix
+  combination, and each job's effective configuration after includes,
+  `extends`, `!reference`, templates and reusable workflows — every
+  line saying where it came from.
 - **Compare and query.** Diff two files, a what-if edit against disk, or
   a chart's dev and prod renders by meaning — key and list order don't
   count, containers and env pair up by name. Run jq over the workspace,
@@ -121,7 +126,8 @@ lints the whole folder, **Compare** diffs files or Helm profiles by meaning,
 Kubernetes version and schema options. Ctrl+Space completes keys and
 values from the file's schema. **Argo** on a workflow or application
 file (or the Argo tab of a Helm render) opens the workflow as a graph
-with its parameters resolved.
+with its parameters resolved. **Pipeline** on a GitHub Actions, GitLab
+CI or Azure Pipelines file shows its jobs in execution order.
 
 | Shortcut | Action |
 |---|---|
@@ -210,6 +216,26 @@ codec argo resolve wf.yaml templates/ -p env=prod   # each step, its template, i
 helm template ./chart | codec argo resolve -w deploy-wf
 codec argo graph wf.yaml --template main --format mermaid   # or dot
 ```
+
+### CI pipelines
+
+```bash
+codec ci jobs .gitlab-ci.yml                 # stages and jobs in execution order
+#   stage test
+#     test  · golang:1.26 · runner docker · × 2
+#         after build
+#         extends .base → .tester
+codec ci job .gitlab-ci.yml build            # effective config, where each line comes from
+#   image: golang:1.26  # ← extends .base  ci/templates.yml:2
+#   tags:               # ← default
+#     - docker          # ← default
+codec ci jobs .github/workflows/ci.yml --json
+codec ci graph azure-pipelines.yml -p env=prod --format dot | dot -Tsvg > ci.svg
+```
+
+Includes, templates and actions are read from the repository (the
+folder holding `.git`, or `--root`); remote ones are listed, never
+fetched.
 
 ### Diff and query
 

@@ -24,7 +24,11 @@ internal/
   argo/               ENGINE Argo lens: workflow specs (incl. Sensor-submitted),
                       cross-file index, parameter resolution, depends parser,
                       when evaluator, checks, Argo CD apps; registers providers
-  ci/ ansible/        ENGINE later lenses (one package per domain)
+  ci/                 ENGINE CI lens: GitHub Actions (matrix, reusable workflows,
+                      composite actions), GitLab CI (includes, !reference,
+                      extends, default: merged with origins), Azure Pipelines
+                      (templates, ${{ }} evaluator); registers providers
+  ansible/            ENGINE later lenses (one package per domain)
   compose/
   workspace/          ADAPTER read-only folder access, index, watcher
   config/             ADAPTER user settings in os.UserConfigDir()/codec
@@ -99,6 +103,10 @@ resources, jobs, references) built by the workspace adapter.
   overrides} → workflows and apps in scope, the chosen workflow resolved
   (nodes, edges, values in parts); `/yaml/hover|definition|analyze` also
   resolve templateRef across the folder's Argo files.
+  CI: `POST /ci/analyze` {path, params, overrides} → stages, jobs
+  (steps, matrix, effective config with origins), edges, includes,
+  problems; `/yaml/hover|definition|analyze` follow includes and
+  templates in the repository around the file.
 - Errors: `{"error": "...", "line"?, "column"?, "file"?}` with 400 for
   caller bugs, 422 for bad input, 404 missing, 500 unexpected.
 - Push updates via Server-Sent Events, `GET /api/v2/events`: `workspace`

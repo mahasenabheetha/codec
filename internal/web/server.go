@@ -146,6 +146,7 @@ func (s *Server) routes() http.Handler {
 	mux.HandleFunc("POST /api/v2/k8s/analyze", s.handleK8sAnalyze)
 	mux.HandleFunc("POST /api/v2/k8s/neat", s.handleK8sNeat)
 	mux.HandleFunc("POST /api/v2/argo/analyze", s.handleArgoAnalyze)
+	mux.HandleFunc("POST /api/v2/ci/analyze", s.handleCIAnalyze)
 	mux.HandleFunc("/api/v2/", func(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusNotFound, "no such endpoint: "+r.Method+" "+r.URL.Path)
 	})

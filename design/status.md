@@ -1,8 +1,8 @@
 # Status
 
-**Current phase:** 11 — CI pipelines lens ([phases/11-ci.md](phases/11-ci.md))
-**State:** not started. Phases 00–10 are done and committed on `feature/mab/yaml-tools`; 06 still awaits the user's native checks and the `v2.0.0-alpha.1` tag.
-**Next step:** start phase 11 on `feature/mab/yaml-tools`.
+**Current phase:** 12 — Ansible + Compose lens ([phases/12-ansible-compose.md](phases/12-ansible-compose.md))
+**State:** not started. Phases 00–11 are done and committed on `feature/mab/yaml-tools`; 06 still awaits the user's native checks and the `v2.0.0-alpha.1` tag.
+**Next step:** start phase 12 on `feature/mab/yaml-tools`.
 **Blockers:** none. Open checks: phase 06 manual checklist (native Windows/macOS, typing on a 5k-line file).
 
 Released: `v1.0.0` (2026-09-26). All v2 work stays on `feature/mab/yaml-tools` until the user raises the PR.
@@ -10,6 +10,8 @@ Released: `v1.0.0` (2026-09-26). All v2 work stays on `feature/mab/yaml-tools` u
 ## Log
 
 One line per session, newest first: date · phase · what changed.
+
+- 2026-09-27 · 11 · `internal/ci` (GitHub: triggers, inputs, matrix expansion with include/exclude, local reusable workflows flattened, composite actions, expression checks; GitLab: local includes + globs, anchors, `!reference`, extends, default:/inherit, global variables, effective config with per-line origins, stage/needs order, parallel matrix, child pipelines; Azure: local templates with parameters, `${{ if/each }}` evaluator, extends, stages/jobs/deployments), ci providers (outline, hover, definition incl. other files, diagnostics, `$( )`/`$[ ]`/`$[[ ]]` tints), `/api/v2/ci/analyze`, `codec ci jobs|job|graph`; UI: Pipeline view (graph + stages list, job details with steps, matrix table, inputs passed, effective config with origins, what-if Azure parameters). `yamlkit.Resolve` keeps explicit tags on lists/maps.
 
 - 2026-09-26 · 10 · `internal/argo` (workflow specs incl. Sensor-submitted and CronWorkflow, folder index, parameter resolution with run-time values kept as parts, depends parser, when evaluator, checks, Argo CD apps), argo providers (outline, definition, hover, diagnostics), `/api/v2/argo/analyze`, cross-file templateRef in the editor (raw Helm templates too), `codec argo resolve|graph`; UI: Argo view (workflow picker, what-if parameters and parameter file, steps/DAG graph with drill-down, step details with the template filled in, Argo CD cards with "Render this app"), Argo tab in the Helm view.
 

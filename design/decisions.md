@@ -214,3 +214,32 @@ Settled unless the user reopens them. Add new ones at the bottom:
     by path (suffix match) or by Chart.yaml name; value files resolve
     relative to the chart, inline values become a virtual layer that
     is never saved in a profile (2026-09-26).
+56. CI effective configurations are merged with an origin per entry
+    (key nodes are copied per tree and tagged). GitLab order: anchors
+    (per file) → include (deep merge, the including file wins) →
+    `!reference` (against the merged raw config, before extends) →
+    extends (deep merge in order, the job wins, lists replace) →
+    default:/old top-level defaults for unset keys and global
+    variables, as `inherit:` allows; script lists are flattened
+    (2026-09-27).
+57. Graph edges are the real execution order. GitLab: `needs` where
+    given (`needs: []` starts at once), otherwise every earlier-stage
+    job not already waited for through another. GitHub: a local
+    reusable workflow's jobs replace the caller (`caller/job`); its
+    first jobs wait for the caller's needs, jobs needing the caller
+    wait for its last jobs. Azure: stages in order unless dependsOn,
+    jobs in parallel unless dependsOn (2026-09-27).
+58. Remote, project, template and component includes, remote reusable
+    workflows and templates in other repositories are listed, never
+    fetched. Names they might define are info ("may come from …")
+    unless a local near miss (≤ 3 edits, swaps count as one) suggests
+    a typo (2026-09-27).
+59. Azure `${{ }}` template expressions are evaluated from parameters
+    (defaults or what-if) and statically set variables; `$(macro)` and
+    `$[ ]` are run time and never evaluated. An undecidable `if` keeps
+    its branch, marked "only if …"; `each` over an unknown collection
+    shows nothing (info) (2026-09-27).
+60. The repository root of a pipeline file is the folder above
+    `.github/`, else the nearest folder holding `.git` (an opened
+    folder may hold several repositories); the CLI defaults to the
+    folder holding `.git` (2026-09-27).

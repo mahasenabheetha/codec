@@ -1,0 +1,14 @@
+on:
+  workflow_call:
+    inputs:
+      version: {type: string, required: true}
+      channel: {type: string, default: stable}
+      dry: {type: boolean, required: true}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps: [{run: make release}]
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps: [{run: ./publish.sh}]

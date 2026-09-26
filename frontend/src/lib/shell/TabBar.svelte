@@ -4,6 +4,7 @@
   import GitCompare from '@lucide/svelte/icons/git-compare'
   import Layers from '@lucide/svelte/icons/layers'
   import Workflow from '@lucide/svelte/icons/workflow'
+  import GitBranch from '@lucide/svelte/icons/git-branch'
   import ListChecks from '@lucide/svelte/icons/list-checks'
   import TextSearch from '@lucide/svelte/icons/text-search'
   import Settings2 from '@lucide/svelte/icons/settings-2'
@@ -23,6 +24,7 @@
     routeK8s,
     routeKustomize,
     routeArgo,
+    routeCI,
     routeTool,
   } from '../stores/router.svelte'
   import { charts } from '../../features/helm/helm.svelte'
@@ -67,6 +69,8 @@
     if (kz !== null) return { title: `Kustomize · ${base(kz)}`, icon: Layers }
     const ar = routeArgo(route)
     if (ar !== null) return { title: `Argo · ${base(ar)}`, icon: Workflow }
+    const cr = routeCI(route)
+    if (cr !== null) return { title: `Pipeline · ${base(cr)}`, icon: GitBranch }
     return undefined
   }
 

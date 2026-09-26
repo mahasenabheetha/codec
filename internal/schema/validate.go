@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"regexp"
 	"slices"
 	"strconv"
 	"strings"
@@ -31,12 +32,19 @@ func Validate(sch *jsonschema.Schema, doc *yamlkit.Document, looseScalars bool) 
 	if err != nil {
 		return nil // the parser already reported the broken alias
 	}
+	located := doc
+	if spliced, changed := splice(resolved); changed {
+		// Errors are placed on the spliced tree, whose nodes keep their
+		// positions in the file.
+		resolved = spliced
+		located = &yamlkit.Document{Index: doc.Index, Range: doc.Range, Root: spliced}
+	}
 	err = sch.Validate(Value(resolved))
 	var ve *jsonschema.ValidationError
 	if !errors.As(err, &ve) {
 		return nil
 	}
-	m := &mapper{doc: doc, root: sch, loose: looseScalars}
+	m := &mapper{doc: located, root: sch, loose: looseScalars}
 	for _, leaf := range leaves(ve) {
 		m.add(leaf)
 	}
@@ -374,4 +382,73 @@ func distance(a, b string) int {
 		prev, cur = cur, prev
 	}
 	return prev[len(rb)]
+}
+
+// directiveKey matches an Azure Pipelines template directive used as a
+// key: ${{ if … }}, ${{ elseif … }}, ${{ else }}, ${{ each … }},
+// ${{ insert }}.
+var directiveKey = regexp.MustCompile(`^\$\{\{\s*(if|elseif|else|each|insert)\b.*\}\}$`)
+
+// splice removes template directives the way Azure applies them, so the
+// schema sees the pipeline's shape: a directive's map entries join the
+// map it is in, its list items join the list it is in. Keys and list
+// items that are whole expressions (their content is only known when
+// the template is compiled) are left out. changed is false when n has
+// none of these.
+func splice(n *yamlkit.Node) (*yamlkit.Node, bool) {
+	if n == nil {
+		return nil, false
+	}
+	switch n.Kind {
+	case yamlkit.KindMap:
+		out := &yamlkit.Node{Kind: n.Kind, Range: n.Range, Flow: n.Flow, Tag: n.Tag}
+		changed := false
+		for _, p := range n.Pairs {
+			key := ""
+			if p.Key != nil {
+				key = strings.TrimSpace(p.Key.Value)
+			}
+			switch {
+			case directiveKey.MatchString(key):
+				changed = true
+				if v, _ := splice(p.Value); v != nil && v.Kind == yamlkit.KindMap {
+					out.Pairs = append(out.Pairs, v.Pairs...)
+				}
+				continue
+			case strings.Contains(key, "${{"):
+				changed = true
+				continue
+			}
+			v, c := splice(p.Value)
+			changed = changed || c
+			out.Pairs = append(out.Pairs, &yamlkit.Pair{Key: p.Key, Value: v})
+		}
+		return out, changed
+	case yamlkit.KindSeq:
+		out := &yamlkit.Node{Kind: n.Kind, Range: n.Range, Flow: n.Flow, Tag: n.Tag}
+		changed := false
+		for _, it := range n.Items {
+			if it != nil && it.Kind == yamlkit.KindMap && len(it.Pairs) == 1 && it.Pairs[0].Key != nil && directiveKey.MatchString(strings.TrimSpace(it.Pairs[0].Key.Value)) {
+				changed = true
+				v, _ := splice(it.Pairs[0].Value)
+				switch {
+				case v == nil:
+				case v.Kind == yamlkit.KindSeq:
+					out.Items = append(out.Items, v.Items...)
+				case v.Kind == yamlkit.KindMap:
+					out.Items = append(out.Items, v)
+				}
+				continue
+			}
+			if it != nil && it.Kind == yamlkit.KindScalar && strings.HasPrefix(strings.TrimSpace(it.Value), "${{") && strings.HasSuffix(strings.TrimSpace(it.Value), "}}") {
+				changed = true
+				continue
+			}
+			v, c := splice(it)
+			changed = changed || c
+			out.Items = append(out.Items, v)
+		}
+		return out, changed
+	}
+	return n, false
 }

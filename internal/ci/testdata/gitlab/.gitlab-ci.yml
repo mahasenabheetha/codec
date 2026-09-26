@@ -1,0 +1,58 @@
+stages: [build, test, deploy]
+
+include:
+  - local: ci/templates.yml
+  - project: group/shared
+    file: templates/common.yml
+
+variables:
+  GLOBAL: "1"
+  REGION: eu
+
+default:
+  image: alpine:3.20
+  tags: [docker]
+
+.defaults: &defaults
+  retry: 2
+  variables:
+    FROM_ANCHOR: "yes"
+
+build:
+  <<: *defaults
+  stage: build
+  extends: .base
+  script:
+    - !reference [.setup, script]
+    - make build
+  variables:
+    REGION: us
+
+test:
+  stage: test
+  extends: [.base, .tester]
+  script: go test ./...
+  parallel:
+    matrix:
+      - GO: ["1.25", "1.26"]
+        OS: [linux]
+
+lint:
+  stage: test
+  needs: []
+  image: golangci/golangci-lint
+  script: golangci-lint run
+
+deploy:
+  stage: deploy
+  needs: [build, {job: lint, optional: true}]
+  script: ./deploy.sh
+  when: manual
+  environment: production
+  inherit:
+    default: false
+
+notify:
+  stage: .post
+  extends: .from_project
+  script: ./notify.sh
