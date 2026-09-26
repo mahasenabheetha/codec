@@ -26,7 +26,7 @@ case "${1:-run}" in
     ;;
   run)
     build
-    echo "v1 UI: http://127.0.0.1:$port/   v2 UI: http://127.0.0.1:$port/app/"
+    echo "UI: http://127.0.0.1:$port/"
     exec "$bin" serve --port "$port"
     ;;
   ui)
@@ -34,7 +34,7 @@ case "${1:-run}" in
     "$bin" serve --port "$port" &
     server=$!
     trap 'kill "$server" 2>/dev/null' EXIT
-    echo "hot-reload UI: http://localhost:5173/app/"
+    echo "hot-reload UI: http://localhost:5173/"
     CODEC_API="http://127.0.0.1:$port" npm --prefix frontend run dev
     ;;
   *)

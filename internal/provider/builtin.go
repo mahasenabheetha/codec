@@ -157,12 +157,16 @@ func detectHelmTemplate(f *File) Confidence {
 	if inDir(f, "templates") {
 		return byName
 	}
+	// Outside templates/, only Helm's own objects make it Helm: GoReleaser,
+	// Hugo and others use Go templates too (regression: .goreleaser.yaml).
 	for _, e := range f.YAML.Expressions {
-		if strings.Contains(e.Text, ".Values") || strings.Contains(e.Text, "include ") || strings.Contains(e.Text, ".Release") {
-			return byContent
+		for _, marker := range []string{".Values", ".Release", ".Chart", ".Capabilities", "include "} {
+			if strings.Contains(e.Text, marker) {
+				return byContent
+			}
 		}
 	}
-	return byShape
+	return 0
 }
 
 var valuesName = regexp.MustCompile(`^values([.-].*)?\.ya?ml$`)

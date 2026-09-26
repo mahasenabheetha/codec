@@ -8,7 +8,7 @@ dependencies are listed in each phase file.
 | 00 | [Foundation](phases/00-foundation.md) | `/v2` module, Svelte toolchain, CI on Linux+Windows | done |
 | 01 | [UI shell + v1 port](phases/01-ui-shell.md) | Dark design system, app layout, v1 tools in Svelte | done |
 | 02 | [YAML engine core](phases/02-yaml-engine.md) | `internal/yamlkit` + `codec yaml` CLI | done |
-| 03 | [Workspace](phases/03-workspace.md) | Open folder read-only, index, file tree, viewer | todo |
+| 03 | [Workspace](phases/03-workspace.md) | Open folder read-only, index, file tree, viewer | done |
 | 04 | [Editor intelligence](phases/04-editor.md) | Highlighting overlays, diagnostics, outline, hover, what-if edits | todo |
 | 05 | [Helm](phases/05-helm.md) | Embedded render, values layers + provenance, live preview | todo |
 | 06 | [MVP release](phases/06-mvp-release.md) | `v2.0.0-alpha.1`, Docker image, docs | todo |

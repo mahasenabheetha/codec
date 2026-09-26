@@ -58,22 +58,34 @@ resources, jobs, references) built by the workspace adapter.
   (`/workspace`, `/files`, `/yaml`, `/helm`, …). Each phase defines its own.
 - Errors: `{"error": "...", "line"?, "column"?, "file"?}` with 400 for
   caller bugs, 422 for bad input, 404 missing, 500 unexpected.
-- Push updates (file changes) via Server-Sent Events: `GET /api/v2/events`.
+- Push updates via Server-Sent Events, `GET /api/v2/events`: `workspace`
+  (folder opened / watch mode known), `files` (added/changed/removed
+  paths), `tree` (file types classified; refetch the tree).
 - The frontend calls the backend only through `frontend/src/lib/api/`,
   so Wails bindings can replace HTTP in v3.
 
 ## Security (local server that reads files)
 
+Implemented in `internal/web/security.go`; every route passes the guard.
+
 - Bind `127.0.0.1` by default; `--host` only for Docker.
-- Reject requests whose `Host` isn't `127.0.0.1|localhost:<port>`
-  (DNS-rebinding defense).
+- Reject requests whose `Host` isn't a loopback name (`localhost`,
+  `127.0.0.1`, `::1`, any port: Docker may remap it) or the `--host`
+  address (DNS-rebinding defense).
 - Per-run random token injected into `index.html`; required as header
-  `X-Codec-Token` on `/api/v2/*`. Check `Origin` on non-GET requests.
-- File access limited to opened workspace roots; resolve symlinks and
-  reject paths escaping the root. Never write to workspace files.
+  `X-Codec-Token` on `/api/v2/*` (the SSE stream alone may pass
+  `?token=`, since EventSource can't set headers). Non-GET requests with
+  a foreign `Origin` are rejected.
+- Client-supplied paths are slash paths validated with `fs.ValidPath`
+  and read through `os.Root`, which refuses `..` and symlink escapes.
+  The tree walk lists with `os.ReadDir` (no symlinked directories
+  followed); background classification reads walked paths directly and
+  exposes only the file type (decision #26). Never write to workspace files.
 
 ## Runtime modes
 
-- Native: `codec serve [--port 8765]` — primary.
+- Native: `codec serve [--port 8765] [--root DIR] [--open]` — primary;
+  fsnotify watches every directory, polling if that fails.
 - Docker: `codec serve --host 0.0.0.0 --root /work`, repo mounted `:ro`;
-  watcher uses polling (bind-mount events are unreliable on Windows).
+  polling is automatic in containers (bind-mount events are unreliable
+  on Windows), or forced with `--poll`.

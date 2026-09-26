@@ -19,6 +19,24 @@ All notable changes to codec are documented here. The format follows
 - Plain-English syntax errors with fix hints (tabs, bad indentation,
   unquoted colons, unclosed quotes) and duplicate-key detection.
 
+### Added (workspace)
+
+- Open a repository folder read-only (Ctrl+O, recent folders, folder
+  browser with drives on Windows, or `codec serve --root`): file tree
+  that honours `.gitignore`, file-type logos and a type filter, Ctrl+P
+  fuzzy Go to file, files in read-only tabs that refresh on disk change.
+- `codec serve --host --root --poll --open`. Native file watching with a
+  polling fallback (automatic inside containers).
+- Security for the local server: Host-header check (DNS rebinding),
+  per-run token on `/api/v2`, Origin check on state-changing requests,
+  and file access confined to the opened folder (symlink escapes too).
+- Settings (recent folders) live in the user profile, never in a repo.
+
+### Fixed
+
+- A YAML file using Go templates without Helm's objects (e.g.
+  `.goreleaser.yaml`) is no longer labelled a Helm template.
+
 ### Changed
 
 - Go module path is now `github.com/mahasenabheetha/codec/v2`; requires Go 1.26+.

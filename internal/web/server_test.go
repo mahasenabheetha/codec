@@ -15,7 +15,8 @@ func do(t *testing.T, method, path, body string) *httptest.ResponseRecorder {
 	t.Helper()
 	req := httptest.NewRequest(method, path, strings.NewReader(body))
 	rec := httptest.NewRecorder()
-	Handler().ServeHTTP(rec, req)
+	req.Host = "127.0.0.1:8765"
+	testServer.Handler().ServeHTTP(rec, req)
 	return rec
 }
 
@@ -240,9 +241,9 @@ func TestAppHandler(t *testing.T) {
 	}{
 		{
 			name:       "built frontend is served",
-			fsys:       fstest.MapFS{"index.html": {Data: []byte("<h1>app</h1>")}},
+			fsys:       fstest.MapFS{"index.html": {Data: []byte("<head></head><h1>app</h1>")}},
 			wantStatus: http.StatusOK,
-			wantBody:   "<h1>app</h1>",
+			wantBody:   `<meta name="codec-token" content="tok">`,
 		},
 		{
 			name:       "missing build shows the not-built page",
@@ -255,7 +256,7 @@ func TestAppHandler(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			rec := httptest.NewRecorder()
-			appHandler(tt.fsys).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
+			appHandler(tt.fsys, "tok").ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
 
 			if rec.Code != tt.wantStatus {
 				t.Errorf("status = %d, want %d", rec.Code, tt.wantStatus)

@@ -34,15 +34,26 @@ Diagnostics, outline, hover, editing (04).
 
 ## Acceptance
 
-- [ ] ~2k-file repo: tree shown < 1 s; disk change visible < 1 s (native).
-- [ ] Tests: bad Host rejected, missing token rejected, `..` and symlink
-      escape rejected.
-- [ ] Works on Windows paths (drives, backslashes) and in Docker (`--root /work`, polling).
-- [ ] No file is ever written under the workspace root.
+- [x] ~2k-file repo: tree shown < 1 s; disk change visible < 1 s (native).
+      Measured on merge-delivery (5,377 files, OneDrive): open 0.5 s warm
+      (1.1 s cold), watches added in the background,
+      tree 74 ms, types ~0.4 s later; change visible ~0.2 s.
+- [x] Tests: bad Host rejected, missing token rejected, `..` and symlink
+      escape rejected (`web/security_test.go`, `workspace_test.go`;
+      symlink cases skip on Windows without symlink rights, run in CI).
+- [~] Works on Windows paths (drives, backslashes) and in Docker (`--root /work`, polling).
+      Windows paths/drives and `--poll` verified; Docker not yet run
+      (Docker Desktop was stopped) — check in phase 06 with the image.
+- [x] No file is ever written under the workspace root (snapshot test;
+      settings go to the user profile).
 
 ## Notes
 
 OneDrive folders emit noisy events and temporary locks: debounce
-~200 ms and tolerate transient read errors.
+~200 ms and tolerate transient read errors (reads retry; unreadable
+directories keep their last known files).
+
+Deviations, see decisions #23–#28: polling is automatic in containers
+(not with `--root`); tree before types; direct reads for classification.
 
 **Go concepts:** `fs.WalkDir`, goroutines + channels, `context` cancellation, HTTP middleware, SSE, `sync.RWMutex`.

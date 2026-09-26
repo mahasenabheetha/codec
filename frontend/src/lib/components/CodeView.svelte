@@ -171,12 +171,24 @@
     }
   })
 
-  // Push outside changes (clear, swap, samples) into the editor.
+  // Push outside changes (clear, swap, samples, a file reloaded from
+  // disk) into the editor. Only the differing middle is replaced, so
+  // the selection, scroll position and folds outside it survive.
   $effect(() => {
-    const v = value
-    if (view && v !== view.state.doc.toString()) {
-      view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: v } })
+    const next = value
+    if (!view) return
+    const cur = view.state.doc.toString()
+    if (next === cur) return
+    let from = 0
+    const max = Math.min(next.length, cur.length)
+    while (from < max && next.charCodeAt(from) === cur.charCodeAt(from)) from++
+    let toCur = cur.length
+    let toNext = next.length
+    while (toCur > from && toNext > from && cur.charCodeAt(toCur - 1) === next.charCodeAt(toNext - 1)) {
+      toCur--
+      toNext--
     }
+    view.dispatch({ changes: { from, to: toCur, insert: next.slice(from, toNext) } })
   })
 
   $effect(() => {

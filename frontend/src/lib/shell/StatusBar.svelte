@@ -1,7 +1,12 @@
 <script lang="ts">
   import ShieldCheck from '@lucide/svelte/icons/shield-check'
   import ExternalLink from '@lucide/svelte/icons/external-link'
+  import FolderGit from '@lucide/svelte/icons/folder-git-2'
+  import Unplug from '@lucide/svelte/icons/unplug'
   import Popover from '../components/Popover.svelte'
+  import FileIcon from '../../features/workspace/FileIcon.svelte'
+  import { lookOf } from '../../features/workspace/filetypes'
+  import { workspace } from '../../features/workspace/workspace.svelte'
   import { getVersion, type VersionInfo } from '../api/version'
   import { layout } from '../stores/layout.svelte'
   import { router } from '../stores/router.svelte'
@@ -13,6 +18,14 @@
     .catch(() => (version = null))
 
   const tool = $derived(toolById(router.toolId))
+  const file = $derived(router.filePath)
+  const entry = $derived(file ? workspace.byPath.get(file) : undefined)
+
+  const watchText: Record<string, string> = {
+    '': 'Starting to watch for changes…',
+    native: 'Watching for changes (native events).',
+    poll: 'Watching for changes by polling every second.',
+  }
 </script>
 
 <footer class="statusbar">
@@ -22,12 +35,34 @@
       {#if layout.status.text}
         <span class="msg {layout.status.tone}"><span class="dot"></span>{layout.status.text}</span>
       {/if}
+    {:else if file}
+      {#if entry}
+        <span class="where type"><FileIcon file={entry} size={12} /> {lookOf(entry).title}</span>
+      {/if}
+      <span class="path">{file}</span>
     {:else}
       <span class="where">Home</span>
     {/if}
   </div>
 
   <div class="right">
+    {#if workspace.disconnected}
+      <button type="button" class="warn-btn" onclick={() => location.reload()} title="codec was restarted or stopped">
+        <Unplug size={12} strokeWidth={2} /> Disconnected — reload
+      </button>
+    {/if}
+    {#if workspace.info?.open}
+      <button
+        type="button"
+        class="ws"
+        title={`${workspace.info.root}\n${watchText[workspace.info.watch ?? ''] ?? watchText['']}\nClick to open another folder.`}
+        onclick={() => (workspace.dialogOpen = true)}
+      >
+        <FolderGit size={12} strokeWidth={2} />
+        {workspace.info.name}
+        <span class="watch {workspace.info.watch ?? ''}"></span>
+      </button>
+    {/if}
     <span class="local" title="codec runs entirely on this machine; nothing is sent anywhere">
       <ShieldCheck size={12} strokeWidth={2} /> Local only
     </span>
@@ -55,6 +90,55 @@
 </footer>
 
 <style>
+  .type {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-1);
+  }
+  .path {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+  }
+  .ws,
+  .warn-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-1);
+    height: 20px;
+    padding: 0 var(--s-2);
+    font-size: var(--fs-sm);
+    color: var(--fg-1);
+    background: none;
+    border: none;
+    border-radius: var(--r-sm);
+    white-space: nowrap;
+  }
+  .ws:hover {
+    color: var(--fg-0);
+    background: var(--bg-3);
+  }
+  .warn-btn {
+    color: var(--warn);
+    background: var(--warn-soft);
+  }
+  /* Live-watch indicator: grey while starting, green for native
+     events, amber when polling. */
+  .watch {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--fg-2);
+  }
+  .watch.native {
+    background: var(--ok);
+  }
+  .watch.poll {
+    background: var(--warn);
+  }
   .statusbar {
     display: flex;
     align-items: center;

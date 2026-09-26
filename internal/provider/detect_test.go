@@ -18,6 +18,8 @@ func TestDetect(t *testing.T) {
 			"apiVersion: v1\nkind: Service\nmetadata:\n  name: {{ include \"app.fullname\" . }}\n", "helm-template"},
 		{"helm template without path", "",
 			"kind: Service\nmetadata:\n  name: {{ .Release.Name }}\n", "helm-template"},
+		{"go templates outside Helm", ".goreleaser.yaml",
+			"version: 2\nbuilds:\n  - ldflags:\n      - -X main.version={{ .Tag }}\n", "yaml"},
 		{"helm values", "charts/app/values-prod.yaml", "replicaCount: 3\nimage:\n  tag: v1\n", "helm-values"},
 		{"kustomize by name", "overlays/prod/kustomization.yaml", "resources:\n  - ../../base\n", "kustomize"},
 		{"argo workflow", "", "apiVersion: argoproj.io/v1alpha1\nkind: WorkflowTemplate\nmetadata:\n  name: build\n", "argo-workflows"},

@@ -60,7 +60,28 @@ Settled unless the user reopens them. Add new ones at the bottom:
     strings, not booleans. The Norway problem is a lint warning (phase
     07), not a parse-time reinterpretation (2026-09-26).
 22. Template expressions are masked to same-length text before parsing:
-    whole-line control flow becomes spaces, inline expressions become
+    whole-line control flow becomes `#` + spaces (a comment, harmless
+    inside block scalars), inline expressions become
     `x…x`; values keep the original expression text and are marked
     `Templated`. Duplicate-key checks are skipped in documents with
     template control flow (branches repeat keys legitimately) (2026-09-26).
+23. Host check accepts loopback names on any port (Docker may remap the
+    port) plus the `--host` address; Origin check accepts loopback on any
+    port (the Vite dev server). The token is what protects `/api/v2`
+    (2026-09-26).
+24. The SSE stream takes the token as `?token=` because EventSource
+    can't send headers; no other endpoint accepts it that way (2026-09-26).
+25. Polling is automatic inside containers (`/.dockerenv`,
+    `/run/.containerenv`) and when native watches can't be set up, not
+    whenever `--root` is given: native users of `--root` keep instant
+    events (2026-09-26).
+26. The tree is listed with `os.ReadDir` and background classification
+    reads walked paths directly: on Windows `os.Root` opens serialise
+    (2.3k files: 1 s vs 0.3 s on 22 cores). Every client-requested path
+    is still read through `os.Root`. New dependency: fsnotify (2026-09-26).
+27. The tree is served before YAML files are classified; types follow
+    via the `tree` event. Parse trees are cached only for files opened in
+    the UI (caching all cost ~70 MB on a 5k-file repo) (2026-09-26).
+28. File-type logos come from Simple Icons (CC0), copied into
+    `frontend/src/assets/logos/`; Azure Pipelines (no Microsoft marks
+    there) uses a generic icon in the Azure colour (2026-09-26).

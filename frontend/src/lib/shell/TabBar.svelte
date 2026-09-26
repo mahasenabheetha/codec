@@ -2,38 +2,66 @@
   import Search from '@lucide/svelte/icons/search'
   import X from '@lucide/svelte/icons/x'
   import Kbd from '../components/Kbd.svelte'
+  import FileIcon from '../../features/workspace/FileIcon.svelte'
+  import { workspace } from '../../features/workspace/workspace.svelte'
   import { layout } from '../stores/layout.svelte'
-  import { router } from '../stores/router.svelte'
+  import { router, routeFile, routeTool } from '../stores/router.svelte'
   import { toolById } from '../tools'
 
-  // Open tools as tabs. Middle-click closes, like an editor.
-  function onauxclick(e: MouseEvent, id: string) {
+  // Open tools and files as tabs. Middle-click closes, like an editor.
+  function onauxclick(e: MouseEvent, route: string) {
     if (e.button === 1) {
       e.preventDefault()
-      layout.closeTool(id)
+      layout.close(route)
     }
+  }
+
+  // File tabs show the file name; when two open files share a name,
+  // their parent folder is added to tell them apart.
+  const names = $derived.by(() => {
+    const files = layout.tabs.map(routeFile).filter((p): p is string => p !== null)
+    const count = new Map<string, number>()
+    for (const p of files) count.set(base(p), (count.get(base(p)) ?? 0) + 1)
+    return new Map(
+      files.map((p) => {
+        const parts = p.split('/')
+        const hint = count.get(base(p))! > 1 && parts.length > 1 ? parts[parts.length - 2] : ''
+        return [p, { name: base(p), hint }]
+      }),
+    )
+  })
+
+  function base(p: string) {
+    return p.slice(p.lastIndexOf('/') + 1)
   }
 </script>
 
 <div class="tabbar">
-  <div class="tabs" role="tablist" aria-label="Open tools">
-    {#each layout.tabs as id (id)}
-      {@const tool = toolById(id)}
-      {#if tool}
-        {@const selected = router.toolId === id}
-        <div class="tab" class:selected>
+  <div class="tabs" role="tablist" aria-label="Open tabs">
+    {#each layout.tabs as route (route)}
+      {@const tool = toolById(routeTool(route))}
+      {@const file = routeFile(route)}
+      {#if tool || file}
+        {@const selected = router.path === route}
+        {@const title = tool ? tool.title : names.get(file!)?.name}
+        <div class="tab" class:selected title={file ?? undefined}>
           <button
             type="button"
             role="tab"
             aria-selected={selected}
             class="tab-main"
-            onclick={() => router.go('/tools/' + id)}
-            onauxclick={(e) => onauxclick(e, id)}
+            onclick={() => router.go(route)}
+            onauxclick={(e) => onauxclick(e, route)}
           >
-            <tool.icon size={14} strokeWidth={1.75} />
-            {tool.title}
+            {#if tool}
+              <tool.icon size={14} strokeWidth={1.75} />
+            {:else}
+              <FileIcon file={workspace.byPath.get(file!) ?? { lang: 'text' }} />
+            {/if}
+            {title}
+            {#if file && names.get(file)?.hint}<span class="hint">{names.get(file)?.hint}</span>{/if}
           </button>
-          <button type="button" class="close" aria-label="Close {tool.title}" onclick={() => layout.closeTool(id)}>
+          <button type="button" class="close" aria-label="Close {title}" onclick={() => layout.close(route)}>
             <X size={12} strokeWidth={2} />
           </button>
         </div>
@@ -99,6 +127,10 @@
   }
   .tab-main:hover {
     color: var(--fg-0);
+  }
+  .hint {
+    font-size: var(--fs-sm);
+    color: var(--fg-2);
   }
   .close {
     display: grid;

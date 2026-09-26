@@ -1,10 +1,13 @@
 <script lang="ts">
+  import FolderOpen from '@lucide/svelte/icons/folder-open'
+  import FolderTree from '@lucide/svelte/icons/folder-tree'
   import House from '@lucide/svelte/icons/house'
   import Keyboard from '@lucide/svelte/icons/keyboard'
   import PanelLeftClose from '@lucide/svelte/icons/panel-left-close'
   import PanelLeftOpen from '@lucide/svelte/icons/panel-left-open'
   import type { Component } from 'svelte'
   import Tooltip from '../components/Tooltip.svelte'
+  import { workspace } from '../../features/workspace/workspace.svelte'
   import { layout } from '../stores/layout.svelte'
   import { router } from '../stores/router.svelte'
   import { toolGroups } from '../tools'
@@ -42,6 +45,14 @@
 
   <div class="items">
     {@render item(House, 'Home', router.path === '/', () => router.go('/'))}
+
+    {#if collapsed}
+      <div class="sep" role="separator"></div>
+    {:else}
+      <div class="group">Workspace</div>
+    {/if}
+    {@render item(FolderTree, 'Explorer', layout.explorerOpen, () => layout.toggleExplorer(), 'Mod+Shift+E')}
+    {@render item(FolderOpen, 'Open folder…', false, () => (workspace.dialogOpen = true), 'Mod+O')}
 
     {#each groups as g (g.group)}
       {#if collapsed}

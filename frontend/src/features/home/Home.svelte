@@ -1,12 +1,17 @@
 <script lang="ts">
   import ArrowRight from '@lucide/svelte/icons/arrow-right'
+  import FolderGit from '@lucide/svelte/icons/folder-git-2'
   import FolderOpen from '@lucide/svelte/icons/folder-open'
+  import History from '@lucide/svelte/icons/history'
   import ShieldCheck from '@lucide/svelte/icons/shield-check'
   import Kbd from '../../lib/components/Kbd.svelte'
   import { layout } from '../../lib/stores/layout.svelte'
   import { toolGroups } from '../../lib/tools'
+  import { openFolder, workspace as ws } from '../workspace/workspace.svelte'
 
   const groups = toolGroups()
+  // Recent folders other than the open one.
+  const recent = $derived((ws.info?.recent ?? []).filter((d) => d !== ws.info?.root).slice(0, 4))
 </script>
 
 <div class="home">
@@ -23,6 +28,39 @@
       Press <Kbd combo="Mod+K" /> to search anything, or <Kbd combo="?" /> for shortcuts.
     </p>
 
+    <h2>Workspace</h2>
+    <div class="grid">
+      {#if ws.info?.open}
+        <button type="button" class="card" onclick={() => (ws.quickOpen = true)}>
+          <span class="icon"><FolderGit size={18} strokeWidth={1.75} /></span>
+          <span class="text">
+            <span class="title">{ws.info.name}</span>
+            <span class="desc path">{ws.info.root}</span>
+            <span class="desc">Go to a file with <Kbd combo="Mod+P" /></span>
+          </span>
+          <span class="go"><ArrowRight size={16} strokeWidth={1.75} /></span>
+        </button>
+      {/if}
+      <button type="button" class="card" onclick={() => (ws.dialogOpen = true)}>
+        <span class="icon"><FolderOpen size={18} strokeWidth={1.75} /></span>
+        <span class="text">
+          <span class="title">{ws.info?.open ? 'Open another folder' : 'Open a folder'}</span>
+          <span class="desc">Browse a repository's Kubernetes, Helm, Argo and CI YAML. codec only reads it.</span>
+        </span>
+        <span class="go"><ArrowRight size={16} strokeWidth={1.75} /></span>
+      </button>
+      {#each recent as dir (dir)}
+        <button type="button" class="card" onclick={() => openFolder(dir)}>
+          <span class="icon muted"><History size={18} strokeWidth={1.75} /></span>
+          <span class="text">
+            <span class="title">{dir.split(/[\\/]/).filter(Boolean).pop()}</span>
+            <span class="desc path">{dir}</span>
+          </span>
+          <span class="go"><ArrowRight size={16} strokeWidth={1.75} /></span>
+        </button>
+      {/each}
+    </div>
+
     {#each groups as g (g.group)}
       <h2>{g.group}</h2>
       <div class="grid">
@@ -38,17 +76,6 @@
         {/each}
       </div>
     {/each}
-
-    <h2>Coming in codec 2.0</h2>
-    <div class="grid">
-      <div class="card soon" aria-disabled="true">
-        <span class="icon"><FolderOpen size={18} strokeWidth={1.75} /></span>
-        <span class="text">
-          <span class="title">YAML workbench</span>
-          <span class="desc">Open a repo folder to read, lint and render Kubernetes, Helm and Argo YAML — read-only.</span>
-        </span>
-      </div>
-    </div>
 
     <p class="privacy"><ShieldCheck size={14} strokeWidth={2} /> Everything runs on this machine. Nothing you paste leaves it.</p>
   </div>
@@ -150,10 +177,12 @@
     opacity: 1;
     transform: none;
   }
-  .soon {
-    opacity: 0.6;
+  .path {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    word-break: break-all;
   }
-  .soon .icon {
+  .icon.muted {
     color: var(--fg-1);
     background: var(--bg-3);
   }

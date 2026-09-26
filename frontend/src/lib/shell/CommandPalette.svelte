@@ -53,7 +53,7 @@
       onOpenAutoFocus={(e) => e.preventDefault()}
     >
       <Command.Root loop>
-        <div class="search">
+        <div class="codec-palette-search">
           <Search size={16} strokeWidth={1.75} />
           <Command.Input bind:value={search} placeholder="Search tools and actions…" class="codec-palette-input" />
         </div>
@@ -85,81 +85,3 @@
     </Dialog.Content>
   </Dialog.Portal>
 </Dialog.Root>
-
-<style>
-  :global(.codec-palette) {
-    position: fixed;
-    top: 12vh;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: var(--z-dialog);
-    width: min(600px, calc(100vw - 32px));
-    background: var(--bg-1);
-    border-radius: var(--r-lg);
-    box-shadow: var(--shadow-pop);
-    overflow: hidden;
-    animation: palette-in 140ms var(--ease);
-  }
-  .search {
-    display: flex;
-    align-items: center;
-    gap: var(--s-3);
-    padding: 0 var(--s-4);
-    color: var(--fg-2);
-    border-bottom: 1px solid var(--border);
-  }
-  :global(.codec-palette-input) {
-    flex: 1;
-    height: 48px;
-    font-size: var(--fs-lg);
-    color: var(--fg-0);
-    background: none;
-    border: none;
-    outline: none;
-  }
-  :global(.codec-palette-input::placeholder) {
-    color: var(--fg-2);
-  }
-  :global(.codec-palette-list) {
-    max-height: min(420px, 60vh);
-    overflow-y: auto;
-    padding: var(--s-2);
-  }
-  :global(.codec-palette-heading) {
-    padding: var(--s-2) var(--s-2) var(--s-1);
-    font-size: var(--fs-xs);
-    font-weight: var(--fw-semibold);
-    color: var(--fg-2);
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-  }
-  :global(.codec-palette-item) {
-    display: flex;
-    align-items: center;
-    gap: var(--s-3);
-    height: 36px;
-    padding: 0 var(--s-3);
-    font-size: var(--fs-md);
-    color: var(--fg-1);
-    border-radius: var(--r-md);
-    cursor: pointer;
-  }
-  :global(.codec-palette-item[data-selected]) {
-    color: var(--fg-0);
-    background: var(--bg-3);
-  }
-  :global(.codec-palette-item .title) {
-    flex: 1;
-  }
-  :global(.codec-palette-empty) {
-    padding: var(--s-6);
-    text-align: center;
-    color: var(--fg-2);
-  }
-  @keyframes palette-in {
-    from {
-      opacity: 0;
-      transform: translate(-50%, -4px);
-    }
-  }
-</style>

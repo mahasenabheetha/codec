@@ -1,19 +1,29 @@
 // Package web serves the browser UI for codec. Like the cli package,
 // it is a presentation layer only: it translates HTTP requests into
-// calls on internal/codec and translates the results back into JSON.
+// calls on the engine and adapter packages and the results back into
+// JSON.
+//
+// It is a local server that can read files, so every request passes
+// the guard in security.go first (design/architecture.md, Security).
 package web
 
 import (
+	"bytes"
+	"context"
 	"embed"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
 	"log"
+	"net"
 	"net/http"
+	"strings"
+	"sync"
+	"time"
 
-	"github.com/mahasenabheetha/codec/v2/internal/codec"
-	"github.com/mahasenabheetha/codec/v2/internal/version"
+	"github.com/mahasenabheetha/codec/v2/internal/config"
+	"github.com/mahasenabheetha/codec/v2/internal/workspace"
 )
 
 // distFiles holds the Vite build of frontend/ (written to dist/app by
@@ -28,56 +38,56 @@ var distFiles embed.FS
 // notBuiltPage is served in place of the UI when the binary was
 // compiled without a frontend build.
 const notBuiltPage = `<!doctype html>
-<title>codec</title>
+<html><head><title>codec</title></head>
 <body style="background:#0b0d12;color:#e6e8ee;font-family:system-ui;padding:2rem">
 <h1>Frontend not built</h1>
 <p>This binary was compiled without the web UI. Run
 <code>npm --prefix frontend ci &amp;&amp; npm --prefix frontend run build</code>,
 then rebuild codec.</p>
-</body>`
+</body></html>`
 
-// transformRequest is the JSON body the browser sends. Every field but
-// Input is optional: a request carrying only "input" behaves exactly as
-// before the others existed (auto-detect, standard alphabet, default
-// indentation), because their zero values select those defaults.
-type transformRequest struct {
-	Input   string `json:"input"`
-	Mode    string `json:"mode"`
-	URLSafe bool   `json:"urlSafe"`
-	Indent  string `json:"indent"` // json-pretty only; "" = two spaces
+// Options configures a Server.
+type Options struct {
+	// Config stores recent folders; nil keeps them in memory only.
+	Config *config.Store
+	// Poll watches files by polling instead of native OS events.
+	Poll bool
+	// Hosts are extra Host header names to accept besides loopback,
+	// e.g. the address given to --host.
+	Hosts []string
 }
 
-// transformResponse is what a successful transform returns. Output
-// always holds the plain-text rendering (used by Copy and Swap). Task
-// and JWT carry structured forms of the same result, so the frontend
-// can render rich views without re-parsing anything itself.
-type transformResponse struct {
-	Output string            `json:"output"`
-	Kind   string            `json:"kind"`
-	Task   *codec.ParsedTask `json:"task,omitempty"`
-	JWT    *jwtView          `json:"jwt,omitempty"`
+// Server is the codec web server and the state it holds: the per-run
+// token, the open workspace and the event subscribers.
+type Server struct {
+	opts  Options
+	token string
+	hub   *hub
+
+	mu    sync.Mutex // guards the workspace fields
+	ws    *workspace.Workspace
+	stop  context.CancelFunc // stops ws's watcher
+	watch string             // watcher mode for ws
+
+	handler http.Handler
 }
 
-// jwtView is the wire form of codec.JWT. The engine type has no JSON
-// tags on purpose: how a token looks over HTTP is this layer's call.
-type jwtView struct {
-	Header    string `json:"header"`    // pretty-printed JSON
-	Payload   string `json:"payload"`   // pretty-printed JSON
-	Signature string `json:"signature"` // base64url, not verified
+// New builds a server. No workspace is open until OpenWorkspace or the
+// UI opens one.
+func New(opts Options) *Server {
+	if opts.Config == nil {
+		opts.Config = config.Memory()
+	}
+	s := &Server{opts: opts, token: newToken(), hub: newHub()}
+	s.handler = s.guard(s.routes())
+	return s
 }
 
-// errorResponse is returned for any failure. Line and Column are only
-// present for JSON syntax errors, so the frontend can point at the spot.
-type errorResponse struct {
-	Error  string `json:"error"`
-	Line   int    `json:"line,omitempty"`
-	Column int    `json:"column,omitempty"`
-}
+// Handler is the full route table behind the security guard. Tests
+// call it directly, without opening a network port.
+func (s *Server) Handler() http.Handler { return s.handler }
 
-// Handler builds the full route table. It is exported (rather than
-// buried inside Serve) so tests can exercise the exact same routes
-// without opening a real network port.
-func Handler() http.Handler {
+func (s *Server) routes() http.Handler {
 	mux := http.NewServeMux()
 
 	// The embedded FS is rooted above "dist/app"; re-root it so the
@@ -88,15 +98,11 @@ func Handler() http.Handler {
 		// which would be a programming mistake, not a runtime one.
 		panic(err)
 	}
+	mux.Handle("/", appHandler(appRoot, s.token))
 
-	mux.Handle("/", appHandler(appRoot))
+	// v1
 	mux.HandleFunc("POST /api/transform", handleTransform)
 	mux.HandleFunc("GET /api/version", handleVersion)
-
-	// The v2 UI was previewed under /app/ before it replaced v1;
-	// send old bookmarks and installed shortcuts to the real page.
-	mux.Handle("/app/", http.RedirectHandler("/", http.StatusMovedPermanently))
-
 	// Non-POST requests to the API path would otherwise fall through
 	// to the "/" file server above and produce a confusing 404. This
 	// method-less pattern is more specific than "/" (so it wins for
@@ -107,95 +113,105 @@ func Handler() http.Handler {
 		http.Error(w, "method not allowed; use POST", http.StatusMethodNotAllowed)
 	})
 
+	// v2 (token required, see guard)
+	mux.HandleFunc("GET /api/v2/workspace", s.handleWorkspace)
+	mux.HandleFunc("POST /api/v2/workspace/open", s.handleOpen)
+	mux.HandleFunc("GET /api/v2/fs/dirs", s.handleDirs)
+	mux.HandleFunc("GET /api/v2/files/tree", s.handleTree)
+	mux.HandleFunc("GET /api/v2/files/content", s.handleContent)
+	mux.HandleFunc("GET /api/v2/events", s.handleEvents)
+	mux.HandleFunc("/api/v2/", func(w http.ResponseWriter, r *http.Request) {
+		writeError(w, http.StatusNotFound, "no such endpoint: "+r.Method+" "+r.URL.Path)
+	})
+
+	// The v2 UI was previewed under /app/ before it replaced v1;
+	// send old bookmarks and installed shortcuts to the real page.
+	mux.Handle("/app/", http.RedirectHandler("/", http.StatusMovedPermanently))
 	return mux
 }
 
 // appHandler serves the built frontend from fsys, or a short "not
-// built" page when fsys holds no index.html. It takes the FS as a
-// parameter so tests can exercise both cases without a real build.
-func appHandler(fsys fs.FS) http.Handler {
-	if _, err := fs.Stat(fsys, "index.html"); err != nil {
+// built" page when fsys holds no index.html. Either way the page
+// carries the per-run token in a <meta> tag, which the frontend sends
+// back on every /api/v2 call. It takes the FS as a parameter so tests
+// can exercise both cases without a real build.
+func appHandler(fsys fs.FS, token string) http.Handler {
+	meta := `<meta name="codec-token" content="` + token + `">`
+	index, err := fs.ReadFile(fsys, "index.html")
+	if err != nil {
+		page := strings.Replace(notBuiltPage, "<head>", "<head>"+meta, 1)
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			w.Header().Set("Cache-Control", "no-store")
 			w.WriteHeader(http.StatusServiceUnavailable)
-			fmt.Fprint(w, notBuiltPage)
+			fmt.Fprint(w, page)
 		})
 	}
-	return http.FileServer(http.FS(fsys))
+	page := bytes.Replace(index, []byte("<head>"), []byte("<head>\n    "+meta), 1)
+	files := http.FileServer(http.FS(fsys))
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/" && r.URL.Path != "/index.html" {
+			files.ServeHTTP(w, r)
+			return
+		}
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		// The token changes every run; a cached page would hold a dead one.
+		w.Header().Set("Cache-Control", "no-store")
+		w.Write(page)
+	})
 }
 
-// Serve blocks forever, listening on addr.
-func Serve(addr string) error {
-	fmt.Printf("codec web UI running at http://%s — Ctrl+C to stop\n", addr)
-	return http.ListenAndServe(addr, Handler())
+// Serve answers requests on ln until ctx is cancelled, then shuts down.
+// Request contexts derive from ctx, so long-lived event streams end
+// with it instead of holding shutdown open.
+func (s *Server) Serve(ctx context.Context, ln net.Listener) error {
+	srv := &http.Server{
+		Handler:           s.handler,
+		ReadHeaderTimeout: 10 * time.Second,
+		BaseContext:       func(net.Listener) context.Context { return ctx },
+	}
+	errc := make(chan error, 1)
+	go func() { errc <- srv.Serve(ln) }()
+
+	select {
+	case err := <-errc:
+		s.Close()
+		return err
+	case <-ctx.Done():
+		shutdown, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+		err := srv.Shutdown(shutdown)
+		s.Close()
+		if errors.Is(err, context.DeadlineExceeded) {
+			return nil // a client still held a connection; we're exiting anyway
+		}
+		return err
+	}
 }
 
-// handleTransform is the API: JSON in, JSON out, status code says how
-// it went. All actual work happens in internal/codec.
-func handleTransform(w http.ResponseWriter, r *http.Request) {
-	var req transformRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeJSON(w, http.StatusBadRequest,
-			errorResponse{Error: "invalid request body: " + err.Error()})
-		return
+// Close stops the watcher and closes the open workspace.
+func (s *Server) Close() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.stop != nil {
+		s.stop()
 	}
-
-	mode := codec.Mode(req.Mode)
-	if mode == "" {
-		mode = codec.ModeAuto
+	if s.ws != nil {
+		s.ws.Close()
 	}
-
-	opts := codec.Options{Indent: req.Indent}
-	if req.URLSafe {
-		opts.Variant = codec.VariantURL
-	}
-
-	out, kind, err := codec.Apply(mode, req.Input, opts)
-	if err != nil {
-		// An unknown mode is the caller's bug (400); input that
-		// cannot be transformed is the input's fault (422).
-		status := http.StatusUnprocessableEntity
-		if errors.Is(err, codec.ErrUnknownMode) {
-			status = http.StatusBadRequest
-		}
-
-		resp := errorResponse{Error: err.Error()}
-
-		// If the failure was a JSON syntax error, surface the
-		// position as structured fields — this is why SyntaxError
-		// carries real Line/Column ints instead of just a message.
-		var syn *codec.SyntaxError
-		if errors.As(err, &syn) {
-			resp.Line, resp.Column = syn.Line, syn.Column
-		}
-
-		writeJSON(w, status, resp)
-		return
-	}
-
-	resp := transformResponse{Output: out, Kind: kind.String()}
-
-	// Attach structured forms for rich views, whether the user picked
-	// the mode explicitly or auto-detect found it. The second parse is
-	// cheap and keeps codec.Apply's signature free of UI concerns.
-	switch kind {
-	case codec.KindAnsible:
-		if task, perr := codec.ParseAnsible(req.Input); perr == nil {
-			resp.Task = task
-		}
-	case codec.KindJWT:
-		if tok, perr := codec.DecodeJWT(req.Input); perr == nil {
-			resp.JWT = &jwtView{Header: tok.Header, Payload: tok.Payload, Signature: tok.Signature}
-		}
-	}
-
-	writeJSON(w, http.StatusOK, resp)
+	s.ws, s.stop, s.watch = nil, nil, ""
 }
 
-// handleVersion reports which build is serving the page, so the UI
-// (and an installed PWA, which outlives server restarts) can show it.
-func handleVersion(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, version.Get())
+// errorResponse is returned for any failure. Line and Column point at
+// the problem in the input when there is one (JSON syntax errors).
+type errorResponse struct {
+	Error  string `json:"error"`
+	Line   int    `json:"line,omitempty"`
+	Column int    `json:"column,omitempty"`
+}
+
+func writeError(w http.ResponseWriter, status int, msg string) {
+	writeJSON(w, status, errorResponse{Error: msg})
 }
 
 // writeJSON sends v as a JSON response with the given status code.

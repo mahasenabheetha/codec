@@ -118,3 +118,82 @@ p {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Palettes: the command palette (Ctrl+K) and Go to file (Ctrl+P).
+   Their content is portalled to <body>, so the shared look lives here. */
+.codec-palette {
+  position: fixed;
+  top: 12vh;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-dialog);
+  width: min(640px, calc(100vw - 32px));
+  background: var(--bg-1);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-pop);
+  overflow: hidden;
+  animation: palette-in 140ms var(--ease);
+}
+.codec-palette-search {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: 0 var(--s-4);
+  color: var(--fg-2);
+  border-bottom: 1px solid var(--border);
+}
+.codec-palette-input {
+  flex: 1;
+  height: 48px;
+  font-size: var(--fs-lg);
+  color: var(--fg-0);
+  background: none;
+  border: none;
+  outline: none;
+}
+.codec-palette-input::placeholder {
+  color: var(--fg-2);
+}
+.codec-palette-list {
+  max-height: min(420px, 60vh);
+  overflow-y: auto;
+  padding: var(--s-2);
+}
+.codec-palette-heading {
+  padding: var(--s-2) var(--s-2) var(--s-1);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  color: var(--fg-2);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+.codec-palette-item {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  height: 36px;
+  padding: 0 var(--s-3);
+  font-size: var(--fs-md);
+  color: var(--fg-1);
+  border-radius: var(--r-md);
+  cursor: pointer;
+}
+.codec-palette-item[data-selected] {
+  color: var(--fg-0);
+  background: var(--bg-3);
+}
+.codec-palette-item .title {
+  flex: 1;
+  min-width: 0;
+}
+.codec-palette-empty {
+  padding: var(--s-6);
+  text-align: center;
+  color: var(--fg-2);
+}
+@keyframes palette-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -4px);
+  }
+}

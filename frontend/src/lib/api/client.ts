@@ -16,8 +16,8 @@ export class ApiError extends Error {
   }
 }
 
-// The server injects a per-run token into index.html (from phase 03);
-// until then the meta tag is absent and no header is sent.
+// The server injects a per-run token into index.html; /api/v2 calls
+// must send it back. (The Vite dev server copies it from codec serve.)
 const token = document.querySelector<HTMLMetaElement>('meta[name="codec-token"]')?.content
 
 export async function request<T>(method: 'GET' | 'POST', path: string, body?: unknown): Promise<T> {
@@ -42,4 +42,11 @@ export async function request<T>(method: 'GET' | 'POST', path: string, body?: un
     throw new ApiError(res.status, msg, data?.line, data?.column)
   }
   return data as T
+}
+
+/** Open a Server-Sent Events stream. EventSource can't send headers,
+ *  so the token rides in the query string (the server allows this for
+ *  the event stream only). */
+export function eventStream(path: string): EventSource {
+  return new EventSource(token ? `${path}?token=${encodeURIComponent(token)}` : path)
 }

@@ -46,15 +46,22 @@ Or open the repo in VS Code with the Dev Containers extension — a ready-made G
 ### Web UI
 
 ```bash
-codec serve            # http://localhost:8765
-codec serve --port 9000
+codec serve                     # http://localhost:8765
+codec serve --open              # …and open it in the browser
+codec serve --root ~/repos/app  # open a folder right away
+codec serve --port 9000 --poll  # other port; poll for file changes
 ```
 
-Pick a tool from the sidebar (or press Ctrl+K and type), then paste or type — output updates as you go. **Smart paste** auto-detects; the other tools are explicit.
+**Workspace (read-only).** Open a repository folder (Ctrl+O, or `--root`) to browse it: a file tree that honours `.gitignore` (and skips `.git`, `node_modules`, binaries and files over 2 MB), with each YAML file labelled by type (Kubernetes, Helm, Argo, GitHub Actions, GitLab CI, Compose, Ansible, …). Files open in tabs as read-only, highlighted views that refresh by themselves when the file changes on disk. codec never writes to the folder; recent folders are remembered in your profile (`%AppData%\codec`, `~/Library/Application Support/codec`, `~/.config/codec`), never in the repo.
+
+**Tools.** Pick a tool from the sidebar (or press Ctrl+K and type), then paste or type — output updates as you go. **Smart paste** auto-detects; the other tools are explicit.
 
 | Shortcut | Action |
 |---|---|
 | Ctrl+K | Search tools and actions |
+| Ctrl+P | Go to file |
+| Ctrl+O | Open folder |
+| Ctrl+Shift+E | Toggle the explorer |
 | Ctrl+Enter | Run the transform |
 | Alt+C | Copy output |
 | Alt+S | Use output as input |
@@ -66,7 +73,7 @@ On macOS, Ctrl is ⌘. Nothing you paste is stored — only layout preferences a
 
 **Install as an app:** in Edge, menu → Apps → *Install this site as an app* (Chrome: install icon in the address bar). codec gets its own window, taskbar icon, and Start-menu entry. Note the server (`codec serve`) must be running for the app to work — there is deliberately no offline cache, because the "site" *is* the local binary.
 
-The server binds to `127.0.0.1` only: nothing on your network can reach it.
+The server binds to `127.0.0.1` only, rejects requests for other host names (DNS rebinding) and requires a per-run token on the workspace API, so web pages you visit can't use it. In Docker, run `codec serve --host 0.0.0.0 --root /work` with the repo mounted read-only; file changes are then detected by polling.
 
 ### Ansible log analysis
 
@@ -156,19 +163,20 @@ validate-payloads:
 ## Architecture
 
 ```
-cmd/codec/          main() — 5 lines, calls the CLI layer
-internal/cli/       presentation: cobra commands, flags, stdin/stdout,
-                    clipboard, exit codes
-internal/web/       presentation: HTTP handlers, JSON API, embedded
-                    frontend (vanilla JS, zero dependencies, no build step)
-internal/codec/     the engine: base64, JSON, JWT, ansible parsing,
-                    detection, mode dispatch. Pure functions, no I/O,
-                    fully unit-tested, no knowledge of how it's invoked
+cmd/codec/          main() — calls the CLI layer
+frontend/           Svelte 5 + TypeScript web UI (built into internal/web/dist)
+internal/codec/     engine: base64, JSON, JWT, ansible parsing, detection
+internal/yamlkit/   engine: template-aware YAML parsing, positions, paths
+internal/provider/  engine: file-type providers (Kubernetes, Helm, …)
+internal/workspace/ adapter: read-only folder access, .gitignore, watcher
+internal/config/    adapter: settings in the user profile
+internal/cli/       presentation: cobra commands, flags, exit codes
+internal/web/       presentation: HTTP API, security guard, events, embedded UI
 ```
 
 The engine defines *what things are* (including per-line severity of log output); the presentation layers decide what that looks like (colors, exit codes, HTTP statuses). New front-ends reuse the engine unchanged — that's how the CLI, web UI, and watch mode share one implementation. `internal/` is compiler-enforced private.
 
-The API is one endpoint: `POST /api/transform` with `{"input", "mode", "urlSafe"}` returning `{"output", "kind"}` plus a structured `task` object for Ansible results. Unknown mode → 400; untransformable input → 422 with `line`/`column` for JSON syntax errors.
+The v1 API is `POST /api/transform` (`{"input", "mode", "urlSafe", "indent"}` → `{"output", "kind"}` plus structured `task`/`jwt`). The workspace API lives under `/api/v2/` (workspace, folder browser, file tree, file content, and a Server-Sent Events stream of file changes); see `design/architecture.md`.
 
 ## Development
 
@@ -182,7 +190,7 @@ npm --prefix frontend run dev    # new UI with hot reload (API proxied to codec 
 npm --prefix frontend run build  # build into internal/web/dist, embedded by go build
 ```
 
-Or let `scripts/dev.sh` (bash; Git Bash on Windows) do it all: `build` (frontend + `./codec-dev`), `run [port]` (build and serve, default 8766), `ui [port]` (build, serve, and the hot-reload UI at http://localhost:5173/app/).
+Or let `scripts/dev.sh` (bash; Git Bash on Windows) do it all: `build` (frontend + `./codec-dev`), `run [port]` (build and serve, default 8766), `ui [port]` (build, serve, and the hot-reload UI at http://localhost:5173/).
 
 The web UI (Svelte 5 + TypeScript, in `frontend/`) is embedded into the binary. A binary built without the frontend still compiles and shows a "frontend not built" page instead.
 

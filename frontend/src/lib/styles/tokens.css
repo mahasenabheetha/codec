@@ -52,6 +52,19 @@
   --syn-expr-rt: #ff9ecf;
   --syn-expr-rt-bg: rgb(255 158 207 / 0.08);
 
+  /* Brand colours for file-type logos, lightened where the official
+     colour is too dark on --bg-1 (Helm navy, Terraform purple). */
+  --brand-kubernetes: #5b8def;
+  --brand-helm: #8f9cf5;
+  --brand-argo: #ef7b4d;
+  --brand-github: #4f9bff;
+  --brand-gitlab: #fc6d26;
+  --brand-azure: #3a9be8;
+  --brand-ansible: #f25f5c;
+  --brand-docker: #3aa3f0;
+  --brand-terraform: #9b8cff;
+  --brand-json: var(--syn-number);
+
   /* Editor surfaces (CodeMirror) */
   --editor-active-line: rgb(255 255 255 / 0.025);
   --editor-selection: rgb(122 162 255 / 0.16);
