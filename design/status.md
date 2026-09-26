@@ -1,8 +1,8 @@
 # Status
 
-**Current phase:** 08 — Compare + query ([phases/08-compare.md](phases/08-compare.md))
-**State:** not started. Phases 00–07 are done and committed on `feature/mab/yaml-tools`; 06 still awaits the user's native checks and the `v2.0.0-alpha.1` tag.
-**Next step:** start phase 08 on `feature/mab/yaml-tools`.
+**Current phase:** 09 — Kubernetes lens ([phases/09-kubernetes.md](phases/09-kubernetes.md))
+**State:** not started. Phases 00–08 are done and committed on `feature/mab/yaml-tools`; 06 still awaits the user's native checks and the `v2.0.0-alpha.1` tag.
+**Next step:** start phase 09 on `feature/mab/yaml-tools`.
 **Blockers:** none. Open checks: phase 06 manual checklist (native Windows/macOS, typing on a 5k-line file).
 
 Released: `v1.0.0` (2026-09-26). All v2 work stays on `feature/mab/yaml-tools` until the user raises the PR.
@@ -10,6 +10,8 @@ Released: `v1.0.0` (2026-09-26). All v2 work stays on `feature/mab/yaml-tools` u
 ## Log
 
 One line per session, newest first: date · phase · what changed.
+
+- 2026-09-26 · 08 · `yamlkit.Diff` (semantic: key/list order ignored, docs by identity, list items by name, similar leftovers paired), `internal/query` (gojq, path() for positions, no env), `/api/v2/compare|query`, `codec yaml diff` (exit 2) and `codec yaml query`; Compare view (files, what-if vs disk, Helm profiles, single docs, ignore paths) and Query view (workspace/file/Helm, jump to line).
 
 - 2026-09-26 · 07 · `internal/lint` (8 style rules, 7 Kubernetes checks, deprecation table), `internal/schema` (schema per doc, validation mapped to lines, completion/hover), `internal/schemacache` (on-demand fetch, cache, offline, custom folder), `internal/check`; `/api/v2/lint/*`, `codec yaml lint` (exit 2); editor schema badge, schema completion, Why/Turn off on problems, Workspace problems and Lint settings views, lint on Helm output.
 

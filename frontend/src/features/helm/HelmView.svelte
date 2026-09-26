@@ -7,7 +7,9 @@
   import CircleX from '@lucide/svelte/icons/circle-x'
   import Info from '@lucide/svelte/icons/info'
   import Lock from '@lucide/svelte/icons/lock'
+  import GitCompare from '@lucide/svelte/icons/git-compare'
   import RefreshCw from '@lucide/svelte/icons/refresh-cw'
+  import TextSearch from '@lucide/svelte/icons/text-search'
   import Save from '@lucide/svelte/icons/save'
   import SquarePen from '@lucide/svelte/icons/square-pen'
   import Trash from '@lucide/svelte/icons/trash-2'
@@ -28,8 +30,9 @@
   import FileIcon from '../workspace/FileIcon.svelte'
   import { workspace as ws } from '../workspace/workspace.svelte'
   import ProblemItem from '../lint/ProblemItem.svelte'
+  import { comparison, queries } from '../compare/compare.svelte'
   import { lint } from '../lint/lint.svelte'
-  import { charts, HelmSession, inChart } from './helm.svelte'
+  import { charts, helmNav, HelmSession, inChart } from './helm.svelte'
   import { layerColors, provenanceView } from './provenance'
 
   // One chart rendered like `helm template`, with the values layers,
@@ -118,15 +121,35 @@
   }
 
   // Open the file a problem points at, at its line.
+  // Defaults on the left, the current (or first saved) profile on the right.
+  function compareProfiles() {
+    const names = Object.keys(session.info?.profiles ?? {})
+    const right = session.profile || names[0] || ''
+    comparison.open({ kind: 'helm', chart, profile: '' }, { kind: 'helm', chart, profile: right })
+  }
+
+  /** Show a line of the rendered output. */
+  async function showManifestLine(n: number) {
+    tab = 'rendered'
+    await tick()
+    const view = rendered?.getView()
+    if (!view) return
+    const line = view.state.doc.line(Math.min(Math.max(n, 1), view.state.doc.lines))
+    view.dispatch({ selection: { anchor: line.from, head: line.to }, effects: EditorView.scrollIntoView(line.from, { y: 'center' }) })
+  }
+
+  // Requests from elsewhere (query results) to show a rendered line.
+  $effect(() => {
+    const p = helmNav.pending
+    if (!p || p.chart !== chart || !session.result) return
+    helmNav.pending = null
+    untrack(() => showManifestLine(p.line))
+  })
+
   async function openProblem(d: HelmDiagnostic) {
     if (d.manifest) {
       // A finding on the rendered output: show it there.
-      tab = 'rendered'
-      await tick()
-      const view = rendered?.getView()
-      if (!view) return
-      const line = view.state.doc.line(Math.min(d.manifest, view.state.doc.lines))
-      view.dispatch({ selection: { anchor: line.from, head: line.to }, effects: EditorView.scrollIntoView(line.from, { y: 'center' }) })
+      await showManifestLine(d.manifest)
       return
     }
     if (!d.file || d.file === '--set') return
@@ -183,6 +206,8 @@
         {:else}<span class="ok"><CircleCheck size={12} strokeWidth={2} /></span> {result.docs.length} documents · {ms} ms{/if}
       {/if}
     </span>
+    <IconButton icon={GitCompare} label="Compare two profiles of this chart" size="sm" onclick={compareProfiles} />
+    <IconButton icon={TextSearch} label="Query the rendered output (jq)" size="sm" onclick={() => queries.open({ chart })} />
     <IconButton icon={RefreshCw} label="Render again" size="sm" onclick={() => session.render()} />
   </header>
 

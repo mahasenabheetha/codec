@@ -32,6 +32,9 @@ type Settings struct {
 	// absolute path (so they never live in the repository).
 	Helm map[string]HelmChart `json:"helm,omitempty"`
 	Lint Lint                 `json:"lint,omitzero"`
+	// DiffIgnore lists path patterns semantic diffs skip (noise such as
+	// "metadata.annotations.checksum/*").
+	DiffIgnore []string `json:"diffIgnore,omitempty"`
 }
 
 // Lint holds the lint and schema choices. Zero values mean defaults.

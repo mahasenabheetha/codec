@@ -19,8 +19,11 @@
 
 ## Acceptance
 
-- [ ] Reordered keys/list items → no diff; renamed container → shown as change.
-- [ ] Helm dev-vs-prod diff shows only real differences.
-- [ ] Query results jump to the right line.
+- [x] Reordered keys/list items → no diff; renamed container → shown as change
+  (`internal/yamlkit/diff_test.go`).
+- [x] Helm dev-vs-prod diff shows only real differences (fixture chart: 7
+  changes, all from values-prod.yaml; checked in the UI).
+- [x] Query results jump to the right line (path queries exact; computed
+  values → their document; Helm results → the Rendered tab line).
 
 **Go concepts:** recursive comparison, generics for identity matching.

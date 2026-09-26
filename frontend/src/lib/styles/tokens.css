@@ -52,6 +52,11 @@
   --syn-expr-rt: #ff9ecf;
   --syn-expr-rt-bg: rgb(255 158 207 / 0.08);
 
+  /* Diff lines (compare view) */
+  --diff-add-bg: rgb(63 185 113 / 0.12);
+  --diff-del-bg: rgb(240 107 117 / 0.12);
+  --diff-chg-bg: rgb(229 180 73 / 0.11);
+
   /* Brand colours for file-type logos, lightened where the official
      colour is too dark on --bg-1 (Helm navy, Terraform purple). */
   --brand-kubernetes: #5b8def;

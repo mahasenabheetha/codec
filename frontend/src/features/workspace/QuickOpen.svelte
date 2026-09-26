@@ -38,6 +38,12 @@
   function pick(path: string) {
     ws.quickOpen = false
     query = ''
+    const picker = ws.picker
+    ws.picker = null
+    if (picker) {
+      picker.pick(path)
+      return
+    }
     ws.reveal(path)
     layout.openFile(path)
   }
@@ -56,7 +62,12 @@
   }
 </script>
 
-<Dialog.Root bind:open={ws.quickOpen} onOpenChange={(o) => !o && (query = '')}>
+<Dialog.Root bind:open={ws.quickOpen} onOpenChange={(o) => {
+    if (!o) {
+      query = ''
+      ws.picker = null
+    }
+  }}>
   <Dialog.Portal>
     <Dialog.Overlay class="codec-overlay" />
     <Dialog.Content class="codec-palette" aria-label="Go to file" onOpenAutoFocus={(e) => e.preventDefault()}>
@@ -65,7 +76,7 @@
           <Search size={16} strokeWidth={1.75} />
           <Command.Input
             bind:value={query}
-            placeholder={ws.info?.open ? `Search files in ${ws.info.name}…` : 'Open a folder first'}
+            placeholder={ws.picker ? ws.picker.title : ws.info?.open ? `Search files in ${ws.info.name}…` : 'Open a folder first'}
             class="codec-palette-input codec-quickopen-input"
           />
         </div>

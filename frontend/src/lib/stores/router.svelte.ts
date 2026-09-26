@@ -46,10 +46,12 @@ export function routeHelm(route: string): string | null {
 /** Fixed app views that open as tabs. */
 export const problemsRoute = '/problems'
 export const lintSettingsRoute = '/settings/lint'
+export const compareRoute = '/compare'
+export const queryRoute = '/query'
 
 /** Is route one of the fixed views? */
 export function isView(route: string): boolean {
-  return route === problemsRoute || route === lintSettingsRoute
+  return [problemsRoute, lintSettingsRoute, compareRoute, queryRoute].includes(route)
 }
 
 /** The tool id a route points at, or null. */

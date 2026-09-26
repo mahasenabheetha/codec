@@ -1,13 +1,15 @@
 <script lang="ts">
   import Search from '@lucide/svelte/icons/search'
+  import GitCompare from '@lucide/svelte/icons/git-compare'
   import ListChecks from '@lucide/svelte/icons/list-checks'
+  import TextSearch from '@lucide/svelte/icons/text-search'
   import Settings2 from '@lucide/svelte/icons/settings-2'
   import X from '@lucide/svelte/icons/x'
   import Kbd from '../components/Kbd.svelte'
   import FileIcon from '../../features/workspace/FileIcon.svelte'
   import { workspace } from '../../features/workspace/workspace.svelte'
   import { layout } from '../stores/layout.svelte'
-  import { lintSettingsRoute, problemsRoute, router, routeFile, routeHelm, routeTool } from '../stores/router.svelte'
+  import { compareRoute, lintSettingsRoute, problemsRoute, queryRoute, router, routeFile, routeHelm, routeTool } from '../stores/router.svelte'
   import { charts } from '../../features/helm/helm.svelte'
   import { toolById } from '../tools'
 
@@ -38,6 +40,8 @@
   const views: Record<string, { title: string; icon: typeof X }> = {
     [problemsRoute]: { title: 'Problems', icon: ListChecks },
     [lintSettingsRoute]: { title: 'Lint settings', icon: Settings2 },
+    [compareRoute]: { title: 'Compare', icon: GitCompare },
+    [queryRoute]: { title: 'Query', icon: TextSearch },
   }
 
   function base(p: string) {

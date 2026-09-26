@@ -2,6 +2,7 @@ package web
 
 import (
 	"cmp"
+	"context"
 	"fmt"
 	"net/http"
 	"path"
@@ -160,12 +161,27 @@ func (s *Server) handleHelmRender(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	req.Chart = cmp.Or(req.Chart, ".")
+	res, he := s.renderHelm(r.Context(), ws, req)
+	if he != nil {
+		writeError(w, he.status, he.msg)
+		return
+	}
+	if r.Context().Err() != nil {
+		return // the client moved on
+	}
+	s.lintRendered(r.Context(), res, req.Chart)
+	s.helm.put(chartKey(ws, req.Chart), res)
+	text, lines := helm.ValuesYAML(res.Values)
+	writeJSON(w, http.StatusOK, helmRenderResponse{Result: res, ValuesYAML: text, ValuesLines: lines})
+}
 
+// renderHelm renders a chart of the open folder; the Helm view,
+// compare and query share it.
+func (s *Server) renderHelm(ctx context.Context, ws *workspace.Workspace, req helmRenderRequest) (*helm.Result, *httpError) {
 	files, err := loadChart(ws, req.Chart, req.Overrides)
 	if err != nil {
 		he := readError(err)
-		writeError(w, he.status, "load chart: "+he.msg)
-		return
+		return nil, &httpError{he.status, "load chart: " + he.msg}
 	}
 	opts := helm.Options{Set: req.Set, Release: req.Release, Namespace: req.Namespace, KubeVersion: req.KubeVersion, APIVersions: req.APIVersions}
 	for _, p := range req.Values {
@@ -174,19 +190,17 @@ func (s *Server) handleHelmRender(w http.ResponseWriter, r *http.Request) {
 			c, err := ws.Read(p)
 			if err != nil {
 				he := readError(err)
-				writeError(w, he.status, p+": "+he.msg)
-				return
+				return nil, &httpError{he.status, p + ": " + he.msg}
 			}
 			text = c.Text
 		}
 		opts.Values = append(opts.Values, helm.Layer{Name: p, Data: []byte(text)})
 	}
-
-	res, err := cancellable(r.Context(), func() (*helm.Result, error) {
-		return helm.Render(r.Context(), files, opts), nil
+	res, _ := cancellable(ctx, func() (*helm.Result, error) {
+		return helm.Render(ctx, files, opts), nil
 	})
-	if err != nil {
-		return // the client moved on
+	if res == nil {
+		return nil, &httpError{http.StatusRequestTimeout, "cancelled"}
 	}
 	// Diagnostics name chart-relative files; the UI wants workspace paths.
 	for i, d := range res.Diagnostics {
@@ -194,10 +208,22 @@ func (s *Server) handleHelmRender(w http.ResponseWriter, r *http.Request) {
 			res.Diagnostics[i].File = path.Join(req.Chart, d.File)
 		}
 	}
-	s.lintRendered(r.Context(), res, req.Chart)
-	s.helm.put(chartKey(ws, req.Chart), res)
-	text, lines := helm.ValuesYAML(res.Values)
-	writeJSON(w, http.StatusOK, helmRenderResponse{Result: res, ValuesYAML: text, ValuesLines: lines})
+	return res, nil
+}
+
+// renderProfile renders a chart with one of its saved profiles ("" =
+// the chart's defaults).
+func (s *Server) renderProfile(ctx context.Context, ws *workspace.Workspace, chart, profile string) (*helm.Result, *httpError) {
+	chart = cmp.Or(chart, ".")
+	req := helmRenderRequest{Chart: chart}
+	if profile != "" {
+		p, ok := s.opts.Config.Get().Helm[chartKey(ws, chart)].Profiles[profile]
+		if !ok {
+			return nil, &httpError{http.StatusNotFound, "no profile " + profile + " for chart " + chart}
+		}
+		req.Values, req.Set, req.Release, req.Namespace, req.KubeVersion = p.Values, p.Set, p.Release, p.Namespace, p.KubeVersion
+	}
+	return s.renderHelm(ctx, ws, req)
 }
 
 // helmSourcePath maps a rendered document's source, named after the

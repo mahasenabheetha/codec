@@ -8,7 +8,9 @@ frontend/             Svelte 5 + Vite + TS source (Wails-compatible location)
 internal/
   codec/              ENGINE v1 transforms (base64, JSON, JWT, ansible)
   yamlkit/            ENGINE YAML core: parse, positions, docs, detect,
-                      outline, paths, format, convert, diagnostics
+                      outline, paths, format, convert, diagnostics,
+                      semantic diff
+  query/              ENGINE jq (gojq) over documents, results mapped to lines
   provider/           ENGINE provider interface + registry
   helm/               ENGINE Helm 4 SDK render + values provenance (from
                       in-memory files; the SDK is the only big dependency)
@@ -81,6 +83,11 @@ resources, jobs, references) built by the workspace adapter.
   file from disk). `/yaml/analyze` includes lint and schema findings and
   each document's schema status (`pending` = ask again); editor calls may
   pass `type` so schema help works while the buffer doesn't parse.
+  Compare/query: `POST /compare` {left, right, ignore[]} where a side is
+  {kind: file|helm, path, content?, doc?, chart, profile} → semantic
+  changes with ranges on both texts (text diff if a side doesn't parse);
+  `GET|POST /compare/ignore` (saved patterns); `POST /query` {expr, scope:
+  file|workspace|helm, …side} → results with file, jq path, value, range.
 - Errors: `{"error": "...", "line"?, "column"?, "file"?}` with 400 for
   caller bugs, 422 for bad input, 404 missing, 500 unexpected.
 - Push updates via Server-Sent Events, `GET /api/v2/events`: `workspace`

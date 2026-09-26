@@ -3,6 +3,7 @@
 
 import { isAbort } from '../../lib/api/client'
 import { listCharts, renderChart, saveProfiles, type HelmChart, type HelmProfile, type HelmResult } from '../../lib/api/helm'
+import { layout } from '../../lib/stores/layout.svelte'
 import { openSessions } from '../editor/active.svelte'
 import { workspace } from '../workspace/workspace.svelte'
 
@@ -170,3 +171,16 @@ export class HelmSession {
     this.inflight?.abort()
   }
 }
+
+/** A request to show a line of a chart's rendered output (e.g. a query
+ *  result); the chart's Helm view takes it once it has rendered. */
+class HelmNav {
+  pending = $state<{ chart: string; line: number } | null>(null)
+
+  request(chart: string, line: number) {
+    this.pending = { chart, line }
+    layout.openHelm(chart)
+  }
+}
+
+export const helmNav = new HelmNav()

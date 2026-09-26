@@ -14,7 +14,7 @@
   import { workspace } from '../../features/workspace/workspace.svelte'
   import { getVersion, type VersionInfo } from '../api/version'
   import { layout } from '../stores/layout.svelte'
-  import { lintSettingsRoute, problemsRoute, router, routeHelm } from '../stores/router.svelte'
+  import { compareRoute, lintSettingsRoute, problemsRoute, queryRoute, router, routeHelm } from '../stores/router.svelte'
   import { toolById } from '../tools'
 
   let version = $state<VersionInfo | null>(null)
@@ -74,6 +74,12 @@
       <span class="path">{routeHelm(router.path)} · rendered like helm template (no cluster; lookup returns empty)</span>
     {:else if router.path === problemsRoute}
       <span class="where">Workspace problems</span>
+    {:else if router.path === compareRoute}
+      <span class="where">Compare</span>
+      <span class="path">by meaning: key and list order ignored, list items paired by name</span>
+    {:else if router.path === queryRoute}
+      <span class="where">Query</span>
+      <span class="path">jq (gojq) over YAML documents</span>
     {:else if router.path === lintSettingsRoute}
       <span class="where">Lint settings</span>
     {:else}

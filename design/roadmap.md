@@ -13,7 +13,7 @@ dependencies are listed in each phase file.
 | 05 | [Helm](phases/05-helm.md) | Embedded render, values layers + provenance, live preview | done |
 | 06 | [MVP release](phases/06-mvp-release.md) | `v2.0.0-alpha.1`, Docker image, docs | done (user checks + tag pending) |
 | 07 | [Lint + schemas](phases/07-lint.md) | Rules, JSON Schema, K8s checks, deprecations | done |
-| 08 | [Compare + query](phases/08-compare.md) | Semantic diff, env diff, jq query | todo |
+| 08 | [Compare + query](phases/08-compare.md) | Semantic diff, env diff, jq query | done |
 | 09 | [Kubernetes lens](phases/09-kubernetes.md) | Cards, inventory, relations, neat, kustomize | todo |
 | 10 | [Argo lens](phases/10-argo.md) | Params, templateRef, DAG graph, ArgoCD apps | todo |
 | 11 | [CI pipelines lens](phases/11-ci.md) | GitHub Actions, GitLab CI, Azure Pipelines | todo |

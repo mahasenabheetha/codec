@@ -3,7 +3,9 @@
   import FolderTree from '@lucide/svelte/icons/folder-tree'
   import House from '@lucide/svelte/icons/house'
   import Keyboard from '@lucide/svelte/icons/keyboard'
+  import GitCompare from '@lucide/svelte/icons/git-compare'
   import ListChecks from '@lucide/svelte/icons/list-checks'
+  import TextSearch from '@lucide/svelte/icons/text-search'
   import Settings2 from '@lucide/svelte/icons/settings-2'
   import PanelLeftClose from '@lucide/svelte/icons/panel-left-close'
   import PanelLeftOpen from '@lucide/svelte/icons/panel-left-open'
@@ -11,7 +13,7 @@
   import Tooltip from '../components/Tooltip.svelte'
   import { workspace } from '../../features/workspace/workspace.svelte'
   import { layout } from '../stores/layout.svelte'
-  import { lintSettingsRoute, problemsRoute, router } from '../stores/router.svelte'
+  import { compareRoute, lintSettingsRoute, problemsRoute, queryRoute, router } from '../stores/router.svelte'
   import { toolGroups } from '../tools'
   import { chain } from '../utils/events'
 
@@ -56,6 +58,8 @@
     {@render item(FolderTree, 'Explorer', layout.explorerOpen, () => layout.toggleExplorer(), 'Mod+Shift+E')}
     {@render item(FolderOpen, 'Open folder…', false, () => (workspace.dialogOpen = true), 'Mod+O')}
     {@render item(ListChecks, 'Problems', router.path === problemsRoute, () => layout.open(problemsRoute))}
+    {@render item(GitCompare, 'Compare', router.path === compareRoute, () => layout.open(compareRoute))}
+    {@render item(TextSearch, 'Query', router.path === queryRoute, () => layout.open(queryRoute))}
 
     {#each groups as g (g.group)}
       {#if collapsed}

@@ -6,6 +6,21 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+### Added (compare and query)
+
+- Semantic diff: key order and list order don't count; Kubernetes
+  documents pair up by kind/namespace/name and list items (containers,
+  env, ports, volumes…) by name, so a renamed container is one change.
+  Changes are listed by path; command/args lists keep their order.
+- Compare view: any two files, what-if edits vs disk, one document vs
+  another, or a chart rendered with two profiles (dev vs prod) — change
+  list by path, both sides with changed lines marked, click to jump.
+  Ignore noisy paths with patterns (saved in your settings).
+- Query view: jq expressions (gojq) over the workspace, one file or a
+  Helm render; results jump to their line.
+- `codec yaml diff a b [--ignore p] [--text] [--json]` (exit 2 when
+  different) and `codec yaml query '<expr>' [files|folders…]`.
+
 ### Added (lint and schemas)
 
 - Lint rules with a why and a fix for every finding: YAML 1.1 traps

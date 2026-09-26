@@ -85,7 +85,7 @@ func runLint(cmd *cobra.Command, args []string) error {
 	if len(args) == 0 {
 		args = []string{"."}
 	}
-	files, err := lintTargets(cmd.Context(), args)
+	files, err := yamlTargets(cmd.Context(), args)
 	if err != nil {
 		return err
 	}
@@ -134,27 +134,27 @@ func runLint(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-// lintTarget is one file: its path as shown, and how to read it.
-type lintTarget struct {
+// yamlTarget is one file: its path as shown, and how to read it.
+type yamlTarget struct {
 	show string
 	path string // slash path for type detection (relative to its folder)
 	read func() ([]byte, error)
 }
 
-// lintTargets expands folders into their YAML files (honouring
+// yamlTargets expands folders into their YAML files (honouring
 // .gitignore, like the workspace view) and keeps named files as given.
-func lintTargets(ctx context.Context, args []string) ([]lintTarget, error) {
+func yamlTargets(ctx context.Context, args []string) ([]yamlTarget, error) {
 	if ctx == nil {
 		ctx = context.Background()
 	}
-	var out []lintTarget
+	var out []yamlTarget
 	for _, a := range args {
 		fi, err := os.Stat(a)
 		if err != nil {
 			return nil, err
 		}
 		if !fi.IsDir() {
-			out = append(out, lintTarget{show: a, path: filepath.ToSlash(a), read: func() ([]byte, error) { return os.ReadFile(a) }})
+			out = append(out, yamlTarget{show: a, path: filepath.ToSlash(a), read: func() ([]byte, error) { return os.ReadFile(a) }})
 			continue
 		}
 		ws, err := workspace.Open(a)
@@ -171,7 +171,7 @@ func lintTargets(ctx context.Context, args []string) ([]lintTarget, error) {
 			}
 			show := filepath.ToSlash(filepath.Join(a, filepath.FromSlash(f.Path)))
 			show = strings.TrimPrefix(show, "./")
-			out = append(out, lintTarget{show: show, path: f.Path, read: func() ([]byte, error) {
+			out = append(out, yamlTarget{show: show, path: f.Path, read: func() ([]byte, error) {
 				c, err := ws.Read(f.Path)
 				if err != nil {
 					return nil, err
@@ -187,7 +187,7 @@ func lintTargets(ctx context.Context, args []string) ([]lintTarget, error) {
 	return out, nil
 }
 
-func lintOne(ctx context.Context, c *check.Checker, t lintTarget) lintResult {
+func lintOne(ctx context.Context, c *check.Checker, t yamlTarget) lintResult {
 	r := lintResult{Path: t.show, Diagnostics: []yamlkit.Diagnostic{}}
 	data, err := t.read()
 	if err != nil {

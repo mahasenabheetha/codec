@@ -9,7 +9,9 @@
   import PanelLeft from '@lucide/svelte/icons/panel-left'
   import RotateCw from '@lucide/svelte/icons/rotate-cw'
   import Search from '@lucide/svelte/icons/search'
+  import GitCompare from '@lucide/svelte/icons/git-compare'
   import ListChecks from '@lucide/svelte/icons/list-checks'
+  import TextSearch from '@lucide/svelte/icons/text-search'
   import Settings2 from '@lucide/svelte/icons/settings-2'
   import Ship from '@lucide/svelte/icons/ship'
   import X from '@lucide/svelte/icons/x'
@@ -24,6 +26,9 @@
   import FileView from './features/workspace/FileView.svelte'
   import HelmView from './features/helm/HelmView.svelte'
   import LintSettings from './features/lint/LintSettings.svelte'
+  import CompareView from './features/compare/CompareView.svelte'
+  import QueryView from './features/compare/QueryView.svelte'
+  import { comparison, queries } from './features/compare/compare.svelte'
   import WorkspaceProblems from './features/lint/WorkspaceProblems.svelte'
   import { lint } from './features/lint/lint.svelte'
   import { charts } from './features/helm/helm.svelte'
@@ -31,7 +36,7 @@
   import QuickOpen from './features/workspace/QuickOpen.svelte'
   import { openFolder, workspace } from './features/workspace/workspace.svelte'
   import { tools, toolById } from './lib/tools'
-  import { isView, lintSettingsRoute, problemsRoute, router, routeFile, routeHelm, routeTool } from './lib/stores/router.svelte'
+  import { compareRoute, isView, lintSettingsRoute, problemsRoute, queryRoute, router, routeFile, routeHelm, routeTool } from './lib/stores/router.svelte'
   import { layout } from './lib/stores/layout.svelte'
   import { shortcut } from './lib/stores/shortcuts.svelte'
   import { commands } from './lib/stores/commands.svelte'
@@ -96,6 +101,25 @@
         layout.open(problemsRoute)
         if (!lint.running) lint.runWorkspace()
       },
+    },
+    {
+      id: 'compare.files',
+      title: 'Compare files…',
+      group: 'Workspace',
+      icon: GitCompare,
+      keywords: ['diff', 'semantic', 'difference', 'dev prod'],
+      run: () => {
+        layout.open(compareRoute)
+        comparison.run()
+      },
+    },
+    {
+      id: 'query.yaml',
+      title: 'Query YAML (jq)…',
+      group: 'Workspace',
+      icon: TextSearch,
+      keywords: ['jq', 'yq', 'search', 'find', 'select'],
+      run: () => queries.open(),
     },
     {
       id: 'lint.settings',
@@ -244,6 +268,14 @@
           {:else if route === problemsRoute}
             <div class="panel" hidden={router.path !== route}>
               <WorkspaceProblems active={router.path === route} />
+            </div>
+          {:else if route === compareRoute}
+            <div class="panel" hidden={router.path !== route}>
+              <CompareView active={router.path === route} />
+            </div>
+          {:else if route === queryRoute}
+            <div class="panel" hidden={router.path !== route}>
+              <QueryView active={router.path === route} />
             </div>
           {:else if route === lintSettingsRoute}
             <div class="panel" hidden={router.path !== route}>

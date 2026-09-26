@@ -138,6 +138,10 @@ func (s *Server) routes() http.Handler {
 	mux.HandleFunc("GET /api/v2/lint/settings", s.handleLintSettings)
 	mux.HandleFunc("POST /api/v2/lint/settings", s.handleSaveLintSettings)
 	mux.HandleFunc("POST /api/v2/lint/workspace", s.handleLintWorkspace)
+	mux.HandleFunc("POST /api/v2/compare", s.handleCompare)
+	mux.HandleFunc("GET /api/v2/compare/ignore", s.handleDiffIgnore)
+	mux.HandleFunc("POST /api/v2/compare/ignore", s.handleDiffIgnore)
+	mux.HandleFunc("POST /api/v2/query", s.handleQuery)
 	mux.HandleFunc("/api/v2/", func(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusNotFound, "no such endpoint: "+r.Method+" "+r.URL.Path)
 	})

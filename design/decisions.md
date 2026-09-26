@@ -154,3 +154,17 @@ Settled unless the user reopens them. Add new ones at the bottom:
     workspace lint, Helm output, `codec yaml lint` (exit 2 on warnings or
     errors; infos don't fail). Raw Helm templates get no Kubernetes
     checks (their output does); Helm test hooks are skipped (2026-09-26).
+44. Semantic diff identity: Kubernetes documents pair by kind +
+    namespace/name (two single-document files always pair); list items
+    by the first of name/key/mountPath/containerPort/port/id that is
+    present and unique on both sides; leftovers pair when ≥ 50% of their
+    leaves match (a renamed container is one change). Scalar lists are
+    sets, except command/args/entrypoint/script, which are compared as a
+    whole ("reordered" when only the order changed) (2026-09-26).
+45. Query uses gojq; positions come from running path(expr) first, and
+    only non-path expressions fall back to plain values (pointing at
+    their document). $ENV/env are empty: queries see files, not the
+    machine. A document an expression errors on is skipped (2026-09-26).
+46. Diff ignore patterns are globs over the displayed path ("*" = any
+    run of characters), stored in user settings (`diffIgnore`) and
+    shared by the Compare view and `codec yaml diff` (2026-09-26).

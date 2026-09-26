@@ -32,6 +32,15 @@ class Workspace {
 
   dialogOpen = $state(false)
   quickOpen = $state(false)
+  /** When set, Go to file picks a file for a caller (e.g. Compare)
+   *  instead of opening it. */
+  picker = $state<{ title: string; pick: (path: string) => void } | null>(null)
+
+  /** Let the user choose a file with the Go to file dialog. */
+  pickFile(title: string, pick: (path: string) => void) {
+    this.picker = { title, pick }
+    this.quickOpen = true
+  }
 
   /** Folders open in the explorer. */
   expanded = new SvelteSet<string>(expandedStore.value)

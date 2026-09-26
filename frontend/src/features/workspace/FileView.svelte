@@ -7,6 +7,7 @@
   import ExternalLink from '@lucide/svelte/icons/external-link'
   import FileDiff from '@lucide/svelte/icons/file-diff'
   import FileWarning from '@lucide/svelte/icons/file-warning'
+  import GitCompare from '@lucide/svelte/icons/git-compare'
   import Link from '@lucide/svelte/icons/link'
   import LoaderCircle from '@lucide/svelte/icons/loader-circle'
   import LocateFixed from '@lucide/svelte/icons/locate-fixed'
@@ -15,6 +16,7 @@
   import RotateCcw from '@lucide/svelte/icons/rotate-ccw'
   import ShieldCheck from '@lucide/svelte/icons/shield-check'
   import ShieldOff from '@lucide/svelte/icons/shield-off'
+  import TextSearch from '@lucide/svelte/icons/text-search'
   import Trash from '@lucide/svelte/icons/trash-2'
   import X from '@lucide/svelte/icons/x'
   import Badge from '../../lib/components/Badge.svelte'
@@ -32,6 +34,7 @@
   import { copyText } from '../../lib/utils/clipboard'
   import { activeEditor, editorLink, editorNames, editorNav, lensOpen, openIn, openSessions, type ExternalEditor } from '../editor/active.svelte'
   import { charts } from '../helm/helm.svelte'
+  import { comparison, queries } from '../compare/compare.svelte'
   import { applyAnalysis, offsetOf, yamlIntel } from '../editor/intel'
   import Outline from '../editor/Outline.svelte'
   import Problems from '../editor/Problems.svelte'
@@ -141,6 +144,17 @@
     complete: (line, col) => completeAt(at(line, col)),
     cursor: (line, col) => (session.cursor = { line, col }),
   })
+
+  // What-if edits compare with the disk; otherwise pick the other file.
+  function compareThis() {
+    if (session.dirty) {
+      comparison.open({ kind: 'file', path }, { kind: 'file', path }, { left: false, right: true })
+      return
+    }
+    ws.pickFile(`Compare ${segments[segments.length - 1]} with…`, (other) =>
+      comparison.open({ kind: 'file', path }, { kind: 'file', path: other }),
+    )
+  }
 
   function flashUpdated() {
     updated = true
@@ -270,6 +284,10 @@
           </div>
         </Popover>
       </span>
+      {#if session.isYAML}
+        <IconButton icon={GitCompare} label={session.dirty ? 'Compare what-if edits with disk' : 'Compare with another file'} size="sm" onclick={compareThis} />
+        <IconButton icon={TextSearch} label="Query this file (jq)" size="sm" onclick={() => queries.open({ path })} />
+      {/if}
       <IconButton icon={LocateFixed} label="Reveal in explorer" size="sm" onclick={() => ((layout.explorerOpen = true), ws.reveal(path))} />
       <IconButton icon={Link} label="Copy path" size="sm" onclick={() => copyPath(false)} />
       <IconButton icon={Copy} label="Copy full path" size="sm" onclick={() => copyPath(true)} />

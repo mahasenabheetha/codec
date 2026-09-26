@@ -32,6 +32,10 @@ codec **never writes to your files** and nothing leaves your machine.
   GitLab CI, Azure Pipelines, Compose) — each finding says why it
   matters and how to fix it. The same schemas drive key completion and
   field docs in the editor.
+- **Compare and query.** Diff two files, a what-if edit against disk, or
+  a chart's dev and prod renders by meaning — key and list order don't
+  count, containers and env pair up by name. Run jq over the workspace,
+  a file or a render and jump to each result.
 - **Helm.** Render charts with the embedded Helm 4 SDK — byte-for-byte
   what `helm template` produces, no helm install, no cluster. Pick
   values files and `--set`, save them as profiles, and see for every
@@ -102,7 +106,8 @@ Open a folder with Ctrl+O (recent folders and a folder browser) or
 `--root`. Files open as YAML-aware editors; **Render** on any chart file
 (or **Helm: render …** in the palette) opens the Helm view. "Open in VS
 Code/Cursor" jumps to the same file and line. **Problems** in the sidebar
-lints the whole folder; **Lint settings** sets rule levels, the target
+lints the whole folder, **Compare** diffs files or Helm profiles by meaning,
+**Query** runs jq; **Lint settings** sets rule levels, the target
 Kubernetes version and schema options. Ctrl+Space completes keys and
 values from the file's schema.
 
@@ -171,6 +176,18 @@ version and schema options are set in the web UI's **Lint settings** and
 shared with the CLI. Schemas are downloaded on first use and cached in
 your user cache folder; with **Offline** on, only the cache and your
 custom schema folder are used.
+
+### Diff and query
+
+```bash
+codec yaml diff dev.yaml prod.yaml           # by meaning; exit 2 when different
+#   Deployment api
+#     ~ spec.replicas: 1 → 3
+#     ~ spec.template.spec.containers[name=app].image: nginx:1.16 → nginx:1.27
+codec yaml diff a.yaml b.yaml --ignore 'metadata.labels.helm.sh/chart'
+codec yaml query '.spec.template.spec.containers[].image' charts/   # file:line: value
+codec yaml query 'select(.kind == "Ingress") | .spec.rules[].host' . --json
+```
 
 ### Helm
 
