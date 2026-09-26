@@ -6,6 +6,30 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+### Added (lint and schemas)
+
+- Lint rules with a why and a fix for every finding: YAML 1.1 traps
+  (yes/no/on/off, octal-looking numbers), duplicate keys, indentation
+  consistency, empty values, trailing spaces, and optional document
+  start and line length.
+- Kubernetes checks: unpinned images, missing requests/limits, missing
+  readiness probe, privileged containers, hostPath, hostNetwork, running
+  as root; removed and deprecated APIs for a target Kubernetes version
+  (1.30–1.37, default 1.34).
+- Schema validation for Kubernetes (per version), CRDs (Argo, Argo CD,
+  cert-manager, … from the CRD catalog), GitHub Actions, GitLab CI,
+  Azure Pipelines, Compose and Kustomization — errors on the right line,
+  with "did you mean" for misspelled fields. Schemas download on first
+  use and are cached; offline mode and a custom schema folder.
+- Editor: schema key and value completion (also mid-edit, with docs),
+  field descriptions on hover, a badge naming the schema in use; problems
+  show why they matter and can turn their rule off.
+- Workspace problems view (lint every YAML file), Lint settings view
+  (levels per rule, Kubernetes version, schema options; kept in your
+  settings), and lint + schema findings on Helm's rendered output.
+- `codec yaml lint [paths] [--k8s-version] [--offline] [--no-schemas]
+  [--json]`: exit 2 when there are warnings or errors.
+
 ## [2.0.0-alpha.1] - 2026-09-26
 
 First 2.0 pre-release: the read-only YAML workbench (workspace, editor,

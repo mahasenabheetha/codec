@@ -109,6 +109,12 @@ export class FileSession {
       if (ctrl.signal.aborted) return
       this.analyzedText = text
       this.analysis = a
+      // A schema was still downloading: ask again shortly (unless the
+      // user types first, which re-analyzes anyway).
+      if (a.docs.some((d) => d.schema?.state === 'pending')) {
+        clearTimeout(this.timer)
+        this.timer = setTimeout(() => this.runAnalyze(), 2000)
+      }
     } catch (e) {
       if (!isAbort(e)) this.analysis = null
     }

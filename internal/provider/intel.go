@@ -39,8 +39,10 @@ type Location struct {
 // Completion is one suggestion; it replaces the text in Range.
 type Completion struct {
 	Label  string        `json:"label"`
+	Insert string        `json:"insert,omitempty"` // text to insert; "" = Label
 	Detail string        `json:"detail,omitempty"`
-	Kind   string        `json:"kind"` // anchor, key, value
+	Doc    string        `json:"doc,omitempty"` // longer description
+	Kind   string        `json:"kind"`          // anchor, key, value
 	Range  yamlkit.Range `json:"range"`
 }
 
@@ -362,6 +364,15 @@ type DocSummary struct {
 	Name    string        `json:"name,omitempty"`
 	Range   yamlkit.Range `json:"range"`
 	Symbols []Symbol      `json:"symbols"`
+	Schema  *SchemaStatus `json:"schema,omitempty"` // set by the checker
+}
+
+// SchemaStatus says which schema a document was checked against.
+type SchemaStatus struct {
+	Title   string `json:"title"`
+	URL     string `json:"url"`
+	State   string `json:"state"`             // ok, pending, none, unavailable
+	Message string `json:"message,omitempty"` // for none/unavailable
 }
 
 // Analyze classifies f and gathers its outline, diagnostics and

@@ -8,10 +8,13 @@
   import FileDiff from '@lucide/svelte/icons/file-diff'
   import FileWarning from '@lucide/svelte/icons/file-warning'
   import Link from '@lucide/svelte/icons/link'
+  import LoaderCircle from '@lucide/svelte/icons/loader-circle'
   import LocateFixed from '@lucide/svelte/icons/locate-fixed'
   import PanelRight from '@lucide/svelte/icons/panel-right'
   import RefreshCw from '@lucide/svelte/icons/refresh-cw'
   import RotateCcw from '@lucide/svelte/icons/rotate-ccw'
+  import ShieldCheck from '@lucide/svelte/icons/shield-check'
+  import ShieldOff from '@lucide/svelte/icons/shield-off'
   import Trash from '@lucide/svelte/icons/trash-2'
   import X from '@lucide/svelte/icons/x'
   import Badge from '../../lib/components/Badge.svelte'
@@ -58,6 +61,8 @@
   const deleted = $derived(ws.deleted.has(path))
   const segments = $derived(path.split('/'))
   const kind = $derived(session.analysis?.type ?? session.disk?.type ?? session.disk?.lang ?? '')
+  // The schema the document at the cursor was checked against.
+  const schema = $derived(session.analysis?.docs.find((d) => d.index === session.currentDoc)?.schema)
   const lines = $derived(session.buffer ? session.buffer.split('\n').length - (session.buffer.endsWith('\n') ? 1 : 0) : 0)
 
   // Load on open, and again whenever the watcher reports a change.
@@ -128,7 +133,7 @@
   }
   const at = (line: number, col: number) => {
     const text = liveText()
-    return { path, content: text === session.diskText ? undefined : text, line, col }
+    return { path, content: text === session.diskText ? undefined : text, line, col, type: session.analysis?.type }
   }
   const intel = yamlIntel({
     hover: (line, col) => hoverAt(at(line, col)),
@@ -199,6 +204,18 @@
       {/each}
     </nav>
     {#if isSpecific(kind)}<Badge>{lookOf(kind).title}</Badge>{/if}
+    {#if schema}
+      <span class="schema {schema.state}" title={schema.state === 'ok' ? `Checked against ${schema.url}` : schema.message}>
+        {#if schema.state === 'ok'}
+          <ShieldCheck size={12} strokeWidth={2} />
+        {:else if schema.state === 'pending'}
+          <LoaderCircle size={12} strokeWidth={2} class="spin" />
+        {:else}
+          <ShieldOff size={12} strokeWidth={2} />
+        {/if}
+        {schema.state === 'pending' ? 'Loading schema…' : schema.title}
+      </span>
+    {/if}
     {#if session.dirty}
       <span class="whatif" title="Edits here are never saved to disk">
         <Badge tone="warn">What-if</Badge>
@@ -367,6 +384,31 @@
     font-size: var(--fs-sm);
     color: var(--info);
     white-space: nowrap;
+  }
+  .schema {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-1);
+    min-width: 0;
+    overflow: hidden;
+    font-size: var(--fs-sm);
+    color: var(--fg-2);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .schema.ok :global(svg) {
+    color: var(--ok);
+  }
+  .schema.unavailable :global(svg) {
+    color: var(--warn);
+  }
+  .schema :global(.spin) {
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
   }
   .spacer {
     flex: 1;

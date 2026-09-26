@@ -70,6 +70,11 @@ type Diagnostic struct {
 	File     string `json:"file,omitempty"` // chart-relative path or layer name
 	Line     int    `json:"line,omitempty"`
 	Col      int    `json:"col,omitempty"`
+	// Manifest is the line in Manifest, for findings on the rendered
+	// output (lint, schema); File is then the template that made it.
+	Manifest int    `json:"manifest,omitempty"`
+	Why      string `json:"why,omitempty"`
+	Source   string `json:"source,omitempty"` // lint group, as in yamlkit.Diagnostic
 }
 
 // Result is a render.

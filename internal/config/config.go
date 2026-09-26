@@ -31,6 +31,17 @@ type Settings struct {
 	// Helm holds render profiles per chart, keyed by the chart's
 	// absolute path (so they never live in the repository).
 	Helm map[string]HelmChart `json:"helm,omitempty"`
+	Lint Lint                 `json:"lint,omitzero"`
+}
+
+// Lint holds the lint and schema choices. Zero values mean defaults.
+type Lint struct {
+	Rules      map[string]string `json:"rules,omitempty"`      // rule id → error|warning|info|off
+	LineLength int               `json:"lineLength,omitempty"` // 0 = 120
+	K8sVersion string            `json:"k8sVersion,omitempty"` // "" = codec's default
+	NoSchemas  bool              `json:"noSchemas,omitempty"`  // don't validate against schemas at all
+	Offline    bool              `json:"offline,omitempty"`    // only cached/custom schemas, no downloads
+	SchemaDir  string            `json:"schemaDir,omitempty"`  // custom schema folder, checked first
 }
 
 // HelmChart is the saved state of one chart's Helm view.

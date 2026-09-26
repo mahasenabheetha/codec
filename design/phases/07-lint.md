@@ -28,9 +28,16 @@ give schema-aware completion and hover docs.
 
 ## Acceptance
 
-- [ ] Fixtures per rule and per check; schema errors land on the right line.
-- [ ] Works offline after first fetch; clear message when a schema is unavailable.
-- [ ] Completion suggests valid keys inside a Deployment spec.
+- [x] Fixtures per rule and per check; schema errors land on the right line
+  (`internal/lint`, `internal/schema` against the real Kubernetes 1.34
+  Deployment schema).
+- [x] Works offline after first fetch; clear message when a schema is
+  unavailable ("not downloaded yet, and offline mode is on", "No schema is
+  published for …").
+- [x] Completion suggests valid keys inside a Deployment spec (also in
+  list items, mid-edit, with docs; enum values from the schema).
+- Verified on the merge-delivery repo: 2,286 files in ~11 s, 132 schema
+  documents, no schema false positives after the Azure fix.
 
 ## Notes
 

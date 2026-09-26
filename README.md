@@ -26,6 +26,12 @@ codec **never writes to your files** and nothing leaves your machine.
   as dot, yq, JSONPath, Helm or `--set`.
 - **What-if edits.** Change anything to see its effect — it is never
   saved. Copy the result, or copy a diff that `git apply` accepts.
+- **Lint and schemas.** YAML 1.1 traps, risky Kubernetes settings,
+  removed APIs for your target Kubernetes version, and validation
+  against the published schema (Kubernetes, CRDs, GitHub Actions,
+  GitLab CI, Azure Pipelines, Compose) — each finding says why it
+  matters and how to fix it. The same schemas drive key completion and
+  field docs in the editor.
 - **Helm.** Render charts with the embedded Helm 4 SDK — byte-for-byte
   what `helm template` produces, no helm install, no cluster. Pick
   values files and `--set`, save them as profiles, and see for every
@@ -95,7 +101,10 @@ codec serve --port 9000 --poll  # other port; poll for file changes
 Open a folder with Ctrl+O (recent folders and a folder browser) or
 `--root`. Files open as YAML-aware editors; **Render** on any chart file
 (or **Helm: render …** in the palette) opens the Helm view. "Open in VS
-Code/Cursor" jumps to the same file and line.
+Code/Cursor" jumps to the same file and line. **Problems** in the sidebar
+lints the whole folder; **Lint settings** sets rule levels, the target
+Kubernetes version and schema options. Ctrl+Space completes keys and
+values from the file's schema.
 
 | Shortcut | Action |
 |---|---|
@@ -145,6 +154,23 @@ codec yaml fmt anchors.yaml --resolve       # expand anchors and << merges
 codec yaml convert values.yaml --to json    # key order kept (and --to yaml)
 codec yaml flatten values.yaml              # path: value lines; --reverse to undo
 ```
+
+### Lint
+
+```bash
+codec yaml lint                              # the current folder (honours .gitignore)
+codec yaml lint charts/ deploy.yaml --k8s-version 1.31
+codec yaml lint . --offline --json           # cached schemas only; machine-readable
+#   deploy.yaml:6:3: error: Unknown field "replica" in spec [schema]
+#       fix: Did you mean "replicas"?
+```
+
+Exit status 2 when there are warnings or errors, so it works as a CI
+gate. Rule levels (error/warning/info/off), the target Kubernetes
+version and schema options are set in the web UI's **Lint settings** and
+shared with the CLI. Schemas are downloaded on first use and cached in
+your user cache folder; with **Offline** on, only the cache and your
+custom schema folder are used.
 
 ### Helm
 

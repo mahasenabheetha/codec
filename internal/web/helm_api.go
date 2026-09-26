@@ -194,9 +194,20 @@ func (s *Server) handleHelmRender(w http.ResponseWriter, r *http.Request) {
 			res.Diagnostics[i].File = path.Join(req.Chart, d.File)
 		}
 	}
+	s.lintRendered(r.Context(), res, req.Chart)
 	s.helm.put(chartKey(ws, req.Chart), res)
 	text, lines := helm.ValuesYAML(res.Values)
 	writeJSON(w, http.StatusOK, helmRenderResponse{Result: res, ValuesYAML: text, ValuesLines: lines})
+}
+
+// helmSourcePath maps a rendered document's source, named after the
+// chart ("app/templates/x.yaml"), to its workspace path.
+func helmSourcePath(chart, src string) string {
+	_, rest, ok := strings.Cut(src, "/")
+	if !ok {
+		return ""
+	}
+	return path.Join(chart, rest)
 }
 
 // loadChart reads a chart directory through the workspace, applying

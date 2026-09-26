@@ -1,15 +1,17 @@
 # Status
 
-**Current phase:** 06 — MVP release ([phases/06-mvp-release.md](phases/06-mvp-release.md))
-**State:** done and committed on `feature/mab/yaml-tools`, except the user checks: native Windows/macOS run and the manual checklist in the phase file.
-**Next step:** user raises the PR `feature/mab/yaml-tools` → `main`, merges, tags `v2.0.0-alpha.1`, makes the GHCR package public. Then phase 07.
-**Blockers:** none. Open check: phase 04 typing feel on a 5k-line file (in the checklist).
+**Current phase:** 08 — Compare + query ([phases/08-compare.md](phases/08-compare.md))
+**State:** not started. Phases 00–07 are done and committed on `feature/mab/yaml-tools`; 06 still awaits the user's native checks and the `v2.0.0-alpha.1` tag.
+**Next step:** start phase 08 on `feature/mab/yaml-tools`.
+**Blockers:** none. Open checks: phase 06 manual checklist (native Windows/macOS, typing on a 5k-line file).
 
 Released: `v1.0.0` (2026-09-26). All v2 work stays on `feature/mab/yaml-tools` until the user raises the PR.
 
 ## Log
 
 One line per session, newest first: date · phase · what changed.
+
+- 2026-09-26 · 07 · `internal/lint` (8 style rules, 7 Kubernetes checks, deprecation table), `internal/schema` (schema per doc, validation mapped to lines, completion/hover), `internal/schemacache` (on-demand fetch, cache, offline, custom folder), `internal/check`; `/api/v2/lint/*`, `codec yaml lint` (exit 2); editor schema badge, schema completion, Why/Turn off on problems, Workspace problems and Lint settings views, lint on Helm output.
 
 - 2026-09-26 · 06 · Docker image (GoReleaser dockers_v2, distroless non-root, GHCR in the release workflow), snapshot + container verified, README rewritten with screenshots, CHANGELOG 2.0.0-alpha.1, releases.md Docker section; fixes: first-visit file links, not-found messages, template hover wording, container port hint.
 

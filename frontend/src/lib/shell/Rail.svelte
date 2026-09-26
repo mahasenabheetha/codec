@@ -3,13 +3,15 @@
   import FolderTree from '@lucide/svelte/icons/folder-tree'
   import House from '@lucide/svelte/icons/house'
   import Keyboard from '@lucide/svelte/icons/keyboard'
+  import ListChecks from '@lucide/svelte/icons/list-checks'
+  import Settings2 from '@lucide/svelte/icons/settings-2'
   import PanelLeftClose from '@lucide/svelte/icons/panel-left-close'
   import PanelLeftOpen from '@lucide/svelte/icons/panel-left-open'
   import type { Component } from 'svelte'
   import Tooltip from '../components/Tooltip.svelte'
   import { workspace } from '../../features/workspace/workspace.svelte'
   import { layout } from '../stores/layout.svelte'
-  import { router } from '../stores/router.svelte'
+  import { lintSettingsRoute, problemsRoute, router } from '../stores/router.svelte'
   import { toolGroups } from '../tools'
   import { chain } from '../utils/events'
 
@@ -53,6 +55,7 @@
     {/if}
     {@render item(FolderTree, 'Explorer', layout.explorerOpen, () => layout.toggleExplorer(), 'Mod+Shift+E')}
     {@render item(FolderOpen, 'Open folder…', false, () => (workspace.dialogOpen = true), 'Mod+O')}
+    {@render item(ListChecks, 'Problems', router.path === problemsRoute, () => layout.open(problemsRoute))}
 
     {#each groups as g (g.group)}
       {#if collapsed}
@@ -67,6 +70,7 @@
   </div>
 
   <div class="bottom">
+    {@render item(Settings2, 'Lint settings', router.path === lintSettingsRoute, () => layout.open(lintSettingsRoute))}
     {@render item(Keyboard, 'Keyboard shortcuts', false, () => (layout.shortcutsOpen = true), '?')}
     {@render item(
       collapsed ? PanelLeftOpen : PanelLeftClose,

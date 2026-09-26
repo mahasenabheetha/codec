@@ -43,6 +43,15 @@ export function routeHelm(route: string): string | null {
   }
 }
 
+/** Fixed app views that open as tabs. */
+export const problemsRoute = '/problems'
+export const lintSettingsRoute = '/settings/lint'
+
+/** Is route one of the fixed views? */
+export function isView(route: string): boolean {
+  return route === problemsRoute || route === lintSettingsRoute
+}
+
 /** The tool id a route points at, or null. */
 export function routeTool(route: string): string | null {
   const m = route.match(/^\/tools\/([\w-]+)/)

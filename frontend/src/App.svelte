@@ -9,6 +9,8 @@
   import PanelLeft from '@lucide/svelte/icons/panel-left'
   import RotateCw from '@lucide/svelte/icons/rotate-cw'
   import Search from '@lucide/svelte/icons/search'
+  import ListChecks from '@lucide/svelte/icons/list-checks'
+  import Settings2 from '@lucide/svelte/icons/settings-2'
   import Ship from '@lucide/svelte/icons/ship'
   import X from '@lucide/svelte/icons/x'
   import Rail from './lib/shell/Rail.svelte'
@@ -21,12 +23,15 @@
   import Explorer from './features/workspace/Explorer.svelte'
   import FileView from './features/workspace/FileView.svelte'
   import HelmView from './features/helm/HelmView.svelte'
+  import LintSettings from './features/lint/LintSettings.svelte'
+  import WorkspaceProblems from './features/lint/WorkspaceProblems.svelte'
+  import { lint } from './features/lint/lint.svelte'
   import { charts } from './features/helm/helm.svelte'
   import OpenFolderDialog from './features/workspace/OpenFolderDialog.svelte'
   import QuickOpen from './features/workspace/QuickOpen.svelte'
   import { openFolder, workspace } from './features/workspace/workspace.svelte'
   import { tools, toolById } from './lib/tools'
-  import { router, routeFile, routeHelm, routeTool } from './lib/stores/router.svelte'
+  import { isView, lintSettingsRoute, problemsRoute, router, routeFile, routeHelm, routeTool } from './lib/stores/router.svelte'
   import { layout } from './lib/stores/layout.svelte'
   import { shortcut } from './lib/stores/shortcuts.svelte'
   import { commands } from './lib/stores/commands.svelte'
@@ -38,10 +43,13 @@
   // would re-add the current route before navigation catches up.
   $effect(() => {
     const route = router.path
-    if (toolById(routeTool(route)) || routeFile(route) || routeHelm(route)) untrack(() => layout.ensureTab(route))
+    if (toolById(routeTool(route)) || routeFile(route) || routeHelm(route) || isView(route)) untrack(() => layout.ensureTab(route))
   })
 
-  const showHome = $derived(!toolById(router.toolId) && !router.filePath && !routeHelm(router.path))
+  const showHome = $derived(!toolById(router.toolId) && !router.filePath && !routeHelm(router.path) && !isView(router.path))
+
+  // Rule metadata, so findings everywhere can offer "Turn off".
+  lint.load()
 
   // Tool code loads on first open and is cached, so switching tabs is
   // instant and each tool keeps its state while its tab stays open.
@@ -77,6 +85,25 @@
       shortcut: 'Mod+P',
       keywords: ['find', 'search', 'quick open'],
       run: () => (workspace.quickOpen = true),
+    },
+    {
+      id: 'lint.workspace',
+      title: 'Lint workspace',
+      group: 'Workspace',
+      icon: ListChecks,
+      keywords: ['problems', 'check', 'validate', 'schema', 'errors'],
+      run: () => {
+        layout.open(problemsRoute)
+        if (!lint.running) lint.runWorkspace()
+      },
+    },
+    {
+      id: 'lint.settings',
+      title: 'Lint settings',
+      group: 'Settings',
+      icon: Settings2,
+      keywords: ['rules', 'schema', 'kubernetes version', 'offline', 'preferences'],
+      run: () => layout.open(lintSettingsRoute),
     },
     {
       id: 'workspace.refresh',
@@ -213,6 +240,14 @@
           {:else if routeHelm(route)}
             <div class="panel" hidden={router.path !== route}>
               <HelmView chart={routeHelm(route)!} active={router.path === route} />
+            </div>
+          {:else if route === problemsRoute}
+            <div class="panel" hidden={router.path !== route}>
+              <WorkspaceProblems active={router.path === route} />
+            </div>
+          {:else if route === lintSettingsRoute}
+            <div class="panel" hidden={router.path !== route}>
+              <LintSettings active={router.path === route} />
             </div>
           {/if}
         {/each}

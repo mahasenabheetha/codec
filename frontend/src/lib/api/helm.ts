@@ -33,6 +33,9 @@ export interface HelmDiagnostic {
   file?: string // workspace path, layer name or "--set"
   line?: number
   col?: number
+  manifest?: number // line in the rendered manifest (lint and schema findings)
+  why?: string
+  source?: string
 }
 
 export interface Origin {

@@ -73,6 +73,12 @@ export function applyAnalysis(view: EditorView, a: Analysis | null) {
           hint.textContent = d.hint
           el.append(hint)
         }
+        if (d.why) {
+          const why = document.createElement('div')
+          why.className = 'cm-diag-why'
+          why.textContent = d.why
+          el.append(why)
+        }
         return el
       },
     }
@@ -156,17 +162,25 @@ export function yamlIntel(hooks: IntelHooks): Extension {
       icons: false,
       override: [
         async (ctx: CompletionContext): Promise<CompletionResult | null> => {
-          // Only aliases for now (anchors defined above); schema-driven
-          // keys and values arrive with the lenses.
-          const word = ctx.matchBefore(/\*[\w.-]*/)
-          if (!word) return null
+          // Aliases after "*", schema keys and values while typing a
+          // word, and anything on Ctrl+Space.
+          const alias = ctx.matchBefore(/\*[\w.-]*/)
+          const word = ctx.matchBefore(/[\w./-]+/)
+          if (!alias && !word && !ctx.explicit) return null
           const { line, col } = lineCol(ctx.state.doc, ctx.pos)
           const items = await hooks.complete(line, col).catch(() => [])
           if (ctx.aborted || items.length === 0) return null
           return {
             from: offsetOf(ctx.state.doc, items[0].range.start),
-            options: items.map((i) => ({ label: i.label, detail: i.detail, type: i.kind })),
-            validFor: /^[\w.-]*$/,
+            options: items.map((i) => ({
+              label: i.label,
+              apply: i.insert ?? i.label,
+              detail: i.detail,
+              info: i.doc,
+              type: i.kind,
+              boost: i.detail?.includes('required') ? 1 : 0,
+            })),
+            validFor: /^[\w./-]*$/,
           }
         },
       ],
@@ -234,6 +248,17 @@ export const tooltipTheme = EditorView.theme({
   '.cm-diagnostic-warning': { borderLeftColor: 'var(--warn)' },
   '.cm-diagnostic-info': { borderLeftColor: 'var(--info)' },
   '.cm-diag-hint': { marginTop: 'var(--s-1)', color: 'var(--fg-1)' },
+  '.cm-diag-why': { marginTop: 'var(--s-1)', color: 'var(--fg-2)', fontSize: 'var(--fs-sm)', maxWidth: '52ch' },
+  '.cm-completionInfo': {
+    maxWidth: '44ch',
+    padding: 'var(--s-2) var(--s-3)',
+    fontSize: 'var(--fs-sm)',
+    lineHeight: 'var(--lh-normal, 1.45)',
+    color: 'var(--fg-1)',
+    background: 'var(--bg-2)',
+    border: '1px solid var(--border)',
+    borderRadius: 'var(--r-md)',
+  },
   '.cm-diagnosticSource': { color: 'var(--fg-2)', fontFamily: 'var(--font-mono)', fontSize: 'var(--fs-xs)' },
 
   '.cm-hover': { maxWidth: '480px', padding: 'var(--s-2) var(--s-3)' },

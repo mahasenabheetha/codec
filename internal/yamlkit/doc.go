@@ -49,7 +49,11 @@ type Diagnostic struct {
 	Code     string   `json:"code"`           // stable id, e.g. "tab-indent"
 	Message  string   `json:"message"`        // what is wrong
 	Hint     string   `json:"hint,omitempty"` // how to fix it
-	Range    Range    `json:"range"`
+	Why      string   `json:"why,omitempty"`  // why it matters (lint rules)
+	// Source groups findings: "" (syntax, from the parser), "style",
+	// "kubernetes", "deprecation", "schema".
+	Source string `json:"source,omitempty"`
+	Range  Range  `json:"range"`
 }
 
 // Kind is the shape of a node.

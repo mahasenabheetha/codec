@@ -11,11 +11,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/mahasenabheetha/codec/v2/internal/config"
 	"github.com/mahasenabheetha/codec/v2/internal/helm"
 )
 
 // testServer backs do(); v1 routes need no workspace or token.
-var testServer = New(Options{})
+var testServer = New(testOptions(false))
 
 // call sends one request to s with the given Host, token and Origin
 // ("" = header not sent).
@@ -34,7 +35,7 @@ func call(s *Server, method, target, host, token, origin, body string) *httptest
 }
 
 func TestGuard(t *testing.T) {
-	s := New(Options{})
+	s := New(testOptions(false))
 	tok := s.Token()
 	tests := []struct {
 		name           string
@@ -76,7 +77,7 @@ func TestWorkspaceAPI(t *testing.T) {
 	os.MkdirAll(filepath.Join(root, "k8s"), 0o755)
 	os.WriteFile(filepath.Join(root, "k8s", "svc.yaml"), []byte("apiVersion: v1\nkind: Service\nmetadata:\n  name: web\n"), 0o644)
 
-	s := New(Options{Poll: true})
+	s := New(testOptions(true))
 	defer s.Close()
 	get := func(target string) *httptest.ResponseRecorder {
 		return call(s, "GET", target, "127.0.0.1:8765", s.Token(), "", "")
@@ -118,7 +119,7 @@ func TestWorkspaceAPI(t *testing.T) {
 func TestYAMLAPI(t *testing.T) {
 	root := t.TempDir()
 	os.WriteFile(filepath.Join(root, "v.yaml"), []byte("base: &b\n  x: 1\nuse: *b\n"), 0o644)
-	s := New(Options{Poll: true})
+	s := New(testOptions(true))
 	defer s.Close()
 	if err := s.OpenWorkspace(root); err != nil {
 		t.Fatal(err)
@@ -158,7 +159,7 @@ func TestYAMLAPI(t *testing.T) {
 
 func TestHelmAPI(t *testing.T) {
 	root, _ := filepath.Abs("../helm/testdata")
-	s := New(Options{Poll: true})
+	s := New(testOptions(true))
 	defer s.Close()
 	if err := s.OpenWorkspace(root); err != nil {
 		t.Fatal(err)
@@ -192,4 +193,12 @@ func TestHelmAPI(t *testing.T) {
 			t.Errorf("diagnostic path not workspace-relative: %+v", d)
 		}
 	}
+}
+
+// testOptions keeps settings in memory with schema validation off, so
+// tests never download schemas.
+func testOptions(poll bool) Options {
+	cfg := config.Memory()
+	cfg.Update(func(s *config.Settings) { s.Lint.NoSchemas = true })
+	return Options{Config: cfg, Poll: poll}
 }

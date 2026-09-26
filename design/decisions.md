@@ -132,3 +132,25 @@ Settled unless the user reopens them. Add new ones at the bottom:
 39. Saved tabs are tied to the folder they were opened in; on a first
     visit (no folder recorded yet) a file tab opened by the URL is kept,
     so links to `#/file/…` work (2026-09-26).
+40. Schemas: santhosh-tekuri/jsonschema v6 (pure Go, all drafts, error
+    tree with instance locations; brings golang.org/x/text). Sources:
+    yannh "standalone-strict" Kubernetes schemas per version (unknown
+    fields are errors, catching typos), datreeio CRD catalog, SchemaStore
+    entries for GitHub Actions, GitLab CI, Azure Pipelines, Compose,
+    Kustomization. Downloaded on first use into `os.UserCacheDir()/codec/
+    schemas` (versioned Kubernetes files never refetched, others weekly;
+    404s remembered); proxy via HTTPS_PROXY. No network proxy setting:
+    the user confirmed none is needed (2026-09-26).
+41. Default target Kubernetes version 1.34 (selectable 1.30–1.37); it
+    drives both schemas and the embedded deprecation table (2026-09-26).
+42. Schema quirks handled in codec, not by editing schemas: oneOf/anyOf
+    errors show only the branch that got furthest (types merged);
+    templated/runtime-expression values are never type-checked; Azure
+    Pipelines ignores scalar-vs-scalar type mismatches (Azure converts
+    them); enums Kubernetes only states in prose ("One of …") feed
+    completion and hover, never validation (2026-09-26).
+43. Lint levels (error/warning/info/off per rule), target version and
+    schema options live in user settings and apply everywhere: editor,
+    workspace lint, Helm output, `codec yaml lint` (exit 2 on warnings or
+    errors; infos don't fail). Raw Helm templates get no Kubernetes
+    checks (their output does); Helm test hooks are skipped (2026-09-26).

@@ -1,11 +1,13 @@
 <script lang="ts">
   import Search from '@lucide/svelte/icons/search'
+  import ListChecks from '@lucide/svelte/icons/list-checks'
+  import Settings2 from '@lucide/svelte/icons/settings-2'
   import X from '@lucide/svelte/icons/x'
   import Kbd from '../components/Kbd.svelte'
   import FileIcon from '../../features/workspace/FileIcon.svelte'
   import { workspace } from '../../features/workspace/workspace.svelte'
   import { layout } from '../stores/layout.svelte'
-  import { router, routeFile, routeHelm, routeTool } from '../stores/router.svelte'
+  import { lintSettingsRoute, problemsRoute, router, routeFile, routeHelm, routeTool } from '../stores/router.svelte'
   import { charts } from '../../features/helm/helm.svelte'
   import { toolById } from '../tools'
 
@@ -32,6 +34,12 @@
     )
   })
 
+  // Fixed views: title and icon.
+  const views: Record<string, { title: string; icon: typeof X }> = {
+    [problemsRoute]: { title: 'Problems', icon: ListChecks },
+    [lintSettingsRoute]: { title: 'Lint settings', icon: Settings2 },
+  }
+
   function base(p: string) {
     return p.slice(p.lastIndexOf('/') + 1)
   }
@@ -43,9 +51,10 @@
       {@const tool = toolById(routeTool(route))}
       {@const file = routeFile(route)}
       {@const chart = routeHelm(route)}
-      {#if tool || file || chart}
+      {@const view = views[route]}
+      {#if tool || file || chart || view}
         {@const selected = router.path === route}
-        {@const title = tool ? tool.title : file ? names.get(file)?.name : `Helm · ${charts.byPath(chart!)?.name ?? chart}`}
+        {@const title = tool ? tool.title : view ? view.title : file ? names.get(file)?.name : `Helm · ${charts.byPath(chart!)?.name ?? chart}`}
         <div class="tab" class:selected title={file ?? (chart ? `Helm view of ${chart}` : undefined)}>
           <button
             type="button"
@@ -57,6 +66,8 @@
           >
             {#if tool}
               <tool.icon size={14} strokeWidth={1.75} />
+            {:else if view}
+              <view.icon size={14} strokeWidth={1.75} />
             {:else if chart}
               <FileIcon file="helm-chart" />
             {:else}

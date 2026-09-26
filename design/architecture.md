@@ -13,11 +13,18 @@ internal/
   helm/               ENGINE Helm 4 SDK render + values provenance (from
                       in-memory files; the SDK is the only big dependency)
   textdiff/           ENGINE Myers diff, git-applicable patches
+  lint/               ENGINE style rules, Kubernetes checks, API deprecations
+  schema/             ENGINE schema choice per doc, JSON Schema validation,
+                      schema-driven completion and hover
   kube/ argo/         ENGINE lenses (one package per domain; ci/, ansible/,
   ci/ ansible/        compose/ added in their phases)
   compose/
   workspace/          ADAPTER read-only folder access, index, watcher
   config/             ADAPTER user settings in os.UserConfigDir()/codec
+  schemacache/        ADAPTER schema fetch + cache (os.UserCacheDir()/codec/
+                      schemas), offline mode, custom schema folder
+  check/              ADAPTER runs yamlkit + provider + lint + schema: one
+                      path for editor, workspace lint, Helm output and CLI
   version/            build identity
   cli/                ADAPTER cobra commands
   web/                ADAPTER HTTP API + embedded frontend (web/dist/app)
@@ -69,6 +76,11 @@ resources, jobs, references) built by the workspace adapter.
   Helm: `GET /helm/charts`, `POST /helm/render` {chart, values[], set[],
   overrides{path: content}, release, namespace, kubeVersion},
   `POST /helm/profiles` (saved in user settings, keyed by chart path).
+  Lint: `GET|POST /lint/settings` (rules catalogue + user levels, target
+  Kubernetes version, schema options), `POST /lint/workspace` (every YAML
+  file from disk). `/yaml/analyze` includes lint and schema findings and
+  each document's schema status (`pending` = ask again); editor calls may
+  pass `type` so schema help works while the buffer doesn't parse.
 - Errors: `{"error": "...", "line"?, "column"?, "file"?}` with 400 for
   caller bugs, 422 for bad input, 404 missing, 500 unexpected.
 - Push updates via Server-Sent Events, `GET /api/v2/events`: `workspace`

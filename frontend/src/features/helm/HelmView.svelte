@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onDestroy, untrack } from 'svelte'
+  import { onDestroy, tick, untrack } from 'svelte'
   import { EditorView } from '@codemirror/view'
   import ArrowDown from '@lucide/svelte/icons/arrow-down'
   import ArrowUp from '@lucide/svelte/icons/arrow-up'
@@ -27,6 +27,8 @@
   import { editorNav } from '../editor/active.svelte'
   import FileIcon from '../workspace/FileIcon.svelte'
   import { workspace as ws } from '../workspace/workspace.svelte'
+  import ProblemItem from '../lint/ProblemItem.svelte'
+  import { lint } from '../lint/lint.svelte'
   import { charts, HelmSession, inChart } from './helm.svelte'
   import { layerColors, provenanceView } from './provenance'
 
@@ -63,6 +65,7 @@
     void session.sets.join('\n')
     void [session.release, session.namespace, session.kubeVersion]
     void JSON.stringify(session.overrides)
+    void lint.version // lint settings apply to the rendered output
     // Files of the chart (or its values files) changing on disk.
     let v = 0
     for (const [p, n] of ws.versions) if (inChart(chart, p) || session.layers.some((l) => l.path === p)) v += n
@@ -115,7 +118,17 @@
   }
 
   // Open the file a problem points at, at its line.
-  function openProblem(d: HelmDiagnostic) {
+  async function openProblem(d: HelmDiagnostic) {
+    if (d.manifest) {
+      // A finding on the rendered output: show it there.
+      tab = 'rendered'
+      await tick()
+      const view = rendered?.getView()
+      if (!view) return
+      const line = view.state.doc.line(Math.min(d.manifest, view.state.doc.lines))
+      view.dispatch({ selection: { anchor: line.from, head: line.to }, effects: EditorView.scrollIntoView(line.from, { y: 'center' }) })
+      return
+    }
     if (!d.file || d.file === '--set') return
     layout.openFile(d.file)
     if (d.line) editorNav.request(d.file, d.line, d.col ?? 1)
@@ -125,7 +138,6 @@
     layout.openFile(path)
   }
 
-  const icons = { error: CircleX, warning: TriangleAlert, info: Info }
   const ms = $derived(result ? Math.round(result.durationNs / 1e6) : 0)
 </script>
 
@@ -290,17 +302,19 @@
       {:else}
         <ul class="problems">
           {#each [...problems, ...infos] as d, i (i)}
-            {@const Icon = icons[d.severity]}
-            <li>
-              <button type="button" class="problem {d.severity}" onclick={() => openProblem(d)}>
-                <span class="picon"><Icon size={14} strokeWidth={1.75} /></span>
-                <span class="ptext">
-                  <span>{d.message}</span>
-                  {#if d.hint}<span class="muted">{d.hint}</span>{/if}
-                </span>
-                {#if d.file}<span class="where">{d.file}{d.line ? ':' + d.line : ''}</span>{/if}
-              </button>
-            </li>
+            <ProblemItem
+              severity={d.severity}
+              message={d.message}
+              hint={d.hint}
+              why={d.why}
+              code={d.source ? d.code : undefined}
+              where={d.manifest
+                ? `${d.file?.split('/').pop() ?? 'output'} · rendered:${d.manifest}`
+                : d.file
+                  ? `${d.file}${d.line ? ':' + d.line : ''}`
+                  : undefined}
+              onjump={() => openProblem(d)}
+            />
           {:else}
             <li class="note ok"><CircleCheck size={14} strokeWidth={1.75} /> No problems found.</li>
           {/each}
@@ -638,47 +652,6 @@
     padding: var(--s-2);
     overflow: auto;
     list-style: none;
-  }
-  .problem {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--s-2);
-    width: 100%;
-    padding: var(--s-2);
-    font-size: var(--fs-sm);
-    text-align: left;
-    color: var(--fg-0);
-    background: none;
-    border: none;
-    border-radius: var(--r-sm);
-  }
-  .problem:hover {
-    background: var(--bg-2);
-  }
-  .picon {
-    display: grid;
-    padding-top: 1px;
-  }
-  .problem.error .picon {
-    color: var(--err);
-  }
-  .problem.warning .picon {
-    color: var(--warn);
-  }
-  .problem.info .picon {
-    color: var(--info);
-  }
-  .ptext {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-  .where {
-    font-family: var(--font-mono);
-    font-size: var(--fs-xs);
-    color: var(--fg-2);
-    white-space: nowrap;
   }
   .note.ok {
     display: flex;

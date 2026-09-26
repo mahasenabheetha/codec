@@ -4,6 +4,7 @@
 package cli
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -37,10 +38,19 @@ Input comes from an argument or from stdin, so both of these work:
 // Execute runs the CLI and is the only thing main() calls.
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
+		if ec, ok := errors.AsType[exitCode](err); ok {
+			os.Exit(int(ec)) // the command already reported why
+		}
 		fmt.Fprintln(os.Stderr, "error:", err)
 		os.Exit(1)
 	}
 }
+
+// exitCode ends the process with a specific code and no extra message,
+// e.g. 2 for "lint found problems" (design/conventions.md).
+type exitCode int
+
+func (e exitCode) Error() string { return fmt.Sprintf("exit status %d", int(e)) }
 
 func init() {
 	rootCmd.PersistentFlags().BoolVarP(&copyToClipboard, "copy", "c", false,

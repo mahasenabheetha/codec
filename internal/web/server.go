@@ -22,7 +22,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/mahasenabheetha/codec/v2/internal/check"
 	"github.com/mahasenabheetha/codec/v2/internal/config"
+	"github.com/mahasenabheetha/codec/v2/internal/provider"
+	"github.com/mahasenabheetha/codec/v2/internal/version"
 	"github.com/mahasenabheetha/codec/v2/internal/workspace"
 )
 
@@ -64,6 +67,7 @@ type Server struct {
 	token string
 	hub   *hub
 	helm  helmCache
+	check *check.Checker // lint and schema settings live here
 
 	mu    sync.Mutex // guards the workspace fields
 	ws    *workspace.Workspace
@@ -80,6 +84,7 @@ func New(opts Options) *Server {
 		opts.Config = config.Memory()
 	}
 	s := &Server{opts: opts, token: newToken(), hub: newHub()}
+	s.check = check.New(provider.Default, opts.Config.Get().Lint, version.Get().Version)
 	s.handler = s.guard(s.routes())
 	return s
 }
@@ -130,6 +135,9 @@ func (s *Server) routes() http.Handler {
 	mux.HandleFunc("GET /api/v2/helm/charts", s.handleHelmCharts)
 	mux.HandleFunc("POST /api/v2/helm/render", s.handleHelmRender)
 	mux.HandleFunc("POST /api/v2/helm/profiles", s.handleHelmProfiles)
+	mux.HandleFunc("GET /api/v2/lint/settings", s.handleLintSettings)
+	mux.HandleFunc("POST /api/v2/lint/settings", s.handleSaveLintSettings)
+	mux.HandleFunc("POST /api/v2/lint/workspace", s.handleLintWorkspace)
 	mux.HandleFunc("/api/v2/", func(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusNotFound, "no such endpoint: "+r.Method+" "+r.URL.Path)
 	})

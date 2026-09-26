@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/mahasenabheetha/codec/v2/internal/provider"
 	"github.com/mahasenabheetha/codec/v2/internal/textdiff"
@@ -26,6 +27,9 @@ type yamlRequest struct {
 	Content *string `json:"content"` // nil = the file on disk
 	Line    int     `json:"line"`
 	Col     int     `json:"col"`
+	// Type is the file type from the last analysis, so schema help
+	// keeps working while the buffer doesn't parse mid-edit.
+	Type string `json:"type,omitempty"`
 }
 
 // httpError carries a status with a message, so helpers can return one
@@ -151,18 +155,23 @@ func pos(req *yamlRequest, f *provider.File) yamlkit.Pos {
 // POST /api/v2/yaml/analyze
 func (s *Server) handleAnalyze(w http.ResponseWriter, r *http.Request) {
 	s.serveYAML(w, r, func(_ *yamlRequest, f *provider.File, _ provider.Provider) any {
-		return provider.Default.Analyze(f)
+		return s.check.Analyze(r.Context(), f, editorSchemaWait)
 	})
 }
 
 // POST /api/v2/yaml/hover
 func (s *Server) handleHover(w http.ResponseWriter, r *http.Request) {
 	s.serveYAML(w, r, func(req *yamlRequest, f *provider.File, p provider.Provider) any {
-		h := provider.HoverAt(p, f, pos(req, f))
+		at := pos(req, f)
+		h := provider.HoverAt(p, f, at)
 		if h != nil && strings.HasSuffix(h.Title, "template expression") {
 			if ws := s.current(); ws != nil {
 				h.Rows = append(h.Rows, s.helmHoverRows(ws, req.Path, h.Code)...)
 			}
+		} else if h != nil {
+			ctx, cancel := context.WithTimeout(r.Context(), time.Second)
+			defer cancel()
+			h.Rows = append(h.Rows, s.check.HoverRows(ctx, f, req.Type, at)...)
 		}
 		return map[string]any{"hover": h}
 	})
@@ -182,7 +191,10 @@ func (s *Server) handleDefinition(w http.ResponseWriter, r *http.Request) {
 // POST /api/v2/yaml/complete
 func (s *Server) handleComplete(w http.ResponseWriter, r *http.Request) {
 	s.serveYAML(w, r, func(req *yamlRequest, f *provider.File, p provider.Provider) any {
-		items := provider.CompleteAt(p, f, pos(req, f))
+		at := pos(req, f)
+		ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
+		defer cancel()
+		items := append(s.check.Complete(ctx, f, req.Type, at), provider.CompleteAt(p, f, at)...)
 		if items == nil {
 			items = []provider.Completion{}
 		}

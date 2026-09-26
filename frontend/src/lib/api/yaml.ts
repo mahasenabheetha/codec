@@ -19,6 +19,8 @@ export interface Diagnostic {
   code: string
   message: string
   hint?: string
+  why?: string // why the rule exists (lint findings)
+  source?: string // "" syntax, style, kubernetes, deprecation, schema
   range: Range
 }
 
@@ -43,6 +45,14 @@ export interface DocSummary {
   name?: string
   range: Range
   symbols: YamlSymbol[]
+  schema?: SchemaStatus
+}
+
+export interface SchemaStatus {
+  title: string
+  url: string
+  state: 'ok' | 'pending' | 'none' | 'unavailable'
+  message?: string
 }
 
 export interface Analysis {
@@ -67,7 +77,9 @@ export interface Location {
 
 export interface Completion {
   label: string
+  insert?: string // text to insert; default label
   detail?: string
+  doc?: string
   kind: string
   range: Range
 }
@@ -81,6 +93,7 @@ interface At {
   content?: string
   line: number
   col: number
+  type?: string // file type from the last analysis
 }
 
 export const analyze = (path: string, content: string | undefined, signal?: AbortSignal) =>
