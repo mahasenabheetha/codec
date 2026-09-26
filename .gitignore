@@ -14,3 +14,7 @@
 # keeps the directory embeddable before the frontend is ever built.
 /internal/web/dist/*
 !/internal/web/dist/.keep
+
+# Local builds from scripts/dev.sh
+/codec-dev
+/codec-dev.exe

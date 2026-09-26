@@ -47,4 +47,5 @@ npm --prefix frontend ci                        # once, installs UI deps
 npm --prefix frontend run dev                   # UI dev server; CODEC_API=http://127.0.0.1:<port> if not 8765
 npm --prefix frontend run build                 # builds into internal/web/dist/app
 go build -o codec ./cmd/codec                   # binary (needs frontend built)
+scripts/dev.sh build|run|ui [port]              # all of the above in one step
 ```

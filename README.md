@@ -148,6 +148,8 @@ npm --prefix frontend run dev    # new UI with hot reload (API proxied to codec 
 npm --prefix frontend run build  # build into internal/web/dist, embedded by go build
 ```
 
+Or let `scripts/dev.sh` (bash; Git Bash on Windows) do it all: `build` (frontend + `./codec-dev`), `run [port]` (build and serve, default 8766), `ui [port]` (build, serve, and the hot-reload UI at http://localhost:5173/app/).
+
 The new v2 UI (Svelte + TypeScript, in `frontend/`) is served at `/app/` while it's being built; the v1 UI stays at `/`. A binary built without the frontend still compiles and shows a "frontend not built" page there.
 
 Tests are table-driven; the Ansible parser's test suite is built from real logs, and every parsing bug fixed becomes a named regression test. CI builds the frontend, then runs vet, tests and build on Linux and Windows for every push and PR. Changes go through pull requests — no direct pushes to `main`.
