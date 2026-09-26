@@ -1,0 +1,47 @@
+# GoReleaser config: turns a pushed vX.Y.Z tag into a GitHub Release
+# with binaries for every platform. Run by .github/workflows/release.yml.
+# Validate locally with: goreleaser check
+version: 2
+
+project_name: codec
+
+builds:
+  - id: codec
+    main: ./cmd/codec
+    binary: codec
+    env:
+      - CGO_ENABLED=0 # fully static; the clipboard library needs no cgo
+    goos: [linux, windows, darwin]
+    goarch: [amd64, arm64]
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+      # .Tag keeps the leading "v" (v1.0.0), matching `git describe`.
+      - -X github.com/mahasenabheetha/codec/internal/version.Version={{ .Tag }}
+      - -X github.com/mahasenabheetha/codec/internal/version.Commit={{ .FullCommit }}
+      - -X github.com/mahasenabheetha/codec/internal/version.Date={{ .Date }}
+
+archives:
+  - formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - README.md
+      - CHANGELOG.md
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^Merge pull request"
+      - "^Merge branch"
+
+release:
+  # Tags like v2.0.0-alpha.1 are published as pre-releases automatically.
+  prerelease: auto

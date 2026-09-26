@@ -13,6 +13,7 @@ import (
 	"net/http"
 
 	"github.com/mahasenabheetha/codec/internal/codec"
+	"github.com/mahasenabheetha/codec/internal/version"
 )
 
 // staticFiles holds the frontend, compiled INTO the binary at build
@@ -67,6 +68,7 @@ func Handler() http.Handler {
 
 	mux.Handle("/", http.FileServer(http.FS(staticRoot)))
 	mux.HandleFunc("POST /api/transform", handleTransform)
+	mux.HandleFunc("GET /api/version", handleVersion)
 
 	// Non-POST requests to the API path would otherwise fall through
 	// to the "/" file server above and produce a confusing 404. This
@@ -141,6 +143,12 @@ func handleTransform(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusOK, resp)
+}
+
+// handleVersion reports which build is serving the page, so the UI
+// (and an installed PWA, which outlives server restarts) can show it.
+func handleVersion(w http.ResponseWriter, r *http.Request) {
+	writeJSON(w, http.StatusOK, version.Get())
 }
 
 // writeJSON sends v as a JSON response with the given status code.

@@ -265,3 +265,15 @@ document.addEventListener("keydown", (e) => {
 });
 
 syncControls();
+
+// Show the serving build's version in the footer. Best effort: if the
+// request fails the footer simply stays without it.
+fetch("/api/version")
+  .then((r) => (r.ok ? r.json() : null))
+  .then((v) => {
+    if (!v || !v.version) return;
+    const el = document.getElementById("version");
+    el.textContent = "· " + v.version;
+    if (v.commit) el.title = "commit " + v.commit.slice(0, 7);
+  })
+  .catch(() => {});

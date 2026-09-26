@@ -141,3 +141,21 @@ func TestStaticPageIsServed(t *testing.T) {
 		t.Error("index.html does not appear to be served at /")
 	}
 }
+
+func TestVersionEndpoint(t *testing.T) {
+	rec := do(t, http.MethodGet, "/api/version", "")
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200; body: %s", rec.Code, rec.Body)
+	}
+
+	var resp struct {
+		Version string `json:"version"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("response is not valid JSON: %v", err)
+	}
+	if resp.Version == "" {
+		t.Error("version is empty")
+	}
+}

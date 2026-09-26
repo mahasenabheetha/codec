@@ -26,3 +26,10 @@ jobs:
 
       - name: Cross-compile windows binary
         run: GOOS=windows GOARCH=amd64 go build -o codec.exe ./cmd/codec
+
+      - name: Validate release config
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          version: "~> v2"
+          args: check
