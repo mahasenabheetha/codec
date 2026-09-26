@@ -3,6 +3,11 @@
   import ExternalLink from '@lucide/svelte/icons/external-link'
   import FolderGit from '@lucide/svelte/icons/folder-git-2'
   import Unplug from '@lucide/svelte/icons/unplug'
+  import CircleCheck from '@lucide/svelte/icons/circle-check'
+  import CircleX from '@lucide/svelte/icons/circle-x'
+  import TriangleAlert from '@lucide/svelte/icons/triangle-alert'
+  import PathFormats from '../../features/editor/PathFormats.svelte'
+  import { activeEditor } from '../../features/editor/active.svelte'
   import Popover from '../components/Popover.svelte'
   import FileIcon from '../../features/workspace/FileIcon.svelte'
   import { lookOf } from '../../features/workspace/filetypes'
@@ -36,10 +41,34 @@
         <span class="msg {layout.status.tone}"><span class="dot"></span>{layout.status.text}</span>
       {/if}
     {:else if file}
+      {@const s = activeEditor.session}
       {#if entry}
         <span class="where type"><FileIcon file={entry} size={12} /> {lookOf(entry).title}</span>
       {/if}
-      <span class="path">{file}</span>
+      {#if s?.isYAML && s.path === file}
+        <span class="counts" title="Problems in this file">
+          {#if s.counts.error + s.counts.warning === 0}
+            <span class="ok"><CircleCheck size={12} strokeWidth={2} /></span>
+          {:else}
+            {#if s.counts.error}<span class="e"><CircleX size={12} strokeWidth={2} /> {s.counts.error}</span>{/if}
+            {#if s.counts.warning}<span class="w"><TriangleAlert size={12} strokeWidth={2} /> {s.counts.warning}</span>{/if}
+          {/if}
+        </span>
+        <Popover side="top" align="start">
+          {#snippet trigger(props)}
+            <button {...props} type="button" class="crumbs" title="Copy the path at the cursor">
+              {#each s.crumbs as n, i (i)}
+                {#if i > 0}<span class="sep">›</span>{/if}<span>{n}</span>
+              {:else}
+                <span class="path">{file}</span>
+              {/each}
+            </button>
+          {/snippet}
+          <PathFormats session={s} />
+        </Popover>
+      {:else}
+        <span class="path">{file}</span>
+      {/if}
     {:else}
       <span class="where">Home</span>
     {/if}
@@ -90,6 +119,49 @@
 </footer>
 
 <style>
+  .counts {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-2);
+    font-variant-numeric: tabular-nums;
+  }
+  .counts span {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .counts .ok {
+    color: var(--ok);
+  }
+  .counts .e {
+    color: var(--err);
+  }
+  .counts .w {
+    color: var(--warn);
+  }
+  .crumbs {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-1);
+    min-width: 0;
+    height: 20px;
+    padding: 0 var(--s-2);
+    overflow: hidden;
+    white-space: nowrap;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--fg-1);
+    background: none;
+    border: none;
+    border-radius: var(--r-sm);
+  }
+  .crumbs:hover {
+    color: var(--fg-0);
+    background: var(--bg-3);
+  }
+  .crumbs .sep {
+    color: var(--fg-2);
+  }
   .type {
     display: inline-flex;
     align-items: center;

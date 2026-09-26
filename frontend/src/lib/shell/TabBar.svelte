@@ -60,6 +60,7 @@
             {/if}
             {title}
             {#if file && names.get(file)?.hint}<span class="hint">{names.get(file)?.hint}</span>{/if}
+            {#if file && workspace.dirty.has(file)}<span class="dirty" title="What-if edits (not saved)"></span>{/if}
           </button>
           <button type="button" class="close" aria-label="Close {title}" onclick={() => layout.close(route)}>
             <X size={12} strokeWidth={2} />
@@ -131,6 +132,12 @@
   .hint {
     font-size: var(--fs-sm);
     color: var(--fg-2);
+  }
+  .dirty {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--warn);
   }
   .close {
     display: grid;

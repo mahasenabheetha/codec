@@ -17,6 +17,8 @@ func TestFriendlyErrors(t *testing.T) {
 		{"bad indentation", "a:\n  b: 1\n c: 2\n", "bad-indent", 3, 1},
 		{"unquoted colon", "msg: error: bad thing\n", "unquoted-colon", 1, 11},
 		{"unquoted colon in list", "- name: step: one\n", "unquoted-colon", 1, 13},
+		{"nested under a value", "app:\n  name: demo\n    port: 80\n", "nested-under-value", 3, 1},
+		{"nested under a top-level value", "a: 1\n  b: 2\n", "nested-under-value", 2, 1},
 		{"unclosed double quote", "a: \"hello\nb: 2\n", "unclosed-quote", 1, 4},
 		{"unclosed single quote", "a: 'hello\nb: 2\n", "unclosed-quote", 1, 4},
 	}

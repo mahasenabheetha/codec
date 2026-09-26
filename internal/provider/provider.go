@@ -18,6 +18,10 @@ type File struct {
 	// empty for pasted text, so detection must not depend on it alone.
 	Path string
 	YAML *yamlkit.File
+	// Content is the text YAML was parsed from. Editor features that
+	// look at raw text (completion while the YAML is half-typed) need
+	// it; detection doesn't.
+	Content []byte
 }
 
 // Confidence is how sure a provider is that a file is its kind:

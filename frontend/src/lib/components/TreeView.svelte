@@ -26,9 +26,12 @@
     row: Snippet<[T, Row<T>]>
     ontoggle: (id: string) => void
     onopen: (data: T) => void
+    /** Clicking a parent row toggles it (file tree). When false, every
+     *  click opens and only the chevron toggles (outline). */
+    toggleOnClick?: boolean
   }
 
-  let { rows, label, active = null, row, ontoggle, onopen }: Props = $props()
+  let { rows, label, active = null, row, ontoggle, onopen, toggleOnClick = true }: Props = $props()
 
   let focused = $state<string | null>(null)
   let list = $state<HTMLDivElement>()
@@ -62,7 +65,7 @@
 
   function activate(r: Row<T>) {
     focused = r.id
-    if (r.expandable) ontoggle(r.id)
+    if (r.expandable && toggleOnClick) ontoggle(r.id)
     else onopen(r.data)
   }
 
@@ -126,7 +129,17 @@
       onfocus={() => (focused = r.id)}
       onkeydown={() => {}}
     >
-      <span class="twisty" class:open={r.expanded}>
+      <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
+      <span
+        class="twisty"
+        class:open={r.expanded}
+        onclick={(e) => {
+          if (!r.expandable) return
+          e.stopPropagation()
+          focused = r.id
+          ontoggle(r.id)
+        }}
+      >
         {#if r.expandable}<ChevronRight size={14} strokeWidth={1.75} />{/if}
       </span>
       {@render row(r.data, r)}

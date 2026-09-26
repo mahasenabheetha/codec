@@ -32,11 +32,16 @@ Schema completion/validation (07), lens-specific hovers (05, 09+).
 
 ## Acceptance
 
-- [ ] Helm template shows YAML + template overlays with no false parse errors.
-- [ ] Every friendly error from 02 appears as a squiggle with its message.
-- [ ] Outline ↔ cursor sync both ways; breadcrumb copy works for all formats.
-- [ ] What-if edit → Copy diff produces a patch that applies cleanly
-      with `git apply`.
-- [ ] Typing stays smooth on a 5k-line file.
+- [x] Helm template shows YAML + template overlays with no false parse errors.
+- [x] Every friendly error from 02 appears as a squiggle with its message
+      (and hint, in the tooltip and Problems panel). New case found while
+      testing: `nested-under-value` (a line indented under `key: value`).
+- [x] Outline ↔ cursor sync both ways; breadcrumb copy works for all formats.
+- [x] What-if edit → Copy diff produces a patch that applies cleanly
+      with `git apply` (tests run real `git apply`, incl. CRLF/BOM/mixed).
+- [~] Typing stays smooth on a 5k-line file. Keystrokes do O(1) app work
+      and analysis (5k lines: ~10–30 ms server) is debounced by size, but
+      the automated browser couldn't measure latency reliably (hidden,
+      emulated pane) — user to confirm.
 
 **Go concepts:** request-scoped cancellation (`r.Context()`), diff algorithms.

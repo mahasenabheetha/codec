@@ -48,6 +48,20 @@ func (p *parseState) friendly(line, col int, msg string) Diagnostic {
 			d.Range = p.cols(line, c, c+1)
 			return d
 		}
+		// "key: value" followed by a deeper line: the parser blames the
+		// value, but the mistake is the next line's indentation.
+		if key, value, ok := keyValue(text); ok && value != "" {
+			if next, ok := p.nextContentLine(line); ok {
+				nt := p.lineIn(p.masked, next)
+				if got := len(leading(nt)); got > len(leading(text)) {
+					d.Code = "nested-under-value"
+					d.Message = "This line is indented under a key that already has a value"
+					d.Hint = fmt.Sprintf("%q already has a value on line %d, so nothing can be nested under it. Line this up with %q, or move the value onto its own lines.", key, line, key)
+					d.Range = p.cols(next, 1, got+2)
+					return d
+				}
+			}
+		}
 	}
 
 	// Indentation that matches no enclosing or sibling level is the
@@ -151,4 +165,34 @@ func capitalize(s string) string {
 	}
 	r, size := utf8.DecodeRuneInString(s)
 	return string(unicode.ToUpper(r)) + s[size:]
+}
+
+// keyValue splits a block mapping line "  key: value  # c" into key and
+// value (comment dropped). ok is false for lines that aren't entries.
+func keyValue(line string) (key, value string, ok bool) {
+	body := strings.TrimLeft(line, " -")
+	i := strings.Index(body, ": ")
+	if i <= 0 {
+		return "", "", false
+	}
+	value = body[i+2:]
+	if c := strings.Index(value, " #"); c >= 0 {
+		value = value[:c]
+	}
+	return body[:i], strings.TrimSpace(value), true
+}
+
+// nextContentLine returns the next line after n that isn't blank or a
+// comment, within the same document.
+func (p *parseState) nextContentLine(n int) (int, bool) {
+	for next := n + 1; next <= p.li.lines(); next++ {
+		t := p.lineIn(p.masked, next)
+		if isMarker(t, "---") {
+			return 0, false
+		}
+		if tr := strings.TrimSpace(t); tr != "" && tr[0] != '#' {
+			return next, true
+		}
+	}
+	return 0, false
 }

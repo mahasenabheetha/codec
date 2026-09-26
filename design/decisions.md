@@ -85,3 +85,20 @@ Settled unless the user reopens them. Add new ones at the bottom:
 28. File-type logos come from Simple Icons (CC0), copied into
     `frontend/src/assets/logos/`; Azure Pipelines (no Microsoft marks
     there) uses a generic icon in the Azure colour (2026-09-26).
+29. Editor features are optional provider interfaces (`Hoverer`,
+    `Definer`, `Completer`, `Diagnoser`) with generic fallbacks, not
+    methods every provider must implement: detection-only built-ins stay
+    tiny and lenses add only what they know (2026-09-26).
+30. "Copy diff" is computed server-side by `textdiff.Patch` (Myers):
+    the editor holds LF text without a BOM, the patch keeps the file's
+    BOM and per-line endings so `git apply` works on CRLF/mixed files
+    (2026-09-26).
+31. The editor applies an analysis only when it describes the current
+    text; marks and diagnostics move with edits until the next one.
+    Edits reach the session after a 100 ms pause and analysis waits
+    150 ms plus up to 450 ms by file size, so a keystroke never copies or
+    re-renders the whole document (2026-09-26).
+32. Known cosmetic issue: CodeMirror's YAML grammar mis-colours the
+    first character after a whole-line `{{- … }}`; the engine overlays
+    are correct. A template-aware highlighting mode belongs to phase 05
+    (2026-09-26).

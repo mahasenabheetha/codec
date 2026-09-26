@@ -39,6 +39,8 @@ class Workspace {
   versions = new SvelteMap<string, number>()
   /** Paths deleted on disk while open in a tab. */
   deleted = new SvelteSet<string>()
+  /** Open files with what-if edits (tab dot). */
+  dirty = new SvelteSet<string>()
   /** Recently opened files this session, newest first (Go to file). */
   recentFiles = $state<string[]>([])
 

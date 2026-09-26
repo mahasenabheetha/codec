@@ -30,6 +30,8 @@ Adapter + API:
   kubeVersion} → {docs[{source, content}], values, provenance, diagnostics}.
 
 UI (Helm view per chart):
+- Template-aware highlighting for `templates/*.yaml` (the plain YAML
+  grammar mis-colours text after `{{- … }}` lines; decision #32).
 - Values layer list (reorder, toggle), `--set` input, profile picker.
 - Editor on a values file or template (what-if) ⇄ rendered output
   grouped by template; live re-render (debounced ~200 ms).

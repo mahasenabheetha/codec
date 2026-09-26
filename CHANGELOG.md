@@ -19,6 +19,23 @@ All notable changes to codec are documented here. The format follows
 - Plain-English syntax errors with fix hints (tabs, bad indentation,
   unquoted colons, unclosed quotes) and duplicate-key detection.
 
+### Added (editor)
+
+- YAML files open in an editor: Helm/Jinja (template-time) and Argo/
+  GitHub (runtime) expressions tinted, errors squiggled with plain-English
+  hints, hover cards (path, type, value, anchors, YAML 1.1 gotchas,
+  expression meaning), go to definition for aliases (F12, Ctrl/⌘+click),
+  alias completion after `*`, go to line (Ctrl+G).
+- Outline and Problems panel synced with the cursor; status-bar path
+  breadcrumb that copies the path as dot, yq, JSONPath, Helm or `--set`;
+  document switcher for multi-document files.
+- What-if edits: change anything, never saved; Reset, Copy content and
+  Copy diff (a patch that `git apply` accepts, keeping CRLF/BOM). A disk
+  change during edits asks whether to reload or keep them.
+- Open the file at the cursor in VS Code or Cursor.
+- Friendly error for a line indented under a key that already has a
+  value (the parser used to blame the wrong line).
+
 ### Added (workspace)
 
 - Open a repository folder read-only (Ctrl+O, recent folders, folder

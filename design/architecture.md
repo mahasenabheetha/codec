@@ -28,24 +28,28 @@ content to the engine.
 
 Every YAML domain implements one interface in `internal/provider`.
 Adding a file type = adding a provider (or replacing a built-in by
-registering one with the same ID); no core changes. The interface grows
-phase by phase, always LSP-shaped:
+registering one with the same ID); no core changes. Always LSP-shaped:
 
 ```go
-// Since phase 02 (built-ins: detection + generic outline, 13 types + plain YAML)
-type Provider interface {
+type Provider interface {                // since phase 02
     ID() string                          // "kubernetes", "helm-template", ...
     Title() string
     Detect(f *File) Confidence           // 0 = not mine … 100 = certain
     Symbols(d *yamlkit.Document) []Symbol
 }
-// Phase 04 adds: Diagnostics, Hover, Definition, Complete (with an Index).
-// Optional extras via separate interfaces: Renderer, Grapher, Generator.
+// Optional capabilities (phase 04), found by type assertion; generic
+// implementations answer when a provider has none (decision #29):
+type Hoverer   interface{ Hover(f *File, pos yamlkit.Pos) *Hover }
+type Definer   interface{ Definition(f *File, pos yamlkit.Pos) []Location }
+type Completer interface{ Complete(f *File, pos yamlkit.Pos) []Completion }
+type Diagnoser interface{ Diagnostics(f *File) []yamlkit.Diagnostic }
+// Later: Renderer, Grapher, Generator; an Index for cross-file lookups (05).
 ```
 
-`provider.Default` holds the built-ins; `yamlkit` provides the tree
-(`File` → `Document` → `Node` with exact `Range`s), expressions and
-diagnostics every provider works from.
+`provider.Default` holds the built-ins; `Registry.Analyze` bundles type,
+outline, diagnostics and expressions for the editor. `yamlkit` provides
+the tree (`File` → `Document` → `Node` with exact `Range`s), expressions
+and diagnostics every provider works from.
 
 Concepts deliberately mirror LSP so a future `codec lsp` can reuse them.
 `Index` is the workspace-wide entity graph (charts, templates by name,
@@ -56,6 +60,9 @@ resources, jobs, references) built by the workspace adapter.
 - Existing: `POST /api/transform`, `GET /api/version` (keep working).
 - New endpoints under `/api/v2/…`, JSON in/out, grouped by feature
   (`/workspace`, `/files`, `/yaml`, `/helm`, …). Each phase defines its own.
+  Editor calls (`/yaml/analyze|hover|definition|complete|path`,
+  `/files/diff`) take `{path, content?, line, col}`; no content = the file
+  on disk. Requests are cancelled via `r.Context()` when the editor moves on.
 - Errors: `{"error": "...", "line"?, "column"?, "file"?}` with 400 for
   caller bugs, 422 for bad input, 404 missing, 500 unexpected.
 - Push updates via Server-Sent Events, `GET /api/v2/events`: `workspace`

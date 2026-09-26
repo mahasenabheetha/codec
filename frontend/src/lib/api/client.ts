@@ -20,7 +20,18 @@ export class ApiError extends Error {
 // must send it back. (The Vite dev server copies it from codec serve.)
 const token = document.querySelector<HTMLMetaElement>('meta[name="codec-token"]')?.content
 
-export async function request<T>(method: 'GET' | 'POST', path: string, body?: unknown): Promise<T> {
+/** Thrown when a request was cancelled with an AbortSignal; callers
+ *  that cancel on purpose just ignore it. */
+export function isAbort(e: unknown): boolean {
+  return e instanceof DOMException && e.name === 'AbortError'
+}
+
+export async function request<T>(
+  method: 'GET' | 'POST',
+  path: string,
+  body?: unknown,
+  signal?: AbortSignal,
+): Promise<T> {
   const headers: Record<string, string> = {}
   if (body !== undefined) headers['Content-Type'] = 'application/json'
   if (token) headers['X-Codec-Token'] = token
@@ -31,12 +42,16 @@ export async function request<T>(method: 'GET' | 'POST', path: string, body?: un
       method,
       headers,
       body: body === undefined ? undefined : JSON.stringify(body),
+      signal,
     })
-  } catch {
+  } catch (e) {
+    if (isAbort(e)) throw e
     throw new ApiError(0, 'Cannot reach the codec server. Is `codec serve` still running?')
   }
 
   const data = await res.json().catch(() => null)
+  // Cancelled while the body was still arriving: don't hand back null.
+  if (signal?.aborted) throw new DOMException('Aborted', 'AbortError')
   if (!res.ok) {
     const msg = data?.error ?? `${res.status} ${res.statusText}`
     throw new ApiError(res.status, msg, data?.line, data?.column)

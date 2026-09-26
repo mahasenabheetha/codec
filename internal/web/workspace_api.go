@@ -237,20 +237,8 @@ func (s *Server) handleContent(w http.ResponseWriter, r *http.Request) {
 	p := r.URL.Query().Get("path")
 	c, err := ws.Read(p)
 	if err != nil {
-		status := http.StatusInternalServerError
-		switch {
-		case errors.Is(err, workspace.ErrOutside):
-			status = http.StatusForbidden
-		case errors.Is(err, fs.ErrNotExist):
-			status = http.StatusNotFound
-		case errors.Is(err, workspace.ErrTooLarge):
-			status = http.StatusRequestEntityTooLarge
-		case errors.Is(err, workspace.ErrBinary):
-			status = http.StatusUnsupportedMediaType
-		case errors.Is(err, workspace.ErrNotFile):
-			status = http.StatusUnprocessableEntity
-		}
-		writeError(w, status, err.Error())
+		he := readError(err)
+		writeError(w, he.status, he.msg)
 		return
 	}
 	writeJSON(w, http.StatusOK, contentView{

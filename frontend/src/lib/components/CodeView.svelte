@@ -32,6 +32,11 @@
     placeholder?: string
     wrap?: boolean
     onpaste?: () => void
+    /** Extra CodeMirror extensions (e.g. YAML intelligence). */
+    extensions?: Extension
+    /** Debounce (ms) for copying edits back into `value`. Big documents
+     *  use it so a keystroke never copies the whole text. 0 = at once. */
+    syncDelay?: number
   }
 
   let {
@@ -42,15 +47,19 @@
     placeholder = '',
     wrap = false,
     onpaste,
+    extensions = [],
+    syncDelay = 0,
   }: Props = $props()
 
   let host = $state<HTMLDivElement>()
   let view: EditorView | undefined
+  let syncTimer: ReturnType<typeof setTimeout> | undefined
 
   const langConf = new Compartment()
   const readonlyConf = new Compartment()
   const wrapConf = new Compartment()
   const placeholderConf = new Compartment()
+  const extraConf = new Compartment()
 
   // Colors come from the syntax tokens in tokens.css.
   const highlight = HighlightStyle.define([
@@ -129,7 +138,7 @@
     // Read the props untracked: this effect must run once per mount,
     // not every time the text or an option changes (the effects below
     // handle those updates without rebuilding the editor).
-    const init = untrack(() => ({ value, language, readonly, wrap, placeholder, label }))
+    const init = untrack(() => ({ value, language, readonly, wrap, placeholder, label, extensions }))
     view = new EditorView({
       parent: host,
       state: EditorState.create({
@@ -151,6 +160,7 @@
           readonlyConf.of(readonlyExt(init.readonly)),
           wrapConf.of(init.wrap ? EditorView.lineWrapping : []),
           placeholderConf.of(init.placeholder ? placeholderExt(init.placeholder) : []),
+          extraConf.of(init.extensions),
           EditorView.contentAttributes.of({ 'aria-label': init.label }),
           EditorView.domEventHandlers({
             paste: () => {
@@ -160,12 +170,21 @@
             },
           }),
           EditorView.updateListener.of((u) => {
-            if (u.docChanged) value = u.state.doc.toString()
+            if (!u.docChanged) return
+            if (syncDelay <= 0) {
+              value = u.state.doc.toString()
+              return
+            }
+            clearTimeout(syncTimer)
+            syncTimer = setTimeout(() => {
+              if (view) value = view.state.doc.toString()
+            }, syncDelay)
           }),
         ],
       }),
     })
     return () => {
+      clearTimeout(syncTimer)
       view?.destroy()
       view = undefined
     }
@@ -203,6 +222,16 @@
   $effect(() => {
     view?.dispatch({ effects: placeholderConf.reconfigure(placeholder ? placeholderExt(placeholder) : []) })
   })
+
+  $effect(() => {
+    const ext = extensions
+    view?.dispatch({ effects: extraConf.reconfigure(ext) })
+  })
+
+  /** The underlying editor, for callers that add their own behaviour. */
+  export function getView(): EditorView | undefined {
+    return view
+  }
 
   export function focus() {
     view?.focus()

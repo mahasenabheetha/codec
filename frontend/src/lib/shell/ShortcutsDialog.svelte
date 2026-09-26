@@ -8,6 +8,9 @@
       title: 'Everywhere',
       items: [
         ['Mod+K', 'Search tools and actions'],
+        ['Mod+P', 'Go to file'],
+        ['Mod+O', 'Open folder'],
+        ['Mod+Shift+E', 'Toggle explorer'],
         ['Mod+B', 'Toggle sidebar'],
         ['?', 'Show keyboard shortcuts'],
       ],
@@ -25,6 +28,9 @@
       title: 'In an editor',
       items: [
         ['Mod+F', 'Find'],
+        ['Mod+G', 'Go to line'],
+        ['F12', 'Go to definition (also Mod+click)'],
+        ['Ctrl+Space', 'Suggest (after *)'],
         ['Mod+Z', 'Undo'],
         ['Mod+Shift+Z', 'Redo'],
       ],

@@ -120,6 +120,12 @@ func (s *Server) routes() http.Handler {
 	mux.HandleFunc("GET /api/v2/files/tree", s.handleTree)
 	mux.HandleFunc("GET /api/v2/files/content", s.handleContent)
 	mux.HandleFunc("GET /api/v2/events", s.handleEvents)
+	mux.HandleFunc("POST /api/v2/files/diff", s.handleDiff)
+	mux.HandleFunc("POST /api/v2/yaml/analyze", s.handleAnalyze)
+	mux.HandleFunc("POST /api/v2/yaml/hover", s.handleHover)
+	mux.HandleFunc("POST /api/v2/yaml/definition", s.handleDefinition)
+	mux.HandleFunc("POST /api/v2/yaml/complete", s.handleComplete)
+	mux.HandleFunc("POST /api/v2/yaml/path", s.handlePath)
 	mux.HandleFunc("/api/v2/", func(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusNotFound, "no such endpoint: "+r.Method+" "+r.URL.Path)
 	})

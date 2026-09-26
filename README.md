@@ -52,7 +52,7 @@ codec serve --root ~/repos/app  # open a folder right away
 codec serve --port 9000 --poll  # other port; poll for file changes
 ```
 
-**Workspace (read-only).** Open a repository folder (Ctrl+O, or `--root`) to browse it: a file tree that honours `.gitignore` (and skips `.git`, `node_modules`, binaries and files over 2 MB), with each YAML file labelled by type (Kubernetes, Helm, Argo, GitHub Actions, GitLab CI, Compose, Ansible, …). Files open in tabs as read-only, highlighted views that refresh by themselves when the file changes on disk. codec never writes to the folder; recent folders are remembered in your profile (`%AppData%\codec`, `~/Library/Application Support/codec`, `~/.config/codec`), never in the repo.
+**Workspace (read-only).** Open a repository folder (Ctrl+O, or `--root`) to browse it: a file tree that honours `.gitignore` (and skips `.git`, `node_modules`, binaries and files over 2 MB), with each YAML file labelled by type (Kubernetes, Helm, Argo, GitHub Actions, GitLab CI, Compose, Ansible, …). Files open in tabs as YAML-aware editors: template and runtime expressions are tinted, errors are squiggled with a fix hint, hover shows a value's path and type, F12 or Ctrl+click jumps from an alias to its anchor, and an Outline/Problems panel follows the cursor. The status bar shows the path at the cursor; click it to copy it as dot, yq, JSONPath, Helm or `--set`. Edits are **what-if only**: never saved, with Reset, Copy content and Copy diff (a patch for `git apply`). Tabs refresh by themselves when the file changes on disk, and "Open in VS Code/Cursor" jumps to the same line. codec never writes to the folder; recent folders are remembered in your profile (`%AppData%\codec`, `~/Library/Application Support/codec`, `~/.config/codec`), never in the repo.
 
 **Tools.** Pick a tool from the sidebar (or press Ctrl+K and type), then paste or type — output updates as you go. **Smart paste** auto-detects; the other tools are explicit.
 
@@ -62,6 +62,8 @@ codec serve --port 9000 --poll  # other port; poll for file changes
 | Ctrl+P | Go to file |
 | Ctrl+O | Open folder |
 | Ctrl+Shift+E | Toggle the explorer |
+| F12 / Ctrl+click | Go to definition (YAML alias → anchor) |
+| Ctrl+G · Ctrl+F | Go to line · find in file |
 | Ctrl+Enter | Run the transform |
 | Alt+C | Copy output |
 | Alt+S | Use output as input |

@@ -111,3 +111,44 @@ func TestWorkspaceAPI(t *testing.T) {
 		t.Errorf("missing file: %d, want 404", rec.Code)
 	}
 }
+
+func TestYAMLAPI(t *testing.T) {
+	root := t.TempDir()
+	os.WriteFile(filepath.Join(root, "v.yaml"), []byte("base: &b\n  x: 1\nuse: *b\n"), 0o644)
+	s := New(Options{Poll: true})
+	defer s.Close()
+	if err := s.OpenWorkspace(root); err != nil {
+		t.Fatal(err)
+	}
+	post := func(target, body string) map[string]any {
+		t.Helper()
+		rec := call(s, "POST", target, "127.0.0.1:8765", s.Token(), "", body)
+		if rec.Code != 200 {
+			t.Fatalf("%s: %d %s", target, rec.Code, rec.Body)
+		}
+		var out map[string]any
+		json.Unmarshal(rec.Body.Bytes(), &out)
+		return out
+	}
+
+	a := post("/api/v2/yaml/analyze", `{"path":"v.yaml"}`) // from disk
+	if a["type"] != "yaml" || len(a["docs"].([]any)) != 1 {
+		t.Errorf("analyze = %v", a)
+	}
+	a = post("/api/v2/yaml/analyze", `{"path":"v.yaml","content":"a:\n\tb: 1\n"}`) // what-if buffer
+	if d := a["diagnostics"].([]any); len(d) != 1 || d[0].(map[string]any)["code"] != "tab-indent" {
+		t.Errorf("diagnostics = %v", a["diagnostics"])
+	}
+	def := post("/api/v2/yaml/definition", `{"path":"v.yaml","line":3,"col":7}`)
+	if locs := def["locations"].([]any); len(locs) != 1 {
+		t.Errorf("definition = %v", def)
+	}
+	p := post("/api/v2/yaml/path", `{"path":"v.yaml","line":2,"col":4}`)
+	if p["formats"].(map[string]any)["yq"] != ".base.x" {
+		t.Errorf("path = %v", p)
+	}
+	d := post("/api/v2/files/diff", `{"path":"v.yaml","content":"base: &b\n  x: 2\nuse: *b\n"}`)
+	if !strings.Contains(d["diff"].(string), "-  x: 1\n+  x: 2\n") {
+		t.Errorf("diff = %q", d["diff"])
+	}
+}

@@ -66,6 +66,8 @@ type Content struct {
 	Text string
 	BOM  bool
 	CRLF bool
+	// YAML is the parse of Text for YAML files (cached; treat as read-only).
+	YAML *yamlkit.File
 }
 
 // entry is a File plus its lazily computed classification. Parse
@@ -192,7 +194,7 @@ func (w *Workspace) Read(p string) (*Content, error) {
 	c.CRLF = bytes.Contains(data, []byte("\r\n"))
 	c.Text = string(data)
 	if c.Lang == "yaml" {
-		c.Type = w.typeOf(c.File, data)
+		c.YAML, c.Type = w.parse(c.File, data)
 	}
 	return c, nil
 }
@@ -251,19 +253,20 @@ func readAll(f *os.File) ([]byte, fs.FileInfo, error) {
 	return data, info, nil
 }
 
-// typeOf returns the provider id for a YAML file the UI opened, and
-// caches its parse tree (keyed by mtime+size) for later lookups.
-func (w *Workspace) typeOf(f File, data []byte) string {
+// parse returns the parse tree and provider id of a YAML file the UI
+// opened, from the cache (keyed by mtime+size) when it is current.
+func (w *Workspace) parse(f File, data []byte) (*yamlkit.File, string) {
 	w.mu.RLock()
 	e := w.files[f.Path]
 	if e != nil && e.parsed != nil && e.ModTime.Equal(f.ModTime) && e.Size == f.Size {
+		parsed, typ := e.parsed, e.Type
 		w.mu.RUnlock()
-		return e.Type
+		return parsed, typ
 	}
 	w.mu.RUnlock()
 	parsed, typ := classify(f.Path, data)
 	w.store(f, parsed, typ)
-	return typ
+	return parsed, typ
 }
 
 // Classify parses and classifies every YAML file not classified yet,

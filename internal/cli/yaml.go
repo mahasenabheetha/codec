@@ -186,7 +186,7 @@ Styles: dot, yq, jsonpath, helm (.Values…), set (helm --set), all.`,
 			return errors.New("give --line (and optionally --col), or --get PATH")
 		}
 		pos := yamlkit.Pos{Line: pathLine, Col: max(pathCol, 1)}
-		doc := docAtLine(f, pathLine)
+		doc := f.DocAt(pos)
 		p, _ := doc.PathAt(pos)
 		if len(p) == 0 {
 			return fmt.Errorf("no key or item at line %d", pathLine)
@@ -380,16 +380,4 @@ func expressionSummary(exprs []yamlkit.Expression) string {
 		parts[i] = fmt.Sprintf("%s %d", s, counts[s])
 	}
 	return strings.Join(parts, ", ")
-}
-
-// docAtLine returns the document containing line, or the last one that
-// starts before it.
-func docAtLine(f *yamlkit.File, line int) *yamlkit.Document {
-	doc := f.Docs[0]
-	for _, d := range f.Docs {
-		if d.Range.Start.Line <= line {
-			doc = d
-		}
-	}
-	return doc
 }
