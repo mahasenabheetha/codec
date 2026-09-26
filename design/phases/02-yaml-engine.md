@@ -35,14 +35,26 @@ Lens features (outline labels, rendering, lint rules), any UI.
 
 ## Acceptance
 
-- [ ] Positions correct for LF, CRLF and UTF-8 BOM files.
-- [ ] A real (anonymized) Helm template parses via masking with correct spans.
-- [ ] Detection fixtures for every listed type, plus "unknown".
-- [ ] Friendly-error fixtures for each listed mistake.
+- [x] Positions correct for LF, CRLF and UTF-8 BOM files (plus non-ASCII, multi-doc).
+- [x] A Helm template parses via masking with correct spans (`testdata/helm-deployment.yaml`,
+      a `helm create`-style template; add anonymized fixtures from real repos as found).
+- [x] Detection fixtures for every listed type, plus plain YAML (`provider/detect_test.go`).
+- [x] Friendly-error fixtures for each listed mistake (`yamlkit/friendly_test.go`).
 
 ## Notes
 
-Confirm `goccy/go-yaml` is maintained and its comment-preserving output
-is good enough for `fmt`; if not, record the alternative in decisions.md.
+- goccy/go-yaml parses (exact error positions, token extents); go.yaml.in/yaml/v3
+  emits `fmt`/JSON→YAML output (comments kept). See decisions #10, #20–22.
+- goccy quirks handled (each has a regression test):
+  - leaks a BOM into the first key → BOM stripped before parsing;
+  - counts comment lines twice in CRLF files → goccy gets LF text, ends computed by line/col;
+  - shifts a plain scalar's start right by its trailing spaces → start re-anchored on its line.
+- Whole-line template expressions are masked as `#` + spaces (not plain spaces): inside
+  block scalars, over-indented blank lines are invalid YAML (broke Jinja playbooks).
+- Verified on 2,290 real YAML files (Ansible, GitLab CI, Helm): no crashes, no false
+  parse errors, 221k key/value ranges exact. Five genuine duplicate keys found.
+- yaml.v3 prints merge keys as `!!merge <<` unless the tag is cleared (done; regression test).
+- `Provider` has Detect + Symbols for now; phase 04 adds diagnostics/hover/definition/complete.
+- Non-goals kept: no lens outlines, rendering or lint rules yet.
 
-**Go concepts:** interfaces + registries, AST walking, byte vs rune offsets, `testdata/` fixtures.
+**Go concepts:** interfaces + registries, AST walking with type switches, byte vs rune offsets, `testdata/` fixtures, `errors.As`.

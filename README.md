@@ -103,6 +103,28 @@ codec json validate '{"a":}'           # exit 1 + "line 1, column 6"
 codec jwt decode "$TOKEN"              # does NOT verify the signature
 ```
 
+### YAML
+
+Works on Kubernetes manifests, Helm templates, CI pipelines, Compose and Ansible files — template expressions (`{{ … }}`, `${{ … }}`, `{% … %}`) are understood rather than reported as errors. Output goes to stdout; files are never modified.
+
+```bash
+codec yaml identify deploy.yaml             # file type, documents, problems (file:line:col)
+codec yaml outline deploy.yaml              # key/item tree with line numbers
+codec yaml path deploy.yaml --line 26 --col 12 --style all
+#   dot       spec.template.spec.containers[0].image
+#   yq        .spec.template.spec.containers[0].image
+#   jsonpath  $.spec.template.spec.containers[0].image
+#   helm      (index .Values.spec.template.spec.containers 0).image
+#   set       spec.template.spec.containers[0].image=
+codec yaml path values.yaml --get image.tag # value and its position
+codec yaml fmt messy.yaml --k8s-order       # re-indent, comments kept
+codec yaml fmt anchors.yaml --resolve       # expand anchors and << merges
+codec yaml convert values.yaml --to json    # key order kept (and --to yaml)
+codec yaml flatten values.yaml              # path: value lines; --reverse to undo
+```
+
+Syntax errors are explained in plain English with a fix, e.g. `Tab character used for indentation` or `A value contains ": " but isn't quoted`, and duplicate keys are flagged.
+
 ### Watch mode
 
 ```bash

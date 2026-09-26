@@ -22,8 +22,11 @@ Settled unless the user reopens them. Add new ones at the bottom:
 9. Helm: embed the Helm 4 Go SDK (no helm install needed). Verify the
    SDK's API at phase 05 start; fall back to Helm 3 SDK only if v4 is
    unsuitable (2026-09-26).
-10. YAML library: `github.com/goccy/go-yaml` (AST with positions and
-    comments) — confirm maintenance at phase 02 start (2026-09-26).
+10. YAML parsing: `github.com/goccy/go-yaml` v1.19 — exact line+column
+    errors, duplicate-key detection, token extents. Display-only output
+    (fmt, JSON→YAML, resolved view) uses `go.yaml.in/yaml/v3`, which
+    re-indents with comments intact (already an indirect dependency).
+    Evaluated side by side at phase 02 start (2026-09-26).
 11. Delivery: web UI via `codec serve` for all of v2; Docker image
     (ghcr.io) as secondary distribution; Wails desktop app is v3
     (2026-09-26).
@@ -49,3 +52,15 @@ Settled unless the user reopens them. Add new ones at the bottom:
     `jwt` alongside `output` (2026-09-26).
 19. Tool input/output is never persisted to browser storage (may contain
     secrets); only UI preferences are (2026-09-26).
+20. Positions: `Offset` is a byte offset into the content with any BOM
+    removed; `Line`/`Col` are 1-based and `Col` counts runes (what an
+    editor shows). Astral characters (emoji) may differ by one column in
+    UTF-16 editors; acceptable (2026-09-26).
+21. Scalars are typed with the YAML 1.2 core schema: `yes`/`on` are
+    strings, not booleans. The Norway problem is a lint warning (phase
+    07), not a parse-time reinterpretation (2026-09-26).
+22. Template expressions are masked to same-length text before parsing:
+    whole-line control flow becomes spaces, inline expressions become
+    `x…x`; values keep the original expression text and are marked
+    `Templated`. Duplicate-key checks are skipped in documents with
+    template control flow (branches repeat keys legitimately) (2026-09-26).

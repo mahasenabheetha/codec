@@ -1,0 +1,2 @@
+# Keep test fixtures byte-for-byte (line endings matter to position tests).
+**/testdata/** -text

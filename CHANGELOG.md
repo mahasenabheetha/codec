@@ -6,6 +6,19 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+### Added (YAML)
+
+- `codec yaml identify|outline|path|fmt|convert|flatten`: detect 13 file
+  types (Kubernetes, Helm chart/template/values, Kustomize, Argo
+  Workflows, Argo CD, GitHub Actions, GitLab CI, Azure Pipelines,
+  Compose, Ansible playbook/inventory), outline, cursor path in five
+  notations, comment-preserving re-indent, YAML↔JSON, flatten/unflatten,
+  anchor/merge-key resolution.
+- Template-aware parsing: Helm/Go-template, Jinja, GitHub and Argo
+  expressions are recognised instead of breaking the parse.
+- Plain-English syntax errors with fix hints (tabs, bad indentation,
+  unquoted colons, unclosed quotes) and duplicate-key detection.
+
 ### Changed
 
 - Go module path is now `github.com/mahasenabheetha/codec/v2`; requires Go 1.26+.

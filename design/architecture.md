@@ -26,22 +26,26 @@ content to the engine.
 
 ## Provider model (future-proofing)
 
-Every YAML domain implements one interface in `internal/provider`;
-methods it doesn't support return "not supported". Adding a file type =
-adding a provider, no core changes.
+Every YAML domain implements one interface in `internal/provider`.
+Adding a file type = adding a provider (or replacing a built-in by
+registering one with the same ID); no core changes. The interface grows
+phase by phase, always LSP-shaped:
 
 ```go
+// Since phase 02 (built-ins: detection + generic outline, 13 types + plain YAML)
 type Provider interface {
-    ID() string                                // "kubernetes", "helm", "argo", ...
-    Detect(f File) Confidence                  // 0 = not mine
-    Symbols(d *Doc) []Symbol                   // outline
-    Diagnostics(d *Doc, ix *Index) []Diagnostic
-    Hover(d *Doc, pos Pos, ix *Index) *Hover
-    Definition(d *Doc, pos Pos, ix *Index) []Location
-    Complete(d *Doc, pos Pos, ix *Index) []Completion
+    ID() string                          // "kubernetes", "helm-template", ...
+    Title() string
+    Detect(f *File) Confidence           // 0 = not mine … 100 = certain
+    Symbols(d *yamlkit.Document) []Symbol
 }
+// Phase 04 adds: Diagnostics, Hover, Definition, Complete (with an Index).
 // Optional extras via separate interfaces: Renderer, Grapher, Generator.
 ```
+
+`provider.Default` holds the built-ins; `yamlkit` provides the tree
+(`File` → `Document` → `Node` with exact `Range`s), expressions and
+diagnostics every provider works from.
 
 Concepts deliberately mirror LSP so a future `codec lsp` can reuse them.
 `Index` is the workspace-wide entity graph (charts, templates by name,
