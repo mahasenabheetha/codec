@@ -1,12 +1,17 @@
 # design/
 
-Context for anyone — human or LLM agent — working on codec. Read this
-folder before making changes; keep each file short and current.
+Project context for humans and AI agents. Start at the repo's
+[AGENTS.md](../AGENTS.md). Read only what the current task needs.
 
-| File | What it covers |
+| File | Read when |
 |---|---|
-| [conventions.md](conventions.md) | Architecture rules, stack, testing, git workflow |
-| [releases.md](releases.md) | Versioning, release process, GitHub Releases limits |
-| [v2-plan.md](v2-plan.md) | codec 2.0 (YAML workbench) proposal and open decisions |
+| [status.md](status.md) | Always — current phase, next step |
+| [phases/](phases/) | The current phase file only |
+| [roadmap.md](roadmap.md) | Planning or reordering phases |
+| [decisions.md](decisions.md) | Before proposing a technical choice |
+| [architecture.md](architecture.md) | Adding packages, APIs, providers |
+| [conventions.md](conventions.md) | Writing code or tests |
+| [ui.md](ui.md) | Any frontend work |
+| [releases.md](releases.md) | Versioning or cutting a release |
 
-When a decision changes, update the relevant file in the same PR.
+When a decision or fact changes, update the relevant file in the same PR.
