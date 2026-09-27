@@ -1,0 +1,21 @@
+- name: Configure web servers
+  hosts: webservers
+  become: true
+  vars:
+    shop_release: "0.3.0"
+
+  pre_tasks:
+    - name: Update the package cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+  roles:
+    - web
+
+  tasks:
+    - name: Deploy shop {{ shop_release }}
+      ansible.builtin.copy:
+        src: shop-{{ shop_release }}.tar.gz
+        dest: /opt/shop/
+      notify: Restart web

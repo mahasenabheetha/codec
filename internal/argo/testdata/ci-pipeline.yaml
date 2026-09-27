@@ -1,0 +1,116 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: ci-pipeline
+  namespace: builds
+spec:
+  entrypoint: main
+  onExit: report
+  serviceAccountName: builder
+  arguments:
+    parameters:
+      - name: branch
+        value: main
+      - name: env
+        value: dev
+        enum: [dev, staging, prod]
+      - name: image
+        value: "registry.example.com/app:{{workflow.parameters.branch}}"
+  templates:
+    - name: main
+      dag:
+        tasks:
+          - name: checkout
+            template: git-clone
+            arguments:
+              parameters:
+                - name: ref
+                  value: "{{workflow.parameters.branch}}"
+          - name: build
+            template: compile
+            depends: checkout
+            withItems:
+              - { os: linux, arch: amd64 }
+              - { os: darwin, arch: arm64 }
+            arguments:
+              parameters:
+                - name: target
+                  value: "{{item.os}}-{{item.arch}}"
+          - name: lint
+            template: compile
+            dependencies: [checkout]
+            arguments:
+              parameters:
+                - name: target
+                  value: lint
+          - name: test
+            template: unit-tests
+            depends: "build && lint"
+          - name: publish
+            templateRef:
+              name: shared-steps
+              template: publish
+            depends: "test.Succeeded"
+            when: "{{workflow.parameters.env}} == prod"
+            arguments:
+              parameters:
+                - name: artifact
+                  value: "{{workflow.parameters.image}}"
+          - name: diagnose
+            template: collect-logs
+            depends: "test.Failed || lint.Failed"
+            arguments:
+              parameters:
+                - name: from
+                  value: "{{tasks.test.outputs.parameters.report}}"
+          - name: scan
+            templateRef:
+              name: cluster-tools
+              template: scan
+              clusterScope: true
+            depends: "build.AnySucceeded && !diagnose"
+    - name: git-clone
+      inputs:
+        parameters:
+          - name: ref
+      container:
+        image: alpine/git:2.45
+        command: [git, clone, --branch, "{{inputs.parameters.ref}}", https://git.example.com/app.git]
+    - name: compile
+      inputs:
+        parameters:
+          - name: target
+          - name: flags
+            default: "-trimpath"
+      script:
+        image: golang:1.26
+        command: [sh]
+        source: |
+          echo "building {{inputs.parameters.target}} for {{workflow.parameters.branch}}"
+          go build {{inputs.parameters.flags}} ./...
+    - name: unit-tests
+      outputs:
+        parameters:
+          - name: report
+            valueFrom:
+              path: /tmp/report.txt
+      container:
+        image: golang:1.26
+        command: [go, test, ./...]
+    - name: collect-logs
+      inputs:
+        parameters:
+          - name: from
+      container:
+        image: busybox:1.36
+        args: ["{{inputs.parameters.from}}"]
+    - name: report
+      steps:
+        - - name: notify
+            templateRef:
+              name: shared-steps
+              template: notify
+            arguments:
+              parameters:
+                - name: message
+                  value: "{{workflow.name}} finished: {{workflow.status}}"

@@ -1,0 +1,42 @@
+apiVersion: v1
+data:
+  LOG_LEVEL: info
+kind: ConfigMap
+metadata:
+  name: app-config-hf678c7m2b
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app
+spec:
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+  selector:
+    app: app
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app
+  template:
+    metadata:
+      labels:
+        app: app
+    spec:
+      containers:
+      - envFrom:
+        - configMapRef:
+            name: app-config-hf678c7m2b
+        image: registry.example.com/app:1.0
+        name: app
+        ports:
+        - containerPort: 8080
+          name: http

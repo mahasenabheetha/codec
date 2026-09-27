@@ -1,0 +1,20 @@
+title: GitHub Actions workflow
+category: CI
+description: Builds and tests on pushes and pull requests to the main branch.
+fields:
+  - name: file
+    label: File name
+    default: ci
+    pattern: "[A-Za-z0-9_.-]+"
+  - name: title
+    label: Workflow name
+    default: CI
+  - name: branch
+    default: main
+  - name: language
+    type: choice
+    choices: [go, node, python, other]
+    default: go
+files:
+  - template: workflow.yml.tmpl
+    path: .github/workflows/<% .file %>.yml

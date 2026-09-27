@@ -7,13 +7,35 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    # Windows is a first-class platform (the main dev machine), so it
+    # gets a real build-and-test run, not just a cross-compile.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-go@v5
         with:
-          go-version: "1.23"
+          go-version-file: go.mod
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      # The frontend must be built first: the Go binary embeds it.
+      - name: Frontend install
+        run: npm --prefix frontend ci
+
+      - name: Frontend type-check
+        run: npm --prefix frontend run check
+
+      - name: Frontend build
+        run: npm --prefix frontend run build
 
       - name: Vet
         run: go vet ./...
@@ -24,10 +46,8 @@ jobs:
       - name: Build
         run: go build ./...
 
-      - name: Cross-compile windows binary
-        run: GOOS=windows GOARCH=amd64 go build -o codec.exe ./cmd/codec
-
       - name: Validate release config
+        if: matrix.os == 'ubuntu-latest'
         uses: goreleaser/goreleaser-action@v6
         with:
           distribution: goreleaser

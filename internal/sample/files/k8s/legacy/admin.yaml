@@ -1,0 +1,43 @@
+# Old manifests kept "just in case". Run "Lint workspace" or open the
+# k8s folder in the Resources view to see what is wrong with them.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shop-admin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shop-admin
+  template:
+    metadata:
+      labels:
+        app: shop-admin
+    spec:
+      containers:
+        - name: admin
+          image: nginx:latest
+          ports:
+            - containerPort: 80
+---
+# Selects "shop-admin-ui", but the pods are labelled "shop-admin".
+apiVersion: v1
+kind: Service
+metadata:
+  name: shop-admin
+spec:
+  selector:
+    app: shop-admin-ui
+  ports:
+    - port: 80
+---
+# policy/v1beta1 was removed in Kubernetes 1.25: use policy/v1.
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: shop-admin
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: shop-admin

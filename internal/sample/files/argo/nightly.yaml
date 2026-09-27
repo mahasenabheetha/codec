@@ -1,0 +1,16 @@
+apiVersion: argoproj.io/v1alpha1
+kind: CronWorkflow
+metadata:
+  name: shop-nightly
+spec:
+  schedules:
+    - "0 2 * * *"
+  timezone: Europe/Stockholm
+  concurrencyPolicy: Forbid
+  workflowSpec:
+    workflowTemplateRef:
+      name: shop-build
+    arguments:
+      parameters:
+        - name: environment
+          value: prod

@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Security and privacy · codec docs</title>
+<meta name="description" content="How codec keeps your repositories and data safe: read-only access, a local-only server, per-run tokens, and no telemetry.">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<input type="checkbox" id="menu" class="menu-toggle" aria-hidden="true">
+<header class="top">
+  <label for="menu" class="menu-button" aria-label="Menu">&#9776;</label>
+  <a class="brand" href="index.html"><img src="assets/logo.svg" alt=""> codec <span class="tag">docs</span></a>
+  <span class="spacer"></span>
+  <nav class="links" aria-label="Site">
+    <a href="getting-started.html" class="hide-sm">Get started</a>
+    <a href="cli.html" class="hide-sm">CLI</a>
+    <a href="https://github.com/mahasenabheetha/codec/releases">Download</a>
+    <a href="https://github.com/mahasenabheetha/codec">GitHub</a>
+  </nav>
+</header>
+<div class="layout">
+<nav class="side" aria-label="Documentation">
+<h4>Start</h4>
+<ul>
+<li><a href="index.html">Overview</a></li>
+<li><a href="getting-started.html">Getting started</a></li>
+</ul>
+<h4>Using codec</h4>
+<ul>
+<li><a href="workspace.html">Workspace and editor</a></li>
+<li><a href="helm.html">Helm</a></li>
+<li><a href="lint.html">Lint and schemas</a></li>
+<li><a href="kubernetes.html">Kubernetes and Kustomize</a></li>
+<li><a href="argo.html">Argo</a></li>
+<li><a href="ci.html">CI pipelines</a></li>
+<li><a href="compose.html">Compose</a></li>
+<li><a href="ansible.html">Ansible</a></li>
+<li><a href="compare.html">Compare and query</a></li>
+<li><a href="new.html">New files and clones</a></li>
+<li><a href="tools.html">Encode, decode and logs</a></li>
+<li><a href="settings.html">Settings and your data</a></li>
+</ul>
+<h4>Reference</h4>
+<ul>
+<li><a href="cli.html">CLI reference</a></li>
+<li><a href="shortcuts.html">Keyboard shortcuts</a></li>
+<li><a href="troubleshooting.html">Troubleshooting</a></li>
+</ul>
+<h4>How it works</h4>
+<ul>
+<li><a href="architecture.html">Architecture</a></li>
+<li><a href="flows.html">Flows</a></li>
+<li><a href="security.html" aria-current="page">Security and privacy</a></li>
+<li><a href="design.html">Design language</a></li>
+<li><a href="development.html">Development</a></li>
+</ul>
+</nav>
+<main>
+<article class="content">
+<h1>Security and privacy</h1>
+<p class="lead">codec runs a web server on your machine that can read your repositories. That deserves care. Here is what it does, what it never does, and why web pages you visit can't use it.</p>
+
+<h2 id="promises">What codec promises<a class="anchor" href="#promises">#</a></h2>
+<ul>
+  <li><strong>It never writes to the folders it opens.</strong> Files are opened for reading only. What-if edits live in the browser tab. Generated files are text to copy or a zip your browser saves.</li>
+  <li><strong>Nothing leaves your machine.</strong> No telemetry, no analytics, no accounts. The UI loads no third-party resources. The only outbound requests are downloads of public JSON schemas, which you can turn off (offline mode).</li>
+  <li><strong>Nothing you paste is stored.</strong> The encode/decode tools keep input in memory only.</li>
+  <li><strong>No config files in your repositories.</strong> Settings live in your user profile.</li>
+</ul>
+
+<h2 id="server">The local server<a class="anchor" href="#server">#</a></h2>
+<div class="table-wrap"><table>
+  <tr><th>Protection</th><th>What it stops</th></tr>
+  <tr><td>Binds to <code>127.0.0.1</code> by default</td><td>Other machines on your network can't connect. <code>--host</code> exists only for containers.</td></tr>
+  <tr><td>Host header must be a loopback name</td><td><em>DNS rebinding</em>: a web page whose domain is made to resolve to 127.0.0.1 can't talk to codec, because its requests carry its own host name.</td></tr>
+  <tr><td>A random token per run, required on the API</td><td>Other pages and programs can't call the API without it; it is only in the page codec serves you, and changes every time codec starts.</td></tr>
+  <tr><td>Foreign <code>Origin</code> rejected on state-changing requests</td><td>Cross-site form posts and scripts on other sites.</td></tr>
+  <tr><td>Paths validated and read through a confined root</td><td><code>../</code> tricks and symlinks that point outside the open folder are refused, so the API can't be used to read other files.</td></tr>
+  <tr><td>Request size limits and cancellation</td><td>Oversized requests are refused; requests stop when the page moves on.</td></tr>
+</table></div>
+
+<h2 id="docker">Docker<a class="anchor" href="#docker">#</a></h2>
+<p>The image is distroless (no shell or package manager) and runs as a non-root user. Mount repositories read-only (<code>:ro</code>) and publish the port on <code>127.0.0.1</code> only (<code>-p 127.0.0.1:8765:8765</code>), so the extra safety of the container adds to codec's own.</p>
+
+<h2 id="secrets">Secrets in your files<a class="anchor" href="#secrets">#</a></h2>
+<ul>
+  <li>Kubernetes Secret values are masked on cards until you reveal them; decoding happens locally.</li>
+  <li>GitHub <code>secrets.*</code> references are shown by name only.</li>
+  <li>Compose variables come from <code>.env</code> and what-if values, not from your shell's environment — so a secret in your environment never appears in the view.</li>
+  <li>The JWT tool decodes tokens locally and never verifies signatures against remote keys.</li>
+</ul>
+
+<h2 id="report">Reporting a vulnerability<a class="anchor" href="#report">#</a></h2>
+<p>Please don't open a public issue for a security problem. Use GitHub's <a href="https://github.com/mahasenabheetha/codec/security/advisories/new">private vulnerability reporting</a> for the repository, with steps to reproduce and the version (<code>codec version</code>).</p>
+<nav class="pager" aria-label="Pages">
+<a class="prev" href="flows.html"><small>Previous</small>Flows</a>
+<a class="next" href="design.html"><small>Next</small>Design language</a>
+</nav>
+<footer>codec is open source under the MIT licence. It runs on your machine and never writes to your files.</footer>
+</article>
+</main>
+</div>
+</body>
+</html>

@@ -5,6 +5,13 @@ version: 2
 
 project_name: codec
 
+# The Go binary embeds the frontend, so build it first. Output goes to
+# the gitignored internal/web/dist/app, so the git tree stays clean.
+before:
+  hooks:
+    - npm --prefix frontend ci
+    - npm --prefix frontend run build
+
 builds:
   - id: codec
     main: ./cmd/codec
@@ -18,9 +25,9 @@ builds:
     ldflags:
       - -s -w
       # .Tag keeps the leading "v" (v1.0.0), matching `git describe`.
-      - -X github.com/mahasenabheetha/codec/internal/version.Version={{ .Tag }}
-      - -X github.com/mahasenabheetha/codec/internal/version.Commit={{ .FullCommit }}
-      - -X github.com/mahasenabheetha/codec/internal/version.Date={{ .Date }}
+      - -X github.com/mahasenabheetha/codec/v2/internal/version.Version={{ .Tag }}
+      - -X github.com/mahasenabheetha/codec/v2/internal/version.Commit={{ .FullCommit }}
+      - -X github.com/mahasenabheetha/codec/v2/internal/version.Date={{ .Date }}
 
 archives:
   - formats: [tar.gz]
@@ -31,9 +38,30 @@ archives:
     files:
       - README.md
       - CHANGELOG.md
+      - LICENSE
 
 checksum:
   name_template: checksums.txt
+
+# Multi-platform image from the Linux binaries above (see Dockerfile),
+# pushed to GitHub Container Registry. Every release gets its version
+# tag (2.0.0-alpha.1); only stable releases move "latest".
+dockers_v2:
+  - images:
+      - ghcr.io/mahasenabheetha/codec
+    tags:
+      - "{{ .Version }}"
+      - "{{ if not .Prerelease }}latest{{ end }}"
+    platforms:
+      - linux/amd64
+      - linux/arm64
+    labels:
+      org.opencontainers.image.title: codec
+      org.opencontainers.image.description: Read-only YAML workbench and DevOps toolbox (web UI)
+      org.opencontainers.image.source: https://github.com/mahasenabheetha/codec
+      org.opencontainers.image.version: "{{ .Version }}"
+      org.opencontainers.image.revision: "{{ .FullCommit }}"
+      org.opencontainers.image.created: "{{ .Date }}"
 
 changelog:
   sort: asc

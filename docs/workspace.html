@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Workspace and editor · codec docs</title>
+<meta name="description" content="Open a repository read-only, find files fast, and read YAML in an editor that understands templates, expressions and schemas.">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<input type="checkbox" id="menu" class="menu-toggle" aria-hidden="true">
+<header class="top">
+  <label for="menu" class="menu-button" aria-label="Menu">&#9776;</label>
+  <a class="brand" href="index.html"><img src="assets/logo.svg" alt=""> codec <span class="tag">docs</span></a>
+  <span class="spacer"></span>
+  <nav class="links" aria-label="Site">
+    <a href="getting-started.html" class="hide-sm">Get started</a>
+    <a href="cli.html" class="hide-sm">CLI</a>
+    <a href="https://github.com/mahasenabheetha/codec/releases">Download</a>
+    <a href="https://github.com/mahasenabheetha/codec">GitHub</a>
+  </nav>
+</header>
+<div class="layout">
+<nav class="side" aria-label="Documentation">
+<h4>Start</h4>
+<ul>
+<li><a href="index.html">Overview</a></li>
+<li><a href="getting-started.html">Getting started</a></li>
+</ul>
+<h4>Using codec</h4>
+<ul>
+<li><a href="workspace.html" aria-current="page">Workspace and editor</a></li>
+<li><a href="helm.html">Helm</a></li>
+<li><a href="lint.html">Lint and schemas</a></li>
+<li><a href="kubernetes.html">Kubernetes and Kustomize</a></li>
+<li><a href="argo.html">Argo</a></li>
+<li><a href="ci.html">CI pipelines</a></li>
+<li><a href="compose.html">Compose</a></li>
+<li><a href="ansible.html">Ansible</a></li>
+<li><a href="compare.html">Compare and query</a></li>
+<li><a href="new.html">New files and clones</a></li>
+<li><a href="tools.html">Encode, decode and logs</a></li>
+<li><a href="settings.html">Settings and your data</a></li>
+</ul>
+<h4>Reference</h4>
+<ul>
+<li><a href="cli.html">CLI reference</a></li>
+<li><a href="shortcuts.html">Keyboard shortcuts</a></li>
+<li><a href="troubleshooting.html">Troubleshooting</a></li>
+</ul>
+<h4>How it works</h4>
+<ul>
+<li><a href="architecture.html">Architecture</a></li>
+<li><a href="flows.html">Flows</a></li>
+<li><a href="security.html">Security and privacy</a></li>
+<li><a href="design.html">Design language</a></li>
+<li><a href="development.html">Development</a></li>
+</ul>
+</nav>
+<main>
+<article class="content">
+<h1>Workspace and editor</h1>
+<p class="lead">Everything in codec starts from an open folder. The explorer lists it, every YAML file is labelled by what it is, and files open in an editor that understands Helm templates, CI expressions and schemas.</p>
+
+<figure>
+  <img src="images/editor.png" alt="A Helm template open in codec's editor, with template expressions tinted and the outline on the right" width="1400" height="820">
+  <figcaption>A Helm template: template-time expressions are tinted amber, the outline follows the cursor, and Render opens the chart.</figcaption>
+</figure>
+
+<h2 id="folder">The open folder<a class="anchor" href="#folder">#</a></h2>
+<p>Open a folder with <kbd>Ctrl</kbd> <kbd>O</kbd>, <code>codec serve --root</code>, a recent folder on the home screen, or the sample. One folder is open at a time; opening another closes the first. codec reopens the last folder when the server restarts.</p>
+<ul>
+  <li><strong>What is listed.</strong> Every file, honouring <code>.gitignore</code> files at any depth. <code>.git</code>, <code>node_modules</code> and similar folders are always skipped, as are binaries and files over 8 MB. Symlinked folders are not followed. A tree is capped at 50,000 files so opening a home folder by mistake stays harmless.</li>
+  <li><strong>What is changed.</strong> Nothing, ever. codec opens files for reading only, through a guard that refuses paths outside the folder (see <a href="security.html">Security</a>).</li>
+  <li><strong>Live updates.</strong> codec watches the folder with native file events, or by polling where those don't work (containers, some network drives). New, changed and deleted files show up within about a second, and open tabs reload.</li>
+</ul>
+
+<h3 id="types">File types<a class="anchor" href="#types">#</a></h3>
+<p>Each YAML file is classified by its content and name, in the background after the tree appears. The type picks the logo in the explorer, the outline, hover and definitions, the schema and the lens view that can open it.</p>
+<div class="table-wrap"><table>
+  <tr><th>Type</th><th>Recognised by</th><th>Opens in</th></tr>
+  <tr><td>Kubernetes</td><td><code>apiVersion</code> + <code>kind</code> of a Kubernetes or CRD object</td><td><a href="kubernetes.html">Resources</a></td></tr>
+  <tr><td>Helm chart / template / values</td><td><code>Chart.yaml</code>, files under <code>templates/</code>, values files next to a chart</td><td><a href="helm.html">Helm</a></td></tr>
+  <tr><td>Kustomize</td><td><code>kustomization.yaml</code></td><td><a href="kubernetes.html#kustomize">Kustomize build</a></td></tr>
+  <tr><td>Argo Workflows</td><td>argoproj.io Workflow, WorkflowTemplate, ClusterWorkflowTemplate, CronWorkflow (and Sensors that submit workflows)</td><td><a href="argo.html">Argo</a></td></tr>
+  <tr><td>Argo CD</td><td>Application, ApplicationSet, AppProject</td><td><a href="argo.html#argocd">Argo</a></td></tr>
+  <tr><td>GitHub Actions</td><td>Files in <code>.github/workflows/</code>, <code>action.yml</code> with <code>runs</code></td><td><a href="ci.html">Pipeline</a></td></tr>
+  <tr><td>GitLab CI</td><td><code>.gitlab-ci.yml</code>, files in <code>.gitlab-ci/</code>, jobs with <code>script</code> and <code>stage</code> or <code>image</code></td><td><a href="ci.html">Pipeline</a></td></tr>
+  <tr><td>Azure Pipelines</td><td><code>azure-pipelines*.yml</code>, or stages, jobs and steps with <code>task</code> or <code>pool</code></td><td><a href="ci.html">Pipeline</a></td></tr>
+  <tr><td>Compose</td><td><code>compose.yaml</code>, <code>docker-compose*.yml</code>, <code>services:</code> documents</td><td><a href="compose.html">Compose</a></td></tr>
+  <tr><td>Ansible playbook / inventory</td><td>Plays with <code>hosts:</code>, task files in roles, YAML inventories</td><td><a href="ansible.html">Ansible</a></td></tr>
+  <tr><td>YAML</td><td>Anything else</td><td>Editor</td></tr>
+</table></div>
+<p>The funnel icon in the explorer filters the tree by type — "show me only the Argo files".</p>
+
+<h3 id="goto">Go to file<a class="anchor" href="#goto">#</a></h3>
+<p><kbd>Ctrl</kbd> <kbd>P</kbd> opens a fuzzy finder over every file: type a few letters of each path segment (<code>shdep</code> finds <code>charts/shop/templates/deployment.yaml</code>). Recently opened files come first. It answers in well under 100 ms on a 10,000-file repository.</p>
+
+<h3 id="tabs">Tabs<a class="anchor" href="#tabs">#</a></h3>
+<p>Files, lens views and tools open as tabs that keep their state while you switch. A file tab refreshes when the file changes on disk; if you have what-if edits, codec asks whether to reload or keep them. A deleted file's tab says so rather than disappearing.</p>
+
+<h2 id="editor">The editor<a class="anchor" href="#editor">#</a></h2>
+<p>YAML files open in a CodeMirror editor with codec's analysis on top. Analysis runs on the server a moment after you stop typing; nothing is saved.</p>
+
+<h3 id="expressions">Templates and expressions<a class="anchor" href="#expressions">#</a></h3>
+<p>Real-world YAML is full of things that aren't YAML. codec recognises them instead of reporting parse errors, and tints them so they stand out:</p>
+<div class="table-wrap"><table>
+  <tr><th>Kind</th><th>Examples</th><th>Tint</th></tr>
+  <tr><td>Template-time — evaluated before the YAML is used</td><td>Helm/Go templates <code>{{ .Values.x }}</code>, Jinja <code>{{ var }}</code>, <code>{% if %}</code></td><td style="color:var(--tpl)">amber</td></tr>
+  <tr><td>Run time — evaluated by the system that runs the file</td><td>GitHub <code>${{ matrix.os }}</code>, Argo <code>{{inputs.parameters.x}}</code>, Azure <code>$(var)</code>, <code>$[ ]</code>, GitLab <code>$[[ inputs.x ]]</code></td><td style="color:var(--rt)">pink</td></tr>
+</table></div>
+<pre><code><span class="k">image</span>: <span class="s">"</span><span class="t">{{ .Values.image.repository }}</span><span class="s">:</span><span class="t">{{ .Values.image.tag | default .Chart.AppVersion }}</span><span class="s">"</span>
+<span class="k">runs-on</span>: <span class="r">${{ matrix.os }}</span>
+<span class="k">args</span>: [<span class="s">"</span><span class="r">{{inputs.parameters.cmd}}</span><span class="s">"</span>]</code></pre>
+
+<h3 id="errors">Errors in plain English<a class="anchor" href="#errors">#</a></h3>
+<p>Syntax errors are rewritten to say what is wrong and how to fix it, on the line that is actually wrong:</p>
+<pre><code><span class="k">spec</span>:
+  <span class="k">replicas</span>: <span class="n">2</span>
+    <span class="k">selector</span>: <span class="e">← "selector" is indented under "replicas", which already has a value</span>
+            <span class="c">  Fix: move it left to line up with "replicas", or make replicas a map.</span></code></pre>
+<p>Tabs used for indentation, unquoted colons, unclosed quotes and duplicate keys get the same treatment. Each problem appears as a squiggle, in the <strong>Problems</strong> panel and as a count in the status bar; click it to jump.</p>
+
+<h3 id="hover">Hover and go to definition<a class="anchor" href="#hover">#</a></h3>
+<ul>
+  <li><strong>Hover</strong> any key or value for its path, type and value, YAML 1.1 gotchas (<code>on</code>, <code>0755</code>), schema field docs, and what an expression means. Lens-aware hovers add more: the value a Helm expression rendered with and which values file set it, where an Ansible variable is defined, a Kubernetes Secret value decoded.</li>
+  <li><strong>Go to definition</strong> (<kbd>F12</kbd> or <kbd>Ctrl</kbd>+click) follows YAML aliases to anchors, and in lens-aware files much more: Argo <code>templateRef</code> into another file, GitLab <code>extends</code> and <code>!reference</code>, Azure templates, GitHub reusable workflows and actions, Ansible roles and handlers, Compose <code>extends</code>, <code>${VAR}</code> to <code>.env</code>.</li>
+</ul>
+
+<h3 id="completion">Completion and snippets<a class="anchor" href="#completion">#</a></h3>
+<p><kbd>Ctrl</kbd> <kbd>Space</kbd> suggests keys and enum values from the file's schema (with their docs), even mid-edit when the YAML doesn't parse. After <code>*</code> it lists anchors. At the start of a key or list item it also offers snippets for the file type — a container, probe or resources block, an Argo DAG task that depends on the last one, a GitHub step or job — and <kbd>Tab</kbd> moves between the fields. In an Argo DAG, <code>depends:</code> and <code>template:</code> complete from the tasks and templates around you.</p>
+
+<h3 id="outline">Outline, paths and documents<a class="anchor" href="#outline">#</a></h3>
+<ul>
+  <li><strong>Outline</strong> — the key tree, synced with the cursor both ways. Lens-aware files outline what things <em>are</em>: "Container app · nginx:1.27 · 1 port", templates by type with the entrypoint marked, jobs by stage, tasks in execution order. Very large files keep fewer levels so the outline stays useful.</li>
+  <li><strong>Path at the cursor</strong> — the status bar shows where you are. Click to copy it as dot (<code>spec.template.spec.containers[0].image</code>), yq, JSONPath, a Helm expression or a <code>--set</code> flag.</li>
+  <li><strong>Documents</strong> — multi-document files get a document switcher, and the outline groups by document.</li>
+</ul>
+
+<h2 id="whatif">What-if edits<a class="anchor" href="#whatif">#</a></h2>
+<p>You can type in any file. The change affects only what codec shows: the analysis, and every lens that reads the file — a Helm render picks up an edited values file or template, a Compose view an edited override, an Argo graph an edited template. Nothing is written to disk.</p>
+<ul>
+  <li><strong>Reset</strong> returns to the file on disk.</li>
+  <li><strong>Copy content</strong> copies the edited text.</li>
+  <li><strong>Copy diff</strong> copies a patch that <code>git apply</code> accepts, keeping CRLF line endings and BOMs as they were.</li>
+</ul>
+<p>What-if edits live in the tab until you reset or close it. The dot on the tab shows a file has them.</p>
+
+<h2 id="palette">The command palette<a class="anchor" href="#palette">#</a></h2>
+<p><kbd>Ctrl</kbd> <kbd>K</kbd> searches every action: open a folder, lint the workspace, render any chart, open any workflow, pipeline, Compose file or playbook in its view, build a Kustomize overlay, the file actions of the current tab, settings and tools.</p>
+<figure>
+  <img src="images/palette.png" alt="The command palette filtered by 'argo', listing each Argo file's view" width="1400" height="820" loading="lazy">
+  <figcaption>Typing "argo" lists every Argo file's view, plus related actions.</figcaption>
+</figure>
+<nav class="pager" aria-label="Pages">
+<a class="prev" href="getting-started.html"><small>Previous</small>Getting started</a>
+<a class="next" href="helm.html"><small>Next</small>Helm</a>
+</nav>
+<footer>codec is open source under the MIT licence. It runs on your machine and never writes to your files.</footer>
+</article>
+</main>
+</div>
+</body>
+</html>

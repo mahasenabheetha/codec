@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Settings and your data · codec docs</title>
+<meta name="description" content="Every codec setting, where codec keeps its files, and what it never stores.">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<input type="checkbox" id="menu" class="menu-toggle" aria-hidden="true">
+<header class="top">
+  <label for="menu" class="menu-button" aria-label="Menu">&#9776;</label>
+  <a class="brand" href="index.html"><img src="assets/logo.svg" alt=""> codec <span class="tag">docs</span></a>
+  <span class="spacer"></span>
+  <nav class="links" aria-label="Site">
+    <a href="getting-started.html" class="hide-sm">Get started</a>
+    <a href="cli.html" class="hide-sm">CLI</a>
+    <a href="https://github.com/mahasenabheetha/codec/releases">Download</a>
+    <a href="https://github.com/mahasenabheetha/codec">GitHub</a>
+  </nav>
+</header>
+<div class="layout">
+<nav class="side" aria-label="Documentation">
+<h4>Start</h4>
+<ul>
+<li><a href="index.html">Overview</a></li>
+<li><a href="getting-started.html">Getting started</a></li>
+</ul>
+<h4>Using codec</h4>
+<ul>
+<li><a href="workspace.html">Workspace and editor</a></li>
+<li><a href="helm.html">Helm</a></li>
+<li><a href="lint.html">Lint and schemas</a></li>
+<li><a href="kubernetes.html">Kubernetes and Kustomize</a></li>
+<li><a href="argo.html">Argo</a></li>
+<li><a href="ci.html">CI pipelines</a></li>
+<li><a href="compose.html">Compose</a></li>
+<li><a href="ansible.html">Ansible</a></li>
+<li><a href="compare.html">Compare and query</a></li>
+<li><a href="new.html">New files and clones</a></li>
+<li><a href="tools.html">Encode, decode and logs</a></li>
+<li><a href="settings.html" aria-current="page">Settings and your data</a></li>
+</ul>
+<h4>Reference</h4>
+<ul>
+<li><a href="cli.html">CLI reference</a></li>
+<li><a href="shortcuts.html">Keyboard shortcuts</a></li>
+<li><a href="troubleshooting.html">Troubleshooting</a></li>
+</ul>
+<h4>How it works</h4>
+<ul>
+<li><a href="architecture.html">Architecture</a></li>
+<li><a href="flows.html">Flows</a></li>
+<li><a href="security.html">Security and privacy</a></li>
+<li><a href="design.html">Design language</a></li>
+<li><a href="development.html">Development</a></li>
+</ul>
+</nav>
+<main>
+<article class="content">
+<h1>Settings and your data</h1>
+<p class="lead">All settings are in one place (<kbd>Ctrl</kbd> <kbd>,</kbd>). They live in your user profile — never in a repository — and the CLI shares them.</p>
+
+<figure>
+  <img src="images/settings.png" alt="The Settings view: General, Kubernetes and Schemas sections with toggles and selects, and a section list on the left" width="1400" height="820">
+</figure>
+
+<h2 id="sections">What you can set<a class="anchor" href="#sections">#</a></h2>
+<div class="table-wrap"><table>
+  <tr><th>Section</th><th>Settings</th></tr>
+  <tr><td>General</td><td>The editor "Open in" launches (VS Code or Cursor); whether file tabs show the outline and problems panel.</td></tr>
+  <tr><td>Kubernetes</td><td>The target version (1.30–1.37) for schemas and API removals.</td></tr>
+  <tr><td>Schemas</td><td>Validate against schemas on or off; offline mode; a custom schema folder. See <a href="lint.html#download">Lint and schemas</a>.</td></tr>
+  <tr><td>Lint rules</td><td>The level of every rule (error, warning, info, off) and the line-length limit.</td></tr>
+  <tr><td>Helm profiles</td><td>Saved profiles of every chart, by folder. Forget one profile, or all of a chart that no longer exists.</td></tr>
+  <tr><td>Compare</td><td>Paths semantic diffs ignore.</td></tr>
+  <tr><td>Folders</td><td>Where codec keeps its files (below), each with a copy button; forget the recent folders list.</td></tr>
+</table></div>
+<p>Changes apply at once to the editor, the Problems view, Helm output and the next CLI run.</p>
+
+<h2 id="where">Where codec keeps files<a class="anchor" href="#where">#</a></h2>
+<div class="table-wrap"><table>
+  <tr><th>What</th><th>Windows</th><th>macOS</th><th>Linux</th></tr>
+  <tr><td>Settings file</td><td><code>%AppData%\codec\settings.json</code></td><td><code>~/Library/Application Support/codec/settings.json</code></td><td><code>~/.config/codec/settings.json</code></td></tr>
+  <tr><td>Personal starters</td><td><code>%AppData%\codec\templates</code></td><td><code>…/codec/templates</code></td><td><code>~/.config/codec/templates</code></td></tr>
+  <tr><td>Schema cache</td><td><code>%LocalAppData%\codec\schemas</code></td><td><code>~/Library/Caches/codec/schemas</code></td><td><code>~/.cache/codec/schemas</code></td></tr>
+  <tr><td>Sample repository</td><td><code>%LocalAppData%\codec\sample</code></td><td><code>~/Library/Caches/codec/sample</code></td><td><code>~/.cache/codec/sample</code></td></tr>
+</table></div>
+<ul>
+  <li><code>CODEC_CONFIG_DIR</code> moves the settings folder (and starters with it) — useful to share lint rules with CI or to keep a portable setup.</li>
+  <li>In Docker, these live under <code>/home/nonroot</code>; mount a volume there to keep them.</li>
+  <li>The settings file is written atomically; if it is ever corrupt, codec starts with defaults and says so, and the next save replaces it.</li>
+</ul>
+
+<h2 id="browser">What your browser keeps<a class="anchor" href="#browser">#</a></h2>
+<p>Display preferences stay in the browser's local storage: open tabs, panel sizes, the sidebar state, expanded folders, the last route, the editor link choice. Clearing site data resets them; nothing else is lost.</p>
+
+<h2 id="never">What codec never stores<a class="anchor" href="#never">#</a></h2>
+<ul>
+  <li>Anything pasted into the tools (it may hold secrets).</li>
+  <li>What-if edits, what-if parameters and Compose variables — they last until you reset or close the tab.</li>
+  <li>Anything about your repositories beyond their paths in the recent list and your Helm profiles.</li>
+</ul>
+<nav class="pager" aria-label="Pages">
+<a class="prev" href="tools.html"><small>Previous</small>Encode, decode and logs</a>
+<a class="next" href="cli.html"><small>Next</small>CLI reference</a>
+</nav>
+<footer>codec is open source under the MIT licence. It runs on your machine and never writes to your files.</footer>
+</article>
+</main>
+</div>
+</body>
+</html>

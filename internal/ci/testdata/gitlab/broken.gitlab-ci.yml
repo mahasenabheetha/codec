@@ -1,0 +1,23 @@
+stages: [build, test]
+
+build:
+  stage: biuld
+  script: make
+
+test:
+  stage: test
+  extends: .nothere
+  needs: [bild, deploy]
+  script: go test
+
+deploy:
+  stage: test
+  script: !reference [.missing, script]
+
+.a:
+  extends: .b
+.b:
+  extends: .a
+loop:
+  extends: .a
+  script: x

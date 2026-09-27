@@ -1,0 +1,10 @@
+replicaCount: 3
+image:
+  tag: "1.27"
+extraArgs:
+  - --quiet
+resources: null
+db:
+  replicaCount: 5
+global:
+  env: prod

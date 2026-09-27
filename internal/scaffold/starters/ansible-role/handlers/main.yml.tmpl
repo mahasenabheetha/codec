@@ -1,0 +1,4 @@
+- name: Restart <% .name %>
+  ansible.builtin.service:
+    name: "{{ <% .name %>_package }}"
+    state: restarted

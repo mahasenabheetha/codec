@@ -1,0 +1,49 @@
+# Builds the api image.
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: build-api
+  labels:
+    app.kubernetes.io/name: build-api
+    workflows.argoproj.io/controller-instanceid: build-api
+spec:
+  entrypoint: build-api-main
+  serviceAccountName: argo-runner
+  arguments:
+    parameters:
+      - name: repo
+        value: https://git.example.com/build-api.git
+  templates:
+    - name: build-api-main
+      dag:
+        tasks:
+          - name: clone-build-api
+            template: clone
+          - name: build
+            depends: clone-build-api
+            templateRef:
+              name: build-api
+              template: kaniko
+            arguments:
+              parameters:
+                - name: dir
+                  value: "{{tasks.clone-build-api.outputs.parameters.dir}}"
+                - name: tag
+                  value: "build-api-{{workflow.uid}}"
+    - name: clone
+      container:
+        image: alpine/git:2.47.2
+        args: [clone, "{{workflow.parameters.repo}}"]
+    - name: kaniko
+      inputs:
+        parameters:
+          - name: dir
+          - name: tag
+      container:
+        image: gcr.io/kaniko-project/executor:v1.23.2
+        args:
+          - --context={{inputs.parameters.dir}}
+          - --destination=registry.example.com/build-api:{{inputs.parameters.tag}}
+        env:
+          - name: BUILD_API_DEBUG
+            value: "false"

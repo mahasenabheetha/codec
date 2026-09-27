@@ -1,0 +1,2 @@
+- src: git@example.com:team/galaxy_role.git
+  name: galaxy_role

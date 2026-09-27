@@ -1,0 +1,30 @@
+title: Argo CD Application
+category: Argo
+description: Deploys a folder of a Git repository (plain YAML, Kustomize or a Helm chart) to a cluster.
+fields:
+  - name: name
+    default: my-app
+    pattern: dns-label
+  - name: repoURL
+    label: Repository URL
+    default: https://github.com/example/deploy.git
+  - name: path
+    label: Path in the repository
+    default: apps/my-app
+  - name: revision
+    label: Target revision
+    default: HEAD
+  - name: destNamespace
+    label: Destination namespace
+    default: my-app
+    pattern: dns-label
+  - name: project
+    default: default
+    pattern: dns-label
+  - name: automated
+    label: Sync automatically
+    type: bool
+    default: "true"
+files:
+  - template: application.yaml.tmpl
+    path: <% .name %>.yaml

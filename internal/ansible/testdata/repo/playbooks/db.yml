@@ -1,0 +1,12 @@
+- hosts: db
+  gather_facts: false
+  tasks:
+    - include_role:
+        name: comon
+    - name: Check
+      command: pg_isready
+      notify: restart db
+    - include_role:
+        name: shared
+    - include_role:
+        name: galaxy_role

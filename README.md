@@ -1,172 +1,210 @@
-# codec
+<p align="center">
+  <img src="docs/assets/logo.svg" alt="" width="72" height="72">
+</p>
+<h1 align="center">codec</h1>
+<p align="center">
+  A read-only workbench for the YAML a DevOps engineer lives in —<br>
+  Kubernetes, Helm, Kustomize, Argo, CI pipelines, Compose and Ansible.<br>
+  One binary, a local web UI and a CLI, next to your editor.
+</p>
+<p align="center">
+  <a href="https://github.com/mahasenabheetha/codec/actions/workflows/ci.yml"><img src="https://github.com/mahasenabheetha/codec/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/mahasenabheetha/codec/releases"><img src="https://img.shields.io/github/v/release/mahasenabheetha/codec?sort=semver" alt="Release"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT License"></a>
+  <img src="https://img.shields.io/github/go-mod/go-version/mahasenabheetha/codec" alt="Go version">
+  <a href="https://mahasenabheetha.github.io/codec/"><img src="https://img.shields.io/badge/docs-site-7aa2ff" alt="Documentation"></a>
+</p>
+<p align="center">
+  <a href="https://mahasenabheetha.github.io/codec/"><b>Documentation</b></a> ·
+  <a href="https://github.com/mahasenabheetha/codec/releases">Download</a> ·
+  <a href="#quick-start">Quick start</a> ·
+  <a href="https://mahasenabheetha.github.io/codec/cli.html">CLI reference</a>
+</p>
 
-[![CI](https://github.com/mahasenabheetha/codec/actions/workflows/ci.yml/badge.svg)](https://github.com/mahasenabheetha/codec/actions/workflows/ci.yml)
+![The Helm view: values files layered, and a tooltip showing which file set replicaCount](docs/images/helm.png)
 
-A fast, single-binary toolbox for the transformations a DevOps engineer does all day: **base64 encode/decode, JSON pretty-print/minify/validate, JWT inspection, and Ansible log analysis** — available as a CLI, a clipboard watcher, and a local web app you can install like a desktop application.
+## Why codec
 
-Copy a Kubernetes secret, get readable JSON. Paste an Ansible `-vv` failure, get the root cause in a banner. Everything runs locally; nothing ever leaves your machine.
+Most of a platform engineer's day is spent *reading* YAML: what this
+chart renders with the prod values, which job runs after which, where an
+Ansible variable is really set, what an Argo step receives. The answers
+usually need a cluster, a pipeline run or a lot of scrolling. codec
+answers them from the files alone, on your machine.
+
+- **Understand, don't just edit** — see each file the way the tool that
+  runs it does: Helm's merged values, GitLab's effective job after
+  `extends`, Compose's merged services, Ansible's execution order.
+- **Try things safely** — edits are *what-if*: they change what you see,
+  never the file. Copy the result, or a patch `git apply` accepts.
+- **Explain every problem** — each finding says why it matters and how to
+  fix it, on the exact line.
+- **Private by design** — never writes to your files, no telemetry,
+  listens on `127.0.0.1` only. Works offline.
 
 ## Features
 
-- **Auto-detect** — paste anything; codec figures out whether it's JSON, base64, a JWT, or an Ansible task log and applies the obvious transformation. Base64 containing JSON is pretty-printed automatically.
-- **Explicit modes** — encode/decode (standard or URL-safe alphabet), pretty/minify/validate JSON, decode JWTs, parse Ansible logs. Explicit modes accept *any* text, no detection required.
-- **Ansible log analysis** — parses `-vv` task output into a structured view: status badge, probable-cause banner (the engine's diagnosis of *why* it failed), summary chips (`rc`, `msg`, timings) with problems highlighted, prettified commands (one `--flag` per line), severity-colored stderr/stdout, an errors-only filter, and support for loop items, retries, skipped tasks, and wrapper-prefixed logs (Packer, CI pipelines).
-- **Web UI** — `codec serve` hosts a local page with side-by-side input/output panes, segmented mode selector, transform-on-paste, click-to-jump JSON error positions, swap, and keyboard-complete flow. Installable as a PWA: it gets its own window and taskbar icon.
-- **Watch mode** — `codec watch` monitors the clipboard: copy JSON anywhere, paste base64; copy base64, paste decoded JSON.
-- **Clipboard flag** — `-c` on any CLI command also copies the output.
-- **Lenient input** — tolerates wrapped lines, whitespace, missing base64 padding, ANSI color codes in logs.
-- **Positioned JSON errors** — invalid JSON reports `line 3, column 8` and the web UI jumps your cursor there on click.
-- **Pipe-friendly** — data on stdout, commentary on stderr, meaningful exit codes; drops cleanly into CI jobs.
-- **Single static binary** — the web frontend is embedded via `go:embed`; ship one file, no runtime, no installer.
+<table>
+<tr>
+<td width="50%"><b>Helm</b><br>Render charts exactly like <code>helm template</code> with the embedded Helm 4 SDK — no helm install, no cluster. Layer values files, save profiles, and see which file set every value.<br><a href="https://mahasenabheetha.github.io/codec/helm.html">Helm guide →</a></td>
+<td width="50%"><img src="docs/images/helm.png" alt="Helm view"></td>
+</tr>
+<tr>
+<td><img src="docs/images/editor.png" alt="Editor"></td>
+<td><b>Workspace and editor</b><br>Open a repo read-only; every YAML file labelled by type. An editor that understands Helm, Jinja, GitHub and Argo expressions, with plain-English errors, hover, go to definition, schema completion and snippets.<br><a href="https://mahasenabheetha.github.io/codec/workspace.html">Workspace guide →</a></td>
+</tr>
+<tr>
+<td><b>Lint and schemas</b><br>YAML 1.1 traps, risky Kubernetes settings, removed APIs for your target version, and schema validation for Kubernetes, CRDs, GitHub Actions, GitLab CI, Azure Pipelines and Compose — in the editor, across the repo and in CI.<br><a href="https://mahasenabheetha.github.io/codec/lint.html">Lint guide →</a></td>
+<td><img src="docs/images/problems.png" alt="Workspace problems"></td>
+</tr>
+<tr>
+<td><img src="docs/images/resources.png" alt="Kubernetes relationship graph"></td>
+<td><b>Kubernetes and Kustomize</b><br>Manifests, renders and builds as cards, a relationship graph, an inventory and broken references. Kustomize builds in-process, identical to <code>kubectl kustomize</code>.<br><a href="https://mahasenabheetha.github.io/codec/kubernetes.html">Kubernetes guide →</a></td>
+</tr>
+<tr>
+<td><b>Argo</b><br>Workflows as graphs, every step's template and inputs resolved across files; <code>when</code> and <code>depends</code> evaluated; run-time values marked, never guessed. Argo CD apps rendered with their values.<br><a href="https://mahasenabheetha.github.io/codec/argo.html">Argo guide →</a></td>
+<td><img src="docs/images/argo.png" alt="Argo view"></td>
+</tr>
+<tr>
+<td><img src="docs/images/gitlab.png" alt="GitLab pipeline view"></td>
+<td><b>CI pipelines</b><br>GitHub Actions, GitLab CI and Azure Pipelines in execution order, every matrix combination, and each job's effective configuration with the origin of every line.<br><a href="https://mahasenabheetha.github.io/codec/ci.html">CI guide →</a></td>
+</tr>
+<tr>
+<td><b>Compose and Ansible</b><br>Compose files merged like <code>docker compose config</code>, variables from <code>.env</code>, services as a graph. Playbooks in the order Ansible runs them, roles in place, variables ranked by precedence.<br><a href="https://mahasenabheetha.github.io/codec/compose.html">Compose</a> · <a href="https://mahasenabheetha.github.io/codec/ansible.html">Ansible</a></td>
+<td><img src="docs/images/compose.png" alt="Compose view"></td>
+</tr>
+<tr>
+<td><img src="docs/images/compare.png" alt="Semantic compare"></td>
+<td><b>Compare and query</b><br>Diff by meaning — key and list order ignored, containers paired by name — including dev vs prod renders. Run jq over the whole repo and jump to each result.<br><a href="https://mahasenabheetha.github.io/codec/compare.html">Compare guide →</a></td>
+</tr>
+<tr>
+<td><b>New files and clones</b><br>Starters with a short form, linted and rendered before you copy them; your own team starters; clone a file under a new name with references renamed and everything else listed.<br><a href="https://mahasenabheetha.github.io/codec/new.html">Starters guide →</a></td>
+<td><img src="docs/images/new.png" alt="New file from a starter"></td>
+</tr>
+</table>
 
-## Install
+Plus the everyday tools: smart paste, base64, JSON, JWT claims and
+Ansible `-vv` failure analysis — [tools guide](https://mahasenabheetha.github.io/codec/tools.html).
 
-Download a prebuilt binary for Windows, Linux or macOS from [GitHub Releases](https://github.com/mahasenabheetha/codec/releases), unzip, and run. Check what you have with `codec version`.
+## Quick start
 
-Or build from source (Go 1.23+):
+Download the archive for your platform from
+[Releases](https://github.com/mahasenabheetha/codec/releases) (Windows,
+macOS, Linux; amd64 and arm64), unpack it, and run:
 
 ```bash
-git clone https://github.com/mahasenabheetha/codec.git
-cd codec
+codec serve --open --sample
+```
+
+Your browser opens codec on a small made-up repository with one of
+everything, landing on its rendered Helm chart. Then open your own:
+
+```bash
+codec serve --open --root path/to/your/repo
+```
+
+No installer, no admin rights. On Windows, SmartScreen may warn about the
+unsigned binary (*More info → Run anyway*); on macOS run
+`xattr -d com.apple.quarantine codec` once.
+[Getting started](https://mahasenabheetha.github.io/codec/getting-started.html)
+has the details.
+
+### Docker
+
+```bash
+docker run --rm -p 127.0.0.1:8765:8765 -v "$PWD:/work:ro" ghcr.io/mahasenabheetha/codec
+```
+
+Open http://localhost:8765. The repository is mounted read-only; add
+`-v codec-home:/home/nonroot` to keep settings between runs.
+
+### From source
+
+Go 1.26+ and Node.js 22+:
+
+```bash
+git clone https://github.com/mahasenabheetha/codec.git && cd codec
+npm --prefix frontend ci && npm --prefix frontend run build
 go build -o codec ./cmd/codec
 ```
 
-Cross-compile for other platforms:
+## CLI
+
+The UI and the CLI share one engine, so everything works in a terminal
+and in CI. Exit code 2 means findings.
 
 ```bash
-GOOS=windows GOARCH=amd64 go build -o codec.exe ./cmd/codec
-GOOS=linux   GOARCH=arm64 go build -o codec-arm  ./cmd/codec
+codec yaml lint deploy/ charts/ --k8s-version 1.31      # lint + schemas, a CI gate
+codec helm values ./charts/shop -f values-prod.yaml --provenance
+codec kustomize build overlays/prod                     # no kubectl needed
+codec ci job .gitlab-ci.yml deploy-prod                 # effective config, origin per line
+codec argo resolve argo/ -p environment=prod            # every step and its inputs
+codec yaml diff dev.yaml prod.yaml                      # by meaning
+codec yaml query '.spec.template.spec.containers[].image' .
 ```
 
-Or open the repo in VS Code with the Dev Containers extension — a ready-made Go environment is included under `.devcontainer/`.
+All commands: [CLI reference](https://mahasenabheetha.github.io/codec/cli.html).
 
-## Usage
+## How it works
 
-### Web UI
-
-```bash
-codec serve            # http://localhost:8765
-codec serve --port 9000
+```mermaid
+flowchart LR
+  B[Browser<br/>web UI] -->|127.0.0.1 + token| S[HTTP server]
+  T[Terminal / CI] --> C[CLI]
+  S --> E[Engine<br/>YAML, Helm, Kubernetes,<br/>Argo, CI, Compose, Ansible,<br/>lint, schemas]
+  C --> E
+  S --> W[workspace<br/>read-only]
+  S --> P[config]
+  S --> K[schema cache]
+  C --> W
+  W -.-> R[(Your repository)]
+  P -.-> U[(User profile)]
+  K -.-> X[(Public schemas<br/>optional)]
 ```
 
-Paste into the input pane — transformation runs instantly on paste. Pick an explicit mode from the segmented control when auto-detect isn't what you want. Shortcuts: Ctrl+Enter run, Alt+C copy, Esc clear.
+A single Go binary embeds the Svelte UI. The engine is pure — it only
+reasons about text it is given — and adapters do all input and output,
+so the UI and the CLI always agree. More in
+[Architecture](https://mahasenabheetha.github.io/codec/architecture.html)
+and [Flows](https://mahasenabheetha.github.io/codec/flows.html).
 
-**Install as an app:** in Edge, menu → Apps → *Install this site as an app* (Chrome: install icon in the address bar). codec gets its own window, taskbar icon, and Start-menu entry. Note the server (`codec serve`) must be running for the app to work — there is deliberately no offline cache, because the "site" *is* the local binary.
+## Documentation
 
-The server binds to `127.0.0.1` only: nothing on your network can reach it.
+- [Getting started](https://mahasenabheetha.github.io/codec/getting-started.html) — install, the sample, your repo, Docker
+- Guides for every view: [workspace](https://mahasenabheetha.github.io/codec/workspace.html),
+  [Helm](https://mahasenabheetha.github.io/codec/helm.html),
+  [lint](https://mahasenabheetha.github.io/codec/lint.html),
+  [Kubernetes](https://mahasenabheetha.github.io/codec/kubernetes.html),
+  [Argo](https://mahasenabheetha.github.io/codec/argo.html),
+  [CI](https://mahasenabheetha.github.io/codec/ci.html),
+  [Compose](https://mahasenabheetha.github.io/codec/compose.html),
+  [Ansible](https://mahasenabheetha.github.io/codec/ansible.html),
+  [compare and query](https://mahasenabheetha.github.io/codec/compare.html),
+  [new files](https://mahasenabheetha.github.io/codec/new.html),
+  [tools](https://mahasenabheetha.github.io/codec/tools.html)
+- [CLI reference](https://mahasenabheetha.github.io/codec/cli.html) ·
+  [keyboard shortcuts](https://mahasenabheetha.github.io/codec/shortcuts.html) ·
+  [troubleshooting](https://mahasenabheetha.github.io/codec/troubleshooting.html)
+- [Security and privacy](https://mahasenabheetha.github.io/codec/security.html) ·
+  [design language](https://mahasenabheetha.github.io/codec/design.html)
 
-### Ansible log analysis
+The site's source is in [`docs/`](docs/) (plain HTML, also readable offline).
 
-Paste a failed (or successful) `ansible -vv` task block into the web UI — auto-detect handles it — or pipe it through the CLI:
+## Contributing
 
-```bash
-codec auto < failed-task.log
-```
+Issues and pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
+Contributors and AI agents start at [AGENTS.md](AGENTS.md); how the
+project is built and changed is in [design/](design/README.md).
+Report security problems privately: [SECURITY.md](SECURITY.md).
+Changes are listed in [CHANGELOG.md](CHANGELOG.md).
 
-You get: probable cause up top, `rc`/`msg` chips, the command prettified one flag per line, and stderr with SEVERE/ERROR lines highlighted. Lines that declare their own level (`- INFO:`) are trusted over keyword guessing, so an INFO line mentioning "not found" stays neutral.
+## License
 
-### Auto-detect
-
-```bash
-$ codec auto '{"name":"mahasen"}'
-detected: json
-eyJuYW1lIjoibWFoYXNlbiJ9
-
-$ codec auto eyJuYW1lIjoibWFoYXNlbiJ9
-detected: base64
-{
-  "name": "mahasen"
-}
-```
-
-### Base64 / JSON / JWT
-
-```bash
-codec b64 encode 'any text at all'     # --url for the URL-safe alphabet
-codec b64 decode aGVsbG8=              # tolerates missing padding
-codec json pretty '{"a":{"b":1}}'      # --indent to customize
-codec json min < big.json
-codec json validate '{"a":}'           # exit 1 + "line 1, column 6"
-codec jwt decode "$TOKEN"              # does NOT verify the signature
-```
-
-### Watch mode
-
-```bash
-codec watch                # poll every 300ms; Ctrl+C to stop
-codec watch --interval 1s
-```
-
-While running, anything recognizable you copy is transformed and placed back on the clipboard. Content it doesn't recognize is left untouched. Run it deliberately during batch work — while active, *all* recognizable clipboard content is transformed.
-
-### PowerShell note
-
-Windows PowerShell 5.1 strips inner double quotes from arguments to native executables. Pipe instead: `'{"a":1}' | .\codec.exe auto`. PowerShell 7+ doesn't have this problem.
-
-## Exit codes
-
-| Code | Meaning |
-|------|---------|
-| 0 | success |
-| 1 | invalid input, unrecognized content, or usage error |
-
-Usable as a CI gate:
-
-```yaml
-validate-payloads:
-  script:
-    - codec json validate < payload.json
-```
-
-## Architecture
-
-```
-cmd/codec/          main() — 5 lines, calls the CLI layer
-internal/cli/       presentation: cobra commands, flags, stdin/stdout,
-                    clipboard, exit codes
-internal/web/       presentation: HTTP handlers, JSON API, embedded
-                    frontend (vanilla JS, zero dependencies, no build step)
-internal/codec/     the engine: base64, JSON, JWT, ansible parsing,
-                    detection, mode dispatch. Pure functions, no I/O,
-                    fully unit-tested, no knowledge of how it's invoked
-```
-
-The engine defines *what things are* (including per-line severity of log output); the presentation layers decide what that looks like (colors, exit codes, HTTP statuses). New front-ends reuse the engine unchanged — that's how the CLI, web UI, and watch mode share one implementation. `internal/` is compiler-enforced private.
-
-The API is one endpoint: `POST /api/transform` with `{"input", "mode", "urlSafe"}` returning `{"output", "kind"}` plus a structured `task` object for Ansible results. Unknown mode → 400; untransformable input → 422 with `line`/`column` for JSON syntax errors.
-
-## Development
-
-```bash
-go test ./...        # unit tests, incl. real-log ansible fixtures
-go vet ./...
-go build ./...
-```
-
-Tests are table-driven; the Ansible parser's test suite is built from real logs, and every parsing bug fixed becomes a named regression test. CI runs vet, tests, build, and a Windows cross-compile on every push and PR. Changes go through pull requests — no direct pushes to `main`.
-
-Design notes, conventions and plans for contributors and AI agents live in [design/](design/README.md).
-
-### Versioning and releases
-
-codec follows [Semantic Versioning](https://semver.org/); every release is listed in [CHANGELOG.md](CHANGELOG.md). A release is cut by tagging a commit that is already on `main`:
-
-```bash
-git tag -a v1.2.3 -m "codec v1.2.3"
-git push origin v1.2.3
-```
-
-The tag triggers the Release workflow, which runs vet and tests, then uses [GoReleaser](https://goreleaser.com/) to build Linux, Windows and macOS binaries with the version stamped in, and publishes them with checksums as a GitHub Release. Tags with a suffix (`v2.0.0-alpha.1`) are published as pre-releases. Local builds report `dev` plus their git commit.
-
-## Roadmap
-
-- [x] Stage 1 — CLI with auto-detect, clipboard flag, watch mode
-- [x] Stage 2 — local web UI: explicit modes, Ansible log analysis, PWA
-- [ ] Stage 3 — native desktop app (Wails, reusing the web UI)
-- [ ] Stage 4 — system tray + global hotkey + on-demand clipboard transform
-
-Parked ideas: Kubernetes Secret manifest decoder, JWT claims view with expiry countdown, recursive decode (base64-in-base64, gzip), multi-task Ansible runs with PLAY RECAP scoreboard, duration-gap timing analysis, user-defined error-hint rules, copy-as-markdown error summaries, URL/hex/YAML codecs, JSON diff.
+[MIT](LICENSE) © Mahasen Abheetha
 
 ## Acknowledgements
 
-This project was developed as a hands-on Go learning journey by [Mahasen Abheetha](https://github.com/mahasenabheetha), with development assistance from **Claude (Anthropic)** used as a pair-programming and teaching tool. Design decisions, code review, and explanations were AI-assisted; the learning was not.
+This project was developed as a hands-on Go learning journey by
+[Mahasen Abheetha](https://github.com/mahasenabheetha), with development
+assistance from **Claude (Anthropic)** used as a pair-programming and
+teaching tool. Design decisions, code review, and explanations were
+AI-assisted; the learning was not.

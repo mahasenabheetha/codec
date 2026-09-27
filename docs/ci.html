@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CI pipelines · codec docs</title>
+<meta name="description" content="GitHub Actions, GitLab CI and Azure Pipelines in execution order, with each job's effective configuration and where every line came from.">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<input type="checkbox" id="menu" class="menu-toggle" aria-hidden="true">
+<header class="top">
+  <label for="menu" class="menu-button" aria-label="Menu">&#9776;</label>
+  <a class="brand" href="index.html"><img src="assets/logo.svg" alt=""> codec <span class="tag">docs</span></a>
+  <span class="spacer"></span>
+  <nav class="links" aria-label="Site">
+    <a href="getting-started.html" class="hide-sm">Get started</a>
+    <a href="cli.html" class="hide-sm">CLI</a>
+    <a href="https://github.com/mahasenabheetha/codec/releases">Download</a>
+    <a href="https://github.com/mahasenabheetha/codec">GitHub</a>
+  </nav>
+</header>
+<div class="layout">
+<nav class="side" aria-label="Documentation">
+<h4>Start</h4>
+<ul>
+<li><a href="index.html">Overview</a></li>
+<li><a href="getting-started.html">Getting started</a></li>
+</ul>
+<h4>Using codec</h4>
+<ul>
+<li><a href="workspace.html">Workspace and editor</a></li>
+<li><a href="helm.html">Helm</a></li>
+<li><a href="lint.html">Lint and schemas</a></li>
+<li><a href="kubernetes.html">Kubernetes and Kustomize</a></li>
+<li><a href="argo.html">Argo</a></li>
+<li><a href="ci.html" aria-current="page">CI pipelines</a></li>
+<li><a href="compose.html">Compose</a></li>
+<li><a href="ansible.html">Ansible</a></li>
+<li><a href="compare.html">Compare and query</a></li>
+<li><a href="new.html">New files and clones</a></li>
+<li><a href="tools.html">Encode, decode and logs</a></li>
+<li><a href="settings.html">Settings and your data</a></li>
+</ul>
+<h4>Reference</h4>
+<ul>
+<li><a href="cli.html">CLI reference</a></li>
+<li><a href="shortcuts.html">Keyboard shortcuts</a></li>
+<li><a href="troubleshooting.html">Troubleshooting</a></li>
+</ul>
+<h4>How it works</h4>
+<ul>
+<li><a href="architecture.html">Architecture</a></li>
+<li><a href="flows.html">Flows</a></li>
+<li><a href="security.html">Security and privacy</a></li>
+<li><a href="design.html">Design language</a></li>
+<li><a href="development.html">Development</a></li>
+</ul>
+</nav>
+<main>
+<article class="content">
+<h1>CI pipelines</h1>
+<p class="lead">The Pipeline view shows a GitHub Actions workflow, a GitLab CI pipeline or an Azure pipeline as it will run: jobs in execution order, every matrix combination, and each job's effective configuration after includes, templates and inheritance — every line saying where it came from.</p>
+
+<figure>
+  <img src="images/gitlab.png" alt="The sample's GitLab pipeline: build, test, deploy-dev and deploy-prod as a graph, and the build job's effective configuration with default lines marked" width="1400" height="820">
+  <figcaption>The sample's <code>.gitlab-ci.yml</code>: the included template file is read, jobs are drawn in <code>needs</code> order, and lines inherited from <code>default:</code> are labelled.</figcaption>
+</figure>
+
+<h2 id="common">In every pipeline<a class="anchor" href="#common">#</a></h2>
+<ul>
+  <li><strong>Graph</strong> — jobs as nodes in real execution order (<code>needs</code>, stage order, <code>dependsOn</code>), deployments and manual jobs coloured. Or a <strong>list</strong> by stage.</li>
+  <li><strong>Job details</strong> — its steps or script, what it waits for, rules and conditions, runner or image, and its <em>effective configuration</em>: the job as the CI system will run it, each line annotated with its origin (the job itself, <code>extends .base</code>, <code>default</code>, global variables, <code>!reference</code>, a template file).</li>
+  <li><strong>Includes and templates</strong> — local files are read and followed; remote ones (projects, URLs, components, marketplace actions) are listed as not read. codec never fetches anything.</li>
+  <li><strong>Problems</strong> — unknown jobs and templates, missing files, <code>needs</code> across stages that can't work, undeclared inputs and parameters, and more.</li>
+  <li><strong>Editor</strong> — jobs, stages and steps in the outline; hover and go to definition for <code>needs</code>, <code>extends</code>, <code>!reference</code>, local includes, <code>uses:</code>, <code>template:</code>, <code>dependsOn</code> and <code>${{ }}</code> contexts; Azure <code>$(var)</code>, <code>$[ ]</code> and GitLab <code>$[[ inputs ]]</code> highlighted.</li>
+</ul>
+
+<h2 id="github">GitHub Actions<a class="anchor" href="#github">#</a></h2>
+<figure>
+  <img src="images/ci.png" alt="The sample's GitHub workflow: triggers, the reusable workflow it calls, and the jobs chart and test leading to image" width="1400" height="820" loading="lazy">
+  <figcaption>Triggers, the reusable workflow <code>test.yml</code> read in place, and jobs in <code>needs</code> order.</figcaption>
+</figure>
+<ul>
+  <li><strong>Triggers</strong> summarised: events, branches, paths, schedules, manual inputs.</li>
+  <li><strong>Matrix</strong> — every combination, with <code>include</code> and <code>exclude</code> applied and marked, so you can see exactly which jobs a push starts.</li>
+  <li><strong>Reusable workflows</strong> in the repository (<code>uses: ./.github/workflows/x.yml</code>) run in the caller's place; the inputs passed are checked against the ones declared.</li>
+  <li><strong>Composite actions</strong> in the repository show their steps.</li>
+  <li><strong>Expressions</strong>: <code>${{ inputs.x }}</code>, <code>env</code>, <code>matrix</code>, <code>needs.*.outputs</code> and <code>steps</code> contexts are checked; secrets are shown by name only.</li>
+</ul>
+
+<h2 id="gitlab">GitLab CI<a class="anchor" href="#gitlab">#</a></h2>
+<ul>
+  <li><code>include: local</code> followed, globs included; project, remote, template and component includes listed.</li>
+  <li>Anchors and merge keys, <code>!reference</code>, <code>extends</code> (multiple levels), and <code>default:</code> with <code>inherit:</code> merged the way GitLab does.</li>
+  <li><code>parallel: matrix</code> jobs named the way GitLab names them; child pipelines (<code>trigger: include</code>) shown.</li>
+  <li>Global variables, workflow rules and job rules shown with each job.</li>
+</ul>
+<pre><code>codec ci job .gitlab-ci.yml deploy-prod
+<span class="o"># deploy-prod  .gitlab-ci.yml:42
+# extends .deploy
+stage: deploy                  # ← extends .deploy  ci/gitlab-templates.yml:12
+image: alpine/helm:3.19.0      # ← extends .deploy  ci/gitlab-templates.yml:13
+needs:                         # ← extends .deploy  ci/gitlab-templates.yml:14
+  - test
+script:                        # ← extends .deploy  ci/gitlab-templates.yml:17
+  - helm upgrade --install $APP_NAME charts/shop -f charts/shop/values-$ENVIRONMENT.yaml
+variables:
+  APP_NAME: shop               # ← global variables
+  ENVIRONMENT: prod
+rules:
+  - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    when: manual
+interruptible: true            # ← default</span></code></pre>
+
+<h2 id="azure">Azure Pipelines<a class="anchor" href="#azure">#</a></h2>
+<ul>
+  <li>Local <code>template:</code> files (steps, jobs, stages, variables) inserted with their parameters; <code>extends:</code> templates.</li>
+  <li><code>${{ if }}</code>, <code>${{ each }}</code> and <code>${{ parameters.x }}</code> evaluated. Set <strong>what-if parameters</strong> in the view (or <code>-p</code> on the CLI) to see a different expansion — for example the sample's <code>environments</code> list producing one deploy stage per entry.</li>
+  <li>Stages, jobs and deployment jobs with <code>dependsOn</code> and <code>condition</code>.</li>
+</ul>
+
+<h2 id="limits">What codec can't know<a class="anchor" href="#limits">#</a></h2>
+<p>codec reads files, it doesn't run pipelines. Runtime values (variables from the CI server, secrets, outputs of earlier jobs) stay as written. Rules that depend on them are shown, not evaluated. Remote includes and marketplace actions are listed but not read.</p>
+
+<h2 id="cli">From the command line<a class="anchor" href="#cli">#</a></h2>
+<pre><code>codec ci jobs .gitlab-ci.yml                       <span class="c"># stages and jobs in execution order; exit 2 on problems</span>
+<span class="o">stage deploy
+  deploy-dev  · alpine/helm:3.19.0
+      after test
+      extends .deploy
+  deploy-prod  · alpine/helm:3.19.0
+      after test
+      extends .deploy
+      rule if $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH → manual</span>
+codec ci job .gitlab-ci.yml deploy-prod            <span class="c"># effective config with origins</span>
+codec ci jobs .github/workflows/ci.yml --json
+codec ci graph azure-pipelines.yml -p runTests=false --format dot | dot -Tsvg &gt; ci.svg</code></pre>
+<p>Includes and templates are read from the repository: the folder holding <code>.git</code>, or <code>--root</code>.</p>
+<nav class="pager" aria-label="Pages">
+<a class="prev" href="argo.html"><small>Previous</small>Argo</a>
+<a class="next" href="compose.html"><small>Next</small>Compose</a>
+</nav>
+<footer>codec is open source under the MIT licence. It runs on your machine and never writes to your files.</footer>
+</article>
+</main>
+</div>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ansible · codec docs</title>
+<meta name="description" content="Ansible playbooks in the order Ansible runs them, roles opened in place, variables ranked by precedence, inventories as groups and hosts.">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<input type="checkbox" id="menu" class="menu-toggle" aria-hidden="true">
+<header class="top">
+  <label for="menu" class="menu-button" aria-label="Menu">&#9776;</label>
+  <a class="brand" href="index.html"><img src="assets/logo.svg" alt=""> codec <span class="tag">docs</span></a>
+  <span class="spacer"></span>
+  <nav class="links" aria-label="Site">
+    <a href="getting-started.html" class="hide-sm">Get started</a>
+    <a href="cli.html" class="hide-sm">CLI</a>
+    <a href="https://github.com/mahasenabheetha/codec/releases">Download</a>
+    <a href="https://github.com/mahasenabheetha/codec">GitHub</a>
+  </nav>
+</header>
+<div class="layout">
+<nav class="side" aria-label="Documentation">
+<h4>Start</h4>
+<ul>
+<li><a href="index.html">Overview</a></li>
+<li><a href="getting-started.html">Getting started</a></li>
+</ul>
+<h4>Using codec</h4>
+<ul>
+<li><a href="workspace.html">Workspace and editor</a></li>
+<li><a href="helm.html">Helm</a></li>
+<li><a href="lint.html">Lint and schemas</a></li>
+<li><a href="kubernetes.html">Kubernetes and Kustomize</a></li>
+<li><a href="argo.html">Argo</a></li>
+<li><a href="ci.html">CI pipelines</a></li>
+<li><a href="compose.html">Compose</a></li>
+<li><a href="ansible.html" aria-current="page">Ansible</a></li>
+<li><a href="compare.html">Compare and query</a></li>
+<li><a href="new.html">New files and clones</a></li>
+<li><a href="tools.html">Encode, decode and logs</a></li>
+<li><a href="settings.html">Settings and your data</a></li>
+</ul>
+<h4>Reference</h4>
+<ul>
+<li><a href="cli.html">CLI reference</a></li>
+<li><a href="shortcuts.html">Keyboard shortcuts</a></li>
+<li><a href="troubleshooting.html">Troubleshooting</a></li>
+</ul>
+<h4>How it works</h4>
+<ul>
+<li><a href="architecture.html">Architecture</a></li>
+<li><a href="flows.html">Flows</a></li>
+<li><a href="security.html">Security and privacy</a></li>
+<li><a href="design.html">Design language</a></li>
+<li><a href="development.html">Development</a></li>
+</ul>
+</nav>
+<main>
+<article class="content">
+<h1>Ansible</h1>
+<p class="lead">The Ansible view lays out a playbook in the order Ansible runs it — facts, pre_tasks, roles with their dependencies, tasks, post_tasks and handler flushes — with roles and includes opened in place, and tells you where every variable is defined.</p>
+
+<figure>
+  <img src="images/ansible.png" alt="The sample playbook: gathering facts, pre_tasks, the web role's tasks inline, tasks, and the handler, with roles, variables and files read listed on the left" width="1400" height="820">
+  <figcaption><code>ansible/site.yml</code>: the <code>web</code> role's tasks appear where Ansible runs them, and the variables list shows every definition.</figcaption>
+</figure>
+
+<h2 id="order">Execution order<a class="anchor" href="#order">#</a></h2>
+<p>For each play, codec lists what runs, in order:</p>
+<ol>
+  <li>Gathering facts (unless <code>gather_facts: false</code>).</li>
+  <li><code>pre_tasks</code>, then handlers they notified.</li>
+  <li><code>roles</code>, each role's <code>meta/main.yml</code> dependencies first, with the role's tasks inline.</li>
+  <li><code>tasks</code>, including <code>import_tasks</code>, <code>include_tasks</code>, <code>import_role</code> and <code>include_role</code> opened in place.</li>
+  <li><code>post_tasks</code>, and the handler flushes Ansible performs between sections.</li>
+</ol>
+<p>Each task shows its module, <code>when</code>, loops, tags and the handlers it notifies; select it for its full definition and the file it lives in.</p>
+
+<h2 id="roles">Finding roles<a class="anchor" href="#roles">#</a></h2>
+<p>A role is looked for where Ansible would look, in this order: <code>roles/</code> next to the playbook, <code>roles_path</code> from the nearest <code>ansible.cfg</code>, <code>roles/</code> in folders up to the repository root, then a folder of that name. If it is only found in another repository inside the open folder, it is read from there and marked. A role that isn't found is assumed to be installed at run time (from Galaxy or a collection) and noted, naming the requirements file that lists it if there is one.</p>
+
+<h2 id="variables">Variables and precedence<a class="anchor" href="#variables">#</a></h2>
+<p>Select a variable to see every place it is defined, highest precedence first, using Ansible's precedence list — role defaults (lowest), inventory and <code>group_vars</code>/<code>host_vars</code>, play <code>vars</code> and <code>vars_files</code>, role vars, block and task vars, <code>set_fact</code>, role params, extra vars (highest). The winning definition is marked.</p>
+<p><code>group_vars</code> and <code>host_vars</code> are collected from the repository without knowing which hosts a run will target, and codec says so. In the editor, hover any <code>{{ variable }}</code> for the same list, or go to its definition.</p>
+
+<h2 id="inventory">Inventories<a class="anchor" href="#inventory">#</a></h2>
+<p>YAML inventories open as a tree of groups (with <code>children</code>) and hosts, with the variables set at each level. Hosts written without settings (<code>web-1.example.com:</code>) are fine — that's how Ansible documents them.</p>
+
+<h2 id="log">From a failed run to the task<a class="anchor" href="#log">#</a></h2>
+<p>The <a href="tools.html#ansible-log">Ansible log tool</a> analyses <code>-vv</code> output. When a folder is open, its <strong>Defined in</strong> link finds the failed task's definition — by the task path in the log (role and file), otherwise by name, matching <code>{{ }}</code> in names against any value.</p>
+
+<h2 id="editor">In the editor<a class="anchor" href="#editor">#</a></h2>
+<p>Outline in execution order, Jinja expressions tinted, hover and go to definition for variables and <code>when:</code> expressions, roles, handlers (<code>notify</code> → the handler or its <code>listen</code> topic), included files and templates. Problems: roles and included files that can't be found (with "did you mean"), and a <code>notify</code> that no handler of the play is named or listens to.</p>
+
+<h2 id="cli">From the command line<a class="anchor" href="#cli">#</a></h2>
+<pre><code>codec ansible plays ansible/site.yml
+<span class="o">play Configure web servers  · hosts webservers
+  (gathering facts)
+  pre_tasks:
+    Update the package cache  · apt
+  roles:
+    role web
+      Install {{ web_package }}  · package  → notifies Restart web
+      Start {{ web_package }}  · service
+  tasks:
+    Deploy shop {{ shop_release }}  · copy  → notifies Restart web
+  (run notified handlers)</span>
+codec ansible vars ansible/site.yml web_package      <span class="c"># where it is defined, highest precedence first</span>
+<span class="o">web_package
+  role default (web)         nginx  ansible/roles/web/defaults/main.yml:2</span>
+codec ansible task "web : Restart web"               <span class="c"># a task name from a log → its definition</span>
+codec ansible inventory ansible/inventory.yml</code></pre>
+<nav class="pager" aria-label="Pages">
+<a class="prev" href="compose.html"><small>Previous</small>Compose</a>
+<a class="next" href="compare.html"><small>Next</small>Compare and query</a>
+</nav>
+<footer>codec is open source under the MIT licence. It runs on your machine and never writes to your files.</footer>
+</article>
+</main>
+</div>
+</body>
+</html>

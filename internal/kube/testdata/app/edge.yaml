@@ -1,0 +1,46 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: web
+spec:
+  ingressClassName: nginx
+  tls:
+    - {hosts: [web.example.com], secretName: web-tls}
+  rules:
+    - host: web.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: {name: web, port: {number: 80}}
+          - path: /api
+            pathType: Prefix
+            backend:
+              service: {name: web, port: {number: 9090}}
+          - path: /old
+            pathType: Prefix
+            backend:
+              service: {name: legacy, port: {name: http}}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: web
+spec:
+  scaleTargetRef: {apiVersion: apps/v1, kind: Deployment, name: web}
+  minReplicas: 3
+  maxReplicas: 10
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: web-read
+subjects:
+  - {kind: ServiceAccount, name: web}
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: ClusterRole, name: view}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: web

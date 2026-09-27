@@ -1,0 +1,57 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: web-prod
+  namespace: argocd
+spec:
+  project: platform
+  source:
+    repoURL: https://git.example.com/deploy.git
+    path: charts/web
+    targetRevision: main
+    helm:
+      releaseName: web
+      valueFiles:
+        - values-prod.yaml
+        - ../../env/prod/web.yaml
+      parameters:
+        - name: image.tag
+          value: "1.27"
+      values: |
+        replicaCount: 3
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: web
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: web-envs
+spec:
+  generators:
+    - matrix:
+        generators:
+          - git:
+              repoURL: https://git.example.com/deploy.git
+              directories:
+                - path: env/*
+          - list:
+              elements:
+                - cluster: east
+                - cluster: west
+  template:
+    metadata:
+      name: "web-{{path.basename}}-{{cluster}}"
+    spec:
+      project: platform
+      source:
+        repoURL: https://git.example.com/deploy.git
+        path: kustomize/web
+        kustomize: {}
+      destination:
+        name: "{{cluster}}"
+        namespace: web

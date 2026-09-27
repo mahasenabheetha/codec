@@ -1,0 +1,43 @@
+trigger:
+  branches:
+    include:
+      - <% yaml .branch %>
+
+pr:
+  branches:
+    include:
+      - <% yaml .branch %>
+
+parameters:
+  - name: deploy
+    displayName: Deploy after the build
+    type: boolean
+    default: true
+
+variables:
+  buildConfiguration: Release
+
+pool:
+  vmImage: <% .vmImage %>
+
+stages:
+  - stage: Build
+    jobs:
+      - job: Build
+        steps:
+          - checkout: self
+          - script: echo "Building $(buildConfiguration)"
+            displayName: Build
+
+  - stage: Deploy
+    dependsOn: Build
+    condition: and(succeeded(), ${{ parameters.deploy }})
+    jobs:
+      - deployment: Deploy
+        environment: <% yaml .environment %>
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - script: echo "Deploying to <% .environment %>"
+                  displayName: Deploy

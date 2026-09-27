@@ -1,0 +1,134 @@
+/*
+ * Design tokens — the single source of truth for how codec looks.
+ * Components use these variables only; never hard-code colors, sizes
+ * or fonts. Values mirror design/design-language.md.
+ */
+:root {
+  color-scheme: dark;
+
+  /* Surfaces: depth comes from these steps, not from shadows. */
+  --bg-0: #0b0d12; /* app background, rail */
+  --bg-1: #10131a; /* panels */
+  --bg-2: #161a23; /* editor, cards */
+  --bg-3: #1d2230; /* hover, inputs */
+  --bg-4: #252b3a; /* pressed, selected-on-hover */
+
+  --border: #252b38;
+  --border-strong: #323a4b;
+
+  /* Text */
+  --fg-0: #e6e8ee; /* primary */
+  --fg-1: #a9b0bf; /* secondary */
+  --fg-2: #878fa0; /* muted; still 4.5:1 on bg-0 to bg-3 */
+
+  /* Accent */
+  --accent: #7aa2ff;
+  --accent-hover: #93b4ff;
+  --accent-soft: rgb(122 162 255 / 0.14);
+  --accent-fg: #0b0d12; /* text on solid accent */
+
+  /* Status */
+  --ok: #3fb971;
+  --ok-soft: rgb(63 185 113 / 0.14);
+  --warn: #e5b449;
+  --warn-soft: rgb(229 180 73 / 0.14);
+  --err: #f06b75;
+  --err-soft: rgb(240 107 117 / 0.14);
+  --err-border: rgb(240 107 117 / 0.35);
+  --info: #5ab0ff;
+  --info-soft: rgb(90 176 255 / 0.14);
+
+  /* Syntax (CodeMirror theme and log views) */
+  --syn-key: #8fb4ff;
+  --syn-string: #a8d68a;
+  --syn-number: #f2a66b;
+  --syn-bool: #d59bf6;
+  --syn-comment: #7a8497; /* 4.6:1 on bg-2 */
+  --syn-anchor: #4fd1c5;
+  --syn-tag: #e5b449;
+  --syn-punct: var(--fg-2);
+  --syn-expr-tpl: #f7c873;
+  --syn-expr-tpl-bg: rgb(247 200 115 / 0.08);
+  --syn-expr-rt: #ff9ecf;
+  --syn-expr-rt-bg: rgb(255 158 207 / 0.08);
+
+  /* Diff lines (compare view) */
+  --diff-add-bg: rgb(63 185 113 / 0.12);
+  --diff-del-bg: rgb(240 107 117 / 0.12);
+  --diff-chg-bg: rgb(229 180 73 / 0.11);
+
+  /* Brand colours for file-type logos, lightened where the official
+     colour is too dark on --bg-1 (Helm navy, Terraform purple). */
+  --brand-kubernetes: #5b8def;
+  --brand-helm: #8f9cf5;
+  --brand-argo: #ef7b4d;
+  --brand-github: #4f9bff;
+  --brand-gitlab: #fc6d26;
+  --brand-azure: #3a9be8;
+  --brand-ansible: #f25f5c;
+  --brand-docker: #3aa3f0;
+  --brand-terraform: #9b8cff;
+  --brand-json: var(--syn-number);
+
+  /* Editor surfaces (CodeMirror) */
+  --editor-active-line: rgb(255 255 255 / 0.025);
+  --editor-selection: rgb(122 162 255 / 0.16);
+  --editor-selection-focused: rgb(122 162 255 / 0.26);
+  --editor-selection-match: rgb(122 162 255 / 0.12);
+  --editor-search-match: rgb(229 180 73 / 0.22);
+  --editor-search-match-current: rgb(229 180 73 / 0.45);
+
+  /* Space: 4px scale */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-12: 48px;
+
+  /* Radius */
+  --r-sm: 4px;
+  --r-md: 6px;
+  --r-lg: 10px;
+  --r-full: 999px;
+
+  /* Type */
+  --font-ui: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, 'Cascadia Code', 'SF Mono', Consolas, monospace;
+  --fs-xs: 11px;
+  --fs-sm: 12px;
+  --fs-md: 13px;
+  --fs-lg: 14px;
+  --fs-xl: 16px;
+  --fs-2xl: 20px;
+  --fs-3xl: 28px;
+  --lh: 1.5;
+  --lh-code: 1.55;
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+
+  /* Layout */
+  --rail-collapsed: 48px;
+  --rail-expanded: 220px;
+  --tabbar-h: 38px;
+  --statusbar-h: 26px;
+  --control-h: 28px;
+  --control-h-sm: 24px;
+
+  /* Elevation (popovers and dialogs only) */
+  --shadow-pop: 0 8px 28px rgb(0 0 0 / 0.45), 0 0 0 1px var(--border-strong);
+  --overlay: rgb(5 6 9 / 0.6);
+
+  /* Motion */
+  --dur: 120ms;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+
+  /* Layers */
+  --z-sticky: 10;
+  --z-popover: 50;
+  --z-dialog: 60;
+  --z-toast: 70;
+}

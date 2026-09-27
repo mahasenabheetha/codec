@@ -1,0 +1,4 @@
+# Lowest precedence: anything else (inventory, play vars, -e) wins.
+web_package: nginx
+web_enabled: true
+

@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Compose · codec docs</title>
+<meta name="description" content="A Compose project as docker compose config sees it: files merged with the Compose rules, variables from .env, services as a graph.">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<input type="checkbox" id="menu" class="menu-toggle" aria-hidden="true">
+<header class="top">
+  <label for="menu" class="menu-button" aria-label="Menu">&#9776;</label>
+  <a class="brand" href="index.html"><img src="assets/logo.svg" alt=""> codec <span class="tag">docs</span></a>
+  <span class="spacer"></span>
+  <nav class="links" aria-label="Site">
+    <a href="getting-started.html" class="hide-sm">Get started</a>
+    <a href="cli.html" class="hide-sm">CLI</a>
+    <a href="https://github.com/mahasenabheetha/codec/releases">Download</a>
+    <a href="https://github.com/mahasenabheetha/codec">GitHub</a>
+  </nav>
+</header>
+<div class="layout">
+<nav class="side" aria-label="Documentation">
+<h4>Start</h4>
+<ul>
+<li><a href="index.html">Overview</a></li>
+<li><a href="getting-started.html">Getting started</a></li>
+</ul>
+<h4>Using codec</h4>
+<ul>
+<li><a href="workspace.html">Workspace and editor</a></li>
+<li><a href="helm.html">Helm</a></li>
+<li><a href="lint.html">Lint and schemas</a></li>
+<li><a href="kubernetes.html">Kubernetes and Kustomize</a></li>
+<li><a href="argo.html">Argo</a></li>
+<li><a href="ci.html">CI pipelines</a></li>
+<li><a href="compose.html" aria-current="page">Compose</a></li>
+<li><a href="ansible.html">Ansible</a></li>
+<li><a href="compare.html">Compare and query</a></li>
+<li><a href="new.html">New files and clones</a></li>
+<li><a href="tools.html">Encode, decode and logs</a></li>
+<li><a href="settings.html">Settings and your data</a></li>
+</ul>
+<h4>Reference</h4>
+<ul>
+<li><a href="cli.html">CLI reference</a></li>
+<li><a href="shortcuts.html">Keyboard shortcuts</a></li>
+<li><a href="troubleshooting.html">Troubleshooting</a></li>
+</ul>
+<h4>How it works</h4>
+<ul>
+<li><a href="architecture.html">Architecture</a></li>
+<li><a href="flows.html">Flows</a></li>
+<li><a href="security.html">Security and privacy</a></li>
+<li><a href="design.html">Design language</a></li>
+<li><a href="development.html">Development</a></li>
+</ul>
+</nav>
+<main>
+<article class="content">
+<h1>Compose</h1>
+<p class="lead">The Compose view shows a project the way <code>docker compose config</code> sees it — the override (or any files you pick) merged with the Compose rules, variables filled in — and says for every line which file set it.</p>
+
+<figure>
+  <img src="images/compose.png" alt="The sample's Compose project: two files merged, variables from .env, db and shop as a graph, and shop's merged configuration with the file per line" width="1400" height="820">
+  <figcaption>The sample: <code>compose.yaml</code> plus <code>compose.override.yaml</code>, variables from <code>.env</code>, and <code>shop</code> starting after a healthy <code>db</code>.</figcaption>
+</figure>
+
+<h2 id="files">Files, merged in order<a class="anchor" href="#files">#</a></h2>
+<p>Open <strong>Compose</strong> on any Compose file. codec picks the files Docker Compose would use by default — <code>compose.yaml</code> and <code>compose.override.yaml</code> (or the <code>docker-compose*.yml</code> names) — and lists the other Compose files in the folder so you can add them as layers, the way <code>-f a.yaml -f b.yaml</code> would. Untick a file to see the project without it.</p>
+<p>Merging follows the Compose specification:</p>
+<ul>
+  <li>Maps merge key by key; scalars in later files replace earlier ones.</li>
+  <li><code>ports</code>, <code>volumes</code>, <code>expose</code> and similar lists are merged by their target; <code>command</code>, <code>entrypoint</code> and <code>healthcheck.test</code> are replaced.</li>
+  <li>List-form <code>environment</code> and <code>labels</code> merge by name.</li>
+  <li><code>!reset</code> removes a value from earlier files, <code>!override</code> replaces instead of merging.</li>
+  <li><code>extends</code> (in the same file or another) and top-level <code>include</code> are followed.</li>
+</ul>
+<p>The merged configuration of each service is annotated with the file and line that set each value.</p>
+
+<h2 id="variables">Variables<a class="anchor" href="#variables">#</a></h2>
+<p><code>${VAR}</code>, <code>${VAR:-default}</code>, <code>${VAR:?error}</code> and friends are filled in from <code>.env</code> (or another env file you choose) and from what-if values you type in the view. Each variable says where its value came from and how often it is used. Your shell's environment is deliberately <em>not</em> read — the result doesn't depend on who runs codec — and what-if values are never saved.</p>
+<p>Unset variables without a default, and <code>:?</code> variables that would fail, are problems.</p>
+
+<h2 id="graph">Services, ports and volumes<a class="anchor" href="#graph">#</a></h2>
+<ul>
+  <li><strong>Graph</strong> — services with arrows for start order (<code>depends_on</code>, with the condition), optionally networks and volumes. Services behind a profile are marked.</li>
+  <li><strong>Ports</strong> — every published port: host address, host port, container port, protocol and the file that set it. Two services publishing the same host port are flagged.</li>
+  <li><strong>Volumes</strong> — named volumes, binds and tmpfs mounts, who uses them and whether they are read-only.</li>
+</ul>
+
+<h2 id="checks">Checks<a class="anchor" href="#checks">#</a></h2>
+<p>Unknown services in <code>depends_on</code>, <code>links</code> and <code>network_mode</code>; networks, volumes, secrets and configs used but not declared; dependency loops; services with neither <code>image</code> nor <code>build</code>; missing env files, <code>extends</code> and <code>include</code> targets (and loops between them); unset and required variables; host port clashes. In the editor: services in the outline, hover and go to definition for <code>${VAR}</code> (to <code>.env</code>), services (including <code>extends</code> into another file), networks and volumes.</p>
+
+<h2 id="cli">From the command line<a class="anchor" href="#cli">#</a></h2>
+<pre><code>codec compose services                     <span class="c"># compose.yaml + its override, in this folder</span>
+<span class="o">shop  · nginxinc/nginx-unprivileged:1.27
+  after db (healthy)
+  port 127.0.0.1:8080 → 8080/tcp  (compose.yaml)
+  bind   ./site → /usr/share/nginx/html (read-only)
+db  · postgres:17
+  volume db-data → /var/lib/postgresql/data
+
+variables
+  SHOP_TAG     1.27  (default)
+  SHOP_PORT    8080  (.env)</span>
+codec compose config                       <span class="c"># merged services, which file set each line</span>
+<span class="o">shop:
+  image: nginxinc/nginx-unprivileged:1.27   # ← compose.yaml:3
+  environment:                              # ← compose.override.yaml:4
+    LOG_LEVEL: trace                        # ← compose.override.yaml:5</span>
+codec compose services compose.yaml compose.prod.yaml -e TAG=1.2 --env-file prod.env --json</code></pre>
+<nav class="pager" aria-label="Pages">
+<a class="prev" href="ci.html"><small>Previous</small>CI pipelines</a>
+<a class="next" href="ansible.html"><small>Next</small>Ansible</a>
+</nav>
+<footer>codec is open source under the MIT licence. It runs on your machine and never writes to your files.</footer>
+</article>
+</main>
+</div>
+</body>
+</html>

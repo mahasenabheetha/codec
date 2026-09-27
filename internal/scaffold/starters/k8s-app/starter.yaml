@@ -1,0 +1,39 @@
+title: Deployment and Service
+category: Kubernetes
+description: A Deployment with probes, resources and a non-root security context, its Service, and optionally an Ingress.
+fields:
+  - name: name
+    label: App name
+    default: my-app
+    pattern: dns-label
+  - name: namespace
+    optional: true
+    pattern: dns-label
+    help: Leave empty to deploy into the current namespace.
+  - name: image
+    default: nginxinc/nginx-unprivileged:1.27
+    pattern: image
+    help: Pin a tag; the image must run as a non-root user.
+  - name: port
+    label: Container port
+    default: "8080"
+    pattern: port
+  - name: replicas
+    default: "2"
+    pattern: number
+  - name: ingress
+    label: Add an Ingress
+    type: bool
+    default: "false"
+  - name: host
+    default: my-app.example.com
+    pattern: host
+    when: ingress
+  - name: ingressClass
+    label: Ingress class
+    default: nginx
+    optional: true
+    when: ingress
+files:
+  - template: app.yaml.tmpl
+    path: <% .name %>.yaml

@@ -1,0 +1,18 @@
+.base:
+  image: golang:1.26
+  variables:
+    CGO_ENABLED: "0"
+    REGION: base
+  before_script:
+    - go version
+
+.tester:
+  variables:
+    TEST: "1"
+  artifacts:
+    paths: [coverage.out]
+
+.setup:
+  script:
+    - echo setup
+    - git fetch

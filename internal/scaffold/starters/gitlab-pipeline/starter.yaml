@@ -1,0 +1,13 @@
+title: GitLab CI pipeline
+category: CI
+description: Build, test and a manual deploy, running for merge requests and the default branch.
+fields:
+  - name: image
+    default: alpine:3.22
+    pattern: image
+  - name: environment
+    label: Deploy environment
+    default: production
+files:
+  - template: gitlab-ci.yml.tmpl
+    path: .gitlab-ci.yml

@@ -1,0 +1,11 @@
+- name: Install {{ <% .name %>_package }}
+  ansible.builtin.package:
+    name: "{{ <% .name %>_package }}"
+    state: present
+  notify: Restart <% .name %>
+
+- name: Start {{ <% .name %>_package }}
+  ansible.builtin.service:
+    name: "{{ <% .name %>_package }}"
+    state: started
+    enabled: "{{ <% .name %>_enabled }}"

@@ -1,0 +1,13 @@
+title: Secret
+category: Kubernetes
+description: An Opaque Secret written as plain text (stringData).
+fields:
+  - name: name
+    default: my-app-secret
+    pattern: dns-label
+  - name: namespace
+    optional: true
+    pattern: dns-label
+files:
+  - template: secret.yaml.tmpl
+    path: <% .name %>.yaml

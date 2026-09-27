@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Overview · codec docs</title>
+<meta name="description" content="codec is a local, read-only workbench for Kubernetes, Helm, Kustomize, Argo, CI, Compose and Ansible YAML, plus everyday encode/decode tools.">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<input type="checkbox" id="menu" class="menu-toggle" aria-hidden="true">
+<header class="top">
+  <label for="menu" class="menu-button" aria-label="Menu">&#9776;</label>
+  <a class="brand" href="index.html"><img src="assets/logo.svg" alt=""> codec <span class="tag">docs</span></a>
+  <span class="spacer"></span>
+  <nav class="links" aria-label="Site">
+    <a href="getting-started.html" class="hide-sm">Get started</a>
+    <a href="cli.html" class="hide-sm">CLI</a>
+    <a href="https://github.com/mahasenabheetha/codec/releases">Download</a>
+    <a href="https://github.com/mahasenabheetha/codec">GitHub</a>
+  </nav>
+</header>
+<div class="layout">
+<nav class="side" aria-label="Documentation">
+<h4>Start</h4>
+<ul>
+<li><a href="index.html" aria-current="page">Overview</a></li>
+<li><a href="getting-started.html">Getting started</a></li>
+</ul>
+<h4>Using codec</h4>
+<ul>
+<li><a href="workspace.html">Workspace and editor</a></li>
+<li><a href="helm.html">Helm</a></li>
+<li><a href="lint.html">Lint and schemas</a></li>
+<li><a href="kubernetes.html">Kubernetes and Kustomize</a></li>
+<li><a href="argo.html">Argo</a></li>
+<li><a href="ci.html">CI pipelines</a></li>
+<li><a href="compose.html">Compose</a></li>
+<li><a href="ansible.html">Ansible</a></li>
+<li><a href="compare.html">Compare and query</a></li>
+<li><a href="new.html">New files and clones</a></li>
+<li><a href="tools.html">Encode, decode and logs</a></li>
+<li><a href="settings.html">Settings and your data</a></li>
+</ul>
+<h4>Reference</h4>
+<ul>
+<li><a href="cli.html">CLI reference</a></li>
+<li><a href="shortcuts.html">Keyboard shortcuts</a></li>
+<li><a href="troubleshooting.html">Troubleshooting</a></li>
+</ul>
+<h4>How it works</h4>
+<ul>
+<li><a href="architecture.html">Architecture</a></li>
+<li><a href="flows.html">Flows</a></li>
+<li><a href="security.html">Security and privacy</a></li>
+<li><a href="design.html">Design language</a></li>
+<li><a href="development.html">Development</a></li>
+</ul>
+</nav>
+<main>
+<article class="content">
+<div class="hero">
+  <div>
+    <h1>codec</h1>
+    <p class="lead">A read-only YAML workbench for the files a DevOps engineer lives in — Kubernetes, Helm, Kustomize, Argo, CI pipelines, Compose and Ansible — plus the encode/decode tools you reach for all day. One binary, a local web UI and a CLI, next to your editor.</p>
+    <div class="badges">
+      <span class="badge">Windows · macOS · Linux · Docker</span>
+      <span class="badge">No install, no admin rights</span>
+      <span class="badge">Never writes to your files</span>
+      <span class="badge">Nothing leaves your machine</span>
+    </div>
+    <div class="actions">
+      <a class="button" href="getting-started.html">Get started</a>
+      <a class="button ghost" href="https://github.com/mahasenabheetha/codec/releases">Download</a>
+    </div>
+  </div>
+  <figure>
+    <img src="images/helm.png" alt="The Helm view: values files layered, and a tooltip showing which file set replicaCount" width="1400" height="820">
+    <figcaption>The Helm view: layer values files, then hover any value to see which file set it and what it overrode.</figcaption>
+  </figure>
+</div>
+
+<h2 id="why">Why codec<a class="anchor" href="#why">#</a></h2>
+<p>Most of a platform engineer's day is spent <em>reading</em> YAML: what does this chart render with the prod values, which job runs after which, where is that Ansible variable really set, what does this Argo step get as input. The answers usually need a cluster, a pipeline run, or a lot of scrolling. codec answers them from the files alone, on your machine, without changing anything.</p>
+<ul>
+  <li><strong>Understand, don't just edit.</strong> Every lens shows the file the way the tool that runs it sees it: Helm's merged values, GitLab's effective job after <code>extends</code>, Compose's merged services, Ansible's execution order.</li>
+  <li><strong>Try things safely.</strong> Edits in codec are <em>what-if</em>: they change what you see, never the file. Copy the result or a <code>git apply</code> patch when you like it.</li>
+  <li><strong>Explain every problem.</strong> Each finding says why it matters and how to fix it, and points to the exact line.</li>
+  <li><strong>Stay next to your editor.</strong> "Open in VS Code / Cursor" jumps to the same file and line. codec is a companion, not a replacement.</li>
+</ul>
+
+<h2 id="features">What it does<a class="anchor" href="#features">#</a></h2>
+<div class="cards">
+  <a class="card" href="workspace.html"><span class="icon">▤</span><h3>Workspace and editor</h3><p>Open a repo read-only, every YAML file labelled by type, a template-aware editor with hover, outline and plain-English errors.</p></a>
+  <a class="card" href="helm.html"><span class="icon">⎈</span><h3>Helm</h3><p>Render charts exactly like <code>helm template</code>, with no helm install. See where every value came from.</p></a>
+  <a class="card" href="lint.html"><span class="icon">✓</span><h3>Lint and schemas</h3><p>YAML traps, risky Kubernetes settings, removed APIs and schema validation for Kubernetes, CRDs and CI files.</p></a>
+  <a class="card" href="kubernetes.html"><span class="icon">⬡</span><h3>Kubernetes and Kustomize</h3><p>Objects as cards, a relationship graph, an inventory and broken references. Kustomize builds without kubectl.</p></a>
+  <a class="card" href="argo.html"><span class="icon">⟿</span><h3>Argo</h3><p>Workflows as graphs with every step's template and inputs resolved, across files. Argo CD apps rendered with their values.</p></a>
+  <a class="card" href="ci.html"><span class="icon">⑂</span><h3>CI pipelines</h3><p>GitHub Actions, GitLab CI and Azure Pipelines in execution order, with each job's effective configuration and where each line came from.</p></a>
+  <a class="card" href="compose.html"><span class="icon">▣</span><h3>Compose</h3><p>Files merged like <code>docker compose config</code>, variables from <code>.env</code>, services as a graph, ports and volumes.</p></a>
+  <a class="card" href="ansible.html"><span class="icon">☰</span><h3>Ansible</h3><p>Playbooks in the order Ansible runs them, roles opened in place, variables ranked by precedence, inventories.</p></a>
+  <a class="card" href="compare.html"><span class="icon">⇄</span><h3>Compare and query</h3><p>Diff by meaning (key and list order ignored), dev vs prod renders, and jq over the whole repo.</p></a>
+  <a class="card" href="new.html"><span class="icon">＋</span><h3>New files and clones</h3><p>Starters with a short form, checked before you copy them; clone a file under a new name, references and all.</p></a>
+  <a class="card" href="tools.html"><span class="icon">⌘</span><h3>Encode, decode, logs</h3><p>Smart paste, base64, JSON, JWT claims and Ansible <code>-vv</code> failure analysis.</p></a>
+  <a class="card" href="cli.html"><span class="icon">&gt;_</span><h3>CLI</h3><p>The same engine from the terminal and in CI, with exit codes that work as gates.</p></a>
+</div>
+
+<h2 id="try">Try it in a minute<a class="anchor" href="#try">#</a></h2>
+<ol class="steps">
+  <li>Download the archive for your platform from <a href="https://github.com/mahasenabheetha/codec/releases">GitHub Releases</a> and unpack it.</li>
+  <li>Run <code>codec serve --open --sample</code>. Your browser opens codec on a small made-up repository.</li>
+  <li>You land on its Helm chart, rendered. Add <code>values-prod.yaml</code>, hover a value, open the other views from the sidebar or with <kbd>Ctrl</kbd> <kbd>K</kbd>.</li>
+</ol>
+<p>When you're ready, open your own repository with <kbd>Ctrl</kbd> <kbd>O</kbd> or <code>codec serve --root path/to/repo</code>. <a href="getting-started.html">Getting started</a> has the details for every platform and Docker.</p>
+
+<h2 id="principles">Principles<a class="anchor" href="#principles">#</a></h2>
+<div class="table-wrap"><table>
+  <tr><th>Principle</th><th>What it means in practice</th></tr>
+  <tr><td>Read-only</td><td>codec never writes to the folders it opens. Settings live in your user profile; generated files are text to copy or a zip your browser saves.</td></tr>
+  <tr><td>Local</td><td>The server listens on <code>127.0.0.1</code> only, with a per-run token. The only network use is downloading public JSON schemas, which you can turn off.</td></tr>
+  <tr><td>Faithful</td><td>Helm renders with the real Helm SDK, Kustomize with the real kustomize library. Where codec reimplements a tool's rules (Compose merging, GitLab <code>extends</code>, Ansible precedence) it follows the documented behaviour and says what it can't know.</td></tr>
+  <tr><td>Honest about run time</td><td>Values only known when something runs (step outputs, cluster lookups) stay as written and are marked, never guessed.</td></tr>
+  <tr><td>Fast</td><td>Designed for 10,000-file repositories and files up to 8 MB. See <a href="architecture.html#performance">performance</a>.</td></tr>
+</table></div>
+<nav class="pager" aria-label="Pages">
+<a class="next" href="getting-started.html"><small>Next</small>Getting started</a>
+</nav>
+<footer>codec is open source under the MIT licence. It runs on your machine and never writes to your files.</footer>
+</article>
+</main>
+</div>
+</body>
+</html>

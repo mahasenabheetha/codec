@@ -1,0 +1,44 @@
+trigger: [main]
+parameters:
+  - name: env
+    type: string
+    default: dev
+    values: [dev, prod]
+  - name: runTests
+    type: boolean
+    default: true
+variables:
+  - name: config
+    value: Release
+  - group: shared-secrets
+pool:
+  vmImage: ubuntu-latest
+stages:
+  - stage: Build
+    jobs:
+      - job: compile
+        steps:
+          - template: templates/build-steps.yml
+            parameters:
+              configuration: $(config)
+              extraSteps:
+                - script: echo extra
+          - ${{ if eq(parameters.runTests, true) }}:
+            - script: go test ./...
+              displayName: Test
+      - job: package
+        dependsOn: compile
+        steps:
+          - script: echo package ${{ parameters.env }}
+  - stage: Deploy
+    condition: succeeded()
+    jobs:
+      - ${{ each region in split('eu,us', ',') }}:
+        - deployment: deploy_${{ region }}
+          environment: ${{ parameters.env }}
+          strategy:
+            runOnce:
+              deploy:
+                steps:
+                  - script: ./deploy.sh ${{ region }}
+  - template: templates/missing-stage.yml

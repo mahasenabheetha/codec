@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://mahasenabheetha.github.io/codec/
+    about: Guides for every feature, the CLI reference and troubleshooting.
+  - name: Security report
+    url: https://github.com/mahasenabheetha/codec/security/advisories/new
+    about: Report vulnerabilities privately, not as an issue.

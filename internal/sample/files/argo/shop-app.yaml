@@ -1,0 +1,29 @@
+# Argo CD deploys the chart in this repository with the prod values.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: shop
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://git.example.com/shop.git
+    targetRevision: main
+    path: charts/shop
+    helm:
+      releaseName: shop
+      valueFiles:
+        - values.yaml
+        - values-prod.yaml
+      parameters:
+        - name: config.currency
+          value: SEK
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: shop-prod
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

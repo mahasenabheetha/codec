@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Helm · codec docs</title>
+<meta name="description" content="Render Helm charts exactly like helm template, with no helm install, and see which values file set every value.">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<input type="checkbox" id="menu" class="menu-toggle" aria-hidden="true">
+<header class="top">
+  <label for="menu" class="menu-button" aria-label="Menu">&#9776;</label>
+  <a class="brand" href="index.html"><img src="assets/logo.svg" alt=""> codec <span class="tag">docs</span></a>
+  <span class="spacer"></span>
+  <nav class="links" aria-label="Site">
+    <a href="getting-started.html" class="hide-sm">Get started</a>
+    <a href="cli.html" class="hide-sm">CLI</a>
+    <a href="https://github.com/mahasenabheetha/codec/releases">Download</a>
+    <a href="https://github.com/mahasenabheetha/codec">GitHub</a>
+  </nav>
+</header>
+<div class="layout">
+<nav class="side" aria-label="Documentation">
+<h4>Start</h4>
+<ul>
+<li><a href="index.html">Overview</a></li>
+<li><a href="getting-started.html">Getting started</a></li>
+</ul>
+<h4>Using codec</h4>
+<ul>
+<li><a href="workspace.html">Workspace and editor</a></li>
+<li><a href="helm.html" aria-current="page">Helm</a></li>
+<li><a href="lint.html">Lint and schemas</a></li>
+<li><a href="kubernetes.html">Kubernetes and Kustomize</a></li>
+<li><a href="argo.html">Argo</a></li>
+<li><a href="ci.html">CI pipelines</a></li>
+<li><a href="compose.html">Compose</a></li>
+<li><a href="ansible.html">Ansible</a></li>
+<li><a href="compare.html">Compare and query</a></li>
+<li><a href="new.html">New files and clones</a></li>
+<li><a href="tools.html">Encode, decode and logs</a></li>
+<li><a href="settings.html">Settings and your data</a></li>
+</ul>
+<h4>Reference</h4>
+<ul>
+<li><a href="cli.html">CLI reference</a></li>
+<li><a href="shortcuts.html">Keyboard shortcuts</a></li>
+<li><a href="troubleshooting.html">Troubleshooting</a></li>
+</ul>
+<h4>How it works</h4>
+<ul>
+<li><a href="architecture.html">Architecture</a></li>
+<li><a href="flows.html">Flows</a></li>
+<li><a href="security.html">Security and privacy</a></li>
+<li><a href="design.html">Design language</a></li>
+<li><a href="development.html">Development</a></li>
+</ul>
+</nav>
+<main>
+<article class="content">
+<h1>Helm</h1>
+<p class="lead">codec renders charts with the Helm 4 SDK built into the binary — byte for byte what <code>helm template</code> prints — without a helm install, a cluster or any download. Then it tells you where every value came from.</p>
+
+<figure>
+  <img src="images/helm.png" alt="The Helm view with values.yaml and values-prod.yaml layered; hovering replicaCount shows it was set by values-prod.yaml and overrode values.yaml" width="1400" height="820">
+  <figcaption>Values tab: <code>replicaCount</code> is 3, set by <code>values-prod.yaml</code> line 2, overriding <code>values.yaml</code> line 1.</figcaption>
+</figure>
+
+<h2 id="open">Opening a chart<a class="anchor" href="#open">#</a></h2>
+<p>Any folder with a <code>Chart.yaml</code> is a chart. Open its Helm view from:</p>
+<ul>
+  <li><strong>Render</strong> in the toolbar of any file inside the chart (templates, values, <code>Chart.yaml</code>);</li>
+  <li>the palette: <kbd>Ctrl</kbd> <kbd>K</kbd>, then "Helm: render <em>name</em>";</li>
+  <li>an Argo CD Application's <strong>Render this app</strong>, which opens the chart with the app's value files and parameters.</li>
+</ul>
+
+<h2 id="inputs">Choosing what to render<a class="anchor" href="#inputs">#</a></h2>
+<p>The left panel holds everything <code>helm template</code> would take as flags:</p>
+<div class="table-wrap"><table>
+  <tr><th>Setting</th><th>Equivalent</th><th>Notes</th></tr>
+  <tr><td>Values layers</td><td><code>-f a.yaml -f b.yaml</code></td><td>The chart's <code>values.yaml</code> is always first. Add other values files found near the chart, reorder them, or untick one to see the render without it. Later layers win.</td></tr>
+  <tr><td>--set</td><td><code>--set image.tag=1.27</code></td><td>One per line, applied after the files, with Helm's <code>--set</code> syntax.</td></tr>
+  <tr><td>Release name, namespace</td><td><code>helm template NAME -n NS</code></td><td>Defaults: <code>release-name</code>, <code>default</code>.</td></tr>
+  <tr><td>Kubernetes version</td><td><code>--kube-version</code></td><td>For charts that branch on <code>.Capabilities.KubeVersion</code>.</td></tr>
+</table></div>
+<p>Every change re-renders within a fraction of a second. A typical chart renders in well under 100 ms.</p>
+
+<h3 id="profiles">Profiles<a class="anchor" href="#profiles">#</a></h3>
+<p>Save the current layers, <code>--set</code> lines and release options as a named profile — "dev", "prod", "prod-eu" — and switch between them from the profile menu. Profiles are stored in your user settings, keyed by the chart's folder, never in the repository. Compare two profiles' renders in <a href="compare.html">Compare</a>. Forget old ones in <a href="settings.html">Settings</a>.</p>
+
+<h3 id="whatif">What-if edits<a class="anchor" href="#whatif">#</a></h3>
+<p>If a template or values file of the chart is open with <a href="workspace.html#whatif">what-if edits</a>, the render uses the edited text. The header counts the files involved. It is the quickest way to answer "what happens if I change this?" without touching the chart.</p>
+
+<h2 id="tabs">What you see<a class="anchor" href="#tabs">#</a></h2>
+<h3 id="rendered">Rendered<a class="anchor" href="#rendered">#</a></h3>
+<p>The manifest exactly as <code>helm template</code> prints it, with a list of documents grouped by the template that produced them. Click one to jump to it; <strong>Copy all</strong> copies the whole manifest.</p>
+
+<h3 id="values">Values and provenance<a class="anchor" href="#values">#</a></h3>
+<p>The final merged <code>.Values</code>. Hover any line to see which layer set it and every earlier layer it overrode. Provenance covers what Helm does quietly:</p>
+<ul>
+  <li><code>null</code> in a later file deleting a key;</li>
+  <li>subchart defaults, and values passed down to subcharts;</li>
+  <li><code>global</code> values;</li>
+  <li><code>--set</code> lines, shown as their own layer.</li>
+</ul>
+<p>The same answer is available in the editor: hover <code>.Values.replicaCount</code> in a template and codec shows the value it rendered with and where it came from.</p>
+
+<h3 id="resources">Resources<a class="anchor" href="#resources">#</a></h3>
+<p>The render seen as Kubernetes objects: cards, the relationship graph, an inventory of images and resources, and references that point nowhere. See <a href="kubernetes.html">Kubernetes</a>.</p>
+
+<h3 id="problems">Problems<a class="anchor" href="#problems">#</a></h3>
+<ul>
+  <li><strong>Render errors</strong> mapped to the template file and line (<code>templates/deployment.yaml:21</code>), with a click to open it there.</li>
+  <li><strong>Values checks</strong>: <code>.Values</code> paths a template uses unguarded that no layer sets, and defaults no template reads.</li>
+  <li><strong>Lint and schema findings on the output</strong>, labelled with the object and traced back to the template. See <a href="lint.html">Lint and schemas</a>.</li>
+  <li>A note where <code>lookup</code> returned nothing because there is no cluster.</li>
+</ul>
+<p>On a first render, schemas may still be downloading. The render appears immediately and schema findings follow a moment later.</p>
+
+<h3 id="argo">Argo and Notes<a class="anchor" href="#argo">#</a></h3>
+<p>If the chart renders Argo workflows, an <strong>Argo</strong> tab resolves them like the <a href="argo.html">Argo view</a>. <strong>Notes</strong> shows <code>NOTES.txt</code> rendered.</p>
+
+<h2 id="how">How rendering works<a class="anchor" href="#how">#</a></h2>
+<div class="diagram">
+<svg viewBox="0 0 900 300" role="img" aria-label="Helm render flow">
+  <text class="label" x="20" y="24">INPUTS</text>
+  <rect class="box" x="20" y="36" width="190" height="44" rx="6"/><text x="36" y="63">Chart files (disk)</text>
+  <rect class="box rt" x="20" y="90" width="190" height="44" rx="6"/><text x="36" y="117">What-if edits (open tabs)</text>
+  <rect class="box" x="20" y="144" width="190" height="44" rx="6"/><text x="36" y="171">Values layers + --set</text>
+  <rect class="box" x="20" y="198" width="190" height="44" rx="6"/><text x="36" y="225">Release, namespace, kube version</text>
+  <path class="line" d="M210 58 H270 V140 H300 M210 112 H270 M210 166 H300 M210 220 H270 V180 H300"/>
+  <rect class="box accent" x="300" y="100" width="200" height="90" rx="8"/>
+  <text class="b" x="318" y="130">Helm 4 SDK</text>
+  <text class="sm" x="318" y="150">in-memory chart, no disk,</text>
+  <text class="sm" x="318" y="166">no network, no cluster</text>
+  <path class="line accent" d="M500 145 H560"/>
+  <text class="label" x="560" y="24">OUTPUTS</text>
+  <rect class="box" x="560" y="36" width="310" height="40" rx="6"/><text x="576" y="61">Manifest — byte-identical to helm template</text>
+  <rect class="box" x="560" y="86" width="310" height="40" rx="6"/><text x="576" y="111">Provenance — which layer set each value</text>
+  <rect class="box" x="560" y="136" width="310" height="40" rx="6"/><text x="576" y="161">Checks — template errors, values usage</text>
+  <rect class="box" x="560" y="186" width="310" height="40" rx="6"/><text x="576" y="211">Lint + schema on the rendered objects</text>
+  <rect class="box" x="560" y="236" width="310" height="40" rx="6"/><text x="576" y="261">Resources / Argo lenses on the output</text>
+  <path class="line" d="M540 145 V56 H560 M540 106 H560 M540 145 V156 H560 M540 156 V206 H560 M540 206 V256 H560"/>
+</svg>
+<p class="caption">The chart is loaded from memory, so what-if edits stand in for files and nothing is written anywhere.</p>
+</div>
+<p>Provenance is worked out by merging the layers one at a time and recording, for each path, the layer that last set it and the ones it replaced. Because it follows Helm's own coalescing, it agrees with the render.</p>
+
+<h2 id="limits">Limits<a class="anchor" href="#limits">#</a></h2>
+<ul>
+  <li><strong>Dependencies must be vendored.</strong> Subcharts need to be in the chart's <code>charts/</code> folder, as folders or <code>.tgz</code> files. codec never runs <code>helm dependency update</code> or downloads anything; a missing dependency is reported as a problem.</li>
+  <li><strong><code>lookup</code> returns empty</strong>, as in <code>helm template</code>: there is no cluster.</li>
+  <li>Values files from outside the open folder can't be layered.</li>
+</ul>
+
+<h2 id="cli">From the command line<a class="anchor" href="#cli">#</a></h2>
+<pre><code>codec helm render ./charts/shop -f charts/shop/values-prod.yaml --set image.tag=1.27   <span class="c"># like helm template</span>
+codec helm values ./charts/shop -f charts/shop/values-prod.yaml --provenance
+<span class="o">image:  # ← charts/shop/values-prod.yaml:4 (overrides values.yaml:3)
+  pullPolicy: IfNotPresent  # ← values.yaml:7
+  repository: nginxinc/nginx-unprivileged  # ← values.yaml:4
+  tag: 1.27.3  # ← charts/shop/values-prod.yaml:5 (overrides values.yaml:6)
+replicaCount: 3  # ← charts/shop/values-prod.yaml:2 (overrides values.yaml:1)</span></code></pre>
+<nav class="pager" aria-label="Pages">
+<a class="prev" href="workspace.html"><small>Previous</small>Workspace and editor</a>
+<a class="next" href="lint.html"><small>Next</small>Lint and schemas</a>
+</nav>
+<footer>codec is open source under the MIT licence. It runs on your machine and never writes to your files.</footer>
+</article>
+</main>
+</div>
+</body>
+</html>

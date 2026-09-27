@@ -1,0 +1,12 @@
+parameters:
+  - name: configuration
+    type: string
+  - name: extraSteps
+    type: stepList
+    default: []
+steps:
+  - script: go build -o app
+    displayName: Build ${{ parameters.configuration }}
+  - ${{ parameters.extraSteps }}
+  - ${{ if eq(parameters.configuration, 'Debug') }}:
+    - script: echo debug

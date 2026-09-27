@@ -1,0 +1,10 @@
+all:
+  children:
+    webservers:
+      hosts:
+        web-1.example.com:
+        web-2.example.com:
+          web_package: nginx-full
+    databases:
+      hosts:
+        db-1.example.com:

@@ -1,0 +1,51 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  name: broken
+spec:
+  entrypoint: mian
+  arguments:
+    parameters:
+      - name: size
+        value: "3"
+  templates:
+    - name: main
+      dag:
+        tasks:
+          - name: a
+            template: echo
+            arguments:
+              parameters:
+                - name: msg
+                  value: hi
+                - name: colour
+                  value: red
+          - name: b
+            template: ech
+          - name: c
+            template: echo
+            depends: "a && (b.Failed ||"
+          - name: d
+            template: echo
+            depends: "a && e"
+            arguments:
+              parameters:
+                - name: msg
+                  value: "{{workflow.parameters.count}}"
+          - name: f
+            template: needs-input
+            dependencies: [a, zz]
+    - name: echo
+      inputs:
+        parameters:
+          - name: msg
+            default: hello
+      container:
+        image: busybox:1.36
+        args: [echo, "{{inputs.parameters.mesage}}"]
+    - name: needs-input
+      inputs:
+        parameters:
+          - name: target
+      container:
+        image: busybox:1.36

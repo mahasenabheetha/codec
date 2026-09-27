@@ -1,0 +1,14 @@
+services:
+  web:
+    command: npm run dev
+    ports:
+      - "9229:9229"
+    environment:
+      NODE_ENV: development
+    volumes:
+      - ./web/conf-dev:/etc/web
+  db:
+    healthcheck: !override
+      test: ["CMD", "true"]
+    ports:
+      - "5432:5432"

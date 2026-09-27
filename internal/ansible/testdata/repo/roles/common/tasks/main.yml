@@ -1,0 +1,5 @@
+- name: Install packages
+  apt:
+    name: "{{ item }}"
+  loop: [curl, git]
+- include_tasks: users.yml

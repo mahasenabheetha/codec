@@ -1,0 +1,26 @@
+title: Compose service
+category: Compose
+description: A service with a port, a health check and restart policy, and optionally a PostgreSQL database it waits for.
+fields:
+  - name: name
+    label: Service name
+    default: app
+    pattern: dns-label
+  - name: image
+    default: nginxinc/nginx-unprivileged:1.27
+    pattern: image
+  - name: hostPort
+    label: Host port
+    default: "8080"
+    pattern: port
+  - name: port
+    label: Container port
+    default: "8080"
+    pattern: port
+  - name: database
+    label: Add PostgreSQL
+    type: bool
+    default: "false"
+files:
+  - template: compose.yaml.tmpl
+    path: compose.yaml

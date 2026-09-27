@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/mahasenabheetha/codec/internal/codec"
+	"github.com/mahasenabheetha/codec/v2/internal/codec"
 )
 
 // urlSafe is bound to the --url flag on the b64 subcommands.

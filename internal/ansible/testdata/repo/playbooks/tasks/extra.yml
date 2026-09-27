@@ -1,0 +1,3 @@
+- name: Extra step
+  set_fact:
+    extra_done: true

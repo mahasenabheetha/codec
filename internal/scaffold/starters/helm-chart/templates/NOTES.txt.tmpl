@@ -1,0 +1,5 @@
+{{ .Chart.Name }} is installed as {{ include "<% .name %>.fullname" . }}.
+
+Reach it from your machine with:
+
+  kubectl port-forward --namespace {{ .Release.Namespace }} svc/{{ include "<% .name %>.fullname" . }} 8080:{{ .Values.service.port }}
