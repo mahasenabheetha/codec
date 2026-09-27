@@ -1,7 +1,7 @@
 {
   "name": "codec",
   "short_name": "codec",
-  "description": "Local developer toolbox: base64, JSON, JWT, Ansible logs, and (soon) a YAML workbench. Everything runs on your machine.",
+  "description": "Read-only workbench for Kubernetes, Helm, Argo, CI, Compose and Ansible YAML, plus base64, JSON, JWT and Ansible log tools. Everything runs on your machine.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0b0d12",

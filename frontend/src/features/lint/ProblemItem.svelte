@@ -40,7 +40,7 @@
       {/if}
       {#if code}<span class="code">{code}</span>{/if}
       {#if rule}
-        <button type="button" class="link off" title="Turn this rule off in Lint settings" onclick={() => lint.turnOff(rule.id)}>
+        <button type="button" class="link off" title="Turn this rule off (change it back in Settings)" onclick={() => lint.turnOff(rule.id)}>
           <EyeOff size={12} strokeWidth={1.75} /> Turn off
         </button>
       {/if}

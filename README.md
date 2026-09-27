@@ -1,382 +1,205 @@
-# codec
+<p align="center">
+  <img src="docs/assets/logo.svg" alt="" width="72" height="72">
+</p>
+<h1 align="center">codec</h1>
+<p align="center">
+  A read-only workbench for the YAML a DevOps engineer lives in —<br>
+  Kubernetes, Helm, Kustomize, Argo, CI pipelines, Compose and Ansible.<br>
+  One binary, a local web UI and a CLI, next to your editor.
+</p>
+<p align="center">
+  <a href="https://github.com/mahasenabheetha/codec/actions/workflows/ci.yml"><img src="https://github.com/mahasenabheetha/codec/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/mahasenabheetha/codec/releases"><img src="https://img.shields.io/github/v/release/mahasenabheetha/codec?sort=semver" alt="Release"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT License"></a>
+  <img src="https://img.shields.io/github/go-mod/go-version/mahasenabheetha/codec" alt="Go version">
+  <a href="https://mahasenabheetha.github.io/codec/"><img src="https://img.shields.io/badge/docs-site-7aa2ff" alt="Documentation"></a>
+</p>
+<p align="center">
+  <a href="https://mahasenabheetha.github.io/codec/"><b>Documentation</b></a> ·
+  <a href="https://github.com/mahasenabheetha/codec/releases">Download</a> ·
+  <a href="#quick-start">Quick start</a> ·
+  <a href="https://mahasenabheetha.github.io/codec/cli.html">CLI reference</a>
+</p>
 
-[![CI](https://github.com/mahasenabheetha/codec/actions/workflows/ci.yml/badge.svg)](https://github.com/mahasenabheetha/codec/actions/workflows/ci.yml)
+![The Helm view: values files layered, and a tooltip showing which file set replicaCount](docs/images/helm.png)
 
-A read-only YAML workbench for the files a DevOps engineer lives in —
-Kubernetes, Helm, Argo, CI pipelines, Compose, Ansible — plus the small
-encode/decode tools you reach for all day. One binary, a local web UI and
-a CLI. It sits next to VS Code: open a repository, understand it, try
-changes as what-if, jump back to your editor.
+## Why codec
 
-codec **never writes to your files** and nothing leaves your machine.
+Most of a platform engineer's day is spent *reading* YAML: what this
+chart renders with the prod values, which job runs after which, where an
+Ansible variable is really set, what an Argo step receives. The answers
+usually need a cluster, a pipeline run or a lot of scrolling. codec
+answers them from the files alone, on your machine.
 
-![Helm view: merged values, and where each value came from](docs/images/helm.png)
+- **Understand, don't just edit** — see each file the way the tool that
+  runs it does: Helm's merged values, GitLab's effective job after
+  `extends`, Compose's merged services, Ansible's execution order.
+- **Try things safely** — edits are *what-if*: they change what you see,
+  never the file. Copy the result, or a patch `git apply` accepts.
+- **Explain every problem** — each finding says why it matters and how to
+  fix it, on the exact line.
+- **Private by design** — never writes to your files, no telemetry,
+  listens on `127.0.0.1` only. Works offline.
 
-## What it does
+## Features
 
-- **Workspace.** Open a repository folder read-only: a file tree that
-  honours `.gitignore`, every YAML file labelled by type (Kubernetes,
-  Helm, Kustomize, Argo Workflows/CD, GitHub Actions, GitLab CI, Azure
-  Pipelines, Compose, Ansible), Ctrl+P to jump to a file, tabs that
-  refresh when the file changes on disk. Fine with 10,000-file
-  repositories and files up to 8 MB.
-- **YAML editor.** Template and runtime expressions (`{{ }}`, `${{ }}`,
-  `{% %}`) understood instead of reported as errors; syntax errors in
-  plain English with a fix; hover for path, type and value; go to
-  definition for anchors; outline and problems; the path at the cursor
-  as dot, yq, JSONPath, Helm or `--set`.
-- **What-if edits.** Change anything to see its effect — it is never
-  saved. Copy the result, or copy a diff that `git apply` accepts.
-- **Lint and schemas.** YAML 1.1 traps, risky Kubernetes settings,
-  removed APIs for your target Kubernetes version, and validation
-  against the published schema (Kubernetes, CRDs, GitHub Actions,
-  GitLab CI, Azure Pipelines, Compose) — each finding says why it
-  matters and how to fix it. The same schemas drive key completion and
-  field docs in the editor.
-- **Kubernetes and Kustomize.** See a folder, a render or a Kustomize
-  build as objects: cards, a relationship graph (Service → pods,
-  Ingress → Service, workloads → ConfigMaps and Secrets…), images,
-  ports and resource totals, and references that point nowhere. Build
-  Kustomize overlays without kubectl; copy "neat" manifests.
-- **Argo.** Read a workflow as it would run: every step with the
-  template it runs (templateRef across files) and the values it gets,
-  steps and DAGs as graphs (`depends` expressions included), what-if
-  parameters. Run-time values stay marked, never guessed. Argo CD apps
-  show where they deploy from and to, and render with their values.
-- **CI pipelines.** GitHub Actions, GitLab CI and Azure Pipelines as
-  they run: jobs in execution order as a graph, every GitHub matrix
-  combination, and each job's effective configuration after includes,
-  `extends`, `!reference`, templates and reusable workflows — every
-  line saying where it came from.
-- **Compose.** A project as `docker compose config` sees it: the
-  override (or any files you pick) merged with the Compose rules, every
-  line saying which file set it; `${VAR}` filled from `.env` and what-if
-  values; services as a graph with networks and volumes; ports and
-  volumes tables; unknown services, undeclared networks and port clashes.
-- **Ansible.** Playbooks in the order Ansible runs them — pre_tasks,
-  roles (dependencies first), tasks, post_tasks, handler flushes — with
-  roles and includes opened in place; hover a `{{ variable }}` to see
-  where it is defined, highest precedence first; inventories as groups
-  and hosts. The Ansible log tool links a failed task to its definition.
-- **New YAML.** Starters for Kubernetes, Helm charts, Argo, Argo CD,
-  GitHub Actions, GitLab CI, Azure Pipelines, Compose and Ansible: fill
-  in a short form and read the result linted, schema-checked and (for a
-  chart) rendered before you copy it or download a zip. Your own
-  starters live in your settings folder. **Clone** copies a file under
-  a new name, renaming labels, template names and references, and lists
-  what it left alone (images, Secrets, other objects). Snippets
-  (container, probe, resources, DAG task, job, step, task) in the editor.
-- **Compare and query.** Diff two files, a what-if edit against disk, or
-  a chart's dev and prod renders by meaning — key and list order don't
-  count, containers and env pair up by name. Run jq over the workspace,
-  a file or a render and jump to each result.
-- **Helm.** Render charts with the embedded Helm 4 SDK — byte-for-byte
-  what `helm template` produces, no helm install, no cluster. Pick
-  values files and `--set`, save them as profiles, and see for every
-  merged value which file set it and what it overrode.
-- **Tools.** Smart paste (detects JSON, base64, JWT, Ansible logs),
-  base64, JSON pretty/minify/validate, JWT claims with expiry, Ansible
-  `-vv` failure analysis.
-- **CLI.** The same engine from the terminal and in CI (see [CLI](#cli)).
+<table>
+<tr>
+<td width="50%"><b>Helm</b><br>Render charts exactly like <code>helm template</code> with the embedded Helm 4 SDK — no helm install, no cluster. Layer values files, save profiles, and see which file set every value.<br><a href="https://mahasenabheetha.github.io/codec/helm.html">Helm guide →</a></td>
+<td width="50%"><img src="docs/images/helm.png" alt="Helm view"></td>
+</tr>
+<tr>
+<td><img src="docs/images/editor.png" alt="Editor"></td>
+<td><b>Workspace and editor</b><br>Open a repo read-only; every YAML file labelled by type. An editor that understands Helm, Jinja, GitHub and Argo expressions, with plain-English errors, hover, go to definition, schema completion and snippets.<br><a href="https://mahasenabheetha.github.io/codec/workspace.html">Workspace guide →</a></td>
+</tr>
+<tr>
+<td><b>Lint and schemas</b><br>YAML 1.1 traps, risky Kubernetes settings, removed APIs for your target version, and schema validation for Kubernetes, CRDs, GitHub Actions, GitLab CI, Azure Pipelines and Compose — in the editor, across the repo and in CI.<br><a href="https://mahasenabheetha.github.io/codec/lint.html">Lint guide →</a></td>
+<td><img src="docs/images/problems.png" alt="Workspace problems"></td>
+</tr>
+<tr>
+<td><img src="docs/images/resources.png" alt="Kubernetes relationship graph"></td>
+<td><b>Kubernetes and Kustomize</b><br>Manifests, renders and builds as cards, a relationship graph, an inventory and broken references. Kustomize builds in-process, identical to <code>kubectl kustomize</code>.<br><a href="https://mahasenabheetha.github.io/codec/kubernetes.html">Kubernetes guide →</a></td>
+</tr>
+<tr>
+<td><b>Argo</b><br>Workflows as graphs, every step's template and inputs resolved across files; <code>when</code> and <code>depends</code> evaluated; run-time values marked, never guessed. Argo CD apps rendered with their values.<br><a href="https://mahasenabheetha.github.io/codec/argo.html">Argo guide →</a></td>
+<td><img src="docs/images/argo.png" alt="Argo view"></td>
+</tr>
+<tr>
+<td><img src="docs/images/gitlab.png" alt="GitLab pipeline view"></td>
+<td><b>CI pipelines</b><br>GitHub Actions, GitLab CI and Azure Pipelines in execution order, every matrix combination, and each job's effective configuration with the origin of every line.<br><a href="https://mahasenabheetha.github.io/codec/ci.html">CI guide →</a></td>
+</tr>
+<tr>
+<td><b>Compose and Ansible</b><br>Compose files merged like <code>docker compose config</code>, variables from <code>.env</code>, services as a graph. Playbooks in the order Ansible runs them, roles in place, variables ranked by precedence.<br><a href="https://mahasenabheetha.github.io/codec/compose.html">Compose</a> · <a href="https://mahasenabheetha.github.io/codec/ansible.html">Ansible</a></td>
+<td><img src="docs/images/compose.png" alt="Compose view"></td>
+</tr>
+<tr>
+<td><img src="docs/images/compare.png" alt="Semantic compare"></td>
+<td><b>Compare and query</b><br>Diff by meaning — key and list order ignored, containers paired by name — including dev vs prod renders. Run jq over the whole repo and jump to each result.<br><a href="https://mahasenabheetha.github.io/codec/compare.html">Compare guide →</a></td>
+</tr>
+<tr>
+<td><b>New files and clones</b><br>Starters with a short form, linted and rendered before you copy them; your own team starters; clone a file under a new name with references renamed and everything else listed.<br><a href="https://mahasenabheetha.github.io/codec/new.html">Starters guide →</a></td>
+<td><img src="docs/images/new.png" alt="New file from a starter"></td>
+</tr>
+</table>
 
-![Editor: a Helm template, hover shows the value it rendered with](docs/images/editor.png)
+Plus the everyday tools: smart paste, base64, JSON, JWT claims and
+Ansible `-vv` failure analysis — [tools guide](https://mahasenabheetha.github.io/codec/tools.html).
 
 ## Quick start
 
-### Native binary (Windows, macOS, Linux)
-
 Download the archive for your platform from
-[GitHub Releases](https://github.com/mahasenabheetha/codec/releases),
-unpack it, and run:
+[Releases](https://github.com/mahasenabheetha/codec/releases) (Windows,
+macOS, Linux; amd64 and arm64), unpack it, and run:
+
+```bash
+codec serve --open --sample
+```
+
+Your browser opens codec on a small made-up repository with one of
+everything, landing on its rendered Helm chart. Then open your own:
 
 ```bash
 codec serve --open --root path/to/your/repo
 ```
 
-No repository at hand? `codec serve --open --sample`, or **Open the
-sample** on the home screen, opens a small made-up repository with a
-Helm chart, Kubernetes, Argo, CI, Compose and Ansible files — written to
-codec's cache folder, not anywhere you work.
-
-![First run: try the sample or open a folder](docs/images/home.png)
-
-No installer and no admin rights; `codec version` shows what you have.
-The UI is at http://localhost:8765 and only this machine can reach it.
-
-- **Windows:** the binary isn't code-signed, so SmartScreen may say
-  "Windows protected your PC" — choose *More info → Run anyway*, or
-  unblock it once with `Unblock-File .\codec.exe` in PowerShell.
-- **macOS:** Gatekeeper blocks unsigned downloads. Remove the
-  quarantine flag once: `xattr -d com.apple.quarantine codec`.
+No installer, no admin rights. On Windows, SmartScreen may warn about the
+unsigned binary (*More info → Run anyway*); on macOS run
+`xattr -d com.apple.quarantine codec` once.
+[Getting started](https://mahasenabheetha.github.io/codec/getting-started.html)
+has the details.
 
 ### Docker
 
 ```bash
-docker run --rm -p 127.0.0.1:8765:8765 -v "$PWD:/work:ro" ghcr.io/mahasenabheetha/codec:2.0.0
+docker run --rm -p 127.0.0.1:8765:8765 -v "$PWD:/work:ro" ghcr.io/mahasenabheetha/codec
 ```
 
-Then open http://localhost:8765. The repository is mounted read-only at
-`/work`; file changes are picked up by polling. In PowerShell use
-`-v "${PWD}:/work:ro"`. Keep `127.0.0.1:` in `-p` so the port isn't
-open to your network. To keep saved Helm profiles and recent folders
-between runs, add `-v codec-home:/home/nonroot`. Images are published
-for linux/amd64 and linux/arm64; `latest` points at the newest stable
-release (pre-releases only get their version tag).
+Open http://localhost:8765. The repository is mounted read-only; add
+`-v codec-home:/home/nonroot` to keep settings between runs.
 
 ### From source
 
 Go 1.26+ and Node.js 22+:
 
 ```bash
-git clone https://github.com/mahasenabheetha/codec.git
-cd codec
+git clone https://github.com/mahasenabheetha/codec.git && cd codec
 npm --prefix frontend ci && npm --prefix frontend run build
 go build -o codec ./cmd/codec
 ```
 
-## Web UI
-
-```bash
-codec serve                     # http://localhost:8765
-codec serve --open              # …and open it in the browser
-codec serve --root ~/repos/app  # open a folder right away
-codec serve --sample            # open the built-in sample repository
-codec serve --port 9000 --poll  # other port; poll for file changes
-```
-
-Open a folder with Ctrl+O (recent folders and a folder browser) or
-`--root`. Files open as YAML-aware editors; **Render** on any chart file
-(or **Helm: render …** in the palette) opens the Helm view. "Open in VS
-Code/Cursor" jumps to the same file and line. **Problems** in the sidebar
-lints the whole folder, **Compare** diffs files or Helm profiles by meaning,
-**Query** runs jq; **Settings** (Ctrl+,) holds rule levels, the target
-Kubernetes version, schema options, the editor links open in, saved
-Helm profiles and ignored diff paths. Ctrl+Space completes keys and
-values from the file's schema. **Argo** on a workflow or application
-file (or the Argo tab of a Helm render) opens the workflow as a graph
-with its parameters resolved. **Pipeline** on a GitHub Actions, GitLab
-CI or Azure Pipelines file shows its jobs in execution order.
-**Compose** on a Compose file shows its services with the override
-merged; **Ansible** on a playbook, task file or inventory shows it in
-execution order (or as groups and hosts). **New** in the sidebar makes
-files from starters; the clone button on a YAML file copies it under a
-new name.
-
-| Shortcut | Action |
-|---|---|
-| Ctrl+K | Search tools and actions |
-| Ctrl+P · Ctrl+O | Go to file · open folder |
-| Ctrl+Shift+E | Toggle the explorer |
-| F12 / Ctrl+click | Go to definition (YAML alias → anchor) |
-| Ctrl+G · Ctrl+F | Go to line · find in file |
-| Ctrl+Enter | Run the transform (tools) |
-| Alt+C · Alt+S | Copy output · use output as input |
-| Ctrl+B | Toggle the sidebar |
-| Ctrl+, | Settings |
-| ? | Show all shortcuts |
-
-On macOS, Ctrl is ⌘. Nothing you paste is stored. Settings (recent
-folders, Helm profiles) live in your user profile —
-`%AppData%\codec`, `~/Library/Application Support/codec` or
-`~/.config/codec` — never in the repository.
-
-**Install as an app:** in Edge, menu → Apps → *Install this site as an
-app* (Chrome: the install icon in the address bar) for its own window
-and taskbar icon. `codec serve` must be running.
-
-**Security.** The server binds to `127.0.0.1`, rejects requests for other
-host names (DNS rebinding), requires a per-run token on its API, and
-confines file access to the opened folder (symlinks too), so web pages
-you visit can't use it.
-
 ## CLI
 
-Data goes to stdout, messages to stderr; exit code 1 on invalid input,
-so every command works as a CI gate. Files are never modified.
-
-### YAML
+The UI and the CLI share one engine, so everything works in a terminal
+and in CI. Exit code 2 means findings.
 
 ```bash
-codec yaml identify deploy.yaml             # file type, documents, problems (file:line:col)
-codec yaml outline deploy.yaml              # key/item tree with line numbers
-codec yaml path deploy.yaml --line 26 --col 12 --style all
-#   dot       spec.template.spec.containers[0].image
-#   yq        .spec.template.spec.containers[0].image
-#   jsonpath  $.spec.template.spec.containers[0].image
-#   helm      (index .Values.spec.template.spec.containers 0).image
-#   set       spec.template.spec.containers[0].image=
-codec yaml path values.yaml --get image.tag # value and its position
-codec yaml fmt messy.yaml --k8s-order       # re-indent, comments kept
-codec yaml fmt anchors.yaml --resolve       # expand anchors and << merges
-codec yaml convert values.yaml --to json    # key order kept (and --to yaml)
-codec yaml flatten values.yaml              # path: value lines; --reverse to undo
+codec yaml lint deploy/ charts/ --k8s-version 1.31      # lint + schemas, a CI gate
+codec helm values ./charts/shop -f values-prod.yaml --provenance
+codec kustomize build overlays/prod                     # no kubectl needed
+codec ci job .gitlab-ci.yml deploy-prod                 # effective config, origin per line
+codec argo resolve argo/ -p environment=prod            # every step and its inputs
+codec yaml diff dev.yaml prod.yaml                      # by meaning
+codec yaml query '.spec.template.spec.containers[].image' .
 ```
 
-### Lint
+All commands: [CLI reference](https://mahasenabheetha.github.io/codec/cli.html).
 
-```bash
-codec yaml lint                              # the current folder (honours .gitignore)
-codec yaml lint charts/ deploy.yaml --k8s-version 1.31
-codec yaml lint . --offline --json           # cached schemas only; machine-readable
-#   deploy.yaml:6:3: error: Unknown field "replica" in spec [schema]
-#       fix: Did you mean "replicas"?
+## How it works
+
+```mermaid
+flowchart LR
+  B[Browser<br/>web UI] -->|127.0.0.1 + token| S[HTTP server]
+  T[Terminal / CI] --> C[CLI]
+  S --> E[Engine<br/>YAML, Helm, Kubernetes,<br/>Argo, CI, Compose, Ansible,<br/>lint, schemas]
+  C --> E
+  S --> W[workspace<br/>read-only]
+  S --> P[config]
+  S --> K[schema cache]
+  C --> W
+  W -.-> R[(Your repository)]
+  P -.-> U[(User profile)]
+  K -.-> X[(Public schemas<br/>optional)]
 ```
 
-Exit status 2 when there are warnings or errors, so it works as a CI
-gate. Rule levels (error/warning/info/off), the target Kubernetes
-version and schema options are set in the web UI's **Settings** and
-shared with the CLI. Schemas are downloaded on first use and cached in
-your user cache folder; with **Offline** on, only the cache and your
-custom schema folder are used.
+A single Go binary embeds the Svelte UI. The engine is pure — it only
+reasons about text it is given — and adapters do all input and output,
+so the UI and the CLI always agree. More in
+[Architecture](https://mahasenabheetha.github.io/codec/architecture.html)
+and [Flows](https://mahasenabheetha.github.io/codec/flows.html).
 
-### Kubernetes and Kustomize
+## Documentation
 
-```bash
-codec k8s images deploy/                     # images, tags, who runs them
-codec k8s refs deploy/                       # how objects connect; exit 2 on broken references
-helm template ./chart | codec k8s refs       # also from stdin
-kubectl get deploy api -o yaml | codec k8s neat
-codec kustomize build overlays/prod          # like kubectl kustomize, no kubectl needed
-```
+- [Getting started](https://mahasenabheetha.github.io/codec/getting-started.html) — install, the sample, your repo, Docker
+- Guides for every view: [workspace](https://mahasenabheetha.github.io/codec/workspace.html),
+  [Helm](https://mahasenabheetha.github.io/codec/helm.html),
+  [lint](https://mahasenabheetha.github.io/codec/lint.html),
+  [Kubernetes](https://mahasenabheetha.github.io/codec/kubernetes.html),
+  [Argo](https://mahasenabheetha.github.io/codec/argo.html),
+  [CI](https://mahasenabheetha.github.io/codec/ci.html),
+  [Compose](https://mahasenabheetha.github.io/codec/compose.html),
+  [Ansible](https://mahasenabheetha.github.io/codec/ansible.html),
+  [compare and query](https://mahasenabheetha.github.io/codec/compare.html),
+  [new files](https://mahasenabheetha.github.io/codec/new.html),
+  [tools](https://mahasenabheetha.github.io/codec/tools.html)
+- [CLI reference](https://mahasenabheetha.github.io/codec/cli.html) ·
+  [keyboard shortcuts](https://mahasenabheetha.github.io/codec/shortcuts.html) ·
+  [troubleshooting](https://mahasenabheetha.github.io/codec/troubleshooting.html)
+- [Security and privacy](https://mahasenabheetha.github.io/codec/security.html) ·
+  [design language](https://mahasenabheetha.github.io/codec/design.html)
 
-### Argo
+The site's source is in [`docs/`](docs/) (plain HTML, also readable offline).
 
-```bash
-codec argo resolve wf.yaml templates/ -p env=prod   # each step, its template, its inputs
-#   build(0:linux) → compile · script · golang:1.26
-#       target = linux-amd64
-#   diagnose → collect-logs · container
-#       from = {{tasks.test.outputs.parameters.report}}   (run time)
-helm template ./chart | codec argo resolve -w deploy-wf
-codec argo graph wf.yaml --template main --format mermaid   # or dot
-```
+## Contributing
 
-### CI pipelines
+Issues and pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
+Contributors and AI agents start at [AGENTS.md](AGENTS.md); how the
+project is built and changed is in [design/](design/README.md).
+Report security problems privately: [SECURITY.md](SECURITY.md).
+Changes are listed in [CHANGELOG.md](CHANGELOG.md).
 
-```bash
-codec ci jobs .gitlab-ci.yml                 # stages and jobs in execution order
-#   stage test
-#     test  · golang:1.26 · runner docker · × 2
-#         after build
-#         extends .base → .tester
-codec ci job .gitlab-ci.yml build            # effective config, where each line comes from
-#   image: golang:1.26  # ← extends .base  ci/templates.yml:2
-#   tags:               # ← default
-#     - docker          # ← default
-codec ci jobs .github/workflows/ci.yml --json
-codec ci graph azure-pipelines.yml -p env=prod --format dot | dot -Tsvg > ci.svg
-```
+## License
 
-Includes, templates and actions are read from the repository (the
-folder holding `.git`, or `--root`); remote ones are listed, never
-fetched.
-
-### Compose
-
-```bash
-codec compose services                       # compose.yaml + its override, here
-#   web  · build ./web
-#     after db (healthy)
-#     port 8080 → 80/tcp  (compose.yaml)
-#     port 9229 → 9229/tcp  (compose.override.yaml)
-codec compose config                         # merged services, which file set each line
-#   command: npm run dev   # ← compose.override.yaml:3
-#     - 8080:80            # ← compose.yaml:13
-codec compose services compose.yaml compose.prod.yaml -e TAG=1.2 --json
-```
-
-`${VAR}` comes from `.env` (or `--env-file`) and `-e`; your shell's
-environment isn't read.
-
-### Ansible
-
-```bash
-codec ansible plays playbooks/site.yml       # plays and tasks in execution order
-#   play Web servers  · hosts web
-#     (gathering facts)
-#     pre_tasks:
-#       Update cache  · apt  → notifies web restart
-#     (run notified handlers)
-#     roles:
-#       role common
-codec ansible vars playbooks/site.yml app_port   # where it is defined, highest precedence first
-#   play vars (Web servers)    8080  playbooks/site.yml:5
-#   group_vars (web)           9090  group_vars/web.yml:1
-codec ansible task "nginx : restart nginx"   # a task from a log → its definition
-codec ansible inventory inventory/hosts.yml
-```
-
-### New files and clones
-
-```bash
-codec new                                    # built-in and personal starters
-#   argo-workflowtemplate  Argo        Argo WorkflowTemplate
-#   helm-chart             Helm        Helm chart
-codec new k8s-app --set name=shop --set ingress=true --set host=shop.example.com
-codec new helm-chart --set name=web          # several files, each after "# ==> path <=="
-codec new helm-chart --set name=web --file web/values.yaml
-codec clone workflows/build-api.yaml --to build-web
-#   line 15: kept spec.arguments.parameters[0].value: https://git.example.com/build-api.git (An address of something outside these files)
-#   line 35: check spec.templates[1].container.image: alpine/git:2.47.2 (Copies usually use their own image or host)
-codec clone app.yaml --doc 1 --to cart --all # one document; rename suggestions too
-```
-
-Both print; nothing is written. Personal starters go in the
-`templates` folder of the settings folder: a folder per starter (files
-with `<% .name %>` placeholders, an optional `starter.yaml` for the
-form) or single files, whose fields are the placeholders they use.
-
-### Diff and query
-
-```bash
-codec yaml diff dev.yaml prod.yaml           # by meaning; exit 2 when different
-#   Deployment api
-#     ~ spec.replicas: 1 → 3
-#     ~ spec.template.spec.containers[name=app].image: nginx:1.16 → nginx:1.27
-codec yaml diff a.yaml b.yaml --ignore 'metadata.labels.helm.sh/chart'
-codec yaml query '.spec.template.spec.containers[].image' charts/   # file:line: value
-codec yaml query 'select(.kind == "Ingress") | .spec.rules[].host' . --json
-```
-
-### Helm
-
-Dependencies must be vendored in `charts/` — codec never downloads.
-
-```bash
-codec helm render ./charts/app -f values-prod.yaml --set image.tag=1.27   # like helm template
-codec helm values ./charts/app -f values-prod.yaml --provenance           # merged values, annotated
-#   replicaCount: 3  # ← values-prod.yaml:1 (overrides values.yaml:6)
-```
-
-### Encode, decode, logs
-
-```bash
-codec auto '{"name":"mahasen"}'        # detect and transform (also reads stdin)
-codec b64 encode 'any text at all'     # --url for the URL-safe alphabet
-codec b64 decode aGVsbG8=              # tolerates missing padding
-codec json pretty '{"a":{"b":1}}'      # --indent to customize
-codec json validate '{"a":}'           # exit 1 + "line 1, column 6"
-codec jwt decode "$TOKEN"              # does NOT verify the signature
-codec auto < failed-task.log           # Ansible -vv: probable cause, rc/msg, highlighted stderr
-codec watch                            # transform recognizable clipboard content in place
-```
-
-`-c` on any command also copies the output. Windows PowerShell 5.1
-strips inner double quotes from native arguments; pipe instead:
-`'{"a":1}' | .\codec.exe auto` (PowerShell 7+ is fine).
-
-## Development
-
-```bash
-npm --prefix frontend ci && npm --prefix frontend run build   # UI, embedded by go build
-go vet ./... && go test ./...
-scripts/dev.sh ui     # build, serve, and the hot-reload UI at http://localhost:5173/
-```
-
-Architecture, conventions, decisions and the roadmap live in
-[design/](design/README.md); contributors and AI agents start at
-[AGENTS.md](AGENTS.md). Changes go through pull requests. Releases:
-[CHANGELOG.md](CHANGELOG.md) and [design/releases.md](design/releases.md).
+[MIT](LICENSE) © Mahasen Abheetha
 
 ## Acknowledgements
 

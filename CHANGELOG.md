@@ -25,7 +25,12 @@ query and starters, on top of the v1 tools. Set the date when tagging.
 - Palette entries for the file toolbar (open in editor, copy path,
   reveal, compare, query, clone, reset, copy diff).
 - `scripts/perf.sh` times a 10k-file repo, a 5 MB file and a
-  500-document chart against the budgets in the release plan.
+  500-document chart against the performance budgets.
+- Documentation site in `docs/` (GitHub Pages): a guide for every view,
+  the CLI reference, shortcuts, troubleshooting, architecture and flow
+  diagrams, security and the design language, with screenshots.
+- MIT licence, contributing guide, security policy, issue and pull
+  request templates.
 
 ### Changed (release)
 
@@ -45,6 +50,10 @@ query and starters, on top of the v1 tools. Set the date when tagging.
   of the complete object.
 - Hosts and groups without settings in YAML inventories aren't flagged
   as empty values.
+- The Resources view no longer fails to open when the same object is
+  defined twice (a base and an overlay's patch).
+- Settings described diff ignore patterns wrongly: `*` matches any
+  characters, dots included.
 
 ### Added (Scaffolding)
 

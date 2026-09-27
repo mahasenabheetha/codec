@@ -20,13 +20,17 @@ var copyToClipboard bool
 var rootCmd = &cobra.Command{
 	Use:   "codec",
 	Short: "Encode, decode and reformat base64, JSON and JWTs",
-	Long: `codec transforms the things a DevOps engineer pastes all day:
-base64 blobs, JSON payloads, Kubernetes secrets and JWTs.
+	Long: `codec is a read-only workbench for the YAML a DevOps engineer lives in
+(Kubernetes, Helm, Kustomize, Argo, CI pipelines, Compose, Ansible) and
+the text they paste all day (base64, JSON, JWTs, Ansible logs).
+It never modifies files.
 
-Input comes from an argument or from stdin, so both of these work:
+  codec serve --open --sample         the web UI, on a sample repository
+  codec yaml lint deploy/             lint and schema checks, exit 2 on findings
+  codec helm values ./chart --provenance
+  kubectl get secret db -o jsonpath='{.data.password}' | codec b64 decode
 
-  codec auto '{"a":1}'
-  kubectl get secret db -o jsonpath='{.data.password}' | codec b64 decode`,
+Docs: https://mahasenabheetha.github.io/codec/`,
 
 	// On a runtime error (bad input), print the error only — not the
 	// full usage text, which buries the actual problem.

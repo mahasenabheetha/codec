@@ -1,0 +1,21 @@
+name: Feature request
+description: Something codec should understand or do
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What is hard or impossible today, and in which files or tools?
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: What you'd like to see
+      description: In the UI and/or the CLI. An example file helps.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives
+      description: What you do today instead.

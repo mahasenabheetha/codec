@@ -42,7 +42,7 @@ CRDs, GitHub Actions, GitLab CI, Azure Pipelines, Compose).
 
 Schemas are downloaded on first use and cached; --offline uses only the
 cache and your custom schema folder. Rule levels come from your codec
-settings (the web UI's Lint settings).
+settings (the web UI's Settings).
 
 Exit status: 0 no warnings or errors, 1 usage error, 2 findings.`,
 	Example: `  codec yaml lint

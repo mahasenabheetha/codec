@@ -77,7 +77,7 @@ class Lint {
     if (!this.loaded) await this.load()
     const title = this.rule(id)?.title ?? id
     await this.setLevel(id, 'off')
-    toast(`Turned off "${title}". Change it back in Lint settings.`)
+    toast(`Turned off "${title}". Change it back in Settings.`)
   }
 
   async runWorkspace() {

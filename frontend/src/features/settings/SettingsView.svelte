@@ -153,7 +153,7 @@
         {/if}
       </SettingSection>
 
-      <SettingSection id="compare" title="Compare" description="Paths semantic diffs leave out, such as checksums and generated names. * matches one level, ** any depth.">
+      <SettingSection id="compare" title="Compare" description="Paths semantic diffs leave out, such as checksums and generated names. * matches any characters, dots included.">
         {#each comparison.ignore as p (p)}
           <div class="pattern">
             <code>{p}</code>
