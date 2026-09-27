@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Troubleshooting · codec docs</title>
+<meta name="description" content="Fixes for common codec problems: startup, file watching, schemas, Helm, Kustomize, CI includes, editor links and Docker.">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<input type="checkbox" id="menu" class="menu-toggle" aria-hidden="true">
+<header class="top">
+  <label for="menu" class="menu-button" aria-label="Menu">&#9776;</label>
+  <a class="brand" href="index.html"><img src="assets/logo.svg" alt=""> codec <span class="tag">docs</span></a>
+  <span class="spacer"></span>
+  <nav class="links" aria-label="Site">
+    <a href="getting-started.html" class="hide-sm">Get started</a>
+    <a href="cli.html" class="hide-sm">CLI</a>
+    <a href="https://github.com/mahasenabheetha/codec/releases">Download</a>
+    <a href="https://github.com/mahasenabheetha/codec">GitHub</a>
+  </nav>
+</header>
+<div class="layout">
+<nav class="side" aria-label="Documentation">
+<h4>Start</h4>
+<ul>
+<li><a href="index.html">Overview</a></li>
+<li><a href="getting-started.html">Getting started</a></li>
+</ul>
+<h4>Using codec</h4>
+<ul>
+<li><a href="workspace.html">Workspace and editor</a></li>
+<li><a href="helm.html">Helm</a></li>
+<li><a href="lint.html">Lint and schemas</a></li>
+<li><a href="kubernetes.html">Kubernetes and Kustomize</a></li>
+<li><a href="argo.html">Argo</a></li>
+<li><a href="ci.html">CI pipelines</a></li>
+<li><a href="compose.html">Compose</a></li>
+<li><a href="ansible.html">Ansible</a></li>
+<li><a href="compare.html">Compare and query</a></li>
+<li><a href="new.html">New files and clones</a></li>
+<li><a href="tools.html">Encode, decode and logs</a></li>
+<li><a href="settings.html">Settings and your data</a></li>
+</ul>
+<h4>Reference</h4>
+<ul>
+<li><a href="cli.html">CLI reference</a></li>
+<li><a href="shortcuts.html">Keyboard shortcuts</a></li>
+<li><a href="troubleshooting.html" aria-current="page">Troubleshooting</a></li>
+</ul>
+<h4>How it works</h4>
+<ul>
+<li><a href="architecture.html">Architecture</a></li>
+<li><a href="flows.html">Flows</a></li>
+<li><a href="security.html">Security and privacy</a></li>
+<li><a href="design.html">Design language</a></li>
+<li><a href="development.html">Development</a></li>
+</ul>
+</nav>
+<main>
+<article class="content">
+<h1>Troubleshooting</h1>
+<p class="lead">Common problems and what to do about them. If something here doesn't help, <a href="https://github.com/mahasenabheetha/codec/issues">open an issue</a> with <code>codec version</code> and what you saw.</p>
+
+<h2 id="start">Starting codec<a class="anchor" href="#start">#</a></h2>
+<h3 id="smartscreen">Windows says "Windows protected your PC"<a class="anchor" href="#smartscreen">#</a></h3>
+<p>The binary isn't code-signed. Choose <em>More info → Run anyway</em>, or unblock it once in PowerShell: <code>Unblock-File .\codec.exe</code>. No admin rights are needed.</p>
+<h3 id="gatekeeper">macOS won't open it<a class="anchor" href="#gatekeeper">#</a></h3>
+<p>Gatekeeper blocks unsigned downloads. Remove the quarantine flag: <code>xattr -d com.apple.quarantine codec</code>.</p>
+<h3 id="port">"port 8765 is already in use"<a class="anchor" href="#port">#</a></h3>
+<p>Another codec (or something else) is using the port. Stop it, or start on another port: <code>codec serve --port 8766</code>.</p>
+<h3 id="reload">The page says it can't reach the server<a class="anchor" href="#reload">#</a></h3>
+<p>Each run of <code>codec serve</code> uses a new security token. After restarting codec, <strong>reload the page</strong> so it picks up the new one. Your tabs and layout come back.</p>
+
+<h2 id="files">Files and folders<a class="anchor" href="#files">#</a></h2>
+<h3 id="missing">A file isn't in the explorer<a class="anchor" href="#missing">#</a></h3>
+<ul>
+  <li>It is ignored by a <code>.gitignore</code>, or it's inside <code>.git</code>, <code>node_modules</code> or a similar folder.</li>
+  <li>It is larger than 8 MB, or it looks binary.</li>
+  <li>The folder has more than 50,000 files: the tree is cut and says so. Open a sub-folder instead.</li>
+  <li>It is behind a symlinked folder, which codec doesn't follow.</li>
+</ul>
+<h3 id="changes">Changes on disk don't show up<a class="anchor" href="#changes">#</a></h3>
+<p>codec uses native file events and falls back to polling when they fail. Some setups report events unreliably (network drives, WSL paths, Docker bind mounts); start with <code>--poll</code> to force polling. The dot next to the folder name in the status bar shows the watch mode (hover it for details).</p>
+<h3 id="bigfile">A huge file is slow<a class="anchor" href="#bigfile">#</a></h3>
+<p>Files up to 8 MB are supported: typing stays responsive and analysis runs a little later than usual. The outline of very large files keeps fewer levels (it says so). Files over 8 MB are not opened.</p>
+
+<h2 id="schemas">Schemas<a class="anchor" href="#schemas">#</a></h2>
+<h3 id="pending">"Downloading the schema…" doesn't go away<a class="anchor" href="#pending">#</a></h3>
+<p>codec couldn't reach the schema sources. Behind a corporate proxy, set <code>HTTPS_PROXY</code> before starting codec (it follows the standard proxy variables). On a machine without internet, turn on <strong>Offline</strong> in Settings and point <strong>Custom schema folder</strong> at a copy of codec's schema cache from another machine, or at your own schemas.</p>
+<h3 id="crd">"No schema is published for …"<a class="anchor" href="#crd">#</a></h3>
+<p>The CRD isn't in the public catalog. Put its JSON schema in your custom schema folder as <code>&lt;group&gt;/&lt;kind&gt;_&lt;version&gt;.json</code> (for example <code>example.com/widget_v1.json</code>).</p>
+
+<h2 id="lenses">Lens views<a class="anchor" href="#lenses">#</a></h2>
+<h3 id="helmdeps">Helm: "missing dependency"<a class="anchor" href="#helmdeps">#</a></h3>
+<p>codec never downloads. Run <code>helm dependency build</code> once (outside codec) so subcharts are in the chart's <code>charts/</code> folder, or vendor them there.</p>
+<h3 id="remote">Kustomize: remote bases or helmCharts<a class="anchor" href="#remote">#</a></h3>
+<p>Remote bases (git or http URLs) aren't fetched, and <code>helmCharts</code> would need the helm binary. Use a local copy of the base, and render charts in the Helm view.</p>
+<h3 id="includes">CI: an include or template "doesn't exist"<a class="anchor" href="#includes">#</a></h3>
+<p>Local includes are resolved from the repository root. In the UI that is the open folder; on the CLI it is the folder holding <code>.git</code>. If you run the CLI from inside a bigger repository, pass <code>--root</code>. Remote includes are listed as "not read" by design.</p>
+<h3 id="roles">Ansible: a role is "not found"<a class="anchor" href="#roles">#</a></h3>
+<p>codec looks in <code>roles/</code>, <code>roles_path</code> from <code>ansible.cfg</code> and folders up to the repository root. Roles installed from Galaxy or collections at run time can't be read; codec notes that rather than failing.</p>
+
+<h2 id="editor-links">Open in VS Code does nothing<a class="anchor" href="#editor-links">#</a></h2>
+<p>The button uses the <code>vscode://</code> (or <code>cursor://</code>) link your editor registers when installed normally. Portable installs may not register it. Check that the right editor is chosen in <a href="settings.html">Settings</a>; the first time, your browser asks whether to open the editor — allow it.</p>
+
+<h2 id="docker">Docker<a class="anchor" href="#docker">#</a></h2>
+<ul>
+  <li><strong>The page doesn't load:</strong> the container listens on 8765 inside; open the host port you published (<code>-p 127.0.0.1:8765:8765</code> → <a href="http://localhost:8765">localhost:8765</a>).</li>
+  <li><strong>Profiles and schemas are gone after a restart:</strong> add <code>-v codec-home:/home/nonroot</code>.</li>
+  <li><strong>Files outside <code>/work</code>:</strong> only mounted folders are visible; mount the repository you want.</li>
+</ul>
+
+<h2 id="reset">Starting over<a class="anchor" href="#reset">#</a></h2>
+<p>Delete (or rename) the settings file shown in Settings → Folders to reset every setting; clear the site data for <code>localhost:8765</code> in your browser to reset the layout and tabs. The schema cache can be deleted at any time.</p>
+<nav class="pager" aria-label="Pages">
+<a class="prev" href="shortcuts.html"><small>Previous</small>Keyboard shortcuts</a>
+<a class="next" href="architecture.html"><small>Next</small>Architecture</a>
+</nav>
+<footer>codec is open source under the MIT licence. It runs on your machine and never writes to your files.</footer>
+</article>
+</main>
+</div>
+</body>
+</html>

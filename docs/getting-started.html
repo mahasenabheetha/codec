@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Getting started · codec docs</title>
+<meta name="description" content="Install codec on Windows, macOS, Linux or Docker, open the sample repository, then your own.">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<input type="checkbox" id="menu" class="menu-toggle" aria-hidden="true">
+<header class="top">
+  <label for="menu" class="menu-button" aria-label="Menu">&#9776;</label>
+  <a class="brand" href="index.html"><img src="assets/logo.svg" alt=""> codec <span class="tag">docs</span></a>
+  <span class="spacer"></span>
+  <nav class="links" aria-label="Site">
+    <a href="getting-started.html" class="hide-sm">Get started</a>
+    <a href="cli.html" class="hide-sm">CLI</a>
+    <a href="https://github.com/mahasenabheetha/codec/releases">Download</a>
+    <a href="https://github.com/mahasenabheetha/codec">GitHub</a>
+  </nav>
+</header>
+<div class="layout">
+<nav class="side" aria-label="Documentation">
+<h4>Start</h4>
+<ul>
+<li><a href="index.html">Overview</a></li>
+<li><a href="getting-started.html" aria-current="page">Getting started</a></li>
+</ul>
+<h4>Using codec</h4>
+<ul>
+<li><a href="workspace.html">Workspace and editor</a></li>
+<li><a href="helm.html">Helm</a></li>
+<li><a href="lint.html">Lint and schemas</a></li>
+<li><a href="kubernetes.html">Kubernetes and Kustomize</a></li>
+<li><a href="argo.html">Argo</a></li>
+<li><a href="ci.html">CI pipelines</a></li>
+<li><a href="compose.html">Compose</a></li>
+<li><a href="ansible.html">Ansible</a></li>
+<li><a href="compare.html">Compare and query</a></li>
+<li><a href="new.html">New files and clones</a></li>
+<li><a href="tools.html">Encode, decode and logs</a></li>
+<li><a href="settings.html">Settings and your data</a></li>
+</ul>
+<h4>Reference</h4>
+<ul>
+<li><a href="cli.html">CLI reference</a></li>
+<li><a href="shortcuts.html">Keyboard shortcuts</a></li>
+<li><a href="troubleshooting.html">Troubleshooting</a></li>
+</ul>
+<h4>How it works</h4>
+<ul>
+<li><a href="architecture.html">Architecture</a></li>
+<li><a href="flows.html">Flows</a></li>
+<li><a href="security.html">Security and privacy</a></li>
+<li><a href="design.html">Design language</a></li>
+<li><a href="development.html">Development</a></li>
+</ul>
+</nav>
+<main>
+<article class="content">
+<h1>Getting started</h1>
+<p class="lead">codec is a single binary. There is nothing to install and no admin rights are needed: download, run, open your browser.</p>
+
+<h2 id="download">Download<a class="anchor" href="#download">#</a></h2>
+<p>Get the archive for your platform from <a href="https://github.com/mahasenabheetha/codec/releases">GitHub Releases</a>. Builds exist for Windows, macOS and Linux, each for amd64 and arm64. Unpack it anywhere, for example a <code>bin</code> folder on your <code>PATH</code>.</p>
+<div class="table-wrap"><table>
+  <tr><th>Platform</th><th>Archive</th><th>First run</th></tr>
+  <tr><td>Windows</td><td><code>codec_&lt;version&gt;_windows_amd64.zip</code></td><td>The binary isn't code-signed, so SmartScreen may say "Windows protected your PC". Choose <em>More info → Run anyway</em>, or unblock it once: <code>Unblock-File .\codec.exe</code>.</td></tr>
+  <tr><td>macOS</td><td><code>codec_&lt;version&gt;_darwin_arm64.tar.gz</code></td><td>Gatekeeper blocks unsigned downloads. Remove the quarantine flag once: <code>xattr -d com.apple.quarantine codec</code>.</td></tr>
+  <tr><td>Linux</td><td><code>codec_&lt;version&gt;_linux_amd64.tar.gz</code></td><td>Nothing special: <code>chmod +x codec</code> if your unpacker lost the bit.</td></tr>
+</table></div>
+<p>Check what you have with <code>codec version</code>.</p>
+
+<h2 id="first-run">First run: the sample repository<a class="anchor" href="#first-run">#</a></h2>
+<pre><code>codec serve --open --sample</code></pre>
+<p>This starts the local server on <a href="http://localhost:8765">http://localhost:8765</a>, opens your browser, and opens a small made-up repository built into codec, landing on its rendered Helm chart. The sample has one of everything: a Helm chart with dev and prod values, Kubernetes manifests with a Kustomize overlay, Argo workflows, GitHub Actions, GitLab CI and Azure pipelines, a Compose project and an Ansible playbook with a role. A few problems are planted in <code>k8s/legacy/</code> for the lint view to find.</p>
+<p>The sample is written to codec's cache folder, never to where you work, and restored each time you open it.</p>
+<figure>
+  <img src="images/home.png" alt="codec's home screen on first run, offering to open the sample or a folder" width="1400" height="820" loading="lazy">
+  <figcaption>Without <code>--sample</code>, the first run offers the same choice on the home screen.</figcaption>
+</figure>
+
+<h2 id="your-repo">Open your own repository<a class="anchor" href="#your-repo">#</a></h2>
+<pre><code>codec serve --open --root ~/repos/platform</code></pre>
+<p>Or start plain <code>codec serve</code> and press <kbd>Ctrl</kbd> <kbd>O</kbd>: paste a path, pick a recent folder, or browse (drives are listed on Windows; folders that are Git repositories are marked). codec reads the folder, honours <code>.gitignore</code>, labels every YAML file by type and starts watching for changes.</p>
+<div class="callout"><strong>Tip.</strong> Nothing in the folder is changed, and no config file is added to it. Recent folders, Helm profiles and lint choices are kept in your user profile (see <a href="settings.html">Settings and your data</a>).</div>
+
+<h3 id="serve-flags">Server options<a class="anchor" href="#serve-flags">#</a></h3>
+<div class="table-wrap"><table>
+  <tr><th>Flag</th><th>Default</th><th>Meaning</th></tr>
+  <tr><td><code>--port</code></td><td><code>8765</code></td><td>Port to listen on. If it is taken, codec says so and suggests the next one.</td></tr>
+  <tr><td><code>--root</code></td><td></td><td>Folder to open at start.</td></tr>
+  <tr><td><code>--sample</code></td><td></td><td>Open the built-in sample repository instead.</td></tr>
+  <tr><td><code>--open</code></td><td></td><td>Open the UI in your default browser.</td></tr>
+  <tr><td><code>--poll</code></td><td></td><td>Detect file changes by polling instead of native file events (automatic in containers).</td></tr>
+  <tr><td><code>--host</code></td><td><code>127.0.0.1</code></td><td>Address to bind. Only change it inside a container (<code>0.0.0.0</code>).</td></tr>
+</table></div>
+
+<h2 id="docker">Docker<a class="anchor" href="#docker">#</a></h2>
+<pre><code>docker run --rm -p 127.0.0.1:8765:8765 -v "$PWD:/work:ro" ghcr.io/mahasenabheetha/codec</code></pre>
+<p>Then open <a href="http://localhost:8765">http://localhost:8765</a>. The repository is mounted read-only at <code>/work</code>; file changes are picked up by polling, since native events don't cross bind mounts from Windows or macOS.</p>
+<ul>
+  <li>In PowerShell use <code>-v "${PWD}:/work:ro"</code>.</li>
+  <li>Keep <code>127.0.0.1:</code> in <code>-p</code> so the port isn't reachable from your network.</li>
+  <li>Add <code>-v codec-home:/home/nonroot</code> to keep Helm profiles, recent folders and downloaded schemas between runs.</li>
+  <li>Pin a version with <code>ghcr.io/mahasenabheetha/codec:2.0.0</code>. <code>latest</code> is the newest stable release; pre-releases only get their version tag.</li>
+  <li>The image is distroless and runs as a non-root user; it is published for linux/amd64 and linux/arm64.</li>
+</ul>
+
+<h2 id="source">Build from source<a class="anchor" href="#source">#</a></h2>
+<p>You need Go 1.26+ and Node.js 22+.</p>
+<pre><code>git clone https://github.com/mahasenabheetha/codec.git
+cd codec
+npm --prefix frontend ci
+npm --prefix frontend run build     <span class="c"># the web UI, embedded into the binary</span>
+go build -o codec ./cmd/codec</code></pre>
+<p>See <a href="development.html">Development</a> for the dev server and the contributor workflow.</p>
+
+<h2 id="editor">Use it with VS Code or Cursor<a class="anchor" href="#editor">#</a></h2>
+<p>Every file view has an <strong>Open in VS Code</strong> button (or Cursor — choose in <a href="settings.html">Settings</a>) that opens the same file at the cursor's line. Problem lists and "defined in" links jump the same way. A typical loop: read and experiment in codec, make the real change in your editor, and codec's tabs refresh as soon as you save.</p>
+
+<h2 id="app">Install as an app<a class="anchor" href="#app">#</a></h2>
+<p>For its own window and taskbar icon: in Edge, <em>menu → Apps → Install this site as an app</em>; in Chrome, the install icon in the address bar. <code>codec serve</code> must be running when you open it.</p>
+
+<h2 id="next">Next steps<a class="anchor" href="#next">#</a></h2>
+<ul>
+  <li>Learn the <a href="workspace.html">workspace and editor</a>, which every other view builds on.</li>
+  <li>Keep <a href="shortcuts.html">the keyboard shortcuts</a> handy: <kbd>Ctrl</kbd> <kbd>K</kbd> finds any action.</li>
+  <li>Run <code>codec yaml lint</code> in CI: see <a href="cli.html#lint">the CLI reference</a>.</li>
+</ul>
+<nav class="pager" aria-label="Pages">
+<a class="prev" href="index.html"><small>Previous</small>Overview</a>
+<a class="next" href="workspace.html"><small>Next</small>Workspace and editor</a>
+</nav>
+<footer>codec is open source under the MIT licence. It runs on your machine and never writes to your files.</footer>
+</article>
+</main>
+</div>
+</body>
+</html>

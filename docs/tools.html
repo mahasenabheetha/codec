@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Encode, decode and logs · codec docs</title>
+<meta name="description" content="Smart paste, base64, JSON, JWT and Ansible -vv log analysis, in the UI and on the command line. Nothing you paste is stored.">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<input type="checkbox" id="menu" class="menu-toggle" aria-hidden="true">
+<header class="top">
+  <label for="menu" class="menu-button" aria-label="Menu">&#9776;</label>
+  <a class="brand" href="index.html"><img src="assets/logo.svg" alt=""> codec <span class="tag">docs</span></a>
+  <span class="spacer"></span>
+  <nav class="links" aria-label="Site">
+    <a href="getting-started.html" class="hide-sm">Get started</a>
+    <a href="cli.html" class="hide-sm">CLI</a>
+    <a href="https://github.com/mahasenabheetha/codec/releases">Download</a>
+    <a href="https://github.com/mahasenabheetha/codec">GitHub</a>
+  </nav>
+</header>
+<div class="layout">
+<nav class="side" aria-label="Documentation">
+<h4>Start</h4>
+<ul>
+<li><a href="index.html">Overview</a></li>
+<li><a href="getting-started.html">Getting started</a></li>
+</ul>
+<h4>Using codec</h4>
+<ul>
+<li><a href="workspace.html">Workspace and editor</a></li>
+<li><a href="helm.html">Helm</a></li>
+<li><a href="lint.html">Lint and schemas</a></li>
+<li><a href="kubernetes.html">Kubernetes and Kustomize</a></li>
+<li><a href="argo.html">Argo</a></li>
+<li><a href="ci.html">CI pipelines</a></li>
+<li><a href="compose.html">Compose</a></li>
+<li><a href="ansible.html">Ansible</a></li>
+<li><a href="compare.html">Compare and query</a></li>
+<li><a href="new.html">New files and clones</a></li>
+<li><a href="tools.html" aria-current="page">Encode, decode and logs</a></li>
+<li><a href="settings.html">Settings and your data</a></li>
+</ul>
+<h4>Reference</h4>
+<ul>
+<li><a href="cli.html">CLI reference</a></li>
+<li><a href="shortcuts.html">Keyboard shortcuts</a></li>
+<li><a href="troubleshooting.html">Troubleshooting</a></li>
+</ul>
+<h4>How it works</h4>
+<ul>
+<li><a href="architecture.html">Architecture</a></li>
+<li><a href="flows.html">Flows</a></li>
+<li><a href="security.html">Security and privacy</a></li>
+<li><a href="design.html">Design language</a></li>
+<li><a href="development.html">Development</a></li>
+</ul>
+</nav>
+<main>
+<article class="content">
+<h1>Encode, decode and logs</h1>
+<p class="lead">The small tools codec started with: paste something, get the obvious transformation. They work without an open folder, and nothing you paste is stored or sent anywhere.</p>
+
+<figure>
+  <img src="images/jwt.png" alt="The JWT tool: a token on the left, and on the right its validity, algorithm, claims table with expiry, header and signature" width="1400" height="820">
+  <figcaption>The JWT tool: claims as a table, expiry at a glance, and a clear note that the signature is not verified.</figcaption>
+</figure>
+
+<h2 id="smart">Smart paste<a class="anchor" href="#smart">#</a></h2>
+<p>Paste anything. codec detects JSON, base64, a JWT or an Ansible log and does the obvious thing: pretty-prints JSON, decodes base64 (and pretty-prints it if the result is JSON), decodes a token, analyses a log. The status bar says what it detected.</p>
+
+<h2 id="base64">Base64<a class="anchor" href="#base64">#</a></h2>
+<ul>
+  <li>Encode or decode, standard or URL-safe alphabet.</li>
+  <li>Decoding tolerates missing padding and whitespace — handy for values copied out of Kubernetes Secrets.</li>
+  <li>Decoded JSON is pretty-printed.</li>
+  <li><strong>Swap</strong> (<kbd>Alt</kbd> <kbd>S</kbd>) moves the output to the input and flips encode/decode.</li>
+</ul>
+
+<h2 id="json">JSON<a class="anchor" href="#json">#</a></h2>
+<p>Pretty-print, minify, or validate. Errors give the exact line and column and the editor jumps there.</p>
+
+<h2 id="jwt">JWT<a class="anchor" href="#jwt">#</a></h2>
+<p>Decodes the header and claims, shows registered claims with their meaning (<code>iss</code> issuer, <code>exp</code> expires…), times as dates with "in 3 hours" or "expired yesterday", and a validity badge. The signature is <strong>not verified</strong> — codec has no keys — and says so.</p>
+
+<h2 id="ansible-log">Ansible log<a class="anchor" href="#ansible-log">#</a></h2>
+<p>Paste the output of a failed <code>ansible-playbook -vv</code> run. codec finds the failed task and shows:</p>
+<ul>
+  <li>the status, summary chips and a <strong>probable cause</strong> in plain words;</li>
+  <li>the return code, message and module arguments;</li>
+  <li><code>stdout</code> and <code>stderr</code> with errors highlighted, commands prettified;</li>
+  <li>line filtering and collapsible sections for long logs;</li>
+  <li>with a folder open, <strong>Defined in</strong>: a link to the task's definition in your repository (see <a href="ansible.html#log">Ansible</a>).</li>
+</ul>
+
+<h2 id="keys">Keyboard<a class="anchor" href="#keys">#</a></h2>
+<div class="table-wrap"><table>
+  <tr><th>Keys</th><th>Action</th></tr>
+  <tr><td><kbd>Ctrl</kbd> <kbd>Enter</kbd></td><td>Run the transform (they also run as you type)</td></tr>
+  <tr><td><kbd>Alt</kbd> <kbd>C</kbd></td><td>Copy the output</td></tr>
+  <tr><td><kbd>Alt</kbd> <kbd>S</kbd></td><td>Use the output as input</td></tr>
+  <tr><td><kbd>Esc</kbd></td><td>Clear input and output</td></tr>
+</table></div>
+
+<h2 id="cli">From the command line<a class="anchor" href="#cli">#</a></h2>
+<p>Input comes from an argument or from standard input.</p>
+<pre><code>codec auto '{"name":"codec"}'          <span class="c"># detect and transform</span>
+kubectl get secret db -o jsonpath='{.data.password}' | codec b64 decode
+codec b64 encode 'any text at all'     <span class="c"># --url for the URL-safe alphabet</span>
+codec json pretty '{"a":{"b":1}}'      <span class="c"># --indent to customise; json min, json validate</span>
+codec json validate '{"a":}'           <span class="c"># exit 1 and "line 1, column 6"</span>
+codec jwt decode "$TOKEN"              <span class="c"># does NOT verify the signature</span>
+codec auto &lt; failed-task.log           <span class="c"># Ansible -vv analysis</span>
+codec watch                            <span class="c"># transform recognisable clipboard content in place</span></code></pre>
+<p><code>-c</code> on any command also copies the output to the clipboard. Windows PowerShell 5.1 strips inner double quotes from native arguments; pipe instead (<code>'{"a":1}' | .\codec.exe auto</code>) or use PowerShell 7.</p>
+<nav class="pager" aria-label="Pages">
+<a class="prev" href="new.html"><small>Previous</small>New files and clones</a>
+<a class="next" href="settings.html"><small>Next</small>Settings and your data</a>
+</nav>
+<footer>codec is open source under the MIT licence. It runs on your machine and never writes to your files.</footer>
+</article>
+</main>
+</div>
+</body>
+</html>

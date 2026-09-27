@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>New files and clones · codec docs</title>
+<meta name="description" content="Starters for new YAML with a short form, checked before you copy them; your own starters; clone a file under a new name; editor snippets.">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<input type="checkbox" id="menu" class="menu-toggle" aria-hidden="true">
+<header class="top">
+  <label for="menu" class="menu-button" aria-label="Menu">&#9776;</label>
+  <a class="brand" href="index.html"><img src="assets/logo.svg" alt=""> codec <span class="tag">docs</span></a>
+  <span class="spacer"></span>
+  <nav class="links" aria-label="Site">
+    <a href="getting-started.html" class="hide-sm">Get started</a>
+    <a href="cli.html" class="hide-sm">CLI</a>
+    <a href="https://github.com/mahasenabheetha/codec/releases">Download</a>
+    <a href="https://github.com/mahasenabheetha/codec">GitHub</a>
+  </nav>
+</header>
+<div class="layout">
+<nav class="side" aria-label="Documentation">
+<h4>Start</h4>
+<ul>
+<li><a href="index.html">Overview</a></li>
+<li><a href="getting-started.html">Getting started</a></li>
+</ul>
+<h4>Using codec</h4>
+<ul>
+<li><a href="workspace.html">Workspace and editor</a></li>
+<li><a href="helm.html">Helm</a></li>
+<li><a href="lint.html">Lint and schemas</a></li>
+<li><a href="kubernetes.html">Kubernetes and Kustomize</a></li>
+<li><a href="argo.html">Argo</a></li>
+<li><a href="ci.html">CI pipelines</a></li>
+<li><a href="compose.html">Compose</a></li>
+<li><a href="ansible.html">Ansible</a></li>
+<li><a href="compare.html">Compare and query</a></li>
+<li><a href="new.html" aria-current="page">New files and clones</a></li>
+<li><a href="tools.html">Encode, decode and logs</a></li>
+<li><a href="settings.html">Settings and your data</a></li>
+</ul>
+<h4>Reference</h4>
+<ul>
+<li><a href="cli.html">CLI reference</a></li>
+<li><a href="shortcuts.html">Keyboard shortcuts</a></li>
+<li><a href="troubleshooting.html">Troubleshooting</a></li>
+</ul>
+<h4>How it works</h4>
+<ul>
+<li><a href="architecture.html">Architecture</a></li>
+<li><a href="flows.html">Flows</a></li>
+<li><a href="security.html">Security and privacy</a></li>
+<li><a href="design.html">Design language</a></li>
+<li><a href="development.html">Development</a></li>
+</ul>
+</nav>
+<main>
+<article class="content">
+<h1>New files and clones</h1>
+<p class="lead">Start new YAML from a checked starter instead of copying an old file and forgetting to change half of it — or clone an existing file under a new name and let codec rename everything that should change.</p>
+
+<h2 id="starters">Starters<a class="anchor" href="#starters">#</a></h2>
+<figure>
+  <img src="images/new.png" alt="The New view: the Helm chart starter selected, a short form, and seven generated files with Chart.yaml shown, lint clean" width="1400" height="820">
+  <figcaption>The Helm chart starter: fill in a few fields, read the result — linted, schema-checked and rendered — then copy it or download a zip.</figcaption>
+</figure>
+<p>Open <strong>New</strong> in the sidebar or "New file from a starter…" in the palette. Pick a starter, fill in the short form (defaults are sensible), and read the result on the right. Every file is linted and schema-checked as you type; a chart is also rendered with <code>helm template</code> and its output checked (the <strong>Rendered</strong> tab). You can edit the preview — edits are what-if and are re-checked — then <strong>Copy</strong> a file or <strong>Download</strong> them all as a zip. codec writes nothing itself.</p>
+<div class="table-wrap"><table>
+  <tr><th>Group</th><th>Starters</th></tr>
+  <tr><td>Kubernetes</td><td>Deployment and Service (optional Ingress), ConfigMap, Secret</td></tr>
+  <tr><td>Helm</td><td>Helm chart: Chart.yaml, values, helpers, Deployment, Service, NOTES</td></tr>
+  <tr><td>Argo</td><td>WorkflowTemplate (DAG), CronWorkflow, Argo CD Application</td></tr>
+  <tr><td>CI</td><td>GitHub Actions workflow (by language), GitLab CI pipeline, Azure pipeline</td></tr>
+  <tr><td>Compose</td><td>Compose service (optional PostgreSQL)</td></tr>
+  <tr><td>Ansible</td><td>Playbook, role (tasks, handlers, defaults, meta)</td></tr>
+</table></div>
+<p>Starters follow current practice: pinned image tags, requests and limits, probes, a restrictive security context, least-privilege CI permissions. Form fields are validated (DNS names, ports, images, cron expressions), and fields that don't apply hide themselves.</p>
+
+<h3 id="personal">Your own starters<a class="anchor" href="#personal">#</a></h3>
+<p>Put your team's templates in the <code>templates</code> folder of codec's settings folder (<code>%AppData%\codec\templates</code>, <code>~/Library/Application Support/codec/templates</code> or <code>~/.config/codec/templates</code>). They appear in the New view and in <code>codec new</code> next to the built-in ones, read fresh each time.</p>
+<ul>
+  <li><strong>A single file</strong> — its fields are the placeholders it uses. A field used only as a condition becomes a switch.</li>
+  <li><strong>A folder</strong> per starter, with an optional <code>starter.yaml</code> describing the form: title, description, fields (label, help, type, default, choices, validation, when to show) and the files to write.</li>
+</ul>
+<p>Placeholders use <code>&lt;% %&gt;</code> so they don't clash with the <code>{{ }}</code> of Helm, Argo and Jinja, GitHub's <code>${{ }}</code> or shell <code>[[ ]]</code>:</p>
+<div class="pre-title">templates/team-configmap.yaml</div>
+<pre><code><span class="k">apiVersion</span>: <span class="s">v1</span>
+<span class="k">kind</span>: <span class="s">ConfigMap</span>
+<span class="k">metadata</span>:
+  <span class="k">name</span>: <span class="t">&lt;% .name %&gt;</span>
+  <span class="k">labels</span>:
+    <span class="k">team</span>: <span class="t">&lt;% .team | quote %&gt;</span>
+<span class="k">data</span>:
+  <span class="k">LOG_LEVEL</span>: <span class="s">info</span>
+<span class="t">&lt;%- if .debug %&gt;</span>
+  <span class="k">DEBUG</span>: <span class="s">"true"</span>     <span class="c"># "debug" is only a condition, so it becomes a switch</span>
+<span class="t">&lt;%- end %&gt;</span></code></pre>
+<p>Helpers available in placeholders: <code>quote</code>, <code>yaml</code> (a safely quoted YAML scalar), <code>lower</code>, <code>upper</code>, <code>snake</code>, <code>env</code> (<code>MY_VAR</code> style), <code>title</code>. A misspelt field is an error rather than empty output.</p>
+
+<h2 id="clone">Clone with a new name<a class="anchor" href="#clone">#</a></h2>
+<figure>
+  <img src="images/clone.png" alt="Clone view: argo/build.yaml cloned as shop-release; metadata.name renamed, the container image listed to check, and the copy passing the checks" width="1400" height="820" loading="lazy">
+  <figcaption>Cloning <code>argo/build.yaml</code> as <code>shop-release</code>: one rename, one thing to check, and the copy passes lint and the Argo checks.</figcaption>
+</figure>
+<p>The clone button on a YAML file (or "Clone with a new name…" in the palette) copies the file, or one document of it, under a new name. codec guesses the old name — the name found in most other names — and you type the new one.</p>
+<ul>
+  <li><strong>Renamed:</strong> every whole-word use of the old name in values and keys (letters and digits bound a word, so <code>shop</code> doesn't touch <code>workshop</code>): <code>metadata.name</code>, labels and selectors, template and job names, internal references. Comments and layout stay exactly as they were.</li>
+  <li><strong>Not renamed, suggested:</strong> references to objects that aren't part of the copy (renaming them would break the reference), Secrets, images and addresses (URLs, registries, hosts). Tick one to rename it anyway.</li>
+  <li><strong>Check:</strong> things copies usually change even when they don't contain the name — images, hosts, Secret references.</li>
+  <li>Label and annotation <em>keys</em> are never renamed.</li>
+</ul>
+<p>Every change is listed and can be unticked; changed lines are tinted in the preview. The copy is checked like the original (lint, schemas and the lens's checks), then you copy the text into a new file.</p>
+
+<h2 id="snippets">Snippets<a class="anchor" href="#snippets">#</a></h2>
+<p>In the editor, at the start of a key or a list item, <kbd>Ctrl</kbd> <kbd>Space</kbd> offers snippets for the file type; <kbd>Tab</kbd> moves between their fields:</p>
+<div class="table-wrap"><table>
+  <tr><th>File type</th><th>Snippets</th></tr>
+  <tr><td>Kubernetes, Helm templates</td><td>container, readiness/liveness probe, resources</td></tr>
+  <tr><td>Argo Workflows</td><td>container, resources, a DAG task that depends on the last task</td></tr>
+  <tr><td>GitHub Actions</td><td>step, action step, job</td></tr>
+  <tr><td>GitLab CI</td><td>job</td></tr>
+  <tr><td>Ansible</td><td>task</td></tr>
+  <tr><td>Compose</td><td>service</td></tr>
+</table></div>
+
+<h2 id="cli">From the command line<a class="anchor" href="#cli">#</a></h2>
+<pre><code>codec new                                     <span class="c"># list built-in and personal starters</span>
+codec new k8s-app --set name=shop --set ingress=true --set host=shop.example.com
+codec new helm-chart --set name=web           <span class="c"># several files, each after "# ==> path &lt;=="</span>
+codec new helm-chart --set name=web --file web/values.yaml
+codec clone argo/build.yaml --to shop-release
+codec clone k8s/app.yaml --doc 1 --to cart --all   <span class="c"># one document; take the suggestions too</span></code></pre>
+<p>Both commands print; nothing is written.</p>
+<nav class="pager" aria-label="Pages">
+<a class="prev" href="compare.html"><small>Previous</small>Compare and query</a>
+<a class="next" href="tools.html"><small>Next</small>Encode, decode and logs</a>
+</nav>
+<footer>codec is open source under the MIT licence. It runs on your machine and never writes to your files.</footer>
+</article>
+</main>
+</div>
+</body>
+</html>

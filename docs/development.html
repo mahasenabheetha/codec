@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Development · codec docs</title>
+<meta name="description" content="Build codec from source, run it while developing, and fix bugs or add features in the same way the rest of codec is built.">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<input type="checkbox" id="menu" class="menu-toggle" aria-hidden="true">
+<header class="top">
+  <label for="menu" class="menu-button" aria-label="Menu">&#9776;</label>
+  <a class="brand" href="index.html"><img src="assets/logo.svg" alt=""> codec <span class="tag">docs</span></a>
+  <span class="spacer"></span>
+  <nav class="links" aria-label="Site">
+    <a href="getting-started.html" class="hide-sm">Get started</a>
+    <a href="cli.html" class="hide-sm">CLI</a>
+    <a href="https://github.com/mahasenabheetha/codec/releases">Download</a>
+    <a href="https://github.com/mahasenabheetha/codec">GitHub</a>
+  </nav>
+</header>
+<div class="layout">
+<nav class="side" aria-label="Documentation">
+<h4>Start</h4>
+<ul>
+<li><a href="index.html">Overview</a></li>
+<li><a href="getting-started.html">Getting started</a></li>
+</ul>
+<h4>Using codec</h4>
+<ul>
+<li><a href="workspace.html">Workspace and editor</a></li>
+<li><a href="helm.html">Helm</a></li>
+<li><a href="lint.html">Lint and schemas</a></li>
+<li><a href="kubernetes.html">Kubernetes and Kustomize</a></li>
+<li><a href="argo.html">Argo</a></li>
+<li><a href="ci.html">CI pipelines</a></li>
+<li><a href="compose.html">Compose</a></li>
+<li><a href="ansible.html">Ansible</a></li>
+<li><a href="compare.html">Compare and query</a></li>
+<li><a href="new.html">New files and clones</a></li>
+<li><a href="tools.html">Encode, decode and logs</a></li>
+<li><a href="settings.html">Settings and your data</a></li>
+</ul>
+<h4>Reference</h4>
+<ul>
+<li><a href="cli.html">CLI reference</a></li>
+<li><a href="shortcuts.html">Keyboard shortcuts</a></li>
+<li><a href="troubleshooting.html">Troubleshooting</a></li>
+</ul>
+<h4>How it works</h4>
+<ul>
+<li><a href="architecture.html">Architecture</a></li>
+<li><a href="flows.html">Flows</a></li>
+<li><a href="security.html">Security and privacy</a></li>
+<li><a href="design.html">Design language</a></li>
+<li><a href="development.html" aria-current="page">Development</a></li>
+</ul>
+</nav>
+<main>
+<article class="content">
+<h1>Development</h1>
+<p class="lead">How to build codec, work on it, and change it in a way that fits the rest. The repository's <code>design/</code> folder holds the detailed rules; this page is the overview.</p>
+
+<h2 id="setup">Setup<a class="anchor" href="#setup">#</a></h2>
+<p>You need Go 1.26+ and Node.js 22+. On Windows, Git Bash runs the scripts.</p>
+<pre><code>git clone https://github.com/mahasenabheetha/codec.git
+cd codec
+npm --prefix frontend ci           <span class="c"># once: UI dependencies</span>
+scripts/dev.sh run                 <span class="c"># build the UI and the binary, serve on :8766</span>
+scripts/dev.sh ui                  <span class="c"># the same, plus a hot-reloading UI on :5173</span></code></pre>
+<div class="table-wrap"><table>
+  <tr><th>Task</th><th>Command</th></tr>
+  <tr><td>Vet and test one package</td><td><code>go vet ./... &amp;&amp; go test ./internal/lint/...</code></td></tr>
+  <tr><td>Type-check the UI</td><td><code>npm --prefix frontend run check</code></td></tr>
+  <tr><td>Build the UI (embedded by go build)</td><td><code>npm --prefix frontend run build</code></td></tr>
+  <tr><td>Build the binary</td><td><code>go build -o codec ./cmd/codec</code></td></tr>
+  <tr><td>Performance budgets</td><td><code>scripts/perf.sh</code></td></tr>
+  <tr><td>Everything, before a pull request</td><td><code>go test ./...</code> and the UI check</td></tr>
+</table></div>
+
+<h2 id="map">Where things live<a class="anchor" href="#map">#</a></h2>
+<p>Start from what you see, then go to the package. See <a href="architecture.html#layout">the repository layout</a> for the full map.</p>
+<div class="table-wrap"><table>
+  <tr><th>You see a problem in…</th><th>Look in</th></tr>
+  <tr><td>Parsing, positions, syntax errors, diff, merged files</td><td><code>internal/yamlkit</code></td></tr>
+  <tr><td>A file's type, outline, hover, go to definition, completion</td><td><code>internal/provider</code> and the lens package's provider</td></tr>
+  <tr><td>A lint finding or its wording</td><td><code>internal/lint</code></td></tr>
+  <tr><td>A schema error, completion from schemas</td><td><code>internal/schema</code>; downloads in <code>internal/schemacache</code></td></tr>
+  <tr><td>Helm render or provenance</td><td><code>internal/helm</code></td></tr>
+  <tr><td>Kubernetes cards, graph, Kustomize</td><td><code>internal/kube</code></td></tr>
+  <tr><td>Argo, CI, Compose, Ansible views</td><td><code>internal/argo</code>, <code>ci</code>, <code>compose</code>, <code>ansible</code></td></tr>
+  <tr><td>Starters, clone, snippets</td><td><code>internal/scaffold</code></td></tr>
+  <tr><td>Files missing, watching, reading</td><td><code>internal/workspace</code></td></tr>
+  <tr><td>An API response</td><td><code>internal/web</code> (one <code>*_api.go</code> per feature)</td></tr>
+  <tr><td>A CLI command</td><td><code>internal/cli</code></td></tr>
+  <tr><td>Something on screen</td><td><code>frontend/src/features/&lt;view&gt;</code>; shared parts in <code>frontend/src/lib</code></td></tr>
+</table></div>
+
+<h2 id="bugs">Fixing a bug<a class="anchor" href="#bugs">#</a></h2>
+<ol class="steps">
+  <li><strong>Reproduce it</strong> with the smallest input — ideally a file in the sample repository or a few lines of YAML. Note the exact message or behaviour.</li>
+  <li><strong>Find the layer.</strong> If the CLI shows the same wrong answer, the bug is in the engine; if only the UI is wrong, it is in <code>internal/web</code> or the frontend.</li>
+  <li><strong>Write a failing test first</strong> in the engine package: a named table-driven case with the input that broke. Every fixed bug keeps its regression case.</li>
+  <li><strong>Fix it at the source</strong>, in the same style as the code around it: small functions, comments that explain why, no new dependencies without a reason.</li>
+  <li><strong>Run the tests for that package</strong> and check the UI if it is visible there.</li>
+  <li><strong>Record it:</strong> a line under "Fixed" in <code>CHANGELOG.md</code>; update this site if the behaviour it describes changed.</li>
+</ol>
+
+<h2 id="features">Adding a feature<a class="anchor" href="#features">#</a></h2>
+<ol class="steps">
+  <li><strong>Write it down first</strong> in <code>design/roadmap.md</code>: the problem, the user-visible result, and what "done" means.</li>
+  <li><strong>Check the decisions</strong> in <code>design/decisions.md</code>. If the feature needs a new choice, add a numbered decision.</li>
+  <li><strong>Engine first.</strong> Put the logic in an engine package, pure and tested. A new file type is a new provider; a new view is a lens package plus a provider.</li>
+  <li><strong>Then the adapters:</strong> an API endpoint in <code>internal/web</code>, a CLI command in <code>internal/cli</code> where it makes sense.</li>
+  <li><strong>Then the UI</strong>, from the shared components and the <a href="design.html">design language</a>: a palette entry, empty and loading states, keyboard access.</li>
+  <li><strong>Document it:</strong> a page or section on this site, a screenshot of it on the sample repository, the README feature list, the CHANGELOG.</li>
+</ol>
+
+<h2 id="rules">House rules<a class="anchor" href="#rules">#</a></h2>
+<ul>
+  <li>codec never writes to the folders it opens. What-if only.</li>
+  <li>No settings or files in the user's repositories; settings live in the user profile.</li>
+  <li>Engine packages have no input or output of their own.</li>
+  <li>No runtime calls to third parties except schema downloads.</li>
+  <li>Nothing pasted into tools is persisted.</li>
+  <li>Work on a feature branch and open a pull request; <code>main</code> is released from tags.</li>
+</ul>
+
+<h2 id="docs">Editing this site<a class="anchor" href="#docs">#</a></h2>
+<p>The site in <code>docs/</code> is plain HTML with one stylesheet — no build step. Each page repeats the sidebar; when adding a page, add its link to the sidebar of every page and set the previous/next links around it. Screenshots are 1400×820 captures of the sample repository. GitHub Pages serves the folder as is.</p>
+
+<h2 id="release">Releasing<a class="anchor" href="#release">#</a></h2>
+<p>Merge to <code>main</code>, update the CHANGELOG, then push a tag (<code>v2.1.0</code>). The release workflow builds binaries for six platforms, publishes a GitHub Release with checksums, and pushes the Docker image (<code>latest</code> only for stable versions). Details: <code>design/releases.md</code>.</p>
+<nav class="pager" aria-label="Pages">
+<a class="prev" href="design.html"><small>Previous</small>Design language</a>
+</nav>
+<footer>codec is open source under the MIT licence. It runs on your machine and never writes to your files.</footer>
+</article>
+</main>
+</div>
+</body>
+</html>

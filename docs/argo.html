@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Argo · codec docs</title>
+<meta name="description" content="Read Argo workflows as they would run: steps and DAGs as graphs, every template and input resolved across files, and Argo CD apps rendered.">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<input type="checkbox" id="menu" class="menu-toggle" aria-hidden="true">
+<header class="top">
+  <label for="menu" class="menu-button" aria-label="Menu">&#9776;</label>
+  <a class="brand" href="index.html"><img src="assets/logo.svg" alt=""> codec <span class="tag">docs</span></a>
+  <span class="spacer"></span>
+  <nav class="links" aria-label="Site">
+    <a href="getting-started.html" class="hide-sm">Get started</a>
+    <a href="cli.html" class="hide-sm">CLI</a>
+    <a href="https://github.com/mahasenabheetha/codec/releases">Download</a>
+    <a href="https://github.com/mahasenabheetha/codec">GitHub</a>
+  </nav>
+</header>
+<div class="layout">
+<nav class="side" aria-label="Documentation">
+<h4>Start</h4>
+<ul>
+<li><a href="index.html">Overview</a></li>
+<li><a href="getting-started.html">Getting started</a></li>
+</ul>
+<h4>Using codec</h4>
+<ul>
+<li><a href="workspace.html">Workspace and editor</a></li>
+<li><a href="helm.html">Helm</a></li>
+<li><a href="lint.html">Lint and schemas</a></li>
+<li><a href="kubernetes.html">Kubernetes and Kustomize</a></li>
+<li><a href="argo.html" aria-current="page">Argo</a></li>
+<li><a href="ci.html">CI pipelines</a></li>
+<li><a href="compose.html">Compose</a></li>
+<li><a href="ansible.html">Ansible</a></li>
+<li><a href="compare.html">Compare and query</a></li>
+<li><a href="new.html">New files and clones</a></li>
+<li><a href="tools.html">Encode, decode and logs</a></li>
+<li><a href="settings.html">Settings and your data</a></li>
+</ul>
+<h4>Reference</h4>
+<ul>
+<li><a href="cli.html">CLI reference</a></li>
+<li><a href="shortcuts.html">Keyboard shortcuts</a></li>
+<li><a href="troubleshooting.html">Troubleshooting</a></li>
+</ul>
+<h4>How it works</h4>
+<ul>
+<li><a href="architecture.html">Architecture</a></li>
+<li><a href="flows.html">Flows</a></li>
+<li><a href="security.html">Security and privacy</a></li>
+<li><a href="design.html">Design language</a></li>
+<li><a href="development.html">Development</a></li>
+</ul>
+</nav>
+<main>
+<article class="content">
+<h1>Argo</h1>
+<p class="lead">The Argo view reads a workflow the way the Argo controller would: every step with the template it runs and the values it receives, <code>templateRef</code> followed into other files, and the DAG drawn as a graph — without a cluster.</p>
+
+<figure>
+  <img src="images/argo.png" alt="The Argo view of shop-build: parameters on the left, the DAG as a graph with deploy marked skipped, and the main template with values filled in" width="1400" height="820">
+  <figcaption><code>argo/build.yaml</code> from the sample. With <code>environment=dev</code>, the deploy step is marked skipped.</figcaption>
+</figure>
+
+<h2 id="kinds">What it reads<a class="anchor" href="#kinds">#</a></h2>
+<p>Workflow, WorkflowTemplate, ClusterWorkflowTemplate and CronWorkflow files, workflows embedded in Argo Events Sensors, and the same objects rendered by a Helm chart (the <a href="helm.html#argo">Argo tab</a> of the Helm view). Raw Helm templates work too; Helm's <code>{{ "{{" }}</code> escapes are understood. Open it with <strong>Argo</strong> on the file's toolbar or "Argo: <em>file</em>" in the palette.</p>
+
+<h2 id="resolve">How values are resolved<a class="anchor" href="#resolve">#</a></h2>
+<p>For each step codec finds the template it calls — in the same file, or through <code>templateRef</code> in any Argo file of the open folder — and fills in its inputs from, in order:</p>
+<ol>
+  <li>what-if parameters you set in the view (or a parameter file),</li>
+  <li>the workflow's <code>spec.arguments</code>,</li>
+  <li>the call site's <code>arguments.parameters</code>,</li>
+  <li>the template's input defaults,</li>
+  <li>loop items (<code>withItems</code>, <code>withParam</code> where it is literal).</li>
+</ol>
+<p>Values that only exist at run time — step outputs, <code>workflow.uid</code>, event payloads — stay as written and are marked <em>(known at run time)</em>. codec never guesses them.</p>
+<p>A parameter with <code>enum</code> becomes a dropdown, and values outside it are flagged.</p>
+
+<h2 id="graph">Steps and DAGs<a class="anchor" href="#graph">#</a></h2>
+<ul>
+  <li><strong>Steps</strong> are drawn as sequential groups, parallel steps side by side.</li>
+  <li><strong>DAGs</strong> follow <code>dependencies</code> and <code>depends</code> expressions. Edges are labelled with the condition (<code>Failed</code>, <code>Succeeded</code>, <code>AnySucceeded</code>…), and each task says in words when it runs.</li>
+  <li><strong><code>when</code> conditions</strong> are evaluated once their values are known; a step that wouldn't run is drawn dashed as "skipped with these values".</li>
+  <li>Click a step for its details: the template with the values filled in, where each value came from, and links to the YAML. Nested templates can be drilled into.</li>
+</ul>
+
+<h2 id="editor">In the editor<a class="anchor" href="#editor">#</a></h2>
+<ul>
+  <li>The outline lists templates by type (container, script, dag, steps, resource, suspend) with the entrypoint marked.</li>
+  <li>Go to definition and hover for template names, <code>templateRef</code> (other files, raw Helm templates included), <code>depends</code> terms and parameters.</li>
+  <li>Diagnostics: missing templates, bad <code>depends</code> expressions, unknown tasks, undeclared inputs, missing or unused arguments.</li>
+  <li>Snippets and completion: a DAG task that depends on the last task; <code>depends:</code> and <code>template:</code> complete from the DAG.</li>
+</ul>
+
+<h2 id="argocd">Argo CD<a class="anchor" href="#argocd">#</a></h2>
+<p>Applications and ApplicationSets show where they deploy from and to: source repository, path and revision, Helm value files and parameters, destination cluster and namespace, sync policy, and ApplicationSet generators. <strong>Render this app</strong> opens the chart in the <a href="helm.html">Helm view</a> with the app's value files and parameters applied, when the chart is in the open folder.</p>
+
+<h2 id="cli">From the command line<a class="anchor" href="#cli">#</a></h2>
+<pre><code>codec argo resolve argo/build.yaml argo/common.yaml -p environment=prod
+<span class="o">WorkflowTemplate shop-build  argo/build.yaml:1
+
+parameters
+  revision    = main
+  environment = prod
+
+main → dag
+    checkout → run · container · alpine:3.22
+        cmd = git checkout main
+    image → run · container · alpine:3.22
+        · runs when unit-tests succeeded (or was skipped) and lint succeeded (or was skipped)
+        cmd = make image TAG=main
+    deploy → run · container · alpine:3.22
+        · when prod == prod → true
+        cmd = make deploy ENV=prod
+    notify → shop-common/notify · container · curlimages/curl:8.15.0
+        · runs when image failed or deploy succeeded or deploy skipped
+        channel = #shop-builds</span>
+
+codec argo graph argo/build.yaml --format mermaid      <span class="c"># or --format dot</span>
+helm template ./chart | codec argo resolve -w deploy-wf  <span class="c"># from a render</span></code></pre>
+<p><code>resolve</code> exits with 2 when it finds problems. Options: <code>-w</code> picks a workflow, <code>-p name=value</code> sets parameters, <code>--parameter-file</code> reads them from a file, <code>--json</code> prints the resolution as JSON.</p>
+<nav class="pager" aria-label="Pages">
+<a class="prev" href="kubernetes.html"><small>Previous</small>Kubernetes and Kustomize</a>
+<a class="next" href="ci.html"><small>Next</small>CI pipelines</a>
+</nav>
+<footer>codec is open source under the MIT licence. It runs on your machine and never writes to your files.</footer>
+</article>
+</main>
+</div>
+</body>
+</html>

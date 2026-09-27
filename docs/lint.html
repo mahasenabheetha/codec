@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lint and schemas · codec docs</title>
+<meta name="description" content="Lint rules, Kubernetes checks, removed APIs and schema validation, in the editor, across the workspace, on Helm output and in CI.">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<input type="checkbox" id="menu" class="menu-toggle" aria-hidden="true">
+<header class="top">
+  <label for="menu" class="menu-button" aria-label="Menu">&#9776;</label>
+  <a class="brand" href="index.html"><img src="assets/logo.svg" alt=""> codec <span class="tag">docs</span></a>
+  <span class="spacer"></span>
+  <nav class="links" aria-label="Site">
+    <a href="getting-started.html" class="hide-sm">Get started</a>
+    <a href="cli.html" class="hide-sm">CLI</a>
+    <a href="https://github.com/mahasenabheetha/codec/releases">Download</a>
+    <a href="https://github.com/mahasenabheetha/codec">GitHub</a>
+  </nav>
+</header>
+<div class="layout">
+<nav class="side" aria-label="Documentation">
+<h4>Start</h4>
+<ul>
+<li><a href="index.html">Overview</a></li>
+<li><a href="getting-started.html">Getting started</a></li>
+</ul>
+<h4>Using codec</h4>
+<ul>
+<li><a href="workspace.html">Workspace and editor</a></li>
+<li><a href="helm.html">Helm</a></li>
+<li><a href="lint.html" aria-current="page">Lint and schemas</a></li>
+<li><a href="kubernetes.html">Kubernetes and Kustomize</a></li>
+<li><a href="argo.html">Argo</a></li>
+<li><a href="ci.html">CI pipelines</a></li>
+<li><a href="compose.html">Compose</a></li>
+<li><a href="ansible.html">Ansible</a></li>
+<li><a href="compare.html">Compare and query</a></li>
+<li><a href="new.html">New files and clones</a></li>
+<li><a href="tools.html">Encode, decode and logs</a></li>
+<li><a href="settings.html">Settings and your data</a></li>
+</ul>
+<h4>Reference</h4>
+<ul>
+<li><a href="cli.html">CLI reference</a></li>
+<li><a href="shortcuts.html">Keyboard shortcuts</a></li>
+<li><a href="troubleshooting.html">Troubleshooting</a></li>
+</ul>
+<h4>How it works</h4>
+<ul>
+<li><a href="architecture.html">Architecture</a></li>
+<li><a href="flows.html">Flows</a></li>
+<li><a href="security.html">Security and privacy</a></li>
+<li><a href="design.html">Design language</a></li>
+<li><a href="development.html">Development</a></li>
+</ul>
+</nav>
+<main>
+<article class="content">
+<h1>Lint and schemas</h1>
+<p class="lead">One set of checks runs everywhere: in the editor as you type, over the whole workspace, on Helm and Kustomize output, and in CI with <code>codec yaml lint</code>. Every finding says why it matters and how to fix it.</p>
+
+<figure>
+  <img src="images/problems.png" alt="Workspace problems: five findings in k8s/legacy/admin.yaml, each with a fix and a Why link" width="1400" height="820">
+  <figcaption>Workspace problems on the sample: the planted findings in <code>k8s/legacy/admin.yaml</code>, each with its fix.</figcaption>
+</figure>
+
+<h2 id="where">Where checks run<a class="anchor" href="#where">#</a></h2>
+<div class="table-wrap"><table>
+  <tr><th>Place</th><th>What it checks</th></tr>
+  <tr><td>Editor</td><td>The open file, including what-if edits, a moment after you stop typing. Squiggles, the Problems panel and the status bar count.</td></tr>
+  <tr><td>Problems view</td><td>Every YAML file in the folder, on demand ("Lint workspace" in the sidebar or palette). Filter by severity and by group; click to open the file at the line.</td></tr>
+  <tr><td>Helm and Kustomize</td><td>The rendered objects, traced back to the template or file that produced them.</td></tr>
+  <tr><td>CLI</td><td><code>codec yaml lint</code> over files or folders, exit code 2 when there are warnings or errors — a CI gate.</td></tr>
+</table></div>
+<p>Each finding has a <strong>Why?</strong> link with the reason the rule exists, and <strong>Turn off</strong> to set the rule to off from where you see it.</p>
+
+<h2 id="rules">Rules<a class="anchor" href="#rules">#</a></h2>
+<p>Every rule's level (error, warning, info or off) can be changed in <a href="settings.html">Settings</a>; the choice applies to the editor, the Problems view, rendered output and the CLI alike.</p>
+
+<h3 id="style">Style — YAML traps<a class="anchor" href="#style">#</a></h3>
+<div class="table-wrap"><table>
+  <tr><th>Rule</th><th>Default</th><th>Why</th></tr>
+  <tr><td><code>duplicate-key</code></td><td>error</td><td>Most tools silently keep only the last value, so the first one is ignored without a word.</td></tr>
+  <tr><td><code>truthy</code></td><td>warning</td><td>YAML 1.1 readers (Kubernetes, Ansible, PyYAML) turn <code>yes/no/on/off</code> into booleans; YAML 1.2 readers keep them as text. The same file means different things to different tools.</td></tr>
+  <tr><td><code>octal</code></td><td>warning</td><td><code>0755</code> is octal (493) in YAML 1.1 but decimal in YAML 1.2.</td></tr>
+  <tr><td><code>indent</code></td><td>info</td><td>Mixed indentation widths hide nesting; a line one space off silently moves to another parent.</td></tr>
+  <tr><td><code>empty-value</code></td><td>info</td><td>A key with nothing after it is null — usually a forgotten or mis-indented value. Keys documented as empty (GitHub <code>workflow_dispatch:</code>, inventory hosts) are allowed.</td></tr>
+  <tr><td><code>trailing-spaces</code></td><td>info</td><td>Noisy diffs, and inside <code>|</code> blocks the spaces become part of the value.</td></tr>
+  <tr><td><code>document-start</code></td><td>off</td><td>For teams that require every file to start with <code>---</code>.</td></tr>
+  <tr><td><code>line-length</code></td><td>off</td><td>Long lines are hard to review. The limit (default 120) is set next to the rule; long words such as URLs are allowed.</td></tr>
+</table></div>
+
+<h3 id="kubernetes">Kubernetes<a class="anchor" href="#kubernetes">#</a></h3>
+<div class="table-wrap"><table>
+  <tr><th>Rule</th><th>Default</th><th>Why</th></tr>
+  <tr><td><code>image-tag</code></td><td>warning</td><td><code>:latest</code> or no tag moves: a restart can pull a different image than the one you tested, and a rollback can't go back.</td></tr>
+  <tr><td><code>resources</code></td><td>warning</td><td>No requests: poor scheduling and first eviction. No memory limit: one container can starve the node.</td></tr>
+  <tr><td><code>probes</code></td><td>warning</td><td>No readiness probe: traffic arrives before the app is ready, and a rolling update can't tell a broken release from a good one.</td></tr>
+  <tr><td><code>privileged</code></td><td>warning</td><td>Every capability and host device: escaping to the node is trivial.</td></tr>
+  <tr><td><code>host-path</code></td><td>warning</td><td>Exposes the node's filesystem and ties the pod to one node.</td></tr>
+  <tr><td><code>host-network</code></td><td>warning</td><td>The pod sees all host traffic and bypasses NetworkPolicies.</td></tr>
+  <tr><td><code>run-as-non-root</code></td><td>warning</td><td>Containers run as root unless told otherwise; the restricted Pod Security level rejects them.</td></tr>
+</table></div>
+
+<h3 id="deprecations">Deprecated and removed APIs<a class="anchor" href="#deprecations">#</a></h3>
+<p>Choose the Kubernetes version you deploy to (1.30 to 1.37; default 1.34). An API the target no longer serves is an error (<code>api-removed</code>) — <code>kubectl apply</code> and Helm would fail with "no matches for kind" — and one scheduled for removal is a warning (<code>api-deprecated</code>), naming the replacement.</p>
+<pre><code><span class="k">apiVersion</span>: <span class="s">policy/v1beta1</span>    <span class="e">error: policy/v1beta1 PodDisruptionBudget was removed in Kubernetes 1.25 (target 1.34)</span>
+<span class="k">kind</span>: <span class="s">PodDisruptionBudget</span>  <span class="c">  fix: Use policy/v1; check the field changes in the deprecation guide.</span></code></pre>
+
+<h2 id="schemas">Schema validation<a class="anchor" href="#schemas">#</a></h2>
+<p>Each document is checked against the published JSON schema for its type. Errors land on the offending key, with "did you mean" for misspelled fields:</p>
+<pre><code><span class="k">spec</span>:
+  <span class="k">replica</span>: <span class="n">3</span>   <span class="e">error: Unknown field "replica" in spec</span>  <span class="c">Did you mean "replicas"?</span></code></pre>
+<div class="table-wrap"><table>
+  <tr><th>Type</th><th>Schema source</th></tr>
+  <tr><td>Kubernetes</td><td>Per Kubernetes version and kind, from <code>yannh/kubernetes-json-schema</code></td></tr>
+  <tr><td>CRDs</td><td>Argo, Argo CD, cert-manager and hundreds more from the <code>datreeio/CRDs-catalog</code></td></tr>
+  <tr><td>GitHub Actions</td><td>SchemaStore workflow and action schemas</td></tr>
+  <tr><td>GitLab CI</td><td>GitLab's own CI schema</td></tr>
+  <tr><td>Azure Pipelines</td><td>Microsoft's service schema (scalars are compared loosely, as Azure converts them)</td></tr>
+  <tr><td>Compose</td><td>The Compose specification schema</td></tr>
+  <tr><td>Kustomize</td><td>SchemaStore kustomization schema</td></tr>
+</table></div>
+<p>The same schemas power <a href="workspace.html#completion">key completion and field docs</a> in the editor; a badge in the editor's toolbar names the schema in use.</p>
+
+<h3 id="patches">Partial objects<a class="anchor" href="#patches">#</a></h3>
+<p>Files that a <code>kustomization.yaml</code> lists as patches (in the same folder or up to two above) hold partial objects, so they aren't flagged for the required fields of the complete object. Unknown fields and wrong types are still reported.</p>
+
+<h3 id="download">Downloads, cache and offline<a class="anchor" href="#download">#</a></h3>
+<ul>
+  <li>Schemas are downloaded the first time a document needs them and cached in your user cache folder (<code>…/codec/schemas</code>). Schemas a file needs start downloading together.</li>
+  <li>While a schema downloads, the editor shows the document as <em>pending</em> and asks again; Helm renders appear at once and add schema findings when they arrive.</li>
+  <li><strong>Offline</strong> (in Settings, or <code>--offline</code> on the CLI) never downloads: only the cache and your custom folder are used.</li>
+  <li><strong>Custom schema folder</strong>: checked first. Put files there by name (<code>deployment-apps-v1.json</code>) or in the CRD catalog layout (<code>argoproj.io/workflow_v1alpha1.json</code>) — useful for private CRDs or air-gapped machines. Copying codec's cache folder there also works.</li>
+  <li><strong>Validate against schemas</strong> can be switched off entirely.</li>
+</ul>
+
+<h2 id="ci">In CI<a class="anchor" href="#ci">#</a></h2>
+<pre><code>codec yaml lint                                   <span class="c"># the current folder, honouring .gitignore</span>
+codec yaml lint charts/ deploy/ --k8s-version 1.31
+codec yaml lint . --offline --json                <span class="c"># cached schemas only; machine-readable</span>
+<span class="o">deploy/api.yaml:6:3: error: Unknown field "replica" in spec [schema]
+    fix: Did you mean "replicas"?
+12 files: 1 errors, 0 warnings, 2 infos</span></code></pre>
+<p>Exit status: <code>0</code> clean (infos allowed), <code>2</code> warnings or errors, <code>1</code> usage errors. Rule levels come from your settings file if there is one, so a shared settings file (via <code>CODEC_CONFIG_DIR</code>) gives CI the same rules as your editor.</p>
+<nav class="pager" aria-label="Pages">
+<a class="prev" href="helm.html"><small>Previous</small>Helm</a>
+<a class="next" href="kubernetes.html"><small>Next</small>Kubernetes and Kustomize</a>
+</nav>
+<footer>codec is open source under the MIT licence. It runs on your machine and never writes to your files.</footer>
+</article>
+</main>
+</div>
+</body>
+</html>

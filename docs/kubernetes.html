@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kubernetes and Kustomize · codec docs</title>
+<meta name="description" content="See Kubernetes manifests, Helm renders and Kustomize builds as objects, relationships, an inventory and broken references.">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<input type="checkbox" id="menu" class="menu-toggle" aria-hidden="true">
+<header class="top">
+  <label for="menu" class="menu-button" aria-label="Menu">&#9776;</label>
+  <a class="brand" href="index.html"><img src="assets/logo.svg" alt=""> codec <span class="tag">docs</span></a>
+  <span class="spacer"></span>
+  <nav class="links" aria-label="Site">
+    <a href="getting-started.html" class="hide-sm">Get started</a>
+    <a href="cli.html" class="hide-sm">CLI</a>
+    <a href="https://github.com/mahasenabheetha/codec/releases">Download</a>
+    <a href="https://github.com/mahasenabheetha/codec">GitHub</a>
+  </nav>
+</header>
+<div class="layout">
+<nav class="side" aria-label="Documentation">
+<h4>Start</h4>
+<ul>
+<li><a href="index.html">Overview</a></li>
+<li><a href="getting-started.html">Getting started</a></li>
+</ul>
+<h4>Using codec</h4>
+<ul>
+<li><a href="workspace.html">Workspace and editor</a></li>
+<li><a href="helm.html">Helm</a></li>
+<li><a href="lint.html">Lint and schemas</a></li>
+<li><a href="kubernetes.html" aria-current="page">Kubernetes and Kustomize</a></li>
+<li><a href="argo.html">Argo</a></li>
+<li><a href="ci.html">CI pipelines</a></li>
+<li><a href="compose.html">Compose</a></li>
+<li><a href="ansible.html">Ansible</a></li>
+<li><a href="compare.html">Compare and query</a></li>
+<li><a href="new.html">New files and clones</a></li>
+<li><a href="tools.html">Encode, decode and logs</a></li>
+<li><a href="settings.html">Settings and your data</a></li>
+</ul>
+<h4>Reference</h4>
+<ul>
+<li><a href="cli.html">CLI reference</a></li>
+<li><a href="shortcuts.html">Keyboard shortcuts</a></li>
+<li><a href="troubleshooting.html">Troubleshooting</a></li>
+</ul>
+<h4>How it works</h4>
+<ul>
+<li><a href="architecture.html">Architecture</a></li>
+<li><a href="flows.html">Flows</a></li>
+<li><a href="security.html">Security and privacy</a></li>
+<li><a href="design.html">Design language</a></li>
+<li><a href="development.html">Development</a></li>
+</ul>
+</nav>
+<main>
+<article class="content">
+<h1>Kubernetes and Kustomize</h1>
+<p class="lead">The Resources view turns a folder of manifests, a Helm render or a Kustomize build into objects you can read: what each one is, what it connects to, what it runs, and which references point nowhere.</p>
+
+<figure>
+  <img src="images/resources.png" alt="Relationship graph: Service shop selects Deployment shop, which uses ConfigMap shop-config (not in this folder); a PDB targets Deployment shop-admin" width="1400" height="820">
+  <figcaption>The sample's <code>k8s</code> folder as a graph. The dashed ConfigMap is referenced but not defined here — Kustomize generates it.</figcaption>
+</figure>
+
+<h2 id="open">Opening it<a class="anchor" href="#open">#</a></h2>
+<ul>
+  <li><strong>A folder:</strong> the boxes icon on any Kubernetes file ("Kubernetes resources in this folder"), or "Kubernetes: resources in this folder" in the palette for the whole workspace. Helm templates are left out — render them instead.</li>
+  <li><strong>A Helm render:</strong> the Resources tab of the <a href="helm.html">Helm view</a>.</li>
+  <li><strong>A Kustomize build:</strong> the Resources tab of a <a href="#kustomize">Kustomize build</a>.</li>
+</ul>
+
+<h2 id="objects">Objects<a class="anchor" href="#objects">#</a></h2>
+<p>One card per object, with the facts you would otherwise dig for: replicas and strategy, each container with its image, ports, env sources and resources, Service type and ports, selectors, ConfigMap and Secret keys, and who uses it. Secret cards mask values until you reveal them. Click a card's source to open the file at the object.</p>
+<p>The same object defined twice — a base and an overlay's patch — appears as two cards and one graph node.</p>
+
+<h2 id="graph">Relationships<a class="anchor" href="#graph">#</a></h2>
+<p>codec works out how objects connect, the way Kubernetes would:</p>
+<div class="table-wrap"><table>
+  <tr><th>From</th><th>To</th><th>How</th></tr>
+  <tr><td>Service</td><td>Pods of a workload</td><td>Selector against pod template labels; named target ports checked against container ports.</td></tr>
+  <tr><td>Ingress</td><td>Service and port</td><td>Backend service name and port (number or name).</td></tr>
+  <tr><td>Workload</td><td>ConfigMap, Secret, PVC, ServiceAccount</td><td><code>envFrom</code>, <code>valueFrom</code>, volumes, <code>imagePullSecrets</code>, <code>serviceAccountName</code>.</td></tr>
+  <tr><td>RoleBinding / ClusterRoleBinding</td><td>Role and subjects</td><td><code>roleRef</code> and <code>subjects</code>.</td></tr>
+  <tr><td>HPA, PDB</td><td>Their target</td><td><code>scaleTargetRef</code>, PDB selector.</td></tr>
+</table></div>
+<p>The graph colours nodes by group (workloads, network, config, storage, access, scaling), highlights a node's neighbours on hover, and pans and zooms.</p>
+
+<h3 id="references">References<a class="anchor" href="#references">#</a></h3>
+<p>A reference to something that isn't in the scope — a Service whose selector matches no pods, a missing ConfigMap — is listed with where it is. These are warnings, not errors: the target may live in another folder, another chart, or be created at deploy time.</p>
+<pre><code><span class="o">k8s/base/deployment.yaml:26:</span> <span class="w">warning:</span> Deployment shop refers to ConfigMap shop-config, which isn't in this scope
+    <span class="c">Fine if it is created elsewhere (another chart, an operator, or already in the cluster); otherwise check the name.</span>
+<span class="o">k8s/legacy/admin.yaml:30:</span> <span class="w">warning:</span> Service shop-admin selects no pods in this scope (selector app=shop-admin-ui)
+    <span class="c">Check that the selector matches the pod template labels of a workload (spec.template.metadata.labels).</span></code></pre>
+
+<h2 id="inventory">Inventory<a class="anchor" href="#inventory">#</a></h2>
+<p>Totals for the whole scope: objects by kind, images and tags (and who runs each), ports, ConfigMaps and Secrets in use, and requests and limits summed per workload and overall — handy before a capacity conversation or an image upgrade.</p>
+
+<h2 id="editor">In the editor<a class="anchor" href="#editor">#</a></h2>
+<ul>
+  <li>The outline says what things are: <code>Container app · nginx:1.27 · 1 port</code>, <code>Env DB_PASSWORD · from Secret db/password</code>.</li>
+  <li>Hovering a Secret's <code>data</code> value shows it decoded.</li>
+  <li><strong>Copy without cluster noise</strong> (neat) copies manifests without <code>status</code>, <code>managedFields</code>, <code>uid</code>, <code>resourceVersion</code>, timestamps and the last-applied annotation — perfect for turning <code>kubectl get -o yaml</code> output into something you can commit.</li>
+</ul>
+
+<h2 id="kustomize">Kustomize<a class="anchor" href="#kustomize">#</a></h2>
+<p>Any folder with a <code>kustomization.yaml</code> can be built from the palette ("Kustomize: build <em>folder</em>") or from the file's toolbar. codec runs the kustomize library in-process: the output is the same as <code>kubectl kustomize</code>, with no kubectl or kustomize installed.</p>
+<figure>
+  <img src="images/kustomize.png" alt="Kustomize build of k8s/overlays/prod: the generated ConfigMap with a hash suffix, the Service and the Deployment" width="1400" height="820" loading="lazy">
+  <figcaption>The prod overlay built: namespace, image tag, replicas patch and a generated ConfigMap with its hash suffix.</figcaption>
+</figure>
+<ul>
+  <li>Files are collected from the kustomization and everything it references — resources, bases, components, patches, generator inputs — into memory, so <a href="workspace.html#whatif">what-if edits</a> in open tabs are used and nothing is written.</li>
+  <li>The build has Rendered, Resources and Problems tabs; problems include lint and schema findings on the output.</li>
+  <li><strong>Not supported:</strong> remote bases (git or http URLs — codec never downloads) and <code>helmCharts</code> (render the chart in the Helm view instead). Both are reported clearly.</li>
+</ul>
+
+<h2 id="cli">From the command line<a class="anchor" href="#cli">#</a></h2>
+<pre><code>codec k8s images deploy/                       <span class="c"># images, tags, who runs them</span>
+codec k8s refs deploy/                         <span class="c"># how objects connect; exit 2 on broken references</span>
+helm template ./chart | codec k8s refs         <span class="c"># works on stdin too</span>
+kubectl get deploy api -o yaml | codec k8s neat
+codec kustomize build k8s/overlays/prod        <span class="c"># like kubectl kustomize</span></code></pre>
+<nav class="pager" aria-label="Pages">
+<a class="prev" href="lint.html"><small>Previous</small>Lint and schemas</a>
+<a class="next" href="argo.html"><small>Next</small>Argo</a>
+</nav>
+<footer>codec is open source under the MIT licence. It runs on your machine and never writes to your files.</footer>
+</article>
+</main>
+</div>
+</body>
+</html>

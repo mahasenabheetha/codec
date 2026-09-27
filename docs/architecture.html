@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Architecture · codec docs</title>
+<meta name="description" content="How codec is put together: one binary with a web UI and a CLI over a shared engine, the provider model, the repository layout and performance budgets.">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<input type="checkbox" id="menu" class="menu-toggle" aria-hidden="true">
+<header class="top">
+  <label for="menu" class="menu-button" aria-label="Menu">&#9776;</label>
+  <a class="brand" href="index.html"><img src="assets/logo.svg" alt=""> codec <span class="tag">docs</span></a>
+  <span class="spacer"></span>
+  <nav class="links" aria-label="Site">
+    <a href="getting-started.html" class="hide-sm">Get started</a>
+    <a href="cli.html" class="hide-sm">CLI</a>
+    <a href="https://github.com/mahasenabheetha/codec/releases">Download</a>
+    <a href="https://github.com/mahasenabheetha/codec">GitHub</a>
+  </nav>
+</header>
+<div class="layout">
+<nav class="side" aria-label="Documentation">
+<h4>Start</h4>
+<ul>
+<li><a href="index.html">Overview</a></li>
+<li><a href="getting-started.html">Getting started</a></li>
+</ul>
+<h4>Using codec</h4>
+<ul>
+<li><a href="workspace.html">Workspace and editor</a></li>
+<li><a href="helm.html">Helm</a></li>
+<li><a href="lint.html">Lint and schemas</a></li>
+<li><a href="kubernetes.html">Kubernetes and Kustomize</a></li>
+<li><a href="argo.html">Argo</a></li>
+<li><a href="ci.html">CI pipelines</a></li>
+<li><a href="compose.html">Compose</a></li>
+<li><a href="ansible.html">Ansible</a></li>
+<li><a href="compare.html">Compare and query</a></li>
+<li><a href="new.html">New files and clones</a></li>
+<li><a href="tools.html">Encode, decode and logs</a></li>
+<li><a href="settings.html">Settings and your data</a></li>
+</ul>
+<h4>Reference</h4>
+<ul>
+<li><a href="cli.html">CLI reference</a></li>
+<li><a href="shortcuts.html">Keyboard shortcuts</a></li>
+<li><a href="troubleshooting.html">Troubleshooting</a></li>
+</ul>
+<h4>How it works</h4>
+<ul>
+<li><a href="architecture.html" aria-current="page">Architecture</a></li>
+<li><a href="flows.html">Flows</a></li>
+<li><a href="security.html">Security and privacy</a></li>
+<li><a href="design.html">Design language</a></li>
+<li><a href="development.html">Development</a></li>
+</ul>
+</nav>
+<main>
+<article class="content">
+<h1>Architecture</h1>
+<p class="lead">codec is one Go binary. It carries a web UI (built with Svelte and embedded at build time), an HTTP server that only listens locally, a CLI, and an engine that both of them use. This page explains the parts and how they fit — no code knowledge needed.</p>
+
+<h2 id="overview">The big picture<a class="anchor" href="#overview">#</a></h2>
+<div class="diagram">
+<svg viewBox="0 0 920 460" role="img" aria-label="codec system overview">
+  <rect class="zone-fill" x="190" y="16" width="540" height="330" rx="12"/>
+  <text class="label" x="206" y="38">THE CODEC BINARY</text>
+
+  <rect class="box" x="20" y="58" width="150" height="66" rx="8"/>
+  <text class="b" x="36" y="86">Browser</text><text class="sm" x="36" y="106">the web UI (Svelte)</text>
+  <rect class="box" x="20" y="188" width="150" height="66" rx="8"/>
+  <text class="b" x="36" y="216">Terminal / CI</text><text class="sm" x="36" y="236">codec yaml lint …</text>
+
+  <rect class="box accent" x="210" y="50" width="200" height="82" rx="8"/>
+  <text class="b" x="226" y="76">HTTP server</text>
+  <text class="sm" x="226" y="96">127.0.0.1 only · per-run token</text>
+  <text class="sm" x="226" y="112">JSON API + live events (SSE)</text>
+  <text class="sm" x="226" y="126">serves the embedded UI</text>
+  <rect class="box accent" x="210" y="180" width="200" height="82" rx="8"/>
+  <text class="b" x="226" y="206">CLI</text>
+  <text class="sm" x="226" y="226">one command per question</text>
+  <text class="sm" x="226" y="242">exit codes for CI</text>
+
+  <rect class="box ok" x="450" y="50" width="260" height="212" rx="8"/>
+  <text class="b" x="466" y="76">Engine</text>
+  <text class="sm" x="466" y="94">pure: text in, answers out</text>
+  <text class="mono" x="466" y="120">yamlkit · provider</text>
+  <text class="mono" x="466" y="140">lint · schema</text>
+  <text class="mono" x="466" y="160">helm · kube · argo · ci</text>
+  <text class="mono" x="466" y="180">compose · ansible</text>
+  <text class="mono" x="466" y="200">query · textdiff · scaffold</text>
+  <text class="mono" x="466" y="220">codec (encode/decode)</text>
+  <text class="sm" x="466" y="248">no files, network, clock or env</text>
+
+  <rect class="box" x="210" y="286" width="160" height="44" rx="8"/><text x="226" y="313">workspace</text>
+  <rect class="box" x="385" y="286" width="150" height="44" rx="8"/><text x="401" y="313">config</text>
+  <rect class="box" x="550" y="286" width="160" height="44" rx="8"/><text x="566" y="313">schemacache</text>
+
+  <rect class="box soft" x="210" y="384" width="160" height="60" rx="8"/>
+  <text class="b" x="226" y="408">Your repository</text><text class="sm" x="226" y="428">read-only, never written</text>
+  <rect class="box soft" x="385" y="384" width="150" height="60" rx="8"/>
+  <text class="b" x="401" y="408">User profile</text><text class="sm" x="401" y="428">settings, cache</text>
+  <rect class="box soft" x="550" y="384" width="160" height="60" rx="8"/>
+  <text class="b" x="566" y="408">Schema sources</text><text class="sm" x="566" y="428">optional downloads</text>
+
+  <path class="line accent" d="M170 91 H210 M170 221 H210"/>
+  <path class="line" d="M410 91 H450 M410 221 H450"/>
+  <path class="line" d="M310 132 V180 M310 262 V286 M390 262 V274 H460 V286 M390 274 H630 V286"/>
+  <path class="line dash" d="M290 330 V384 M460 330 V384 M630 330 V384"/>
+  <text class="label" x="750" y="96">FRONT ENDS</text>
+  <text class="sm" x="750" y="114">the UI and the CLI call</text>
+  <text class="sm" x="750" y="130">the same engine</text>
+  <text class="label" x="750" y="300">ADAPTERS</text>
+  <text class="sm" x="750" y="318">all input and output</text>
+  <text class="label" x="750" y="408">OUTSIDE</text>
+  <text class="sm" x="750" y="426">what codec touches</text>
+</svg>
+<p class="caption">Adapters (server, CLI, workspace, config, schema cache) do the input and output; the engine only reasons about text it is given.</p>
+</div>
+
+<h3 id="engine-adapters">Engine and adapters<a class="anchor" href="#engine-adapters">#</a></h3>
+<p>The most important rule in codec's design: <strong>the engine decides what things are; adapters decide where they come from and how they look.</strong></p>
+<ul>
+  <li><strong>Engine packages</strong> take file contents and return structured answers: "this document is a Deployment", "this value was set by values-prod.yaml line 2", "this job runs after build". They never read files, touch the network or look at the clock, which makes them fast to test and identical in the UI and the CLI.</li>
+  <li><strong>Adapters</strong> do everything else: the workspace reads files through a read-only guard, config reads and writes the settings file in your profile, the schema cache downloads and stores schemas, the check adapter combines lint and schemas, the web server and the CLI turn requests into engine calls.</li>
+</ul>
+<p>Because both front ends call the same engine, <code>codec yaml lint</code> in CI reports exactly what the editor shows.</p>
+
+<h2 id="providers">File types: the provider model<a class="anchor" href="#providers">#</a></h2>
+<p>Each kind of YAML is handled by a <strong>provider</strong>. A provider answers a few questions about a file — "is this mine, and how sure am I?", "what is its outline?" — and optionally more: hover, go to definition, completion, diagnostics.</p>
+<div class="diagram">
+<svg viewBox="0 0 900 250" role="img" aria-label="Provider detection and capabilities">
+  <rect class="box" x="20" y="90" width="140" height="60" rx="8"/><text class="b" x="36" y="116">A YAML file</text><text class="sm" x="36" y="136">path + content</text>
+  <path class="line accent" d="M160 120 H200"/>
+  <rect class="box accent" x="200" y="70" width="190" height="100" rx="8"/>
+  <text class="b" x="216" y="96">Registry</text>
+  <text class="sm" x="216" y="116">asks every provider</text>
+  <text class="sm" x="216" y="132">"how sure are you?" (0–100)</text>
+  <text class="sm" x="216" y="148">and picks the most confident</text>
+  <path class="line" d="M390 120 H430"/>
+  <rect class="box" x="430" y="20" width="200" height="200" rx="8"/>
+  <text class="label" x="446" y="42">PROVIDERS</text>
+  <text class="mono" x="446" y="66">kubernetes   helm-*</text>
+  <text class="mono" x="446" y="86">kustomize    argo-workflows</text>
+  <text class="mono" x="446" y="106">argocd       github-actions</text>
+  <text class="mono" x="446" y="126">gitlab-ci    azure-pipelines</text>
+  <text class="mono" x="446" y="146">compose      ansible-*</text>
+  <text class="mono" x="446" y="166">yaml (fallback)</text>
+  <text class="sm" x="446" y="200">replaceable by ID, no core change</text>
+  <path class="line" d="M630 120 H670"/>
+  <rect class="box ok" x="670" y="20" width="210" height="200" rx="8"/>
+  <text class="label" x="686" y="42">CAPABILITIES</text>
+  <text x="686" y="68">Detect, Symbols (required)</text>
+  <text x="686" y="94">Hover</text>
+  <text x="686" y="118">Definition</text>
+  <text x="686" y="142">Complete</text>
+  <text x="686" y="166">Diagnostics</text>
+  <text class="sm" x="686" y="196">generic answers when missing</text>
+</svg>
+<p class="caption">Adding a file type means adding a provider. The concepts mirror the Language Server Protocol, so a future <code>codec lsp</code> can reuse them.</p>
+</div>
+<p>Lens views (Helm, Resources, Argo, Pipeline, Compose, Ansible) sit on top: each has its own engine package that understands the whole project — every file of a chart, every include of a pipeline — and an API endpoint the view calls.</p>
+
+<h2 id="ui">The web UI<a class="anchor" href="#ui">#</a></h2>
+<p>The UI is a single-page app compiled into the binary; it needs no internet and loads no third-party resources. It talks to the server only through a small API layer, which keeps a future desktop app (Wails) a matter of swapping the transport.</p>
+<ul>
+  <li><strong>Shell</strong> — sidebar (rail), tabs, command palette, status bar.</li>
+  <li><strong>Shared components</strong> — buttons, tree, editor wrapper (CodeMirror), graph (dagre layout), dialogs, skeletons.</li>
+  <li><strong>Features</strong> — one folder per view or tool: workspace, editor, helm, lint, compare, kube, argo, ci, compose, ansible, scaffold, and the encode/decode tools.</li>
+  <li><strong>State</strong> — tab state lives in memory; display preferences in local storage; nothing pasted is stored.</li>
+</ul>
+<p>Live updates arrive over Server-Sent Events: a folder was opened, files changed, file types are ready.</p>
+
+<h2 id="layout">Repository layout<a class="anchor" href="#layout">#</a></h2>
+<pre><code>cmd/codec/            <span class="c">entry point: starts the CLI</span>
+internal/
+  yamlkit/            <span class="c">engine · YAML parse with positions, templates, diagnostics, diff, layered merge</span>
+  provider/           <span class="c">engine · file-type detection, outline, hover/definition/completion interface</span>
+  lint/  schema/      <span class="c">engine · lint rules and deprecations · schema choice and validation</span>
+  helm/               <span class="c">engine · Helm SDK render from memory, values provenance</span>
+  kube/               <span class="c">engine · objects, relationships, inventory, neat, Kustomize</span>
+  argo/  ci/          <span class="c">engine · workflow resolution · GitHub/GitLab/Azure pipelines</span>
+  compose/  ansible/  <span class="c">engine · Compose merge and variables · playbooks, roles, precedence</span>
+  query/  textdiff/   <span class="c">engine · jq over documents · text diffs and patches</span>
+  scaffold/           <span class="c">engine · starters, clone-with-rename, snippets</span>
+  names/  codec/      <span class="c">engine · "did you mean" · base64/JSON/JWT/Ansible-log tools</span>
+  workspace/          <span class="c">adapter · read-only folder access, file index, watcher</span>
+  config/  schemacache/  sample/   <span class="c">adapters · settings file · schema downloads · the sample repo</span>
+  check/              <span class="c">adapter · lint + schemas for editor, workspace, renders and CLI</span>
+  web/  cli/          <span class="c">adapters · HTTP API and embedded UI · commands</span>
+  version/            <span class="c">build identity</span>
+frontend/src/
+  lib/                <span class="c">api client, shared components, shell, stores, styles (design tokens)</span>
+  features/           <span class="c">one folder per view or tool</span>
+docs/                 <span class="c">this site (plain HTML and CSS) and screenshots</span>
+design/               <span class="c">architecture, decisions, conventions, design language, workflows</span>
+scripts/              <span class="c">dev.sh (build and run), perf.sh (performance budgets)</span></code></pre>
+<p>More detail for contributors is in <code>design/architecture.md</code> in the repository.</p>
+
+<h2 id="performance">Performance<a class="anchor" href="#performance">#</a></h2>
+<p>codec is built to feel instant on real repositories. The budgets below were measured on a Windows laptop with <code>scripts/perf.sh</code>, which generates the test inputs and times them; run it yourself to check your machine.</p>
+<div class="table-wrap"><table>
+  <tr><th>Case</th><th>Budget</th><th>Measured</th></tr>
+  <tr><td>10,000-file repository: open and list</td><td>≤ 1 s</td><td>0.7–0.9 s</td></tr>
+  <tr><td>10,000 files: every file typed</td><td>≤ 10 s</td><td>1.4–2.2 s</td></tr>
+  <tr><td>Go to file, per keystroke</td><td>≤ 100 ms</td><td>13–62 ms</td></tr>
+  <tr><td>Lint 6,000 YAML files</td><td>≤ 30 s</td><td>6–7 s</td></tr>
+  <tr><td>5 MB file: shown in the editor</td><td>≤ 2 s</td><td>0.9 s</td></tr>
+  <tr><td>5 MB file: typing</td><td>≤ 16 ms per key</td><td>6.8 ms</td></tr>
+  <tr><td>Chart rendering 500 documents</td><td>≤ 2 s</td><td>0.12–0.19 s</td></tr>
+</table></div>
+<p>How: documents of a file are parsed in parallel; long trees draw only the rows on screen; outlines of huge files keep fewer levels; file types are classified in the background after the tree appears; schema downloads start together and never block a render.</p>
+<nav class="pager" aria-label="Pages">
+<a class="prev" href="troubleshooting.html"><small>Previous</small>Troubleshooting</a>
+<a class="next" href="flows.html"><small>Next</small>Flows</a>
+</nav>
+<footer>codec is open source under the MIT licence. It runs on your machine and never writes to your files.</footer>
+</article>
+</main>
+</div>
+</body>
+</html>
