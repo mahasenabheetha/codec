@@ -6,6 +6,46 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+## [2.0.0] - unreleased
+
+codec 2.0: the read-only YAML workbench for Kubernetes, Helm, Kustomize,
+Argo, CI pipelines, Compose and Ansible, with lint, schemas, compare,
+query and starters, on top of the v1 tools. Set the date when tagging.
+
+### Added (release)
+
+- Settings view (Ctrl+,), replacing Lint settings: the editor "Open in"
+  launches, the outline panel, Kubernetes version, schemas, rule levels,
+  saved Helm profiles (forget one, or all of a chart that is gone),
+  ignored diff paths, codec's folders and the recent folders list.
+- Sample repository built into the binary: **Open the sample** on the
+  home screen or in the explorer, the palette, or `codec serve --sample`
+  writes it to codec's cache folder and opens it on a rendered chart.
+  First run shows "try the sample" and "open a folder".
+- Palette entries for the file toolbar (open in editor, copy path,
+  reveal, compare, query, clone, reset, copy diff).
+- `scripts/perf.sh` times a 10k-file repo, a 5 MB file and a
+  500-document chart against the budgets in the release plan.
+
+### Changed (release)
+
+- Faster on big inputs: documents of a file parse in parallel (a 5 MB
+  file in about 0.3 s instead of 1 s), long trees (explorer, outline)
+  draw only the rows in view, and outlines of huge files keep fewer
+  levels. Files up to 8 MB open (was 2 MB).
+- The Helm view shows a render at once and adds schema findings when
+  the schemas have downloaded; schemas needed together download
+  together.
+- Muted text and code comments are brighter, for 4.5:1 contrast.
+  Loading states are placeholders rather than text.
+
+### Fixed (release)
+
+- Kustomize patch files are no longer flagged for the required fields
+  of the complete object.
+- Hosts and groups without settings in YAML inventories aren't flagged
+  as empty values.
+
 ### Added (Scaffolding)
 
 - New view: starters for Deployment + Service (+ Ingress), ConfigMap,
@@ -315,6 +355,7 @@ First tagged release: codec as it stood before the 2.0 work began.
 - Release pipeline: pushing a `v*` tag publishes binaries for Linux,
   Windows and macOS (amd64/arm64) to GitHub Releases via GoReleaser.
 
-[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v2.0.0-alpha.1...HEAD
+[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/mahasenabheetha/codec/compare/v2.0.0-alpha.1...v2.0.0
 [2.0.0-alpha.1]: https://github.com/mahasenabheetha/codec/compare/v1.0.0...v2.0.0-alpha.1
 [1.0.0]: https://github.com/mahasenabheetha/codec/releases/tag/v1.0.0

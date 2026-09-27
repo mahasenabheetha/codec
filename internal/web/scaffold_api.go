@@ -100,7 +100,7 @@ func (s *Server) checkFiles(ctx context.Context, files []scaffold.File) checkRes
 			}
 		}
 		out := helm.Render(ctx, in, helm.Options{})
-		s.lintRendered(ctx, out, chart)
+		s.lintRendered(ctx, out, chart, helmSchemaWait)
 		for i, d := range out.Diagnostics {
 			if d.File != "" && !strings.HasPrefix(d.File, chart+"/") && chart != "." {
 				out.Diagnostics[i].File = path.Join(chart, d.File) // load errors name chart-relative files

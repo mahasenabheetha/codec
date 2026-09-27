@@ -68,6 +68,9 @@ export class HelmSession {
 
   private timer: ReturnType<typeof setTimeout> | undefined
   private inflight: AbortController | null = null
+  /** Renders repeated while schemas download; bounded so a slow
+   *  network can't keep it going. */
+  private pendingTries = 0
 
   constructor(chart: string) {
     this.chart = chart
@@ -179,6 +182,12 @@ export class HelmSession {
       if (ctrl.signal.aborted) return
       this.result = r
       this.error = null
+      // A first render doesn't wait for schema downloads; fetch the
+      // complete findings once they are in.
+      if (r.schemasPending && this.pendingTries < 10) {
+        this.pendingTries++
+        this.scheduleRender(1500)
+      } else if (!r.schemasPending) this.pendingTries = 0
     } catch (e) {
       if (!isAbort(e)) this.error = e instanceof Error ? e.message : String(e)
     } finally {

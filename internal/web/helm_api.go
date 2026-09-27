@@ -147,6 +147,9 @@ type helmRenderResponse struct {
 	*helm.Result
 	ValuesYAML  string         `json:"valuesYAML"`
 	ValuesLines map[int]string `json:"valuesLines"`
+	// SchemasPending: schema findings are missing because schemas are
+	// still downloading; render again shortly for them.
+	SchemasPending bool `json:"schemasPending,omitempty"`
 }
 
 // POST /api/v2/helm/render
@@ -169,10 +172,10 @@ func (s *Server) handleHelmRender(w http.ResponseWriter, r *http.Request) {
 	if r.Context().Err() != nil {
 		return // the client moved on
 	}
-	s.lintRendered(r.Context(), res, req.Chart)
+	pending := s.lintRendered(r.Context(), res, req.Chart, helmViewSchemaWait)
 	s.helm.put(chartKey(ws, req.Chart), res)
 	text, lines := helm.ValuesYAML(res.Values)
-	writeJSON(w, http.StatusOK, helmRenderResponse{Result: res, ValuesYAML: text, ValuesLines: lines})
+	writeJSON(w, http.StatusOK, helmRenderResponse{Result: res, ValuesYAML: text, ValuesLines: lines, SchemasPending: pending})
 }
 
 // renderHelm renders a chart of the open folder; the Helm view,

@@ -50,4 +50,5 @@ npm --prefix frontend run dev                   # UI dev server; CODEC_API=http:
 npm --prefix frontend run build                 # builds into internal/web/dist/app
 go build -o codec ./cmd/codec                   # binary (needs frontend built)
 scripts/dev.sh build|run|ui [port]              # all of the above in one step
+scripts/perf.sh [dir]                           # time big inputs against the release budgets
 ```

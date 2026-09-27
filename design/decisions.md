@@ -284,3 +284,18 @@ Settled unless the user reopens them. Add new ones at the bottom:
     CodeMirror placeholder syntax), offered where a key or list item
     starts. The Argo DAG task snippet depends on the last task;
     depends/dependencies/template complete from the DAG (2026-09-27).
+68. The sample repository is embedded in the binary and written to
+    `<user cache>/codec/sample` (files put back if changed), then opened
+    like any folder: no second file system in the workspace. It isn't a
+    recent folder; the UI reopens it after a restart (2026-09-27).
+69. One Settings view holds every setting. Settings saved on the server
+    (profile folder) are shared with the CLI; display choices (editor
+    link, panels) stay in browser storage (2026-09-27).
+70. Performance budgets (phase 14): files up to 8 MB are listed and
+    read; documents parse in parallel from 16 up; an outline keeps at
+    most 20,000 symbols (fewer levels, then one per document); trees
+    over 300 rows draw only what is in view (2026-09-27).
+71. Files a kustomization lists as patches (same folder or up to two
+    above) skip "required field" schema errors. The Helm view waits at
+    most 1 s for schemas and re-renders while `schemasPending`
+    (2026-09-27).

@@ -57,6 +57,8 @@ export interface HelmResult {
   durationNs: number
   valuesYAML: string
   valuesLines: Record<string, string> // line number -> path
+  /** Schema findings are missing: schemas are still downloading. */
+  schemasPending?: boolean
 }
 
 export interface RenderRequest {

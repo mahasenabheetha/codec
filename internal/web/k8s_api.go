@@ -67,7 +67,7 @@ func (s *Server) handleK8sAnalyze(w http.ResponseWriter, r *http.Request) {
 		resp.Manifest = manifest
 		objs = kube.Collect("", yamlkit.Parse([]byte(manifest)))
 		if req.Kind == "kustomize" {
-			resp.Problems = s.check.Manifest(r.Context(), manifest, helmSchemaWait)
+			resp.Problems, _ = s.check.Manifest(r.Context(), manifest, helmSchemaWait)
 		}
 	default:
 		writeError(w, http.StatusBadRequest, "unknown scope kind "+req.Kind)

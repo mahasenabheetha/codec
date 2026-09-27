@@ -21,6 +21,9 @@ const (
 	editorSchemaWait    = 3 * time.Second
 	workspaceSchemaWait = 60 * time.Second
 	helmSchemaWait      = 5 * time.Second
+	// The Helm view shows a render without waiting long: schema findings
+	// still downloading follow when it asks again (schemasPending).
+	helmViewSchemaWait = 1 * time.Second
 )
 
 type lintSettingsResponse struct {
@@ -149,12 +152,14 @@ func (s *Server) handleLintWorkspace(w http.ResponseWriter, r *http.Request) {
 
 // lintRendered adds lint and schema findings on the rendered manifest
 // to a Helm result, each pointing at its manifest line and the
-// template that produced it.
-func (s *Server) lintRendered(ctx context.Context, res *helm.Result, chart string) {
+// template that produced it. It waits up to wait for schemas and
+// reports whether some were still downloading.
+func (s *Server) lintRendered(ctx context.Context, res *helm.Result, chart string, wait time.Duration) bool {
 	if res.Manifest == "" {
-		return
+		return false
 	}
-	for _, d := range s.check.Manifest(ctx, res.Manifest, helmSchemaWait) {
+	diags, pending := s.check.Manifest(ctx, res.Manifest, wait)
+	for _, d := range diags {
 		line := d.Range.Start.Line
 		src, obj := "", ""
 		for _, doc := range res.Docs { // sorted by line
@@ -175,4 +180,5 @@ func (s *Server) lintRendered(ctx context.Context, res *helm.Result, chart strin
 			File: file, Manifest: line, Col: d.Range.Start.Col,
 		})
 	}
+	return pending
 }

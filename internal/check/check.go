@@ -63,9 +63,10 @@ func (c *Checker) Analyze(ctx context.Context, f *provider.File, wait time.Durat
 	if schemasOn {
 		ctx, cancel := context.WithTimeout(ctx, wait)
 		defer cancel()
+		refs := c.refs(f.YAML, a.Type, f.Path, cfg)
 		for i, d := range f.YAML.Docs {
-			ref, ok := schema.For(a.Type, f.Path, d.Root, cfg.Version())
-			if !ok || i >= len(a.Docs) || removed(d.Root, cfg) {
+			ref, ok := refs[i]
+			if !ok || i >= len(a.Docs) {
 				continue
 			}
 			ref.Partial = f.Patch
@@ -77,6 +78,23 @@ func (c *Checker) Analyze(ctx context.Context, f *provider.File, wait time.Durat
 	a.Diagnostics = lint.Apply(a.Diagnostics, cfg)
 	sortDiagnostics(a.Diagnostics)
 	return a
+}
+
+// refs finds the schema of each document (by index) worth validating,
+// and starts fetching them all at once.
+func (c *Checker) refs(f *yamlkit.File, typ, path string, cfg lint.Config) map[int]schema.Ref {
+	out := map[int]schema.Ref{}
+	var urls []string
+	for i, d := range f.Docs {
+		if ref, ok := schema.For(typ, path, d.Root, cfg.Version()); ok && !removed(d.Root, cfg) {
+			out[i] = ref
+			if !slices.Contains(urls, ref.URL) {
+				urls = append(urls, ref.URL)
+			}
+		}
+	}
+	c.schemas.Warm(urls...)
+	return out
 }
 
 // validate checks one document against ref's schema.
@@ -96,24 +114,29 @@ func (c *Checker) validate(ctx context.Context, ref schema.Ref, d *yamlkit.Docum
 	return st, nil
 }
 
-// Manifest checks rendered Helm output as Kubernetes objects.
-func (c *Checker) Manifest(ctx context.Context, manifest string, wait time.Duration) []yamlkit.Diagnostic {
+// Manifest checks rendered Helm output as Kubernetes objects. pending
+// is true when schemas still downloading after wait were skipped: ask
+// again shortly for the complete findings.
+func (c *Checker) Manifest(ctx context.Context, manifest string, wait time.Duration) ([]yamlkit.Diagnostic, bool) {
 	f := &provider.File{Path: "manifest.yaml", Content: []byte(manifest), YAML: yamlkit.Parse([]byte(manifest))}
 	cfg, schemasOn := c.settings()
 	out := lint.Run(lint.Input{YAML: f.YAML, Content: f.Content, Type: "kubernetes"}, cfg)
+	pending := false
 	if schemasOn {
 		ctx, cancel := context.WithTimeout(ctx, wait)
 		defer cancel()
-		for _, d := range f.YAML.Docs {
-			if ref, ok := schema.For("kubernetes", f.Path, d.Root, cfg.Version()); ok && !removed(d.Root, cfg) {
-				_, ds := c.validate(ctx, ref, d)
+		refs := c.refs(f.YAML, "kubernetes", f.Path, cfg)
+		for i, d := range f.YAML.Docs {
+			if ref, ok := refs[i]; ok {
+				st, ds := c.validate(ctx, ref, d)
 				out = append(out, ds...)
+				pending = pending || st.State == "pending"
 			}
 		}
 	}
 	out = lint.Apply(out, cfg)
 	sortDiagnostics(out)
-	return out
+	return out, pending
 }
 
 // ref finds the schema for the document around pos, using typ (the

@@ -1,15 +1,17 @@
 # Status
 
 **Current phase:** 14 — v2.0.0 release ([phases/14-release.md](phases/14-release.md))
-**State:** not started. Phases 00–13 are done and committed on `feature/mab/yaml-tools`; 06 still awaits the user's native checks and the `v2.0.0-alpha.1` tag.
-**Next step:** start phase 14 on `feature/mab/yaml-tools`.
-**Blockers:** none. Open checks: phase 06 manual checklist (native Windows/macOS, typing on a 5k-line file).
+**State:** done on `feature/mab/yaml-tools`; all v2 phases (00–14) are implemented. Waiting on the user's checks.
+**Next step:** the user checks the tracker for 2.0 bugs, runs codec on macOS, raises the PR and merges it, then tags `v2.0.0` (set the date in CHANGELOG) and makes the GHCR package public if it still isn't. After that: plan v3.
+**Blockers:** none. Open checks: phase 06 manual checklist, a native macOS run.
 
 Released: `v1.0.0` (2026-09-26). All v2 work stays on `feature/mab/yaml-tools` until the user raises the PR.
 
 ## Log
 
 One line per session, newest first: date · phase · what changed.
+
+- 2026-09-27 · 14 · Settings view (Ctrl+,) with Helm profiles and codec's folders, `/api/v2/settings`; embedded sample repository (`internal/sample`, Home first-run steps, `codec serve --sample`, `/api/v2/workspace/sample`); performance (parallel parsing, trimmed outlines, windowed trees, 8 MB files, schema downloads together, non-blocking schema checks on renders) measured with `scripts/perf.sh`; Kustomize patches and inventory hosts no longer flagged; contrast fixes, skeletons, file actions in the palette; README, CHANGELOG 2.0.0, decisions #68–#71.
 
 - 2026-09-27 · 13 · `internal/scaffold` (13 embedded starters as `<% %>` text/template sets with forms and checks, personal starters from `<settings>/templates` with fields inferred from the parse tree, clone-with-rename keeping layout with reference/Secret/image/address suggestions, snippets per file type), Argo completion for depends/dependencies/template, `/api/v2/scaffold/starters|render|check|zip|clone`, snippets in `/yaml/complete`, `codec new`, `codec clone`; UI: New view (form, what-if preview with lint, schema and Helm render, copy, zip) and Clone view (changes to untick or take, tinted lines, checks); lint accepts empty GitHub events.
 

@@ -105,6 +105,15 @@ func (s *Store) Get(ctx context.Context, u string) (*jsonschema.Schema, error) {
 	}
 }
 
+// Warm starts fetching and compiling every url at once without waiting,
+// so a caller about to Get several waits for the slowest download, not
+// for all of them in a row (a first Helm render needs one schema per kind).
+func (s *Store) Warm(urls ...string) {
+	for _, u := range urls {
+		s.start(u)
+	}
+}
+
 // start begins compiling url unless that is done or under way. A
 // failure caused by the network is retried after a while.
 func (s *Store) start(u string) *entry {

@@ -18,7 +18,8 @@ codec **never writes to your files** and nothing leaves your machine.
   honours `.gitignore`, every YAML file labelled by type (Kubernetes,
   Helm, Kustomize, Argo Workflows/CD, GitHub Actions, GitLab CI, Azure
   Pipelines, Compose, Ansible), Ctrl+P to jump to a file, tabs that
-  refresh when the file changes on disk.
+  refresh when the file changes on disk. Fine with 10,000-file
+  repositories and files up to 8 MB.
 - **YAML editor.** Template and runtime expressions (`{{ }}`, `${{ }}`,
   `{% %}`) understood instead of reported as errors; syntax errors in
   plain English with a fix; hover for path, type and value; go to
@@ -92,6 +93,13 @@ unpack it, and run:
 codec serve --open --root path/to/your/repo
 ```
 
+No repository at hand? `codec serve --open --sample`, or **Open the
+sample** on the home screen, opens a small made-up repository with a
+Helm chart, Kubernetes, Argo, CI, Compose and Ansible files — written to
+codec's cache folder, not anywhere you work.
+
+![First run: try the sample or open a folder](docs/images/home.png)
+
 No installer and no admin rights; `codec version` shows what you have.
 The UI is at http://localhost:8765 and only this machine can reach it.
 
@@ -104,7 +112,7 @@ The UI is at http://localhost:8765 and only this machine can reach it.
 ### Docker
 
 ```bash
-docker run --rm -p 127.0.0.1:8765:8765 -v "$PWD:/work:ro" ghcr.io/mahasenabheetha/codec:2.0.0-alpha.1
+docker run --rm -p 127.0.0.1:8765:8765 -v "$PWD:/work:ro" ghcr.io/mahasenabheetha/codec:2.0.0
 ```
 
 Then open http://localhost:8765. The repository is mounted read-only at
@@ -132,6 +140,7 @@ go build -o codec ./cmd/codec
 codec serve                     # http://localhost:8765
 codec serve --open              # …and open it in the browser
 codec serve --root ~/repos/app  # open a folder right away
+codec serve --sample            # open the built-in sample repository
 codec serve --port 9000 --poll  # other port; poll for file changes
 ```
 
@@ -140,8 +149,9 @@ Open a folder with Ctrl+O (recent folders and a folder browser) or
 (or **Helm: render …** in the palette) opens the Helm view. "Open in VS
 Code/Cursor" jumps to the same file and line. **Problems** in the sidebar
 lints the whole folder, **Compare** diffs files or Helm profiles by meaning,
-**Query** runs jq; **Lint settings** sets rule levels, the target
-Kubernetes version and schema options. Ctrl+Space completes keys and
+**Query** runs jq; **Settings** (Ctrl+,) holds rule levels, the target
+Kubernetes version, schema options, the editor links open in, saved
+Helm profiles and ignored diff paths. Ctrl+Space completes keys and
 values from the file's schema. **Argo** on a workflow or application
 file (or the Argo tab of a Helm render) opens the workflow as a graph
 with its parameters resolved. **Pipeline** on a GitHub Actions, GitLab
@@ -162,6 +172,7 @@ new name.
 | Ctrl+Enter | Run the transform (tools) |
 | Alt+C · Alt+S | Copy output · use output as input |
 | Ctrl+B | Toggle the sidebar |
+| Ctrl+, | Settings |
 | ? | Show all shortcuts |
 
 On macOS, Ctrl is ⌘. Nothing you paste is stored. Settings (recent
@@ -213,7 +224,7 @@ codec yaml lint . --offline --json           # cached schemas only; machine-read
 
 Exit status 2 when there are warnings or errors, so it works as a CI
 gate. Rule levels (error/warning/info/off), the target Kubernetes
-version and schema options are set in the web UI's **Lint settings** and
+version and schema options are set in the web UI's **Settings** and
 shared with the CLI. Schemas are downloaded on first use and cached in
 your user cache folder; with **Offline** on, only the cache and your
 custom schema folder are used.

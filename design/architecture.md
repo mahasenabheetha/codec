@@ -37,6 +37,8 @@ internal/
                       services graph, ports, volumes, checks
   scaffold/           ENGINE starters (embedded text/template sets, personal ones
                       as an fs.FS), clone-with-rename, editor snippets
+  sample/             ADAPTER the embedded sample repository, written to the
+                      user cache folder and opened like any folder
   workspace/          ADAPTER read-only folder access, index, watcher
   config/             ADAPTER user settings in os.UserConfigDir()/codec
                       (personal starters in its templates/ folder)
@@ -44,6 +46,7 @@ internal/
                       schemas), offline mode, custom schema folder
   check/              ADAPTER runs yamlkit + provider + lint + schema: one
                       path for editor, workspace lint, Helm output and CLI
+                      (knows Kustomize patches, which may be partial)
   version/            build identity
   cli/                ADAPTER cobra commands
   web/                ADAPTER HTTP API + embedded frontend (web/dist/app)
@@ -93,7 +96,8 @@ resources, jobs, references) built by the workspace adapter.
   `/files/diff`) take `{path, content?, line, col}`; no content = the file
   on disk. Requests are cancelled via `r.Context()` when the editor moves on.
   Helm: `GET /helm/charts`, `POST /helm/render` {chart, values[], set[],
-  overrides{path: content}, release, namespace, kubeVersion},
+  overrides{path: content}, release, namespace, kubeVersion} (→ the
+  render; `schemasPending` = schema findings still to come, ask again),
   `POST /helm/profiles` (saved in user settings, keyed by chart path).
   Lint: `GET|POST /lint/settings` (rules catalogue + user levels, target
   Kubernetes version, schema options), `POST /lint/workspace` (every YAML
@@ -128,6 +132,9 @@ resources, jobs, references) built by the workspace adapter.
   {name, files} → a zip download; `POST /scaffold/clone` {path,
   content?, doc, from, to, flip} → the renamed text, changes, checks.
   `/yaml/complete` adds snippets for the file type.
+  Settings: `GET /settings` (codec's folders, Helm profiles of every
+  chart, recent folders); `POST /settings/forget` {helm?: {chart,
+  profile?}, recent?}. `POST /workspace/sample` opens the sample.
 - Errors: `{"error": "...", "line"?, "column"?, "file"?}` with 400 for
   caller bugs, 422 for bad input, 404 missing, 500 unexpected.
 - Push updates via Server-Sent Events, `GET /api/v2/events`: `workspace`
