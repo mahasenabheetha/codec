@@ -46,8 +46,16 @@ func Cards(objs []Object, g Graph) []Card {
 		names[n.ID] = n.Kind + " " + n.Name
 	}
 	cards := make([]Card, 0, len(objs))
+	seen := map[string]bool{}
 	for _, o := range objs {
-		c := Card{ID: o.ID(), Kind: o.Kind, Name: o.Name, Namespace: o.Namespace, Source: o.Source, Facts: []Fact{}}
+		// Card ids must be unique, so a second definition of the same
+		// object (a base and an overlay's patch) is told apart by file.
+		id := o.ID()
+		if seen[id] {
+			id += fmt.Sprintf("@%s#%d", o.Source.File, o.Source.Doc)
+		}
+		seen[o.ID()] = true
+		c := Card{ID: id,Kind: o.Kind, Name: o.Name, Namespace: o.Namespace, Source: o.Source, Facts: []Fact{}}
 		add := func(label, value string) {
 			if value != "" {
 				c.Facts = append(c.Facts, Fact{label, value})

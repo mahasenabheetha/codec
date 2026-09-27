@@ -176,7 +176,7 @@
         <table>
           <thead><tr><th>Workload</th><th>Replicas</th><th>CPU req</th><th>Mem req</th><th>CPU limit</th><th>Mem limit</th></tr></thead>
           <tbody>
-            {#each inv.resources.rows as r (r.object)}
+            {#each inv.resources.rows as r, i (i)}
               <tr class:warnrow={r.missing}>
                 <td>{shortID(r.object)}</td><td>{r.replicas}</td>
                 <td class="mono">{r.requestsCpu || '—'}</td><td class="mono">{r.requestsMemory || '—'}</td>
@@ -208,7 +208,7 @@
         <table>
           <thead><tr><th>Object</th><th>In scope</th><th>Used by</th></tr></thead>
           <tbody>
-            {#each inv.config as c (c.kind + c.name)}
+            {#each inv.config as c, i (i)}
               <tr><td>{c.kind} <span class="mono">{c.name}</span></td><td class:warn={!c.found}>{c.found ? 'yes' : 'no'}</td><td>{c.usedBy.join(', ')}</td></tr>
             {:else}<tr><td colspan="3" class="muted">None</td></tr>{/each}
           </tbody>

@@ -217,3 +217,22 @@ func TestKustomize(t *testing.T) {
 		t.Error("a folder without kustomization.yaml must fail")
 	}
 }
+
+// TestSameObjectTwice: a base and an overlay's patch define the same
+// Deployment. The graph shows it once; each card keeps a unique id (the
+// UI keys lists by it).
+func TestSameObjectTwice(t *testing.T) {
+	deploy := "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: shop\nspec:\n  replicas: 1\n"
+	var objs []Object
+	for _, file := range []string{"base/deployment.yaml", "overlays/prod/replicas.yaml"} {
+		objs = append(objs, Collect(file, yamlkit.Parse([]byte(deploy)))...)
+	}
+	g := Relate(objs)
+	if len(g.Nodes) != 1 {
+		t.Errorf("%d nodes, want 1", len(g.Nodes))
+	}
+	cards := Cards(objs, g)
+	if len(cards) != 2 || cards[0].ID == cards[1].ID {
+		t.Errorf("cards %+v", cards)
+	}
+}

@@ -53,8 +53,12 @@ func Relate(objs []Object) Graph {
 		o := &objs[i]
 		r.byID[o.ID()] = o
 		r.byKindName[o.Kind+"/"+o.Name] = append(r.byKindName[o.Kind+"/"+o.Name], o)
-		r.g.Nodes = append(r.g.Nodes, Node{ID: o.ID(), Kind: o.Kind, Name: o.Name, Namespace: o.Namespace, Source: &o.Source})
-		r.nodes[o.ID()] = true
+		// The same object in two files (a base and an overlay's patch) is
+		// one node.
+		if !r.nodes[o.ID()] {
+			r.g.Nodes = append(r.g.Nodes, Node{ID: o.ID(), Kind: o.Kind, Name: o.Name, Namespace: o.Namespace, Source: &o.Source})
+			r.nodes[o.ID()] = true
+		}
 	}
 	for i := range objs {
 		o := &objs[i]
