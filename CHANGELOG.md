@@ -6,11 +6,11 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
-## [2.0.0] - unreleased
+## [2.0.0] - 2026-09-27
 
 codec 2.0: the read-only YAML workbench for Kubernetes, Helm, Kustomize,
 Argo, CI pipelines, Compose and Ansible, with lint, schemas, compare,
-query and starters, on top of the v1 tools. Set the date when tagging.
+query and starters, on top of the v1 tools.
 
 ### Added (release)
 

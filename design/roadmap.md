@@ -29,7 +29,7 @@ version, and add a CHANGELOG entry.
 |---|---|
 | Run codec natively on macOS (arm64) before tagging | user |
 | Confirm no open issues labelled for 2.0 | user |
-| Merge `feature/mab/yaml-tools`, tag `v2.0.0`, set the CHANGELOG date | user |
+| Merge `feature/mab/yaml-tools` and tag `v2.0.0` | user |
 | Make the GHCR package public (first release with an image) | user |
 | Turn on GitHub Pages: Settings → Pages → `main`, `/docs` | user |
 
