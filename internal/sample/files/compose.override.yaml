@@ -1,0 +1,7 @@
+# Local development: merged over compose.yaml by docker compose.
+services:
+  shop:
+    environment:
+      LOG_LEVEL: trace
+    volumes:
+      - ./site:/usr/share/nginx/html:ro

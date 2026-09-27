@@ -139,6 +139,8 @@ type yamlTarget struct {
 	show string
 	path string // slash path for type detection (relative to its folder)
 	read func() ([]byte, error)
+	// patches knows the Kustomize patches around the file.
+	patches *check.Patches
 }
 
 // yamlTargets expands folders into their YAML files (honouring
@@ -148,13 +150,15 @@ func yamlTargets(ctx context.Context, args []string) ([]yamlTarget, error) {
 		ctx = context.Background()
 	}
 	var out []yamlTarget
+	// Named files are looked up where they are on disk.
+	disk := check.NewPatches(func(p string) ([]byte, error) { return os.ReadFile(filepath.FromSlash(p)) })
 	for _, a := range args {
 		fi, err := os.Stat(a)
 		if err != nil {
 			return nil, err
 		}
 		if !fi.IsDir() {
-			out = append(out, yamlTarget{show: a, path: filepath.ToSlash(a), read: func() ([]byte, error) { return os.ReadFile(a) }})
+			out = append(out, yamlTarget{show: a, path: filepath.ToSlash(a), read: func() ([]byte, error) { return os.ReadFile(a) }, patches: disk})
 			continue
 		}
 		ws, err := workspace.Open(a)
@@ -165,6 +169,13 @@ func yamlTargets(ctx context.Context, args []string) ([]yamlTarget, error) {
 		if err != nil {
 			return nil, err
 		}
+		patches := check.NewPatches(func(p string) ([]byte, error) {
+			c, err := ws.Read(p)
+			if err != nil {
+				return nil, err
+			}
+			return []byte(c.Text), nil
+		})
 		for _, f := range files {
 			if f.Lang != "yaml" {
 				continue
@@ -181,7 +192,7 @@ func yamlTargets(ctx context.Context, args []string) ([]yamlTarget, error) {
 					data = []byte(strings.ReplaceAll(c.Text, "\n", "\r\n"))
 				}
 				return data, nil
-			}})
+			}, patches: patches})
 		}
 	}
 	return out, nil
@@ -198,7 +209,7 @@ func lintOne(ctx context.Context, c *check.Checker, t yamlTarget) lintResult {
 		r.Diagnostics = append(r.Diagnostics, yamlkit.Diagnostic{Severity: yamlkit.SeverityError, Code: "read", Message: "Can't read the file: " + msg})
 		return r
 	}
-	f := &provider.File{Path: t.path, Content: data, YAML: yamlkit.Parse(data)}
+	f := &provider.File{Path: t.path, Content: data, YAML: yamlkit.Parse(data), Patch: t.patches.Is(t.path)}
 	a := c.Analyze(ctx, f, 45*time.Second)
 	r.Type, r.Diagnostics = a.Type, a.Diagnostics
 	for _, d := range a.Docs {

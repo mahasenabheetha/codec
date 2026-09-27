@@ -22,6 +22,7 @@
   import CopyPlus from '@lucide/svelte/icons/copy-plus'
   import Settings2 from '@lucide/svelte/icons/settings-2'
   import Ship from '@lucide/svelte/icons/ship'
+  import FlaskConical from '@lucide/svelte/icons/flask-conical'
   import X from '@lucide/svelte/icons/x'
   import Rail from './lib/shell/Rail.svelte'
   import TabBar from './lib/shell/TabBar.svelte'
@@ -33,7 +34,7 @@
   import Explorer from './features/workspace/Explorer.svelte'
   import FileView from './features/workspace/FileView.svelte'
   import HelmView from './features/helm/HelmView.svelte'
-  import LintSettings from './features/lint/LintSettings.svelte'
+  import SettingsView from './features/settings/SettingsView.svelte'
   import CompareView from './features/compare/CompareView.svelte'
   import K8sFolderView from './features/kube/K8sFolderView.svelte'
   import KustomizeView from './features/kube/KustomizeView.svelte'
@@ -50,9 +51,9 @@
   import { charts } from './features/helm/helm.svelte'
   import OpenFolderDialog from './features/workspace/OpenFolderDialog.svelte'
   import QuickOpen from './features/workspace/QuickOpen.svelte'
-  import { openFolder, workspace } from './features/workspace/workspace.svelte'
+  import { openFolder, openSample, workspace } from './features/workspace/workspace.svelte'
   import { tools, toolById } from './lib/tools'
-  import { ansibleRoute, argoRoute, ciRoute, cloneRoute, compareRoute, composeRoute, isView, k8sRoute, kustomizeRoute, lintSettingsRoute, newRoute, problemsRoute, queryRoute, router, routeAnsible, routeArgo, routeCI, routeClone, routeCompose, routeFile, routeHelm, routeK8s, routeKustomize, routeTool } from './lib/stores/router.svelte'
+  import { ansibleRoute, argoRoute, ciRoute, cloneRoute, compareRoute, composeRoute, isView, k8sRoute, kustomizeRoute, settingsRoute, newRoute, problemsRoute, queryRoute, router, routeAnsible, routeArgo, routeCI, routeClone, routeCompose, routeFile, routeHelm, routeK8s, routeKustomize, routeTool } from './lib/stores/router.svelte'
   import { layout } from './lib/stores/layout.svelte'
   import { shortcut } from './lib/stores/shortcuts.svelte'
   import { commands } from './lib/stores/commands.svelte'
@@ -87,6 +88,7 @@
   shortcut('Mod+O', () => (workspace.dialogOpen = true))
   shortcut('Mod+Shift+E', () => layout.toggleExplorer())
   shortcut('?', () => (layout.shortcutsOpen = true))
+  shortcut('Mod+,', () => layout.open(settingsRoute))
 
   commands.register([
     {
@@ -158,12 +160,21 @@
       },
     },
     {
-      id: 'lint.settings',
-      title: 'Lint settings',
+      id: 'settings.open',
+      title: 'Settings',
       group: 'Settings',
       icon: Settings2,
-      keywords: ['rules', 'schema', 'kubernetes version', 'offline', 'preferences'],
-      run: () => layout.open(lintSettingsRoute),
+      shortcut: 'Mod+,',
+      keywords: ['preferences', 'options', 'lint rules', 'schema', 'kubernetes version', 'offline', 'helm profiles', 'editor', 'vs code', 'cursor'],
+      run: () => layout.open(settingsRoute),
+    },
+    {
+      id: 'workspace.sample',
+      title: 'Open the sample workspace',
+      group: 'Workspace',
+      icon: FlaskConical,
+      keywords: ['demo', 'try', 'example', 'tour', 'onboarding', 'getting started'],
+      run: () => openSample(),
     },
     {
       id: 'workspace.refresh',
@@ -411,9 +422,9 @@
             <div class="panel" hidden={router.path !== route}>
               <CloneView path={routeClone(route)!} active={router.path === route} />
             </div>
-          {:else if route === lintSettingsRoute}
+          {:else if route === settingsRoute}
             <div class="panel" hidden={router.path !== route}>
-              <LintSettings active={router.path === route} />
+              <SettingsView active={router.path === route} />
             </div>
           {/if}
         {/each}

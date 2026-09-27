@@ -27,8 +27,9 @@ import (
 // edited (what-if) buffer, its content; without content the file is
 // read from disk. Positions are 1-based line and rune column.
 
-// maxBody bounds request bodies: the largest file is 2 MB, plus JSON.
-const maxBody = 5 << 20
+// maxBody bounds request bodies: the largest file is 8 MB, which JSON
+// escaping can grow, plus what-if copies of other files.
+const maxBody = 24 << 20
 
 type yamlRequest struct {
 	Path    string  `json:"path"`
@@ -79,6 +80,11 @@ func (s *Server) yamlFile(req *yamlRequest) (*provider.File, provider.Provider, 
 		if f.YAML == nil { // not a .yaml name, or the cached parse failed
 			f.YAML = yamlkit.Parse(f.Content)
 		}
+	}
+	// A Kustomize patch is a partial object; the editor must not demand
+	// the fields the complete one has.
+	if ws := s.current(); ws != nil && req.Path != "" {
+		f.Patch = patchesOf(ws).Is(req.Path)
 	}
 	return f, provider.Default.Best(f), nil
 }

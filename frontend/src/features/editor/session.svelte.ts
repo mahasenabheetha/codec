@@ -143,7 +143,7 @@ export class FileSession {
   /** Breadcrumb at the cursor: document (in multi-doc files), then keys. */
   crumbs = $derived.by<string[]>(() => {
     const names: string[] = []
-    for (let r = this.current; r; r = r.parent) names.unshift(r.sym.name)
+    for (let r = this.current; r; r = r.parent) if (r.sym.kind !== 'document') names.unshift(r.sym.name)
     const docs = this.analysis?.docs ?? []
     if (docs.length > 1 && this.current) {
       const d = docs.find((x) => String(x.index) === this.current!.id.split('/')[0])

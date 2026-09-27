@@ -35,7 +35,7 @@ export interface Expression {
 export interface YamlSymbol {
   name: string
   detail?: string
-  kind: string // map, seq, scalar, alias
+  kind: string // map, seq, scalar, alias; document when a big file is outlined by document only
   range: Range
   children?: YamlSymbol[]
 }
@@ -61,6 +61,8 @@ export interface Analysis {
   docs: DocSummary[]
   diagnostics: Diagnostic[]
   expressions: Expression[]
+  /** Deeper levels left out: the file is too big for a full outline. */
+  outlineTrimmed?: boolean
 }
 
 export interface Hover {

@@ -10,7 +10,7 @@ Linear/VS Code than to a marketing site. Tokens live in
 |---|---|
 | Surfaces | `--bg-0 #0b0d12` app/rail · `--bg-1 #10131a` panels · `--bg-2 #161a23` editor/cards · `--bg-3 #1d2230` hover/inputs |
 | Borders | `--border #252b38` · `--border-strong #323a4b` |
-| Text | `--fg-0 #e6e8ee` primary · `--fg-1 #a9b0bf` secondary · `--fg-2 #6e7686` muted (large text/icons only) |
+| Text | `--fg-0 #e6e8ee` primary · `--fg-1 #a9b0bf` secondary · `--fg-2 #878fa0` muted (≥ 4.5:1 on bg-0…bg-3) |
 | Accent | `--accent #7aa2ff` · `--accent-soft rgb(122 162 255 / .14)` |
 | Status | `--ok #3fb971` · `--warn #e5b449` · `--err #f06b75` · `--info #5ab0ff` |
 | Space | 4px scale: `--s-1 4` `--s-2 8` `--s-3 12` `--s-4 16` `--s-6 24` `--s-8 32` |
@@ -25,7 +25,7 @@ keyboard focus. Text contrast ≥ 4.5:1 on its surface.
 ## Syntax colors (CodeMirror theme)
 
 key `#8fb4ff` · string `#a8d68a` · number `#f2a66b` · bool/null
-`#d59bf6` · comment `#5c6576` italic · anchor/alias `#4fd1c5` · tag
+`#d59bf6` · comment `#7a8497` italic · anchor/alias `#4fd1c5` · tag
 `#e5b449` · punctuation `--fg-2` · `---` separator `--accent`.
 Expressions get a tinted background so they pop inside YAML:
 - template-time (Helm/Go template, Jinja): `#f7c873` on `rgb(247 200 115 / .08)`

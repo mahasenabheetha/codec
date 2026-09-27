@@ -63,6 +63,7 @@ func TestRules(t *testing.T) {
 		{"empty value", "a:\nb: null\nc: ~\nd: {}\n", "", Config{}, []string{"empty-value:1"}},
 		{"empty value skipped in templates", "a:\n{{- toYaml .Values.x | nindent 2 }}\n", "helm-template", Config{}, nil},
 		{"GitHub events may be empty", "on:\n  workflow_dispatch:\njobs:\n  a:\n    runs-on:\n", "github-actions", Config{}, []string{"empty-value:5"}},
+		{"inventory hosts may be empty", "all:\n  children:\n    web:\n      hosts:\n        a.example.com:\n      vars:\n        port:\n", "ansible-inventory", Config{}, []string{"empty-value:7"}},
 		{"trailing spaces", "a: 1  \nb: 2\n", "", Config{}, []string{"trailing-spaces:1"}},
 		{"document start off by default", "a: 1\n", "", Config{}, nil},
 		{"document start", "# comment\na: 1\n", "", on("document-start"), []string{"document-start:2"}},

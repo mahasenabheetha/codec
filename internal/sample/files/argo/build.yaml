@@ -1,0 +1,80 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: shop-build
+spec:
+  entrypoint: main
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+  arguments:
+    parameters:
+      - name: revision
+        value: main
+      - name: environment
+        value: dev
+        enum: [dev, prod]
+  templates:
+    - name: main
+      dag:
+        tasks:
+          - name: checkout
+            template: run
+            arguments:
+              parameters:
+                - name: cmd
+                  value: "git checkout {{workflow.parameters.revision}}"
+          - name: unit-tests
+            depends: checkout
+            template: run
+            arguments:
+              parameters:
+                - name: cmd
+                  value: "make test"
+          - name: lint
+            depends: checkout
+            template: run
+            arguments:
+              parameters:
+                - name: cmd
+                  value: "make lint"
+          - name: image
+            depends: unit-tests && lint
+            template: run
+            arguments:
+              parameters:
+                - name: cmd
+                  value: "make image TAG={{workflow.parameters.revision}}"
+          - name: deploy
+            depends: image
+            when: "{{workflow.parameters.environment}} == prod"
+            template: run
+            arguments:
+              parameters:
+                - name: cmd
+                  value: "make deploy ENV={{workflow.parameters.environment}}"
+          - name: notify
+            depends: image.Failed || deploy.Succeeded || deploy.Skipped
+            templateRef:
+              name: shop-common
+              template: notify
+            arguments:
+              parameters:
+                - name: channel
+                  value: "#shop-builds"
+                - name: text
+                  value: "shop {{workflow.parameters.revision}} built for {{workflow.parameters.environment}}"
+    - name: run
+      inputs:
+        parameters:
+          - name: cmd
+      container:
+        image: alpine:3.22
+        command: [sh, -c]
+        args: ["{{inputs.parameters.cmd}}"]
+        resources:
+          requests:
+            cpu: 50m
+            memory: 32Mi
+          limits:
+            memory: 64Mi

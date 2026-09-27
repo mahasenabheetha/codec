@@ -3,6 +3,7 @@
   import Container from '@lucide/svelte/icons/container'
   import CircleCheck from '@lucide/svelte/icons/circle-check'
   import RotateCcw from '@lucide/svelte/icons/rotate-ccw'
+  import Skeleton from '../../lib/components/Skeleton.svelte'
   import Badge from '../../lib/components/Badge.svelte'
   import EffectiveLines, { layerTone } from '../../lib/components/EffectiveLines.svelte'
   import EmptyState from '../../lib/components/EmptyState.svelte'
@@ -157,7 +158,7 @@
   {#if error && !data}
     <EmptyState icon={Container} title="Can't read this Compose project" description={error} />
   {:else if !data}
-    <div class="loading" aria-busy="true">Reading…</div>
+    <div class="loading" aria-busy="true" aria-label="Reading the files"><Skeleton lines={8} /></div>
   {:else}
     <LensGrid sideLabel="Compose project" detailLabel="Selected service">
       {#snippet side()}

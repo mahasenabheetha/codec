@@ -40,6 +40,9 @@ type Ref struct {
 	// where a string is wanted, or "1" for a number). Azure Pipelines
 	// converts between them itself, and its schema mixes both.
 	LooseScalars bool `json:"-"`
+	// Partial skips missing required fields: the document is a patch
+	// (Kustomize) that is merged over a complete object.
+	Partial bool `json:"-"`
 }
 
 // For returns the schema for a document of a file of type typ (a

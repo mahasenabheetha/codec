@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        go: ["1.25", "1.26"]
+        exclude:
+          - os: windows-latest
+            go: "1.25"
+    uses: ./.github/workflows/test.yml
+    with:
+      os: ${{ matrix.os }}
+      go-version: ${{ matrix.go }}
+
+  chart:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: azure/setup-helm@v4
+      - name: Lint the chart
+        run: helm lint charts/shop -f charts/shop/values-prod.yaml
+
+  image:
+    needs: [test, chart]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - name: Build
+        run: docker build -t shop:${{ github.sha }} .

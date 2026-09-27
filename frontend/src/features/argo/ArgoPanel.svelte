@@ -21,6 +21,7 @@
   import RotateCcw from '@lucide/svelte/icons/rotate-ccw'
   import X from '@lucide/svelte/icons/x'
   import Workflow from '@lucide/svelte/icons/workflow'
+  import Skeleton from '../../lib/components/Skeleton.svelte'
   import Badge from '../../lib/components/Badge.svelte'
   import Button from '../../lib/components/Button.svelte'
   import EmptyState from '../../lib/components/EmptyState.svelte'
@@ -245,7 +246,7 @@
   {#if error && !data}
     <EmptyState icon={Workflow} title="Can't read this workflow" description={error} />
   {:else if !data}
-    <div class="loading" aria-busy="true">Reading…</div>
+    <div class="loading" aria-busy="true" aria-label="Reading the files"><Skeleton lines={8} /></div>
   {:else if !data.workflows.length && !data.apps.length}
     <EmptyState icon={Workflow} title="No Argo workflows or applications here" description="Workflows, WorkflowTemplates, CronWorkflows, Sensors that submit workflows and Argo CD applications show up here." />
   {:else}

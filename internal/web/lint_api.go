@@ -101,6 +101,7 @@ func (s *Server) handleLintWorkspace(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	patches := patchesOf(ws)
 	var (
 		mu  sync.Mutex
 		out []lintFile
@@ -118,7 +119,7 @@ func (s *Server) handleLintWorkspace(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				return // deleted meanwhile, or too large: not lint's business
 			}
-			f := &provider.File{Path: p, Content: []byte(c.Text), YAML: c.YAML}
+			f := &provider.File{Path: p, Content: []byte(c.Text), YAML: c.YAML, Patch: patches.Is(p)}
 			if f.YAML == nil {
 				f.YAML = yamlkit.Parse(f.Content)
 			}

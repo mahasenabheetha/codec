@@ -1,0 +1,18 @@
+# Hidden jobs .gitlab-ci.yml extends.
+.go-job:
+  image: golang:1.26
+  cache:
+    key: go-mod
+    paths:
+      - .cache/go-mod/
+  variables:
+    GOMODCACHE: $CI_PROJECT_DIR/.cache/go-mod
+
+.deploy:
+  stage: deploy
+  image: alpine/helm:3.19.0
+  needs: [test]
+  environment:
+    name: $ENVIRONMENT
+  script:
+    - helm upgrade --install $APP_NAME charts/shop -f charts/shop/values-$ENVIRONMENT.yaml

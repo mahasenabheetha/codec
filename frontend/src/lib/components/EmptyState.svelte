@@ -49,6 +49,8 @@
   }
   .actions {
     display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: var(--s-2);
     margin-top: var(--s-3);
   }

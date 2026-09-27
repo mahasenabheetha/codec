@@ -79,9 +79,7 @@ func New(opts Options) *Store {
 // since a custom folder may now answer differently.
 func (s *Store) SetOptions(opts Options) {
 	if opts.Dir == "" {
-		if d, err := os.UserCacheDir(); err == nil {
-			opts.Dir = filepath.Join(d, "codec", "schemas")
-		}
+		opts.Dir = DefaultDir()
 	}
 	if opts.UserAgent == "" {
 		opts.UserAgent = "codec"
@@ -281,4 +279,14 @@ func writeAtomic(file string, data []byte) {
 	if werr != nil || cerr != nil || os.Rename(tmp.Name(), file) != nil {
 		os.Remove(tmp.Name())
 	}
+}
+
+// DefaultDir is the schema cache: codec/schemas in the user cache
+// directory ("" if the system has none, which turns caching off).
+func DefaultDir() string {
+	d, err := os.UserCacheDir()
+	if err != nil {
+		return ""
+	}
+	return filepath.Join(d, "codec", "schemas")
 }

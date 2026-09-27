@@ -7,6 +7,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/mahasenabheetha/codec/v2/internal/check"
 	"github.com/mahasenabheetha/codec/v2/internal/kube"
 	"github.com/mahasenabheetha/codec/v2/internal/provider"
 	"github.com/mahasenabheetha/codec/v2/internal/workspace"
@@ -168,5 +169,16 @@ func (s *Server) handleK8sNeat(w http.ResponseWriter, r *http.Request) {
 			return map[string]string{"error": err.Error()}
 		}
 		return map[string]string{"text": string(out)}
+	})
+}
+
+// patchesOf finds the Kustomize patches among the workspace's files.
+func patchesOf(ws *workspace.Workspace) *check.Patches {
+	return check.NewPatches(func(p string) ([]byte, error) {
+		c, err := ws.Read(p)
+		if err != nil {
+			return nil, err
+		}
+		return []byte(c.Text), nil
 	})
 }

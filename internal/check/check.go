@@ -68,6 +68,7 @@ func (c *Checker) Analyze(ctx context.Context, f *provider.File, wait time.Durat
 			if !ok || i >= len(a.Docs) || removed(d.Root, cfg) {
 				continue
 			}
+			ref.Partial = f.Patch
 			st, ds := c.validate(ctx, ref, d)
 			a.Docs[i].Schema = st
 			a.Diagnostics = append(a.Diagnostics, ds...)
@@ -84,7 +85,7 @@ func (c *Checker) validate(ctx context.Context, ref schema.Ref, d *yamlkit.Docum
 	sch, err := c.schemas.Get(ctx, ref.URL)
 	switch {
 	case err == nil:
-		return st, schema.Validate(sch, d, ref.LooseScalars)
+		return st, schema.Validate(sch, d, ref)
 	case errors.Is(err, context.DeadlineExceeded), errors.Is(err, context.Canceled):
 		st.State, st.Message = "pending", "Downloading the schema…"
 	case errors.Is(err, schemacache.ErrNotPublished):

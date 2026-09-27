@@ -14,16 +14,18 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/mahasenabheetha/codec/v2/internal/config"
+	"github.com/mahasenabheetha/codec/v2/internal/sample"
 	"github.com/mahasenabheetha/codec/v2/internal/version"
 	"github.com/mahasenabheetha/codec/v2/internal/web"
 )
 
 var (
-	servePort int
-	serveHost string
-	serveRoot string
-	servePoll bool
-	serveOpen bool
+	servePort   int
+	serveHost   string
+	serveRoot   string
+	servePoll   bool
+	serveOpen   bool
+	serveSample bool
 )
 
 var serveCmd = &cobra.Command{
@@ -38,6 +40,7 @@ your network can reach it. codec never writes to the folders it opens.
 Examples:
   codec serve --open                  start and open the browser
   codec serve --root ~/repos/app      open a folder right away
+  codec serve --sample --open         try codec on a sample repository
   codec serve --host 0.0.0.0 --root /work    inside Docker`,
 	Args: cobra.NoArgs,
 	RunE: runServe,
@@ -50,6 +53,7 @@ func init() {
 	f.StringVar(&serveRoot, "root", "", "folder to open at start")
 	f.BoolVar(&servePoll, "poll", false, "detect file changes by polling (automatic in containers)")
 	f.BoolVar(&serveOpen, "open", false, "open the UI in the default browser")
+	f.BoolVar(&serveSample, "sample", false, "open the built-in sample workspace (written to codec's cache folder)")
 	rootCmd.AddCommand(serveCmd)
 }
 
@@ -67,6 +71,10 @@ func runServe(cmd *cobra.Command, args []string) error {
 	if serveRoot != "" {
 		if err := s.OpenWorkspace(serveRoot); err != nil {
 			return fmt.Errorf("--root: %w", err)
+		}
+	} else if serveSample {
+		if err := s.OpenSample(); err != nil {
+			return fmt.Errorf("--sample: %w", err)
 		}
 	}
 
@@ -91,6 +99,8 @@ func runServe(cmd *cobra.Command, args []string) error {
 			mode = "polling"
 		}
 		fmt.Printf("workspace: %s (watching with %s)\n", serveRoot, mode)
+	} else if serveSample {
+		fmt.Printf("workspace: the sample repository in %s\n", sample.Dir())
 	}
 	if serveOpen {
 		if err := openBrowser(url); err != nil {

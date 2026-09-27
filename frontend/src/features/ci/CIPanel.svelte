@@ -16,6 +16,7 @@
   import CircleCheck from '@lucide/svelte/icons/circle-check'
   import GitBranch from '@lucide/svelte/icons/git-branch'
   import RotateCcw from '@lucide/svelte/icons/rotate-ccw'
+  import Skeleton from '../../lib/components/Skeleton.svelte'
   import Badge from '../../lib/components/Badge.svelte'
   import EffectiveLines from '../../lib/components/EffectiveLines.svelte'
   import EmptyState from '../../lib/components/EmptyState.svelte'
@@ -185,7 +186,7 @@
   {#if error && !data}
     <EmptyState icon={GitBranch} title="Can't read this pipeline" description={error} />
   {:else if !data}
-    <div class="loading" aria-busy="true">Reading…</div>
+    <div class="loading" aria-busy="true" aria-label="Reading the files"><Skeleton lines={8} /></div>
   {:else}
     <div class="grid">
       <aside class="side" aria-label="Pipeline">

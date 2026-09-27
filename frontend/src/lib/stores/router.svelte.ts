@@ -95,14 +95,14 @@ export const routeClone = clonePrefix.parse
 
 /** Fixed app views that open as tabs. */
 export const problemsRoute = '/problems'
-export const lintSettingsRoute = '/settings/lint'
+export const settingsRoute = '/settings'
 export const compareRoute = '/compare'
 export const queryRoute = '/query'
 export const newRoute = '/new'
 
 /** Is route one of the fixed views? */
 export function isView(route: string): boolean {
-  return [problemsRoute, lintSettingsRoute, compareRoute, queryRoute, newRoute].includes(route) || routeK8s(route) !== null || routeKustomize(route) !== null || routeArgo(route) !== null || routeCI(route) !== null || routeCompose(route) !== null || routeAnsible(route) !== null || routeClone(route) !== null
+  return [problemsRoute, settingsRoute, compareRoute, queryRoute, newRoute].includes(route) || routeK8s(route) !== null || routeKustomize(route) !== null || routeArgo(route) !== null || routeCI(route) !== null || routeCompose(route) !== null || routeAnsible(route) !== null || routeClone(route) !== null
 }
 
 /** The tool id a route points at, or null. */

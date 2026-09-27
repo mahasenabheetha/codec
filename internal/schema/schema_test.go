@@ -126,7 +126,7 @@ func TestValidate(t *testing.T) {
 				t.Fatalf("fixture doesn't parse: %v", f.Diagnostics)
 			}
 			var got []string
-			for _, d := range Validate(sch, f.Docs[0], false) {
+			for _, d := range Validate(sch, f.Docs[0], Ref{}) {
 				s := fmt.Sprintf("%d: %s", d.Range.Start.Line, d.Message)
 				for _, w := range tt.want {
 					if strings.Contains(w, " | ") && strings.HasPrefix(w, s+" | ") {

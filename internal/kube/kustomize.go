@@ -181,3 +181,30 @@ func Kustomize(files map[string][]byte, dir string) (string, error) {
 func kustomizeError(err error) error {
 	return errors.New(strings.ReplaceAll(err.Error(), "'/", "'"))
 }
+
+// PatchFiles returns the files (slash paths, joined to dir) that the
+// kustomization in dir applies as patches. They hold partial objects,
+// so checks that want complete ones should go easy on them.
+func PatchFiles(dir string, kustomization []byte) []string {
+	f := yamlkit.Parse(kustomization)
+	if len(f.Docs) == 0 || f.Docs[0].Root == nil {
+		return nil
+	}
+	k := f.Docs[0].Root
+	var out []string
+	add := func(n *yamlkit.Node) {
+		// An inline patch is YAML text, not a file name.
+		if p := n.Str(); p != "" && !strings.Contains(p, "\n") {
+			out = append(out, path.Join(dir, p))
+		}
+	}
+	for _, it := range items(k.Get("patchesStrategicMerge")) {
+		add(it)
+	}
+	for _, key := range []string{"patches", "patchesJson6902"} {
+		for _, it := range items(k.Get(key)) {
+			add(it.Get("path"))
+		}
+	}
+	return out
+}

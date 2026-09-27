@@ -5,7 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"runtime"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"unicode/utf8"
 
 	goyaml "github.com/goccy/go-yaml"
@@ -38,19 +41,57 @@ func Parse(content []byte) *File {
 		})
 	}
 
-	p := &parseState{src: src, masked: mask(src, spans), li: li, spans: spans, f: f}
-	for _, c := range p.splitDocuments() {
-		p.parseChunk(c)
+	p := &parseState{src: src, masked: mask(src, spans), li: li, spans: spans}
+	chunks := p.splitDocuments()
+	results := make([]chunkResult, len(chunks))
+	eachChunk(len(chunks), func(i int) { results[i] = p.parseChunk(chunks[i], i) })
+	for _, r := range results {
+		f.Docs = append(f.Docs, r.doc)
+		f.Diagnostics = append(f.Diagnostics, r.diags...)
 	}
 	return f
 }
 
+// parallelDocs is the document count from which Parse spreads documents
+// over the CPUs. Below it, starting goroutines costs more than it saves.
+const parallelDocs = 16
+
+// eachChunk calls fn for 0..n-1, on all CPUs when there are many
+// chunks. Documents parse independently: each call writes only its own
+// result, and the source and line index are only read.
+func eachChunk(n int, fn func(i int)) {
+	workers := min(runtime.GOMAXPROCS(0), n)
+	if n < parallelDocs || workers < 2 {
+		for i := range n {
+			fn(i)
+		}
+		return
+	}
+	var next atomic.Int64 // the next chunk to hand out
+	var wg sync.WaitGroup
+	for range workers {
+		wg.Go(func() {
+			for i := int(next.Add(1) - 1); i < n; i = int(next.Add(1) - 1) {
+				fn(i)
+			}
+		})
+	}
+	wg.Wait()
+}
+
+// parseState is what every document's parse reads. It is never written
+// once Parse has built it, so documents can be parsed concurrently.
 type parseState struct {
 	src    []byte // content without BOM
 	masked []byte // src with expressions masked; same length and lines
 	li     *lineIndex
 	spans  []exprSpan
-	f      *File
+}
+
+// chunkResult is one parsed document and the problems found in it.
+type chunkResult struct {
+	doc   *Document
+	diags []Diagnostic
 }
 
 // chunk is the byte range of one document within the source.
@@ -131,9 +172,10 @@ func (p *parseState) lineIn(buf []byte, n int) string {
 	return strings.TrimSuffix(string(buf[start:end]), "\r")
 }
 
-func (p *parseState) parseChunk(c chunk) {
-	doc := &Document{Index: len(p.f.Docs), Range: p.li.span(c.start, trimEnd(p.src, c.start, c.end))}
-	p.f.Docs = append(p.f.Docs, doc)
+// parseChunk parses the document in c, the index-th of the file.
+func (p *parseState) parseChunk(c chunk, index int) chunkResult {
+	doc := &Document{Index: index, Range: p.li.span(c.start, trimEnd(p.src, c.start, c.end))}
+	res := chunkResult{doc: doc}
 
 	// Duplicate keys are ours to report (with a friendlier message and
 	// without aborting the parse), so the parser is told to allow them.
@@ -143,9 +185,9 @@ func (p *parseState) parseChunk(c chunk) {
 	text := bytes.ReplaceAll(p.masked[c.start:c.end], []byte("\r\n"), []byte("\n"))
 	tree, err := parser.ParseBytes(text, parser.ParseComments, parser.AllowDuplicateMapKey())
 	if err != nil {
-		p.f.Diagnostics = append(p.f.Diagnostics, p.syntaxError(err, c))
+		res.diags = append(res.diags, p.syntaxError(err, c))
 		doc.Name = guessName(p.masked[c.start:c.end])
-		return
+		return res
 	}
 
 	cv := &converter{p: p, lineOff: c.line - 1}
@@ -164,8 +206,9 @@ func (p *parseState) parseChunk(c chunk) {
 	// produces the same key twice in the source; only flag duplicates
 	// in documents without it.
 	if !p.hasStandaloneTemplates(c) {
-		p.checkDuplicates(doc.Root)
+		checkDuplicates(doc.Root, &res.diags)
 	}
+	return res
 }
 
 func trimEnd(b []byte, start, end int) int {
@@ -245,7 +288,7 @@ func guessName(b []byte) string {
 
 // checkDuplicates reports keys that appear twice in the same map. Most
 // tools keep only the last value without a word, which hides bugs.
-func (p *parseState) checkDuplicates(n *Node) {
+func checkDuplicates(n *Node, out *[]Diagnostic) {
 	if n == nil {
 		return
 	}
@@ -255,7 +298,7 @@ func (p *parseState) checkDuplicates(n *Node) {
 		for _, pr := range n.Pairs {
 			if k := pr.Key; k != nil && k.Kind == KindScalar && k.Tag != TagMerge {
 				if first, dup := seen[k.Value]; dup {
-					p.f.Diagnostics = append(p.f.Diagnostics, Diagnostic{
+					*out = append(*out, Diagnostic{
 						Severity: SeverityError,
 						Code:     "duplicate-key",
 						Message:  fmt.Sprintf("Duplicate key %q (first defined on line %d)", k.Value, first.Range.Start.Line),
@@ -266,11 +309,11 @@ func (p *parseState) checkDuplicates(n *Node) {
 					seen[k.Value] = k
 				}
 			}
-			p.checkDuplicates(pr.Value)
+			checkDuplicates(pr.Value, out)
 		}
 	case KindSeq:
 		for _, it := range n.Items {
-			p.checkDuplicates(it)
+			checkDuplicates(it, out)
 		}
 	}
 }
@@ -574,6 +617,11 @@ func resolvePlain(v string) string {
 		return TagNull
 	case "true", "True", "TRUE", "false", "False", "FALSE":
 		return TagBool
+	}
+	// Every number starts like this and most strings don't: skipping the
+	// regexps for them is a good part of parsing a big file.
+	if c := v[0]; !(c >= '0' && c <= '9' || c == '-' || c == '+' || c == '.') {
+		return TagStr
 	}
 	if intRe.MatchString(v) {
 		return TagInt

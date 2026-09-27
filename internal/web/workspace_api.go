@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/fs"
 	"log"
 	"net/http"
@@ -12,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/mahasenabheetha/codec/v2/internal/config"
+	"github.com/mahasenabheetha/codec/v2/internal/sample"
 	"github.com/mahasenabheetha/codec/v2/internal/workspace"
 )
 
@@ -23,6 +25,8 @@ type workspaceView struct {
 	Watch  string   `json:"watch,omitempty"` // native | poll
 	Recent []string `json:"recent"`
 	Sep    string   `json:"sep"` // OS path separator, for display
+	// Sample is true while the sample workspace is open.
+	Sample bool `json:"sample,omitempty"`
 }
 
 // filesEvent is the payload of the "files" event.
@@ -76,10 +80,13 @@ func (s *Server) OpenWorkspace(dir string) error {
 		return err
 	}
 
-	if err := s.opts.Config.Update(func(st *config.Settings) {
-		st.RecentFolders = config.AddRecent(st.RecentFolders, root)
-	}); err != nil {
-		log.Printf("remember recent folder: %v", err)
+	// The sample has its own button; it would only crowd real folders out.
+	if !s.isSample(root) {
+		if err := s.opts.Config.Update(func(st *config.Settings) {
+			st.RecentFolders = config.AddRecent(st.RecentFolders, root)
+		}); err != nil {
+			log.Printf("remember recent folder: %v", err)
+		}
 	}
 	s.hub.publish("workspace", s.view())
 
@@ -110,6 +117,7 @@ func (s *Server) view() workspaceView {
 	defer s.mu.Unlock()
 	if s.ws != nil {
 		v.Open, v.Root, v.Name, v.Watch = true, s.ws.Root(), s.ws.Name(), s.watch
+		v.Sample = s.isSample(v.Root)
 	}
 	return v
 }
@@ -249,4 +257,34 @@ func (s *Server) handleContent(w http.ResponseWriter, r *http.Request) {
 		BOM:     c.BOM,
 		CRLF:    c.CRLF,
 	})
+}
+
+// OpenSample writes the sample workspace to codec's cache folder (never
+// a repository) and opens it like any folder.
+func (s *Server) OpenSample() error {
+	dir := s.sampleDir()
+	if err := sample.Extract(dir); err != nil {
+		return fmt.Errorf("write the sample workspace: %w", err)
+	}
+	return s.OpenWorkspace(dir)
+}
+
+func (s *Server) sampleDir() string {
+	if s.opts.SampleDir != "" {
+		return s.opts.SampleDir
+	}
+	return sample.Dir()
+}
+
+func (s *Server) isSample(root string) bool {
+	return filepath.Clean(root) == filepath.Clean(s.sampleDir())
+}
+
+// POST /api/v2/workspace/sample: open the sample workspace.
+func (s *Server) handleOpenSample(w http.ResponseWriter, r *http.Request) {
+	if err := s.OpenSample(); err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, s.view())
 }

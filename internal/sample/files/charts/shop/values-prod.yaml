@@ -1,0 +1,21 @@
+# Production: layered over values.yaml (helm -f values.yaml -f values-prod.yaml).
+replicaCount: 3
+
+image:
+  tag: "1.27.3"
+
+ingress:
+  enabled: true
+  host: shop.example.com
+
+config:
+  logLevel: info
+  featureFlags:
+    newCheckout: true
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 256Mi
+  limits:
+    memory: 512Mi

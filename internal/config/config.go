@@ -118,6 +118,9 @@ func Open() (*Store, error) {
 	return st, nil
 }
 
+// Path is the settings file, or "" when settings live in memory only.
+func (st *Store) Path() string { return st.path }
+
 // Get returns a copy of the current settings.
 func (st *Store) Get() Settings {
 	st.mu.Lock()

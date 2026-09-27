@@ -4,6 +4,7 @@
   import Folder from '@lucide/svelte/icons/folder'
   import FolderOpen from '@lucide/svelte/icons/folder-open'
   import FolderSearch from '@lucide/svelte/icons/folder-search'
+  import FlaskConical from '@lucide/svelte/icons/flask-conical'
   import ListFilter from '@lucide/svelte/icons/list-filter'
   import RotateCw from '@lucide/svelte/icons/rotate-cw'
   import Search from '@lucide/svelte/icons/search'
@@ -17,7 +18,7 @@
   import FileIcon from './FileIcon.svelte'
   import { kindOf, lookOf } from './filetypes'
   import { buildTree, flatten, type TreeNode } from './tree'
-  import { openFolder, workspace as ws } from './workspace.svelte'
+  import { openFolder, openSample, workspace as ws } from './workspace.svelte'
 
   // Kinds hidden by the type filter; empty = show everything.
   const shown = new SvelteSet<string>()
@@ -97,6 +98,7 @@
       <div class="empty-wrap">
         <EmptyState icon={FolderSearch} title="No folder open" description="Open a repository to browse its YAML. codec only reads it.">
           <Button variant="primary" size="sm" icon={FolderOpen} onclick={() => (ws.dialogOpen = true)}>Open folder</Button>
+          <Button size="sm" icon={FlaskConical} onclick={openSample}>Try the sample</Button>
         </EmptyState>
       </div>
       {#if ws.info?.recent.length}

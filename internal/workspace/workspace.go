@@ -31,7 +31,7 @@ import (
 const (
 	// MaxFileSize is the largest file listed or read. Bigger files are
 	// almost never hand-written YAML and would make the UI sluggish.
-	MaxFileSize = 2 << 20
+	MaxFileSize = 8 << 20
 	// MaxFiles caps the tree, so opening a home folder or a drive by
 	// mistake can't exhaust memory.
 	MaxFiles = 50_000
@@ -42,7 +42,7 @@ var (
 	ErrOutside  = errors.New("path is outside the workspace")
 	ErrNotDir   = errors.New("not a folder")
 	ErrNotFile  = errors.New("not a file")
-	ErrTooLarge = errors.New("file is larger than 2 MB")
+	ErrTooLarge = errors.New("file is larger than 8 MB")
 	ErrBinary   = errors.New("binary file")
 )
 

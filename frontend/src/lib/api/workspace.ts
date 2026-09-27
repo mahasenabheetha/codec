@@ -7,6 +7,8 @@ export interface WorkspaceInfo {
   watch?: 'native' | 'poll'
   recent: string[]
   sep: string
+  /** The built-in sample workspace is open. */
+  sample?: boolean
 }
 
 export interface FileEntry {
@@ -53,6 +55,9 @@ export interface FileChange {
 export const getWorkspace = () => request<WorkspaceInfo>('GET', '/api/v2/workspace')
 
 export const openWorkspace = (path: string) => request<WorkspaceInfo>('POST', '/api/v2/workspace/open', { path })
+
+/** Writes the built-in sample repository to codec's cache folder and opens it. */
+export const openSampleWorkspace = () => request<WorkspaceInfo>('POST', '/api/v2/workspace/sample')
 
 export const listDirs = (path = '') =>
   request<DirListing>('GET', '/api/v2/fs/dirs' + (path ? '?path=' + encodeURIComponent(path) : ''))

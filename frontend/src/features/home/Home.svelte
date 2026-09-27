@@ -4,14 +4,24 @@
   import FolderOpen from '@lucide/svelte/icons/folder-open'
   import History from '@lucide/svelte/icons/history'
   import ShieldCheck from '@lucide/svelte/icons/shield-check'
+  import FlaskConical from '@lucide/svelte/icons/flask-conical'
+  import Button from '../../lib/components/Button.svelte'
   import Kbd from '../../lib/components/Kbd.svelte'
   import { layout } from '../../lib/stores/layout.svelte'
   import { toolGroups } from '../../lib/tools'
-  import { openFolder, workspace as ws } from '../workspace/workspace.svelte'
+  import { openFolder, openSample, workspace as ws } from '../workspace/workspace.svelte'
 
   const groups = toolGroups()
   // Recent folders other than the open one.
   const recent = $derived((ws.info?.recent ?? []).filter((d) => d !== ws.info?.root).slice(0, 4))
+  // First run: nothing open and nothing opened before.
+  const firstRun = $derived(ws.info !== null && !ws.info.open && ws.info.recent.length === 0)
+  let opening = $state(false)
+  async function trySample() {
+    opening = true
+    await openSample()
+    opening = false
+  }
 </script>
 
 <div class="home">
@@ -28,38 +38,74 @@
       Press <Kbd combo="Mod+K" /> to search anything, or <Kbd combo="?" /> for shortcuts.
     </p>
 
-    <h2>Workspace</h2>
-    <div class="grid">
-      {#if ws.info?.open}
-        <button type="button" class="card" onclick={() => (ws.quickOpen = true)}>
-          <span class="icon"><FolderGit size={18} strokeWidth={1.75} /></span>
+    {#if firstRun}
+      <section class="welcome" aria-labelledby="welcome-title">
+        <h2 id="welcome-title">Get started</h2>
+        <ol>
+          <li>
+            <span class="step">1</span>
+            <span class="text">
+              <span class="title">Try the sample repository</span>
+              <span class="desc">A small made-up service with a Helm chart, Kubernetes, Argo, CI, Compose and Ansible files. It opens on the chart, rendered.</span>
+            </span>
+            <Button variant="primary" icon={FlaskConical} disabled={opening} onclick={trySample}>Open the sample</Button>
+          </li>
+          <li>
+            <span class="step">2</span>
+            <span class="text">
+              <span class="title">Open your own folder</span>
+              <span class="desc">A repository on this machine. codec reads it and never writes to it.</span>
+            </span>
+            <Button icon={FolderOpen} onclick={() => (ws.dialogOpen = true)}>Open folder…</Button>
+          </li>
+        </ol>
+      </section>
+    {/if}
+
+    {#if !firstRun}
+      <h2>Workspace</h2>
+      <div class="grid">
+        {#if ws.info?.open}
+          <button type="button" class="card" onclick={() => (ws.quickOpen = true)}>
+            <span class="icon"><FolderGit size={18} strokeWidth={1.75} /></span>
+            <span class="text">
+              <span class="title">{ws.info.name}</span>
+              <span class="desc path">{ws.info.root}</span>
+              <span class="desc">Go to a file with <Kbd combo="Mod+P" /></span>
+            </span>
+            <span class="go"><ArrowRight size={16} strokeWidth={1.75} /></span>
+          </button>
+        {/if}
+        <button type="button" class="card" onclick={() => (ws.dialogOpen = true)}>
+          <span class="icon"><FolderOpen size={18} strokeWidth={1.75} /></span>
           <span class="text">
-            <span class="title">{ws.info.name}</span>
-            <span class="desc path">{ws.info.root}</span>
-            <span class="desc">Go to a file with <Kbd combo="Mod+P" /></span>
+            <span class="title">{ws.info?.open ? 'Open another folder' : 'Open a folder'}</span>
+            <span class="desc">Browse a repository's Kubernetes, Helm, Argo and CI YAML. codec only reads it.</span>
           </span>
           <span class="go"><ArrowRight size={16} strokeWidth={1.75} /></span>
         </button>
-      {/if}
-      <button type="button" class="card" onclick={() => (ws.dialogOpen = true)}>
-        <span class="icon"><FolderOpen size={18} strokeWidth={1.75} /></span>
-        <span class="text">
-          <span class="title">{ws.info?.open ? 'Open another folder' : 'Open a folder'}</span>
-          <span class="desc">Browse a repository's Kubernetes, Helm, Argo and CI YAML. codec only reads it.</span>
-        </span>
-        <span class="go"><ArrowRight size={16} strokeWidth={1.75} /></span>
-      </button>
-      {#each recent as dir (dir)}
-        <button type="button" class="card" onclick={() => openFolder(dir)}>
-          <span class="icon muted"><History size={18} strokeWidth={1.75} /></span>
-          <span class="text">
-            <span class="title">{dir.split(/[\\/]/).filter(Boolean).pop()}</span>
-            <span class="desc path">{dir}</span>
-          </span>
-          <span class="go"><ArrowRight size={16} strokeWidth={1.75} /></span>
-        </button>
-      {/each}
-    </div>
+        {#if !ws.info?.sample}
+          <button type="button" class="card" onclick={trySample} disabled={opening}>
+            <span class="icon muted"><FlaskConical size={18} strokeWidth={1.75} /></span>
+            <span class="text">
+              <span class="title">Sample repository</span>
+              <span class="desc">Every file type codec understands, in a made-up repo. Opens on a rendered Helm chart.</span>
+            </span>
+            <span class="go"><ArrowRight size={16} strokeWidth={1.75} /></span>
+          </button>
+        {/if}
+        {#each recent as dir (dir)}
+          <button type="button" class="card" onclick={() => openFolder(dir)}>
+            <span class="icon muted"><History size={18} strokeWidth={1.75} /></span>
+            <span class="text">
+              <span class="title">{dir.split(/[\\/]/).filter(Boolean).pop()}</span>
+              <span class="desc path">{dir}</span>
+            </span>
+            <span class="go"><ArrowRight size={16} strokeWidth={1.75} /></span>
+          </button>
+        {/each}
+      </div>
+    {/if}
 
     {#each groups as g (g.group)}
       <h2>{g.group}</h2>
@@ -173,9 +219,50 @@
       opacity var(--dur) var(--ease),
       transform var(--dur) var(--ease);
   }
+  button.card:focus-visible .go,
   button.card:hover .go {
     opacity: 1;
     transform: none;
+  }
+  .welcome {
+    margin-top: var(--s-6);
+    padding: var(--s-4);
+    background: var(--bg-1);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r-lg);
+  }
+  .welcome h2 {
+    margin: 0 0 var(--s-3);
+  }
+  ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-4);
+  }
+  li {
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+  }
+  .step {
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-semibold);
+    color: var(--accent);
+    background: var(--accent-soft);
+    border-radius: 50%;
+  }
+  @media (max-width: 640px) {
+    li {
+      flex-wrap: wrap;
+    }
   }
   .path {
     font-family: var(--font-mono);

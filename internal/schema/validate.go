@@ -24,7 +24,7 @@ var printer = message.NewPrinter(language.English)
 // placed on the offending key or value. Values that contain runtime
 // expressions (Argo, GitHub) are skipped: their type is only known
 // when the workflow runs.
-func Validate(sch *jsonschema.Schema, doc *yamlkit.Document, looseScalars bool) []yamlkit.Diagnostic {
+func Validate(sch *jsonschema.Schema, doc *yamlkit.Document, ref Ref) []yamlkit.Diagnostic {
 	if sch == nil || doc == nil || doc.Root == nil {
 		return nil
 	}
@@ -44,7 +44,7 @@ func Validate(sch *jsonschema.Schema, doc *yamlkit.Document, looseScalars bool) 
 	if !errors.As(err, &ve) {
 		return nil
 	}
-	m := &mapper{doc: located, root: sch, loose: looseScalars}
+	m := &mapper{doc: located, root: sch, loose: ref.LooseScalars, partial: ref.Partial}
 	for _, leaf := range leaves(ve) {
 		m.add(leaf)
 	}
@@ -151,11 +151,12 @@ func mergeTypes(ts []*jsonschema.ValidationError) *jsonschema.ValidationError {
 
 // mapper turns validation errors into diagnostics on the document.
 type mapper struct {
-	doc   *yamlkit.Document
-	root  *jsonschema.Schema
-	loose bool // see Ref.LooseScalars
-	out   []yamlkit.Diagnostic
-	seen  map[string]bool
+	doc     *yamlkit.Document
+	root    *jsonschema.Schema
+	loose   bool // see Ref.LooseScalars
+	partial bool // see Ref.Partial
+	out     []yamlkit.Diagnostic
+	seen    map[string]bool
 }
 
 // locate walks the instance location through the original document.
@@ -222,6 +223,9 @@ func (m *mapper) add(e *jsonschema.ValidationError) {
 			m.emit(r, fmt.Sprintf("Unknown field %q%s", p, in(where)), hint)
 		}
 	case *kind.Required:
+		if m.partial {
+			return
+		}
 		for _, p := range k.Missing {
 			m.emit(at, fmt.Sprintf("Missing required field %q%s", p, in(where)), fmt.Sprintf("Add %s: to %s.", p, orRoot(where)))
 		}

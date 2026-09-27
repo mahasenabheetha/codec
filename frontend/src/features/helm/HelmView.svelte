@@ -19,6 +19,7 @@
   import Button from '../../lib/components/Button.svelte'
   import CodeView from '../../lib/components/CodeView.svelte'
   import EmptyState from '../../lib/components/EmptyState.svelte'
+  import Skeleton from '../../lib/components/Skeleton.svelte'
   import IconButton from '../../lib/components/IconButton.svelte'
   import Popover from '../../lib/components/Popover.svelte'
   import Select from '../../lib/components/Select.svelte'
@@ -328,7 +329,7 @@
       {#if session.error && !result}
         <EmptyState icon={CircleX} title="Can't render this chart" description={session.error} />
       {:else if !result}
-        <div class="loading" aria-busy="true">Rendering…</div>
+        <div class="loading" aria-busy="true" aria-label="Rendering the chart"><Skeleton lines={12} /></div>
       {:else if tab === 'rendered'}
         {#if errors.length}
           <div class="banner err">
@@ -725,8 +726,7 @@
     white-space: pre-wrap;
   }
   .loading {
-    padding: var(--s-6);
-    color: var(--fg-2);
+    padding: var(--s-4);
   }
   .problems {
     flex: 1;

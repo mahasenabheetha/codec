@@ -91,6 +91,9 @@
   {:else if session.symbols.length === 0}
     <p class="hint"><ListTree size={14} strokeWidth={1.75} /> Nothing to outline yet.</p>
   {:else}
+    {#if session.analysis?.outlineTrimmed}
+      <p class="hint trimmed">Shortened: this file is too big to outline every key.</p>
+    {/if}
     <TreeView
       {rows}
       label="Outline"

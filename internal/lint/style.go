@@ -21,7 +21,7 @@ func (c *checker) style() {
 			// GitHub documents them; null is what they mean.
 			c.events = d.Root.Get("on")
 		}
-		c.scalars(d.Root)
+		c.scalars(d.Root, "")
 		c.indent(d.Root)
 	}
 }
@@ -86,23 +86,24 @@ var (
 )
 
 // scalars walks values (never keys: GitHub Actions' "on:" is a key and
-// fine) for the YAML 1.1 traps and empty values.
-func (c *checker) scalars(n *yamlkit.Node) {
+// fine) for the YAML 1.1 traps and empty values. key is the key n is
+// the value of ("" at the top and in lists).
+func (c *checker) scalars(n *yamlkit.Node, key string) {
 	switch n.Kind {
 	case yamlkit.KindMap:
 		for _, p := range n.Pairs {
 			if p.Value == nil {
 				continue
 			}
-			if n != c.events {
+			if !c.nullKeys(n, key) {
 				c.emptyValue(p)
 			}
-			c.scalars(p.Value)
+			c.scalars(p.Value, p.Key.Str())
 		}
 	case yamlkit.KindSeq:
 		for _, it := range n.Items {
 			if it != nil {
-				c.scalars(it)
+				c.scalars(it, "")
 			}
 		}
 	case yamlkit.KindScalar:
@@ -112,6 +113,18 @@ func (c *checker) scalars(n *yamlkit.Node) {
 		c.truthy(n)
 		c.octal(n)
 	}
+}
+
+// nullKeys reports whether the keys of map n (the value of key) may
+// have no value, because the file type documents them that way.
+func (c *checker) nullKeys(n *yamlkit.Node, key string) bool {
+	switch c.in.Type {
+	case "github-actions":
+		return n == c.events // "workflow_dispatch:"
+	case "ansible-inventory":
+		return key == "hosts" || key == "children" // "web-1.example.com:"
+	}
+	return false
 }
 
 func (c *checker) truthy(n *yamlkit.Node) {

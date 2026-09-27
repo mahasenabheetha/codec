@@ -22,6 +22,10 @@ type File struct {
 	// look at raw text (completion while the YAML is half-typed) need
 	// it; detection doesn't.
 	Content []byte
+	// Patch marks a Kustomize patch: a partial object merged over a
+	// complete one, so required fields may be missing. Set by adapters
+	// that can see the kustomization listing it.
+	Patch bool
 }
 
 // Confidence is how sure a provider is that a file is its kind:

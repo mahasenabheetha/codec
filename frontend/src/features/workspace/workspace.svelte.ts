@@ -6,6 +6,7 @@ import { ApiError, eventStream } from '../../lib/api/client'
 import {
   getTree,
   getWorkspace,
+  openSampleWorkspace,
   openWorkspace,
   type FileChange,
   type FileEntry,
@@ -19,6 +20,7 @@ import { ancestors } from './tree'
 
 // The folder the persisted file tabs and expanded folders belong to.
 const lastRoot = persisted('workspaceRoot', '')
+const lastSample = persisted('workspaceSample', false)
 const expandedStore = persisted<string[]>('explorerExpanded', [])
 
 class Workspace {
@@ -80,6 +82,9 @@ class Workspace {
       } catch {
         // Moved or deleted since; the user picks another folder.
       }
+    } else if (!this.info.open && lastSample.value) {
+      // The sample isn't a recent folder; bring it back all the same.
+      this.info = await openSampleWorkspace().catch(() => this.info!)
     }
     this.rootChanged()
     if (this.info.open) await this.loadTree()
@@ -87,6 +92,13 @@ class Workspace {
 
   async open(path: string) {
     this.info = await openWorkspace(path)
+    this.dialogOpen = false
+    this.rootChanged()
+    await this.loadTree()
+  }
+
+  async openSample() {
+    this.info = await openSampleWorkspace()
     this.dialogOpen = false
     this.rootChanged()
     await this.loadTree()
@@ -125,6 +137,7 @@ class Workspace {
   // for: they no longer mean anything, so start clean.
   private rootChanged() {
     const root = this.info?.open ? this.info.root! : ''
+    lastSample.value = !!this.info?.sample
     if (root === lastRoot.value) return
     const first = lastRoot.value === ''
     lastRoot.value = root
@@ -162,7 +175,10 @@ class Workspace {
     })
     es.addEventListener('tree', () => this.scheduleReload())
     es.addEventListener('files', (e) => {
-      const { root, changes } = JSON.parse((e as MessageEvent).data) as { root: string; changes: FileChange[] }
+      const { root, changes } = JSON.parse((e as MessageEvent).data) as {
+        root: string
+        changes: FileChange[]
+      }
       if (root !== this.info?.root) return
       for (const c of changes) {
         if (c.op === 'removed') this.deleted.add(c.path)
@@ -181,6 +197,22 @@ class Workspace {
 }
 
 export const workspace = new Workspace()
+
+/** The chart the sample opens on. */
+export const sampleChart = 'charts/shop'
+
+/** Open the sample workspace and show its chart rendered: the quickest
+ *  way to see what codec does. */
+export async function openSample(): Promise<boolean> {
+  try {
+    await workspace.openSample()
+    layout.openHelm(sampleChart)
+    return true
+  } catch (e) {
+    toast(e instanceof Error ? e.message : String(e), 'err')
+    return false
+  }
+}
 
 /** Open a folder, reporting failures as a toast. Returns success. */
 export async function openFolder(path: string): Promise<boolean> {

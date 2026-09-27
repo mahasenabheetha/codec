@@ -58,6 +58,9 @@ type Options struct {
 	// Hosts are extra Host header names to accept besides loopback,
 	// e.g. the address given to --host.
 	Hosts []string
+	// SampleDir is where the sample workspace is written; "" = codec's
+	// cache folder (sample.Dir).
+	SampleDir string
 }
 
 // Server is the codec web server and the state it holds: the per-run
@@ -123,6 +126,7 @@ func (s *Server) routes() http.Handler {
 	// v2 (token required, see guard)
 	mux.HandleFunc("GET /api/v2/workspace", s.handleWorkspace)
 	mux.HandleFunc("POST /api/v2/workspace/open", s.handleOpen)
+	mux.HandleFunc("POST /api/v2/workspace/sample", s.handleOpenSample)
 	mux.HandleFunc("GET /api/v2/fs/dirs", s.handleDirs)
 	mux.HandleFunc("GET /api/v2/files/tree", s.handleTree)
 	mux.HandleFunc("GET /api/v2/files/content", s.handleContent)
@@ -139,6 +143,8 @@ func (s *Server) routes() http.Handler {
 	mux.HandleFunc("GET /api/v2/lint/settings", s.handleLintSettings)
 	mux.HandleFunc("POST /api/v2/lint/settings", s.handleSaveLintSettings)
 	mux.HandleFunc("POST /api/v2/lint/workspace", s.handleLintWorkspace)
+	mux.HandleFunc("GET /api/v2/settings", s.handleSettings)
+	mux.HandleFunc("POST /api/v2/settings/forget", s.handleSettingsForget)
 	mux.HandleFunc("POST /api/v2/compare", s.handleCompare)
 	mux.HandleFunc("GET /api/v2/compare/ignore", s.handleDiffIgnore)
 	mux.HandleFunc("POST /api/v2/compare/ignore", s.handleDiffIgnore)

@@ -19,7 +19,7 @@
   /* Text */
   --fg-0: #e6e8ee; /* primary */
   --fg-1: #a9b0bf; /* secondary */
-  --fg-2: #6e7686; /* muted: large text and icons only */
+  --fg-2: #878fa0; /* muted; still 4.5:1 on bg-0 to bg-3 */
 
   /* Accent */
   --accent: #7aa2ff;
@@ -43,7 +43,7 @@
   --syn-string: #a8d68a;
   --syn-number: #f2a66b;
   --syn-bool: #d59bf6;
-  --syn-comment: #5c6576;
+  --syn-comment: #7a8497; /* 4.6:1 on bg-2 */
   --syn-anchor: #4fd1c5;
   --syn-tag: #e5b449;
   --syn-punct: var(--fg-2);

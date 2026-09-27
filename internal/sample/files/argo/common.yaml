@@ -1,0 +1,23 @@
+# Templates other workflows reuse through templateRef.
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: shop-common
+spec:
+  templates:
+    - name: notify
+      inputs:
+        parameters:
+          - name: channel
+          - name: text
+            value: "done"
+      container:
+        image: curlimages/curl:8.15.0
+        command: [sh, -c]
+        args: ["echo 'posting to {{inputs.parameters.channel}}: {{inputs.parameters.text}}'"]
+        resources:
+          requests:
+            cpu: 10m
+            memory: 16Mi
+          limits:
+            memory: 32Mi

@@ -1,0 +1,12 @@
+- name: Install {{ web_package }}
+  ansible.builtin.package:
+    name: "{{ web_package }}"
+    state: present
+  notify: Restart web
+
+- name: Start {{ web_package }}
+  ansible.builtin.service:
+    name: "{{ web_package }}"
+    state: started
+    enabled: "{{ web_enabled }}"
+

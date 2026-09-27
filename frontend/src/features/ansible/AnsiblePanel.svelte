@@ -4,6 +4,7 @@
   import ChevronRight from '@lucide/svelte/icons/chevron-right'
   import CircleCheck from '@lucide/svelte/icons/circle-check'
   import ListTree from '@lucide/svelte/icons/list-tree'
+  import Skeleton from '../../lib/components/Skeleton.svelte'
   import Badge from '../../lib/components/Badge.svelte'
   import EmptyState from '../../lib/components/EmptyState.svelte'
   import LensGrid from '../../lib/components/LensGrid.svelte'
@@ -177,7 +178,7 @@
   {#if error && !data}
     <EmptyState icon={ListTree} title="Can't read this Ansible file" description={error} />
   {:else if !data}
-    <div class="loading" aria-busy="true">Reading…</div>
+    <div class="loading" aria-busy="true" aria-label="Reading the files"><Skeleton lines={8} /></div>
   {:else}
     <LensGrid sideLabel="Ansible file" detailLabel="Selected item">
       {#snippet side()}

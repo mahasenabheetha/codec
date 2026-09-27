@@ -14,7 +14,7 @@
   import Tooltip from '../components/Tooltip.svelte'
   import { workspace } from '../../features/workspace/workspace.svelte'
   import { layout } from '../stores/layout.svelte'
-  import { compareRoute, lintSettingsRoute, newRoute, problemsRoute, queryRoute, router } from '../stores/router.svelte'
+  import { compareRoute, settingsRoute, newRoute, problemsRoute, queryRoute, router } from '../stores/router.svelte'
   import { toolGroups } from '../tools'
   import { chain } from '../utils/events'
 
@@ -76,7 +76,7 @@
   </div>
 
   <div class="bottom">
-    {@render item(Settings2, 'Lint settings', router.path === lintSettingsRoute, () => layout.open(lintSettingsRoute))}
+    {@render item(Settings2, 'Settings', router.path === settingsRoute, () => layout.open(settingsRoute), 'Mod+,')}
     {@render item(Keyboard, 'Keyboard shortcuts', false, () => (layout.shortcutsOpen = true), '?')}
     {@render item(
       collapsed ? PanelLeftOpen : PanelLeftClose,

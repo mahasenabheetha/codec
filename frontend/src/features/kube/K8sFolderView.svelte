@@ -3,6 +3,7 @@
   import Boxes from '@lucide/svelte/icons/boxes'
   import RefreshCw from '@lucide/svelte/icons/refresh-cw'
   import IconButton from '../../lib/components/IconButton.svelte'
+  import Skeleton from '../../lib/components/Skeleton.svelte'
   import { isAbort } from '../../lib/api/client'
   import { analyzeK8s, type K8sAnalysis, type K8sSource } from '../../lib/api/k8s'
   import { layout } from '../../lib/stores/layout.svelte'
@@ -72,10 +73,15 @@
     <p class="error">{error}</p>
   {:else if data}
     <div class="body"><ResourcesView {data} onopen={open} /></div>
+  {:else}
+    <div class="loading" aria-busy="true" aria-label="Reading the objects"><Skeleton lines={8} /></div>
   {/if}
 </div>
 
 <style>
+  .loading {
+    padding: var(--s-4);
+  }
   .k8s {
     height: 100%;
     display: flex;

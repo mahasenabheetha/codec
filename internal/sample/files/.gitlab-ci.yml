@@ -1,0 +1,48 @@
+include:
+  - local: ci/gitlab-templates.yml
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+stages:
+  - build
+  - test
+  - deploy
+
+default:
+  image: alpine:3.22
+  interruptible: true
+
+variables:
+  APP_NAME: shop
+
+build:
+  stage: build
+  script:
+    - echo "Building $APP_NAME"
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 1 week
+
+test:
+  extends: .go-job
+  stage: test
+  needs: [build]
+  script:
+    - go test ./...
+
+deploy-dev:
+  extends: .deploy
+  variables:
+    ENVIRONMENT: dev
+
+deploy-prod:
+  extends: .deploy
+  variables:
+    ENVIRONMENT: prod
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: manual

@@ -1,0 +1,13 @@
+# Steps template used by azure-pipelines.yml.
+parameters:
+  - name: runTests
+    type: boolean
+    default: true
+
+steps:
+  - checkout: self
+  - script: echo "Building $(buildConfiguration)"
+    displayName: Build
+  - ${{ if parameters.runTests }}:
+      - script: echo "Testing"
+        displayName: Test

@@ -12,6 +12,7 @@
         ['Mod+O', 'Open folder'],
         ['Mod+Shift+E', 'Toggle explorer'],
         ['Mod+B', 'Toggle sidebar'],
+        ['Mod+,', 'Settings'],
         ['?', 'Show keyboard shortcuts'],
       ],
     },

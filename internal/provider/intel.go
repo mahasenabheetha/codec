@@ -362,6 +362,9 @@ type Analysis struct {
 	Docs        []DocSummary         `json:"docs"`
 	Diagnostics []yamlkit.Diagnostic `json:"diagnostics"`
 	Expressions []yamlkit.Expression `json:"expressions"`
+	// OutlineTrimmed says deeper outline levels were left out because
+	// the file is too big for a complete outline to be useful.
+	OutlineTrimmed bool `json:"outlineTrimmed,omitempty"`
 }
 
 // DocSummary is one document with its outline.
@@ -420,7 +423,71 @@ func (r *Registry) Analyze(f *File) *Analysis {
 		}
 		a.Docs = append(a.Docs, DocSummary{Index: d.Index, Name: d.Name, Range: d.Range, Symbols: syms})
 	}
+	a.OutlineTrimmed = trimOutline(a.Docs, maxSymbols)
 	return a
+}
+
+// maxSymbols bounds one file's outline. A 5 MB file of 9,000 documents
+// has over a million symbols (48 MB of JSON): too much to send, and
+// nobody reads an outline that long key by key.
+const maxSymbols = 20_000
+
+// trimOutline drops the deepest outline levels until docs hold at most
+// max symbols, reporting whether it had to. When even top-level keys
+// are too many, each document is left as one symbol, so the outline
+// still lists and jumps to them.
+func trimOutline(docs []DocSummary, max int) bool {
+	if countSymbols(docs, -1) <= max {
+		return false
+	}
+	for depth := 3; depth >= 1; depth-- {
+		if countSymbols(docs, depth) <= max {
+			for i := range docs {
+				docs[i].Symbols = prune(docs[i].Symbols, depth)
+			}
+			return true
+		}
+	}
+	for i, d := range docs {
+		name := d.Name
+		if name == "" {
+			name = fmt.Sprintf("Document %d", d.Index+1)
+		}
+		docs[i].Symbols = []Symbol{{Name: name, Kind: "document", Range: d.Range}}
+	}
+	return true
+}
+
+// countSymbols counts symbols down to depth levels (-1 = all).
+func countSymbols(docs []DocSummary, depth int) int {
+	var count func(s []Symbol, depth int) int
+	count = func(s []Symbol, depth int) int {
+		n := len(s)
+		if depth != 1 {
+			for _, c := range s {
+				n += count(c.Children, depth-1)
+			}
+		}
+		return n
+	}
+	n := 0
+	for _, d := range docs {
+		n += count(d.Symbols, depth)
+	}
+	return n
+}
+
+// prune returns s with at most depth levels.
+func prune(s []Symbol, depth int) []Symbol {
+	out := slices.Clone(s)
+	for i := range out {
+		if depth <= 1 {
+			out[i].Children = nil
+		} else {
+			out[i].Children = prune(out[i].Children, depth-1)
+		}
+	}
+	return out
 }
 
 // --- helpers ---

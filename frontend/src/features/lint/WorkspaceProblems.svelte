@@ -11,7 +11,7 @@
   import SegmentedControl from '../../lib/components/SegmentedControl.svelte'
   import type { Diagnostic } from '../../lib/api/yaml'
   import { layout } from '../../lib/stores/layout.svelte'
-  import { lintSettingsRoute } from '../../lib/stores/router.svelte'
+  import { settingsRoute } from '../../lib/stores/router.svelte'
   import { editorNav } from '../editor/active.svelte'
   import FileIcon from '../workspace/FileIcon.svelte'
   import { workspace } from '../workspace/workspace.svelte'
@@ -75,7 +75,7 @@
         <p>Syntax, style, Kubernetes checks, removed APIs and schemas for every YAML file.</p>
       {/if}
     </div>
-    <Button variant="ghost" size="sm" icon={Settings} onclick={() => layout.open(lintSettingsRoute)}>Settings</Button>
+    <Button variant="ghost" size="sm" icon={Settings} onclick={() => layout.open(settingsRoute)}>Settings</Button>
     <Button variant="primary" size="sm" icon={Play} disabled={!workspace.info?.open || lint.running} onclick={() => lint.runWorkspace()}>
       {lint.running ? 'Checking…' : lint.results ? 'Check again' : 'Lint workspace'}
     </Button>

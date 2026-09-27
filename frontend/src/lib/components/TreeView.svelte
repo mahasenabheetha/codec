@@ -9,12 +9,14 @@
 </script>
 
 <script lang="ts" generics="T">
-  import type { Snippet } from 'svelte'
+  import { tick, type Snippet } from 'svelte'
   import ChevronRight from '@lucide/svelte/icons/chevron-right'
 
   // Keyboard-navigable tree (WAI-ARIA tree pattern) over pre-flattened
   // rows: the caller decides which rows are visible, this component
-  // renders them and handles focus, arrows and clicks.
+  // renders them and handles focus, arrows and clicks. Long trees (a
+  // 10k-file repo, a 9,000-document outline) render only the rows in
+  // view, so opening and scrolling them stays instant.
   //   ↑/↓ move · → expand / first child · ← collapse / parent
   //   Enter/Space open or toggle · Home/End
 
@@ -36,6 +38,53 @@
   let focused = $state<string | null>(null)
   let list = $state<HTMLDivElement>()
 
+  // --- windowing ---
+  const ROW = 24 // px, fixed by .row's height
+  const PAD = 4 // px, .tree's top padding
+  const WINDOW_FROM = 300 // rows; shorter trees render whole
+  const OVERSCAN = 30 // rows rendered beyond each edge
+
+  // The element that scrolls the tree (the panel around it).
+  let scroller: HTMLElement | null = null
+  let viewTop = $state(0) // px of the tree scrolled out of view
+  let viewHeight = $state(1000)
+
+  const windowed = $derived(rows.length > WINDOW_FROM)
+  const first = $derived(windowed ? Math.max(0, Math.floor((viewTop - PAD) / ROW) - OVERSCAN) : 0)
+  const last = $derived(windowed ? Math.min(rows.length, Math.ceil((viewTop + viewHeight) / ROW) + OVERSCAN) : rows.length)
+  const shown = $derived(windowed ? rows.slice(first, last) : rows)
+
+  function measure() {
+    if (!scroller || !list) return
+    viewTop = Math.max(0, scroller.getBoundingClientRect().top - list.getBoundingClientRect().top)
+    viewHeight = scroller.clientHeight
+  }
+
+  $effect(() => {
+    if (!list) return
+    let el = list.parentElement
+    while (el && !/auto|scroll/.test(getComputedStyle(el).overflowY)) el = el.parentElement
+    scroller = el
+    if (!el) return
+    measure()
+    el.addEventListener('scroll', measure, { passive: true })
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    return () => {
+      el.removeEventListener('scroll', measure)
+      ro.disconnect()
+    }
+  })
+
+  /** Scroll so row i is in view; it may not be rendered yet. */
+  function reveal(i: number) {
+    if (!scroller || !list || i < 0) return
+    const top = list.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop + PAD + i * ROW
+    if (top < scroller.scrollTop) scroller.scrollTop = top
+    else if (top + ROW > scroller.scrollTop + scroller.clientHeight) scroller.scrollTop = top + ROW - scroller.clientHeight
+    measure()
+  }
+
   // The row that takes Tab focus: the keyboard cursor, else the active
   // row, else the first.
   const cursor = $derived.by(() => {
@@ -48,20 +97,24 @@
   $effect(() => {
     if (!active || !list) return
     const id = active
-    queueMicrotask(() => rowEl(id)?.scrollIntoView({ block: 'nearest' }))
+    queueMicrotask(() => reveal(rows.findIndex((r) => r.id === id)))
   })
 
   function rowEl(id: string): HTMLElement | null {
     return list?.querySelector<HTMLElement>(`[data-id="${CSS.escape(id)}"]`) ?? null
   }
 
-  function focusRow(id: string | undefined) {
+  async function focusRow(id: string | undefined) {
     if (!id) return
     focused = id
-    const el = rowEl(id)
-    el?.focus()
-    el?.scrollIntoView({ block: 'nearest' })
+    reveal(rows.findIndex((r) => r.id === id))
+    await tick() // renders the row if it was outside the window
+    rowEl(id)?.focus({ preventScroll: true })
   }
+
+  // With the cursor row scrolled out (so not rendered), the tree itself
+  // takes Tab focus and hands it on.
+  const cursorShown = $derived(shown.some((r) => r.id === cursor))
 
   function activate(r: Row<T>) {
     focused = r.id
@@ -113,8 +166,18 @@
   }
 </script>
 
-<div class="tree" role="tree" aria-label={label} bind:this={list} {onkeydown} tabindex="-1">
-  {#each rows as r (r.id)}
+<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+<div
+  class="tree"
+  role="tree"
+  aria-label={label}
+  bind:this={list}
+  {onkeydown}
+  tabindex={cursorShown ? -1 : 0}
+  onfocus={(e) => e.target === list && focusRow(cursor ?? undefined)}
+>
+  {#if first > 0}<div class="spacer" style:height="{first * ROW}px" aria-hidden="true"></div>{/if}
+  {#each shown as r (r.id)}
     <div
       class="row"
       class:active={r.id === active}
@@ -145,6 +208,7 @@
       {@render row(r.data, r)}
     </div>
   {/each}
+  {#if last < rows.length}<div class="spacer" style:height="{(rows.length - last) * ROW}px" aria-hidden="true"></div>{/if}
 </div>
 
 <style>
@@ -154,8 +218,12 @@
     padding: var(--s-1) 0 var(--s-4);
     outline: none;
   }
+  .spacer {
+    flex: 0 0 auto;
+  }
   .row {
     position: relative;
+    flex: 0 0 auto;
     display: flex;
     align-items: center;
     gap: var(--s-1);

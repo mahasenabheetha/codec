@@ -19,7 +19,7 @@
   import { layout } from '../stores/layout.svelte'
   import {
     compareRoute,
-    lintSettingsRoute,
+    settingsRoute,
     problemsRoute,
     newRoute,
     queryRoute,
@@ -64,7 +64,7 @@
   // Fixed views: title and icon.
   const views: Record<string, { title: string; icon: typeof X }> = {
     [problemsRoute]: { title: 'Problems', icon: ListChecks },
-    [lintSettingsRoute]: { title: 'Lint settings', icon: Settings2 },
+    [settingsRoute]: { title: 'Settings', icon: Settings2 },
     [compareRoute]: { title: 'Compare', icon: GitCompare },
     [queryRoute]: { title: 'Query', icon: TextSearch },
     [newRoute]: { title: 'New', icon: FilePlus },

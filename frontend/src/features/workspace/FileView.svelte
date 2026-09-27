@@ -32,6 +32,7 @@
   import SplitPane from '../../lib/components/SplitPane.svelte'
   import Tabs from '../../lib/components/Tabs.svelte'
   import { completeAt, definitionAt, diffFile, hoverAt, type Diagnostic, type Pos } from '../../lib/api/yaml'
+  import { commands } from '../../lib/stores/commands.svelte'
   import { layout } from '../../lib/stores/layout.svelte'
   import { ansibleRoute, argoRoute, ciRoute, cloneRoute, composeRoute, k8sRoute, kustomizeRoute } from '../../lib/stores/router.svelte'
   import { neat } from '../../lib/api/k8s'
@@ -223,6 +224,33 @@
     a.href = editorLink(editor, ws.info.root, path, session.cursor.line, session.cursor.col)
     a.click()
   }
+
+  // The toolbar's actions, in the palette while this tab is showing.
+  $effect(() => {
+    if (!active) return
+    const name = segments[segments.length - 1]
+    const yaml = session.isYAML
+    return commands.register([
+      { id: 'file.open-in', title: `Open ${name} in ${editorNames[openIn.value]}`, group: 'File', icon: ExternalLink, keywords: ['vscode', 'cursor', 'editor', 'edit'], run: () => openExternal(openIn.value) },
+      { id: 'file.copy-path', title: 'Copy path', group: 'File', icon: Link, run: () => copyPath(false) },
+      { id: 'file.copy-full-path', title: 'Copy full path', group: 'File', icon: Copy, run: () => copyPath(true) },
+      { id: 'file.reveal', title: 'Reveal in explorer', group: 'File', icon: LocateFixed, run: () => ((layout.explorerOpen = true), ws.reveal(path)) },
+      { id: 'file.panel', title: 'Toggle outline and problems', group: 'File', icon: PanelRight, keywords: ['lens', 'side panel'], run: () => (lensOpen.value = !lensOpen.value) },
+      ...(session.dirty
+        ? [
+            { id: 'file.reset', title: 'Reset what-if edits', group: 'File', icon: RotateCcw, keywords: ['revert', 'discard', 'disk'], run: () => session.reset() },
+            { id: 'file.diff', title: 'Copy diff (for git apply)', group: 'File', icon: FileDiff, keywords: ['patch'], run: copyDiff },
+          ]
+        : []),
+      ...(yaml
+        ? [
+            { id: 'file.compare', title: session.dirty ? 'Compare what-if edits with disk' : `Compare ${name} with…`, group: 'File', icon: GitCompare, keywords: ['diff'], run: compareThis },
+            { id: 'file.query', title: `Query ${name} (jq)`, group: 'File', icon: TextSearch, run: () => queries.open({ path }) },
+            { id: 'file.clone', title: `Clone ${name} with a new name`, group: 'File', icon: CopyPlus, keywords: ['copy', 'rename', 'duplicate'], run: () => layout.open(cloneRoute(path)) },
+          ]
+        : []),
+    ])
+  })
 </script>
 
 <div class="fileview">
