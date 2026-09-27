@@ -1,27 +1,93 @@
-# Roadmap
+# Roadmap and backlog
 
-Each phase is one PR-sized chunk (1–3 sessions). Do them in order;
-dependencies are listed in each phase file.
+codec 2.0 is complete ([history.md](history.md)). New work — features,
+improvements, known gaps — is listed here first, so everyone (people and
+agents) picks it up the same way. Bugs go to GitHub issues; a bug that
+needs a design change gets an item here too.
 
-| # | Phase | Output | Status |
-|---|---|---|---|
-| 00 | [Foundation](phases/00-foundation.md) | `/v2` module, Svelte toolchain, CI on Linux+Windows | done |
-| 01 | [UI shell + v1 port](phases/01-ui-shell.md) | Dark design system, app layout, v1 tools in Svelte | done |
-| 02 | [YAML engine core](phases/02-yaml-engine.md) | `internal/yamlkit` + `codec yaml` CLI | done |
-| 03 | [Workspace](phases/03-workspace.md) | Open folder read-only, index, file tree, viewer | done |
-| 04 | [Editor intelligence](phases/04-editor.md) | Highlighting overlays, diagnostics, outline, hover, what-if edits | done |
-| 05 | [Helm](phases/05-helm.md) | Embedded render, values layers + provenance, live preview | done |
-| 06 | [MVP release](phases/06-mvp-release.md) | `v2.0.0-alpha.1`, Docker image, docs | done (user checks + tag pending) |
-| 07 | [Lint + schemas](phases/07-lint.md) | Rules, JSON Schema, K8s checks, deprecations | done |
-| 08 | [Compare + query](phases/08-compare.md) | Semantic diff, env diff, jq query | done |
-| 09 | [Kubernetes lens](phases/09-kubernetes.md) | Cards, inventory, relations, neat, kustomize | done |
-| 10 | [Argo lens](phases/10-argo.md) | Params, templateRef, DAG graph, ArgoCD apps | done |
-| 11 | [CI pipelines lens](phases/11-ci.md) | GitHub Actions, GitLab CI, Azure Pipelines | done |
-| 12 | [Ansible + Compose lens](phases/12-ansible-compose.md) | Playbook outline, Compose graph | done |
-| 13 | [Scaffolding](phases/13-scaffolding.md) | Starters, clone-with-rename, snippets | done |
-| 14 | [v2.0.0 release](phases/14-release.md) | Polish, performance, docs, stable release | done (user checks + tag pending) |
+## How to add an item
 
-Pre-releases: `v2.0.0-alpha.N` after phase 06 and as later phases land.
+Add a row to the right table, then a short section under
+[Items](#items) using this template:
 
-**After v2 (not planned in detail):** v3 Wails desktop app; `codec lsp`
-for VS Code/Cursor; user-defined lint rules (CEL); optional AI assist.
+```markdown
+### <short name>
+- **Problem:** what is hard or impossible today, for whom.
+- **Result:** what the user sees when it is done (UI and CLI).
+- **Scope:** packages likely touched; what is explicitly out of scope.
+- **Done when:** checks that prove it (tests, a screenshot on the sample, docs updated).
+- **Decisions:** existing ones it relies on; new ones it needs (add to decisions.md when agreed).
+```
+
+Pick up an item by following [workflow.md](workflow.md#adding-a-feature).
+When it ships, delete its section, move the row to "Done" with the
+version, and add a CHANGELOG entry.
+
+## Open checks
+
+| Check | Owner |
+|---|---|
+| Run codec natively on macOS (arm64) before tagging | user |
+| Confirm no open issues labelled for 2.0 | user |
+| Merge `feature/mab/yaml-tools`, tag `v2.0.0`, set the CHANGELOG date | user |
+| Make the GHCR package public (first release with an image) | user |
+| Turn on GitHub Pages: Settings → Pages → `main`, `/docs` | user |
+
+## Next
+
+| Item | Size | Notes |
+|---|---|---|
+| [Expand matrix jobs in the pipeline graph](#expand-matrix-jobs-in-the-pipeline-graph) | S | A matrix job calling a reusable workflow shows as one node |
+| [Reload prompt after a server restart](#reload-prompt-after-a-server-restart) | S | Today requests fail until the page is reloaded |
+| [Kustomize helmCharts](#kustomize-helmcharts) | M | Helm SDK is already embedded |
+| [Window long lists](#window-long-lists) | S | Problems and Resources cards, like TreeView |
+
+## Later
+
+| Item | Notes |
+|---|---|
+| Schema-driven form for any kind | Phase 13 stretch; uses the schema cache |
+| `codec lsp` | Provider concepts already mirror LSP |
+| User-defined lint rules (CEL) | Per-user rules in settings, never in repos |
+| v3 desktop app (Wails) | The frontend talks to the backend only through `lib/api`; swap the transport |
+| Optional AI assist | Must stay opt-in and local-first |
+
+## Done
+
+| Version | Items |
+|---|---|
+| 2.0.0 | Everything in [history.md](history.md) |
+
+## Items
+
+### Expand matrix jobs in the pipeline graph
+- **Problem:** a GitHub job with a `matrix` that calls a local reusable
+  workflow is drawn as one node; the CLI already knows it runs × N.
+- **Result:** one node per combination (or a badge "× 3" with the list
+  on click), consistent with plain matrix jobs.
+- **Scope:** `internal/ci` graph building, the Pipeline view.
+- **Done when:** the sample's `ci.yml` shows three `test` runs; ci tests cover it.
+
+### Reload prompt after a server restart
+- **Problem:** each `codec serve` run has a new token, so a page left
+  open fails with "can't reach the server" until reloaded.
+- **Result:** the UI detects the token mismatch (401 with a known body)
+  and shows "codec restarted — Reload".
+- **Scope:** `internal/web` (distinguish token mismatch), `frontend/src/lib/api/client.ts`, shell.
+- **Done when:** restarting codec shows the prompt; reload restores tabs.
+
+### Kustomize helmCharts
+- **Problem:** kustomizations using `helmCharts` can't be built; codec
+  says so and points to the Helm view.
+- **Result:** charts vendored in the repository are inflated with the
+  embedded Helm SDK; remote charts stay unsupported (decision 3's spirit:
+  never download).
+- **Scope:** `internal/kube` (kustomize plugin hook), `internal/helm`.
+- **Done when:** a kustomization with a local chart builds like `kubectl kustomize --enable-helm`.
+
+### Window long lists
+- **Problem:** the Problems view and Resources cards render every row;
+  a repository with thousands of findings or objects gets slow.
+- **Result:** only visible rows are in the DOM, like TreeView (decision 70).
+- **Scope:** `frontend/src/features/lint`, `features/kube`, possibly a shared list component.
+- **Done when:** 5,000 findings scroll smoothly; `scripts/perf.sh` notes it.

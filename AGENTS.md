@@ -1,54 +1,64 @@
 # AGENTS.md
 
-Entry point for any AI agent or tool working on this repo. Keep reads
-minimal: this file → `design/status.md` → the current phase file. Open
-other design docs only when the phase file points to them.
+Entry point for any AI agent or tool working on this repository. Keep
+reads minimal: this file → [design/workflow.md](design/workflow.md) →
+only the design files the task needs ([design/README.md](design/README.md)
+lists them).
 
 ## What codec is
 
-A local, single-binary developer tool (Go backend + embedded web UI).
-v1: base64 / JSON / JWT / Ansible-log tools. v2 (in progress): a
-read-only YAML workbench — open a repo folder, understand, lint and
-render YAML (Kubernetes, Helm, Argo, CI, Ansible, Compose). It is a
-companion to VS Code/Cursor, not a replacement.
+A local, single-binary developer tool: a Go backend with an embedded
+Svelte web UI and a CLI. It is a **read-only YAML workbench** for
+Kubernetes, Helm, Kustomize, Argo, GitHub Actions, GitLab CI, Azure
+Pipelines, Compose and Ansible (render, lint, schemas, compare, query,
+lens views, starters), plus encode/decode tools (base64, JSON, JWT,
+Ansible logs). It is a companion to VS Code/Cursor, not a replacement.
+Version 2.0 is complete; the user uses it daily, so fixes and small
+improvements are the common work. User docs: [docs/](docs/index.html).
 
-## Session workflow
+## How to work
 
-1. Read `design/status.md` for the current phase and next step.
-2. Read that phase file in `design/phases/`. Follow its scope exactly;
-   do not pull in work from later phases.
-3. Work on `feature/mab/yaml-tools`, the single v2 integration branch;
-   commit there when a phase (or a solid slice of one) is done. **Never
-   commit to `main`.** Don't push or open PRs unless asked; the user
-   raises one PR when v2 is ready.
-4. Before finishing: tick completed acceptance items in the phase file,
-   update `design/status.md` (state, next step, one log line), and add
-   any new decision to `design/decisions.md`.
+1. Read [design/workflow.md](design/workflow.md): where things live,
+   how to fix a bug, how to add a feature, what to update.
+2. New work is planned in [design/roadmap.md](design/roadmap.md);
+   choices are recorded in [design/decisions.md](design/decisions.md).
+3. Branch from `main` (`fix/<topic>`, `feature/mab/<topic>`); never
+   commit to `main`. Don't push or open pull requests unless asked;
+   the user does.
+4. Before finishing: tests for what you changed pass, docs and
+   CHANGELOG updated per the workflow matrix, and a short summary to
+   the user of what changed and what they should check.
 
 ## Hard rules
 
-- codec **never writes to the user's workspace files**. Edits in the UI
-  are in-memory "what-if" changes only.
-- Engine packages are pure (no I/O); I/O lives in adapter packages.
-  See `design/conventions.md`.
-- Don't re-litigate settled decisions in `design/decisions.md`; propose
-  a change to the user instead.
-- Tests: write table-driven tests for engine logic, but run only the
-  packages you touched (`go test ./internal/<pkg>/...`). Full suite only
-  right before a PR. The user does manual/UI testing.
+- codec **never writes to the folders it opens**. UI edits are
+  in-memory "what-if" changes only.
+- No config files in user repositories; settings live in the user
+  profile (`internal/config`).
+- Engine packages are pure (no files, network, clock, environment);
+  I/O lives in adapter packages. See design/architecture.md.
+- Nothing pasted into tools is persisted; no third-party calls except
+  schema downloads.
+- UI uses design tokens and shared components only
+  (design/design-language.md).
+- Don't re-litigate settled decisions; propose a change to the user.
+- Tests: table-driven, a named regression case for every fixed bug.
+  Run only the packages you touched (`go test ./internal/<pkg>/...`);
+  the full suite once before a pull request. The user does UI testing.
 - The user is learning Go: write idiomatic, commented code (comments
-  explain *why*), and briefly name any new Go concepts in your final
-  chat summary — not in files.
-- Keep design docs short. Update facts; don't append essays.
+  explain *why*), and name new Go concepts in your chat summary, not in
+  files.
+- Keep docs short and factual. Update facts; don't append essays.
 
 ## Commands
 
 ```bash
 go vet ./... && go test ./internal/<pkg>/...   # backend
 npm --prefix frontend ci                        # once, installs UI deps
-npm --prefix frontend run dev                   # UI dev server; CODEC_API=http://127.0.0.1:<port> if not 8765
+npm --prefix frontend run check                 # UI type-check
 npm --prefix frontend run build                 # builds into internal/web/dist/app
-go build -o codec ./cmd/codec                   # binary (needs frontend built)
+go build -o codec ./cmd/codec                   # binary (needs the UI built)
 scripts/dev.sh build|run|ui [port]              # all of the above in one step
-scripts/perf.sh [dir]                           # time big inputs against the release budgets
+scripts/perf.sh [dir]                           # time big inputs against the budgets
+codec serve --sample                            # try changes on the sample repository
 ```

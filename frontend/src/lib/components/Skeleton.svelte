@@ -1,6 +1,6 @@
 <script lang="ts">
   // A placeholder block shown while content loads: the layout stays put
-  // and nothing spins (design/ui.md). Screen readers hear the label via
+  // and nothing spins (design/design-language.md). Screen readers hear the label via
   // aria-busy on the container; the block itself is decorative.
   interface Props {
     width?: string

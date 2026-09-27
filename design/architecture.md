@@ -1,5 +1,10 @@
 # Architecture
 
+The contributor view of how codec is built. The illustrated overview,
+flow charts and performance numbers are in `docs/architecture.html` and
+`docs/flows.html`; decisions behind these rules are in
+[decisions.md](decisions.md).
+
 ## Layout
 
 ```
@@ -56,42 +61,89 @@ Engine packages take bytes/structs and return structs. They never touch
 the filesystem, network, clock, or env. Adapters load files and hand
 content to the engine.
 
-## Provider model (future-proofing)
+## Provider model
 
 Every YAML domain implements one interface in `internal/provider`.
 Adding a file type = adding a provider (or replacing a built-in by
 registering one with the same ID); no core changes. Always LSP-shaped:
 
 ```go
-type Provider interface {                // since phase 02
+type Provider interface {
     ID() string                          // "kubernetes", "helm-template", ...
     Title() string
     Detect(f *File) Confidence           // 0 = not mine … 100 = certain
     Symbols(d *yamlkit.Document) []Symbol
 }
-// Optional capabilities (phase 04), found by type assertion; generic
+// Optional capabilities, found by type assertion; generic
 // implementations answer when a provider has none (decision #29):
 type Hoverer   interface{ Hover(f *File, pos yamlkit.Pos) *Hover }
 type Definer   interface{ Definition(f *File, pos yamlkit.Pos) []Location }
 type Completer interface{ Complete(f *File, pos yamlkit.Pos) []Completion }
 type Diagnoser interface{ Diagnostics(f *File) []yamlkit.Diagnostic }
-// Later: Renderer, Grapher, Generator; an Index for cross-file lookups (05).
+type Expresser interface{ Expressions(f *File) []yamlkit.Expression }
 ```
 
-`provider.Default` holds the built-ins; `Registry.Analyze` bundles type,
-outline, diagnostics and expressions for the editor. `yamlkit` provides
-the tree (`File` → `Document` → `Node` with exact `Range`s), expressions
-and diagnostics every provider works from.
+`provider.Default` holds the built-ins; lens packages register their
+providers over the built-in detectors [50]. `Registry.Analyze` bundles
+type, outline (trimmed past 20,000 symbols [70]), diagnostics and
+expressions for the editor; `check.Analyze` adds lint and schema
+findings. `yamlkit` provides the tree (`File` → `Document` → `Node` with
+exact `Range`s), expressions and diagnostics every provider works from.
 
 Concepts deliberately mirror LSP so a future `codec lsp` can reuse them.
-`Index` is the workspace-wide entity graph (charts, templates by name,
-resources, jobs, references) built by the workspace adapter.
+
+## Lenses
+
+A lens is a view of a whole project, not one file (Helm, Kubernetes,
+Argo, CI, Compose, Ansible). Each follows the same shape:
+
+1. **Engine package** (`internal/<lens>`): reads the files it needs
+   through a small reader interface or from bytes, resolves them, and
+   returns a structured result plus problems with file/line sources.
+2. **Provider** in the same package: outline, hover, definition,
+   diagnostics for single files of that type; registered in
+   `provider.Default`.
+3. **Endpoint** `POST /api/v2/<lens>/analyze` in `internal/web/<lens>_api.go`,
+   taking what-if `overrides` (open tabs' buffers) and the view's inputs.
+4. **CLI** `codec <lens> …` with `--json` and exit 2 on problems.
+5. **View** in `frontend/src/features/<lens>/` using `LensView` +
+   `LensGrid`, opened by route `/<lens>/<path>`, a toolbar button on
+   files of that type and palette entries (`App.svelte`).
+
+## Frontend
+
+```
+frontend/src/
+  App.svelte          routes → views, app-wide commands and shortcuts
+  lib/api/            the only place that talks to the backend (one file per feature)
+  lib/components/     shared building blocks (see design-language.md)
+  lib/shell/          rail, tab bar, status bar, palette, shortcuts dialog
+  lib/stores/         router (hash routes), layout/tabs, commands, shortcuts, toasts, persisted()
+  lib/styles/         tokens.css (design tokens), global.css
+  lib/tools.ts        encode/decode tools registry (rail, home, palette)
+  features/<name>/    one folder per view or tool; cross-feature pieces in features/shared
+```
+
+Views are mounted per open tab and receive `active`; stores that
+outlive a tab are `*.svelte.ts` modules using runes.
+
+## Performance
+
+Budgets (measured with `scripts/perf.sh`, fixtures from
+`scripts/perfgen`): 10k-file folder open and listed ≤ 1 s, every file
+typed ≤ 10 s, Go to file ≤ 100 ms per key, lint of 6,000 files ≤ 30 s;
+5 MB file shown ≤ 2 s, typing ≤ 16 ms per key; 500-document chart render
+≤ 2 s. Results at 2.0: `docs/architecture.html#performance`. Mechanisms:
+parallel document parsing (≥ 16 docs), windowed trees (> 300 rows),
+outline trimming, background classification, schema downloads started
+together and never blocking a render (`schemasPending`) [70, 71].
+Files over 8 MB are not listed or read.
 
 ## Web API
 
 - Existing: `POST /api/transform`, `GET /api/version` (keep working).
 - New endpoints under `/api/v2/…`, JSON in/out, grouped by feature
-  (`/workspace`, `/files`, `/yaml`, `/helm`, …). Each phase defines its own.
+  (`/workspace`, `/files`, `/yaml`, `/helm`, …), one `*_api.go` per feature.
   Editor calls (`/yaml/analyze|hover|definition|complete|path`,
   `/files/diff`) take `{path, content?, line, col}`; no content = the file
   on disk. Requests are cancelled via `r.Context()` when the editor moves on.

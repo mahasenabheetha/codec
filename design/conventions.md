@@ -29,7 +29,7 @@
   for shared code; `frontend/src/features/<feature>/` per tool/lens, with
   cross-tool pieces in `features/shared/`. New tools register in
   `lib/tools.ts` (rail, tabs, home and palette are generated from it).
-- Styling: only design tokens from [ui.md](ui.md) — no hard-coded
+- Styling: only design tokens from [design-language.md](design-language.md) — no hard-coded
   colors, sizes or fonts in components. Shared primitives in
   `lib/components` before any feature-specific variant.
 - Dependencies allowed: CodeMirror 6 packages, `@lucide/svelte` (import
@@ -51,9 +51,19 @@
 
 ## Git
 
-- Never commit to `main`. v2 work lives on one integration branch,
-  `feature/mab/yaml-tools`; commit phases there. The user raises the PR
-  (CI green, merge commit) and merges. Other work: `feature/mab/<topic>`.
+- Never commit to `main`. Work on a short-lived branch
+  (`feature/mab/<topic>`, `fix/<topic>`), then open a pull request; CI
+  must be green; the user merges. (v2 was built on the integration
+  branch `feature/mab/yaml-tools` until it merged [16, 72].)
+- One logical change per commit, message in the imperative
+  ("Fix the Resources view when…"), body saying why.
 - AI-assisted commits carry a `Co-Authored-By` trailer; README
   Acknowledgements disclose AI assistance.
-- Update `CHANGELOG.md` `[Unreleased]` for user-visible changes.
+
+## Docs
+
+Every user-visible change updates, in the same pull request:
+`CHANGELOG.md` `[Unreleased]`; the matching page in `docs/` (and its
+screenshot if the view changed); the README feature list if a feature
+was added; `design/` files whose facts changed. See
+[workflow.md](workflow.md#what-to-update) for the full matrix.

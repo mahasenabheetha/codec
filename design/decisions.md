@@ -44,7 +44,7 @@ Settled unless the user reopens them. Add new ones at the bottom:
     `frontend/src/assets/logos/SOURCES.md` (2026-09-26).
 16. All v2 work happens on one integration branch, `feature/mab/yaml-tools`;
     the user raises a single PR at the end. Per-phase branches are not
-    used (2026-09-26).
+    used (2026-09-26). Superseded by #72 once v2 merges.
 17. Icons: `@lucide/svelte` (the Svelte 5 package). Fonts: Inter and
     JetBrains Mono via `@fontsource-variable/*`, bundled (2026-09-26).
 18. Rich views get structured data from the API rather than re-parsing
@@ -299,3 +299,6 @@ Settled unless the user reopens them. Add new ones at the bottom:
     above) skip "required field" schema errors. The Helm view waits at
     most 1 s for schemas and re-renders while `schemasPending`
     (2026-09-27).
+72. After v2 merges, `main` is the base. Work happens on short-lived
+    branches with pull requests; the phase files were compacted into
+    history.md and new work is planned in roadmap.md (2026-09-27).

@@ -85,3 +85,11 @@ Local dry runs (output in `dist/`, gitignored):
 
 Limits as understood in 2026-09; confirm in GitHub's "About releases"
 and "Billing for GitHub Actions" docs if it matters.
+
+## Documentation site
+
+- `docs/` is served by GitHub Pages from `main` (Settings → Pages →
+  Deploy from a branch → `main`, `/docs`; `docs/.nojekyll` keeps files
+  as they are). It updates when changes merge; no workflow is needed.
+- Before a release, check that pages describing changed behaviour and
+  their screenshots are current (design/workflow.md, "What to update").

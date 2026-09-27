@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Time codec on large inputs: a 10k-file repo, a 5 MB file and a chart
-# rendering 500 documents. Budgets: design/phases/14-release.md.
+# rendering 500 documents. Budgets: design/architecture.md ("Performance").
 #   scripts/perf.sh [dir]   fixtures go in dir (default: a temp folder)
 # Uses a throwaway settings folder; schemas download on first use.
 set -euo pipefail

@@ -1,7 +1,7 @@
 /*
  * Design tokens — the single source of truth for how codec looks.
  * Components use these variables only; never hard-code colors, sizes
- * or fonts. Values mirror design/ui.md.
+ * or fonts. Values mirror design/design-language.md.
  */
 :root {
   color-scheme: dark;

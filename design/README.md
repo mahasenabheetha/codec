@@ -1,17 +1,20 @@
 # design/
 
-Project context for humans and AI agents. Start at the repo's
-[AGENTS.md](../AGENTS.md). Read only what the current task needs.
+Project context for contributors and AI agents: how codec is built and
+how to change it. User documentation is in [`docs/`](../docs/index.html).
+Start at the repository's [AGENTS.md](../AGENTS.md) and read only what
+the task needs.
 
 | File | Read when |
 |---|---|
-| [status.md](status.md) | Always — current phase, next step |
-| [phases/](phases/) | The current phase file only |
-| [roadmap.md](roadmap.md) | Planning or reordering phases |
-| [decisions.md](decisions.md) | Before proposing a technical choice |
-| [architecture.md](architecture.md) | Adding packages, APIs, providers |
-| [conventions.md](conventions.md) | Writing code or tests |
-| [ui.md](ui.md) | Any frontend work |
-| [releases.md](releases.md) | Versioning or cutting a release |
+| [workflow.md](workflow.md) | Always before changing code: bug fixes, features, what to update |
+| [architecture.md](architecture.md) | Adding packages, APIs, providers or lenses; performance budgets |
+| [conventions.md](conventions.md) | Writing Go, frontend code, tests, commits |
+| [design-language.md](design-language.md) | Any UI work: tokens, components, patterns, accessibility, writing |
+| [decisions.md](decisions.md) | Before proposing a technical choice; append new ones |
+| [roadmap.md](roadmap.md) | Planning work; open checks; the backlog |
+| [history.md](history.md) | How v2 was built, phase by phase |
+| [releases.md](releases.md) | Versioning, cutting a release, the Docker image |
 
-When a decision or fact changes, update the relevant file in the same PR.
+When a fact or decision changes, update the file in the same pull
+request. Keep these files short: facts and rules, not essays.

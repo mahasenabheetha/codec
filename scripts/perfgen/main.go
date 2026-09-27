@@ -1,6 +1,6 @@
 // Command perfgen writes the performance fixtures scripts/perf.sh times:
 // a 10k-file repo, a 5 MB YAML file and a chart that renders 500
-// documents (design/phases/14-release.md has the budgets).
+// documents (budgets: design/architecture.md, "Performance").
 //
 //	go run ./scripts/perfgen DIR
 package main
