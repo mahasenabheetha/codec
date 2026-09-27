@@ -35,8 +35,11 @@ internal/
   compose/            ENGINE Compose lens: files merged with the Compose rules and
                       origins, extends/include, ${VAR} from .env + what-if,
                       services graph, ports, volumes, checks
+  scaffold/           ENGINE starters (embedded text/template sets, personal ones
+                      as an fs.FS), clone-with-rename, editor snippets
   workspace/          ADAPTER read-only folder access, index, watcher
   config/             ADAPTER user settings in os.UserConfigDir()/codec
+                      (personal starters in its templates/ folder)
   schemacache/        ADAPTER schema fetch + cache (os.UserCacheDir()/codec/
                       schemas), offline mode, custom schema folder
   check/              ADAPTER runs yamlkit + provider + lint + schema: one
@@ -118,6 +121,13 @@ resources, jobs, references) built by the workspace adapter.
   overrides} → playbook (plays, steps, roles, variables) or inventory;
   `POST /ansible/find-task` {name, path} → definitions of a logged
   task. `/yaml/hover|definition|analyze` read the folder for both.
+  Scaffolding: `GET /scaffold/starters` (built-in + personal, the
+  personal folder); `POST /scaffold/render` {id, values} → files, each
+  linted and schema-checked, charts rendered, or field errors; `POST
+  /scaffold/check` {files} after what-if edits; `POST /scaffold/zip`
+  {name, files} → a zip download; `POST /scaffold/clone` {path,
+  content?, doc, from, to, flip} → the renamed text, changes, checks.
+  `/yaml/complete` adds snippets for the file type.
 - Errors: `{"error": "...", "line"?, "column"?, "file"?}` with 400 for
   caller bugs, 422 for bad input, 404 missing, 500 unexpected.
 - Push updates via Server-Sent Events, `GET /api/v2/events`: `workspace`

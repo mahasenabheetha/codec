@@ -1,0 +1,38 @@
+services:
+  <% .name %>:
+    image: <% yaml .image %>
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:<% .hostPort %>:<% .port %>"
+<%- if .database %>
+    environment:
+      DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD:-postgres}@db:5432/<% snake .name %>
+    depends_on:
+      db:
+        condition: service_healthy
+<%- end %>
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:<% .port %>/ > /dev/null || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+<%- if .database %>
+
+  db:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: <% snake .name %>
+      # Set POSTGRES_PASSWORD in a .env file next to this one.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  db-data: {}
+<%- end %>

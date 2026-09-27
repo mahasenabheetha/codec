@@ -268,3 +268,19 @@ Settled unless the user reopens them. Add new ones at the bottom:
     say so. A logged task is found by its task path (longest shared
     tail of path segments), else by name, `{{ }}` matching any value
     when the name has at least 4 literal characters (2026-09-27).
+65. Starters are `text/template` sets with `<% %>` delimiters (`{{ }}`
+    and `[[ ]]` belong to the files themselves). Built-ins are embedded;
+    personal ones are read from `<settings>/templates` (a folder per
+    starter with an optional starter.yaml, or single files whose fields
+    are the placeholders they use). Output is only text to copy, a
+    what-if preview, or a zip the browser saves (2026-09-27).
+66. Clone renames whole-word uses of the old name (letters and digits
+    bound a word) in values and keys, except label/annotation keys.
+    A field naming another object is renamed only when that object
+    (kind and name) is part of the copy; Secrets, images, hosts and
+    addresses are suggestions; images, hosts and Secret references are
+    listed to check (2026-09-27).
+67. Snippets come from the backend per file type (embedded YAML in
+    CodeMirror placeholder syntax), offered where a key or list item
+    starts. The Argo DAG task snippet depends on the last task;
+    depends/dependencies/template complete from the DAG (2026-09-27).

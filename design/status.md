@@ -1,8 +1,8 @@
 # Status
 
-**Current phase:** 13 — Scaffolding ([phases/13-scaffolding.md](phases/13-scaffolding.md))
-**State:** not started. Phases 00–12 are done and committed on `feature/mab/yaml-tools`; 06 still awaits the user's native checks and the `v2.0.0-alpha.1` tag.
-**Next step:** start phase 13 on `feature/mab/yaml-tools`.
+**Current phase:** 14 — v2.0.0 release ([phases/14-release.md](phases/14-release.md))
+**State:** not started. Phases 00–13 are done and committed on `feature/mab/yaml-tools`; 06 still awaits the user's native checks and the `v2.0.0-alpha.1` tag.
+**Next step:** start phase 14 on `feature/mab/yaml-tools`.
 **Blockers:** none. Open checks: phase 06 manual checklist (native Windows/macOS, typing on a 5k-line file).
 
 Released: `v1.0.0` (2026-09-26). All v2 work stays on `feature/mab/yaml-tools` until the user raises the PR.
@@ -10,6 +10,8 @@ Released: `v1.0.0` (2026-09-26). All v2 work stays on `feature/mab/yaml-tools` u
 ## Log
 
 One line per session, newest first: date · phase · what changed.
+
+- 2026-09-27 · 13 · `internal/scaffold` (13 embedded starters as `<% %>` text/template sets with forms and checks, personal starters from `<settings>/templates` with fields inferred from the parse tree, clone-with-rename keeping layout with reference/Secret/image/address suggestions, snippets per file type), Argo completion for depends/dependencies/template, `/api/v2/scaffold/starters|render|check|zip|clone`, snippets in `/yaml/complete`, `codec new`, `codec clone`; UI: New view (form, what-if preview with lint, schema and Helm render, copy, zip) and Clone view (changes to untick or take, tinted lines, checks); lint accepts empty GitHub events.
 
 - 2026-09-27 · 12 · `internal/compose` (layers merged with the Compose rules and a file per line, extends/include, !reset/!override, ${VAR} from .env + what-if, services graph, ports, mounts, checks), `internal/ansible` (plays in execution order, roles via roles_path/folders above/other repos, dependencies, includes, handlers, variable precedence, YAML inventories, log task → definition), both providers (outline, hover, definition, diagnostics, tints), `/api/v2/compose/analyze`, `/api/v2/ansible/analyze|find-task`, `codec compose services|config`, `codec ansible plays|vars|task|inventory`; UI: Compose view, Ansible view, "Defined in" link in the Ansible log tool; shared `yamlkit` layered merge (fixes merged-key lines), `names`, `EffectiveLines`, `LensGrid`, `LensView`.
 

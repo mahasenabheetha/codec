@@ -6,6 +6,7 @@
   import ChevronRight from '@lucide/svelte/icons/chevron-right'
   import Copy from '@lucide/svelte/icons/copy'
   import Eraser from '@lucide/svelte/icons/eraser'
+  import CopyPlus from '@lucide/svelte/icons/copy-plus'
   import ExternalLink from '@lucide/svelte/icons/external-link'
   import FileDiff from '@lucide/svelte/icons/file-diff'
   import FileWarning from '@lucide/svelte/icons/file-warning'
@@ -32,7 +33,7 @@
   import Tabs from '../../lib/components/Tabs.svelte'
   import { completeAt, definitionAt, diffFile, hoverAt, type Diagnostic, type Pos } from '../../lib/api/yaml'
   import { layout } from '../../lib/stores/layout.svelte'
-  import { ansibleRoute, argoRoute, ciRoute, composeRoute, k8sRoute, kustomizeRoute } from '../../lib/stores/router.svelte'
+  import { ansibleRoute, argoRoute, ciRoute, cloneRoute, composeRoute, k8sRoute, kustomizeRoute } from '../../lib/stores/router.svelte'
   import { neat } from '../../lib/api/k8s'
   import { toast } from '../../lib/stores/toast.svelte'
   import { copyText } from '../../lib/utils/clipboard'
@@ -312,6 +313,9 @@
       </Button>
     {/if}
     <div class="actions">
+      {#if session.isYAML}
+        <IconButton icon={CopyPlus} label="Clone with a new name" size="sm" onclick={() => layout.open(cloneRoute(path))} />
+      {/if}
       {#if kind === 'kubernetes'}
         <IconButton icon={Boxes} label="Kubernetes resources in this folder" size="sm" onclick={() => layout.open(k8sRoute(dirOf(path)))} />
         <IconButton icon={Eraser} label="Copy without cluster noise (neat)" size="sm" onclick={copyNeat} />

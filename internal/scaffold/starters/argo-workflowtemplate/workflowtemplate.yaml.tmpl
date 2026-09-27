@@ -1,0 +1,47 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: <% .name %>
+<%- if .namespace %>
+  namespace: <% .namespace %>
+<%- end %>
+spec:
+  entrypoint: main
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+  arguments:
+    parameters:
+      - name: message
+        value: <% yaml .message %>
+  templates:
+    - name: main
+      dag:
+        tasks:
+          - name: prepare
+            template: echo
+            arguments:
+              parameters:
+                - name: text
+                  value: "preparing {{workflow.parameters.message}}"
+          - name: run
+            depends: prepare
+            template: echo
+            arguments:
+              parameters:
+                - name: text
+                  value: "{{workflow.parameters.message}}"
+    - name: echo
+      inputs:
+        parameters:
+          - name: text
+      container:
+        image: <% yaml .image %>
+        command: [echo]
+        args: ["{{inputs.parameters.text}}"]
+        resources:
+          requests:
+            cpu: 50m
+            memory: 32Mi
+          limits:
+            memory: 64Mi

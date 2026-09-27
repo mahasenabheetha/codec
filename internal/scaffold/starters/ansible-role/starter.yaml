@@ -1,0 +1,21 @@
+title: Ansible role
+category: Ansible
+description: A role folder with tasks, handlers, defaults and metadata.
+fields:
+  - name: name
+    label: Role name
+    default: my_role
+    pattern: identifier
+  - name: package
+    default: nginx
+  - name: author
+    default: your name
+files:
+  - template: tasks/main.yml.tmpl
+    path: roles/<% .name %>/tasks/main.yml
+  - template: handlers/main.yml.tmpl
+    path: roles/<% .name %>/handlers/main.yml
+  - template: defaults/main.yml.tmpl
+    path: roles/<% .name %>/defaults/main.yml
+  - template: meta/main.yml.tmpl
+    path: roles/<% .name %>/meta/main.yml

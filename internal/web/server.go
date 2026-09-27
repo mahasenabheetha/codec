@@ -150,6 +150,11 @@ func (s *Server) routes() http.Handler {
 	mux.HandleFunc("POST /api/v2/compose/analyze", s.handleComposeAnalyze)
 	mux.HandleFunc("POST /api/v2/ansible/analyze", s.handleAnsibleAnalyze)
 	mux.HandleFunc("POST /api/v2/ansible/find-task", s.handleFindTask)
+	mux.HandleFunc("GET /api/v2/scaffold/starters", s.handleStarters)
+	mux.HandleFunc("POST /api/v2/scaffold/render", s.handleScaffoldRender)
+	mux.HandleFunc("POST /api/v2/scaffold/check", s.handleScaffoldCheck)
+	mux.HandleFunc("POST /api/v2/scaffold/zip", s.handleScaffoldZip)
+	mux.HandleFunc("POST /api/v2/scaffold/clone", s.handleScaffoldClone)
 	mux.HandleFunc("/api/v2/", func(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusNotFound, "no such endpoint: "+r.Method+" "+r.URL.Path)
 	})

@@ -6,7 +6,7 @@
 // uses offsets in UTF-16 units. They agree except for characters
 // outside the BMP (emoji), which decision #20 accepts.
 
-import { autocompletion, type CompletionContext, type CompletionResult } from '@codemirror/autocomplete'
+import { autocompletion, snippet, type CompletionContext, type CompletionResult } from '@codemirror/autocomplete'
 import { gotoLine } from '@codemirror/search'
 import { lintGutter, setDiagnostics, type Diagnostic as CmDiagnostic } from '@codemirror/lint'
 import { StateEffect, StateField, type Extension, type Text } from '@codemirror/state'
@@ -174,11 +174,12 @@ export function yamlIntel(hooks: IntelHooks): Extension {
             from: offsetOf(ctx.state.doc, items[0].range.start),
             options: items.map((i) => ({
               label: i.label,
-              apply: i.insert ?? i.label,
+              // Snippets have fields to Tab through (${1:name}).
+              apply: i.kind === 'snippet' ? snippet(i.insert ?? i.label) : (i.insert ?? i.label),
               detail: i.detail,
               info: i.doc,
               type: i.kind,
-              boost: i.detail?.includes('required') ? 1 : 0,
+              boost: i.kind === 'snippet' ? -1 : i.detail?.includes('required') ? 1 : 0,
             })),
             validFor: /^[\w./-]*$/,
           }
@@ -251,6 +252,8 @@ export const tooltipTheme = EditorView.theme({
   '.cm-diag-why': { marginTop: 'var(--s-1)', color: 'var(--fg-2)', fontSize: 'var(--fs-sm)', maxWidth: '52ch' },
   '.cm-completionInfo': {
     maxWidth: '44ch',
+    // Snippet previews are YAML: keep their indentation.
+    whiteSpace: 'pre-wrap',
     padding: 'var(--s-2) var(--s-3)',
     fontSize: 'var(--fs-sm)',
     lineHeight: 'var(--lh-normal, 1.45)',

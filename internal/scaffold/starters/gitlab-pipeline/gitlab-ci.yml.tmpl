@@ -1,0 +1,42 @@
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+stages:
+  - build
+  - test
+  - deploy
+
+default:
+  image: <% yaml .image %>
+  interruptible: true
+
+variables:
+  APP_NAME: $CI_PROJECT_NAME
+
+build:
+  stage: build
+  script:
+    - echo "Building $APP_NAME"
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 1 week
+
+test:
+  stage: test
+  needs: [build]
+  script:
+    - echo "Testing $APP_NAME"
+
+deploy:
+  stage: deploy
+  needs: [test]
+  environment:
+    name: <% yaml .environment %>
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: manual
+  script:
+    - echo "Deploying $APP_NAME to <% .environment %>"

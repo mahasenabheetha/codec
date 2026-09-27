@@ -9,6 +9,8 @@
   import ListTree from '@lucide/svelte/icons/list-tree'
   import ListChecks from '@lucide/svelte/icons/list-checks'
   import TextSearch from '@lucide/svelte/icons/text-search'
+  import FilePlus from '@lucide/svelte/icons/file-plus'
+  import CopyPlus from '@lucide/svelte/icons/copy-plus'
   import Settings2 from '@lucide/svelte/icons/settings-2'
   import X from '@lucide/svelte/icons/x'
   import Kbd from '../components/Kbd.svelte'
@@ -19,6 +21,7 @@
     compareRoute,
     lintSettingsRoute,
     problemsRoute,
+    newRoute,
     queryRoute,
     router,
     routeFile,
@@ -29,6 +32,7 @@
     routeCI,
     routeCompose,
     routeAnsible,
+    routeClone,
     routeTool,
   } from '../stores/router.svelte'
   import { charts } from '../../features/helm/helm.svelte'
@@ -63,6 +67,7 @@
     [lintSettingsRoute]: { title: 'Lint settings', icon: Settings2 },
     [compareRoute]: { title: 'Compare', icon: GitCompare },
     [queryRoute]: { title: 'Query', icon: TextSearch },
+    [newRoute]: { title: 'New', icon: FilePlus },
   }
 
   // Views over a folder: Kubernetes resources and Kustomize builds.
@@ -79,6 +84,8 @@
     if (co !== null) return { title: `Compose · ${base(co)}`, icon: Container }
     const an = routeAnsible(route)
     if (an !== null) return { title: `Ansible · ${base(an)}`, icon: ListTree }
+    const cl = routeClone(route)
+    if (cl !== null) return { title: `Clone · ${base(cl)}`, icon: CopyPlus }
     return undefined
   }
 

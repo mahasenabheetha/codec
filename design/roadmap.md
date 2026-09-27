@@ -18,7 +18,7 @@ dependencies are listed in each phase file.
 | 10 | [Argo lens](phases/10-argo.md) | Params, templateRef, DAG graph, ArgoCD apps | done |
 | 11 | [CI pipelines lens](phases/11-ci.md) | GitHub Actions, GitLab CI, Azure Pipelines | done |
 | 12 | [Ansible + Compose lens](phases/12-ansible-compose.md) | Playbook outline, Compose graph | done |
-| 13 | [Scaffolding](phases/13-scaffolding.md) | Starters, clone-with-rename, snippets | todo |
+| 13 | [Scaffolding](phases/13-scaffolding.md) | Starters, clone-with-rename, snippets | done |
 | 14 | [v2.0.0 release](phases/14-release.md) | Polish, performance, docs, stable release | todo |
 
 Pre-releases: `v2.0.0-alpha.N` after phase 06 and as later phases land.

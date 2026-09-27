@@ -1,0 +1,24 @@
+title: Argo CronWorkflow
+category: Argo
+description: Runs a WorkflowTemplate on a schedule.
+fields:
+  - name: name
+    default: my-nightly-run
+    pattern: dns-label
+  - name: namespace
+    optional: true
+    pattern: dns-label
+  - name: schedule
+    default: 0 2 * * *
+    pattern: cron
+    help: minute hour day-of-month month day-of-week
+  - name: timezone
+    optional: true
+    help: For example Europe/Stockholm; empty = the controller's time zone.
+  - name: template
+    label: WorkflowTemplate to run
+    default: my-workflow
+    pattern: dns-label
+files:
+  - template: cronworkflow.yaml.tmpl
+    path: <% .name %>.yaml

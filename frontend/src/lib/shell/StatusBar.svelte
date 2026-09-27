@@ -14,7 +14,7 @@
   import { workspace } from '../../features/workspace/workspace.svelte'
   import { getVersion, type VersionInfo } from '../api/version'
   import { layout } from '../stores/layout.svelte'
-  import { compareRoute, lintSettingsRoute, problemsRoute, queryRoute, router, routeAnsible, routeArgo, routeCI, routeCompose, routeHelm, routeK8s, routeKustomize } from '../stores/router.svelte'
+  import { compareRoute, lintSettingsRoute, newRoute, problemsRoute, queryRoute, router, routeAnsible, routeArgo, routeCI, routeClone, routeCompose, routeHelm, routeK8s, routeKustomize } from '../stores/router.svelte'
   import { toolById } from '../tools'
 
   let version = $state<VersionInfo | null>(null)
@@ -98,6 +98,12 @@
     {:else if router.path === queryRoute}
       <span class="where">Query</span>
       <span class="path">jq (gojq) over YAML documents</span>
+    {:else if router.path === newRoute}
+      <span class="where">New</span>
+      <span class="path">starters are text to copy or download; codec writes no files</span>
+    {:else if routeClone(router.path) !== null}
+      <span class="where">Clone</span>
+      <span class="path">{routeClone(router.path)} · a renamed copy to paste into a new file; the original is untouched</span>
     {:else if router.path === lintSettingsRoute}
       <span class="where">Lint settings</span>
     {:else}

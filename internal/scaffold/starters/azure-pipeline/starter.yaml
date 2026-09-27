@@ -1,0 +1,17 @@
+title: Azure pipeline
+category: CI
+description: Build and deploy stages, triggered by the main branch and pull requests.
+fields:
+  - name: branch
+    default: main
+  - name: vmImage
+    label: Agent image
+    type: choice
+    choices: [ubuntu-latest, windows-latest, macOS-latest]
+    default: ubuntu-latest
+  - name: environment
+    label: Deploy environment
+    default: production
+files:
+  - template: azure-pipelines.yml.tmpl
+    path: azure-pipelines.yml

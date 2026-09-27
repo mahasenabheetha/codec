@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: <% .name %>
+<%- if .namespace %>
+  namespace: <% .namespace %>
+<%- end %>
+data:
+  # Read one key with env[].valueFrom.configMapKeyRef, all of them with
+  # envFrom[].configMapRef, or mount the map as files.
+  LOG_LEVEL: info
+  app.properties: |
+    server.port=8080
+    feature.enabled=true

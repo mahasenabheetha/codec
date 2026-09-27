@@ -19,13 +19,13 @@
    workflow, GitLab pipeline, Azure pipeline, Compose service, Ansible
    playbook/role.
 4. **Personal templates** in the user config dir (never in repos).
-5. Stretch: schema-driven form for any kind (phase 07 schemas) with live YAML preview.
+5. Stretch: schema-driven form for any kind (phase 07 schemas) with live YAML preview. *Not done.*
 
 Every generated result runs through lint/render preview before copy.
 
 ## Acceptance
 
-- [ ] Cloned WorkflowTemplate has no leftover references to the old name.
-- [ ] Every starter passes phase 07 lint and schema validation.
+- [x] Cloned WorkflowTemplate has no leftover references to the old name.
+- [x] Every starter passes phase 07 lint and schema validation.
 
 **Go concepts:** `text/template`, embedded template sets.

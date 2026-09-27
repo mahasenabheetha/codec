@@ -62,6 +62,7 @@ const argo = prefixed("/argo/")
 const ciPrefix = prefixed("/ci/")
 const composePrefix = prefixed("/compose/")
 const ansiblePrefix = prefixed("/ansible/")
+const clonePrefix = prefixed("/clone/")
 
 /** Route of the Kubernetes resources view of a folder ("." = root). */
 export const k8sRoute = k8s.route
@@ -87,16 +88,21 @@ export const routeCompose = composePrefix.parse
 export const ansibleRoute = ansiblePrefix.route
 /** The file an Ansible route points at, or null. */
 export const routeAnsible = ansiblePrefix.parse
+/** Route of the clone-with-rename view of a file. */
+export const cloneRoute = clonePrefix.route
+/** The file a clone route points at, or null. */
+export const routeClone = clonePrefix.parse
 
 /** Fixed app views that open as tabs. */
 export const problemsRoute = '/problems'
 export const lintSettingsRoute = '/settings/lint'
 export const compareRoute = '/compare'
 export const queryRoute = '/query'
+export const newRoute = '/new'
 
 /** Is route one of the fixed views? */
 export function isView(route: string): boolean {
-  return [problemsRoute, lintSettingsRoute, compareRoute, queryRoute].includes(route) || routeK8s(route) !== null || routeKustomize(route) !== null || routeArgo(route) !== null || routeCI(route) !== null || routeCompose(route) !== null || routeAnsible(route) !== null
+  return [problemsRoute, lintSettingsRoute, compareRoute, queryRoute, newRoute].includes(route) || routeK8s(route) !== null || routeKustomize(route) !== null || routeArgo(route) !== null || routeCI(route) !== null || routeCompose(route) !== null || routeAnsible(route) !== null || routeClone(route) !== null
 }
 
 /** The tool id a route points at, or null. */

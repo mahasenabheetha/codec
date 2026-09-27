@@ -57,6 +57,14 @@ codec **never writes to your files** and nothing leaves your machine.
   roles and includes opened in place; hover a `{{ variable }}` to see
   where it is defined, highest precedence first; inventories as groups
   and hosts. The Ansible log tool links a failed task to its definition.
+- **New YAML.** Starters for Kubernetes, Helm charts, Argo, Argo CD,
+  GitHub Actions, GitLab CI, Azure Pipelines, Compose and Ansible: fill
+  in a short form and read the result linted, schema-checked and (for a
+  chart) rendered before you copy it or download a zip. Your own
+  starters live in your settings folder. **Clone** copies a file under
+  a new name, renaming labels, template names and references, and lists
+  what it left alone (images, Secrets, other objects). Snippets
+  (container, probe, resources, DAG task, job, step, task) in the editor.
 - **Compare and query.** Diff two files, a what-if edit against disk, or
   a chart's dev and prod renders by meaning — key and list order don't
   count, containers and env pair up by name. Run jq over the workspace,
@@ -140,7 +148,9 @@ with its parameters resolved. **Pipeline** on a GitHub Actions, GitLab
 CI or Azure Pipelines file shows its jobs in execution order.
 **Compose** on a Compose file shows its services with the override
 merged; **Ansible** on a playbook, task file or inventory shows it in
-execution order (or as groups and hosts).
+execution order (or as groups and hosts). **New** in the sidebar makes
+files from starters; the clone button on a YAML file copies it under a
+new name.
 
 | Shortcut | Action |
 |---|---|
@@ -284,6 +294,26 @@ codec ansible vars playbooks/site.yml app_port   # where it is defined, highest 
 codec ansible task "nginx : restart nginx"   # a task from a log → its definition
 codec ansible inventory inventory/hosts.yml
 ```
+
+### New files and clones
+
+```bash
+codec new                                    # built-in and personal starters
+#   argo-workflowtemplate  Argo        Argo WorkflowTemplate
+#   helm-chart             Helm        Helm chart
+codec new k8s-app --set name=shop --set ingress=true --set host=shop.example.com
+codec new helm-chart --set name=web          # several files, each after "# ==> path <=="
+codec new helm-chart --set name=web --file web/values.yaml
+codec clone workflows/build-api.yaml --to build-web
+#   line 15: kept spec.arguments.parameters[0].value: https://git.example.com/build-api.git (An address of something outside these files)
+#   line 35: check spec.templates[1].container.image: alpine/git:2.47.2 (Copies usually use their own image or host)
+codec clone app.yaml --doc 1 --to cart --all # one document; rename suggestions too
+```
+
+Both print; nothing is written. Personal starters go in the
+`templates` folder of the settings folder: a folder per starter (files
+with `<% .name %>` placeholders, an optional `starter.yaml` for the
+form) or single files, whose fields are the placeholders they use.
 
 ### Diff and query
 

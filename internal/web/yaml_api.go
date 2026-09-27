@@ -17,6 +17,7 @@ import (
 	"github.com/mahasenabheetha/codec/v2/internal/ci"
 	"github.com/mahasenabheetha/codec/v2/internal/compose"
 	"github.com/mahasenabheetha/codec/v2/internal/provider"
+	"github.com/mahasenabheetha/codec/v2/internal/scaffold"
 	"github.com/mahasenabheetha/codec/v2/internal/textdiff"
 	"github.com/mahasenabheetha/codec/v2/internal/workspace"
 	"github.com/mahasenabheetha/codec/v2/internal/yamlkit"
@@ -261,6 +262,8 @@ func (s *Server) handleComplete(w http.ResponseWriter, r *http.Request) {
 		ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
 		defer cancel()
 		items := append(s.check.Complete(ctx, f, req.Type, at), provider.CompleteAt(p, f, at)...)
+		// The buffer may not parse mid-edit: the last known type wins.
+		items = append(items, scaffold.Snippets(f, cmp.Or(req.Type, p.ID()), at)...)
 		if items == nil {
 			items = []provider.Completion{}
 		}

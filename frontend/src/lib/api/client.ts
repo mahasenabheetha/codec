@@ -65,3 +65,20 @@ export async function request<T>(
 export function eventStream(path: string): EventSource {
   return new EventSource(token ? `${path}?token=${encodeURIComponent(token)}` : path)
 }
+
+/** POST that returns a file (e.g. a zip) instead of JSON. */
+export async function requestBlob(path: string, body: unknown): Promise<Blob> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  if (token) headers['X-Codec-Token'] = token
+  let res: Response
+  try {
+    res = await fetch(path, { method: 'POST', headers, body: JSON.stringify(body) })
+  } catch {
+    throw new ApiError(0, 'Cannot reach the codec server. Is `codec serve` still running?')
+  }
+  if (!res.ok) {
+    const data = await res.json().catch(() => null)
+    throw new ApiError(res.status, data?.error ?? `${res.status} ${res.statusText}`)
+  }
+  return res.blob()
+}

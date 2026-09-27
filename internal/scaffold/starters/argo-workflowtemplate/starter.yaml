@@ -1,0 +1,19 @@
+title: Argo WorkflowTemplate
+category: Argo
+description: A reusable workflow with a parameter and a two-task DAG.
+fields:
+  - name: name
+    default: my-workflow
+    pattern: dns-label
+  - name: namespace
+    optional: true
+    pattern: dns-label
+  - name: image
+    default: alpine:3.22
+    pattern: image
+  - name: message
+    label: Default message
+    default: hello
+files:
+  - template: workflowtemplate.yaml.tmpl
+    path: <% .name %>.yaml

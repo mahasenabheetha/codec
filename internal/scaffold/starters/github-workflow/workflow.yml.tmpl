@@ -1,0 +1,47 @@
+name: <% yaml .title %>
+
+on:
+  push:
+    branches: [<% yaml .branch %>]
+  pull_request:
+    branches: [<% yaml .branch %>]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+<%- if eq .language "go" %>
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - name: Test
+        run: go test ./...
+<%- else if eq .language "node" %>
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Test
+        run: npm test
+<%- else if eq .language "python" %>
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - run: pip install -r requirements.txt
+      - name: Test
+        run: python -m pytest
+<%- else %>
+      - name: Build
+        run: echo "Add your build steps here"
+<%- end %>

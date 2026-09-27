@@ -1,0 +1,26 @@
+- name: <% yaml .title %>
+  hosts: <% yaml .hosts %>
+<%- if .become %>
+  become: true
+<%- end %>
+  vars:
+    app_package: <% yaml .package %>
+
+  tasks:
+    - name: Install {{ app_package }}
+      ansible.builtin.package:
+        name: "{{ app_package }}"
+        state: present
+      notify: Restart {{ app_package }}
+
+    - name: Start {{ app_package }}
+      ansible.builtin.service:
+        name: "{{ app_package }}"
+        state: started
+        enabled: true
+
+  handlers:
+    - name: Restart {{ app_package }}
+      ansible.builtin.service:
+        name: "{{ app_package }}"
+        state: restarted

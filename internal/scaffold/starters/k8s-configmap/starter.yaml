@@ -1,0 +1,13 @@
+title: ConfigMap
+category: Kubernetes
+description: Settings as key/value pairs and a whole config file.
+fields:
+  - name: name
+    default: my-app-config
+    pattern: dns-label
+  - name: namespace
+    optional: true
+    pattern: dns-label
+files:
+  - template: configmap.yaml.tmpl
+    path: <% .name %>.yaml

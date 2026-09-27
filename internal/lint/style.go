@@ -16,6 +16,11 @@ func (c *checker) style() {
 		if d.Root == nil {
 			continue
 		}
+		if c.in.Type == "github-actions" {
+			// Events without settings ("workflow_dispatch:") are how
+			// GitHub documents them; null is what they mean.
+			c.events = d.Root.Get("on")
+		}
 		c.scalars(d.Root)
 		c.indent(d.Root)
 	}
@@ -89,7 +94,9 @@ func (c *checker) scalars(n *yamlkit.Node) {
 			if p.Value == nil {
 				continue
 			}
-			c.emptyValue(p)
+			if n != c.events {
+				c.emptyValue(p)
+			}
 			c.scalars(p.Value)
 		}
 	case yamlkit.KindSeq:

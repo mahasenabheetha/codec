@@ -355,3 +355,50 @@ func TestMermaid(t *testing.T) {
 		t.Error("dot: steps edges")
 	}
 }
+
+func TestComplete(t *testing.T) {
+	src := `apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: w
+spec:
+  templates:
+    - name: main
+      dag:
+        tasks:
+          - name: fetch
+            template: get
+          - name: unpack
+            template: get
+            dependencies: [fetch]
+          - name: build
+            template: ge@
+            depends: fetch && @
+            dependencies:
+              - fe@
+    - name: get
+      container:
+        image: alpine:3.22
+    - name: other
+      container:
+        image: alpine:3.22
+`
+	var marks []yamlkit.Pos
+	for strings.Contains(src, "@") {
+		i := strings.Index(src, "@")
+		src = src[:i] + src[i+1:]
+		line := strings.Count(src[:i], "\n") + 1
+		marks = append(marks, yamlkit.Pos{Line: line, Col: i - strings.LastIndex(src[:i], "\n")})
+	}
+	f := &provider.File{Path: "w.yaml", Content: []byte(src), YAML: yamlkit.Parse([]byte(src))}
+	p := Provider{provider.Default.Lookup("argo-workflows")}
+	for i, want := range []string{"get other", "fetch unpack", "fetch unpack"} {
+		var got []string
+		for _, c := range p.Complete(f, yamlkit.PosAt(f.Content, marks[i].Line, marks[i].Col)) {
+			got = append(got, c.Label)
+		}
+		if strings.Join(got, " ") != want {
+			t.Errorf("mark %d: %v, want %s", i, got, want)
+		}
+	}
+}

@@ -18,6 +18,8 @@
   import ListTree from '@lucide/svelte/icons/list-tree'
   import ListChecks from '@lucide/svelte/icons/list-checks'
   import TextSearch from '@lucide/svelte/icons/text-search'
+  import FilePlus from '@lucide/svelte/icons/file-plus'
+  import CopyPlus from '@lucide/svelte/icons/copy-plus'
   import Settings2 from '@lucide/svelte/icons/settings-2'
   import Ship from '@lucide/svelte/icons/ship'
   import X from '@lucide/svelte/icons/x'
@@ -40,6 +42,8 @@
   import ComposeFileView from './features/compose/ComposeFileView.svelte'
   import AnsibleFileView from './features/ansible/AnsibleFileView.svelte'
   import QueryView from './features/compare/QueryView.svelte'
+  import NewView from './features/scaffold/NewView.svelte'
+  import CloneView from './features/scaffold/CloneView.svelte'
   import { comparison, queries } from './features/compare/compare.svelte'
   import WorkspaceProblems from './features/lint/WorkspaceProblems.svelte'
   import { lint } from './features/lint/lint.svelte'
@@ -48,7 +52,7 @@
   import QuickOpen from './features/workspace/QuickOpen.svelte'
   import { openFolder, workspace } from './features/workspace/workspace.svelte'
   import { tools, toolById } from './lib/tools'
-  import { ansibleRoute, argoRoute, ciRoute, compareRoute, composeRoute, isView, k8sRoute, kustomizeRoute, lintSettingsRoute, problemsRoute, queryRoute, router, routeAnsible, routeArgo, routeCI, routeCompose, routeFile, routeHelm, routeK8s, routeKustomize, routeTool } from './lib/stores/router.svelte'
+  import { ansibleRoute, argoRoute, ciRoute, cloneRoute, compareRoute, composeRoute, isView, k8sRoute, kustomizeRoute, lintSettingsRoute, newRoute, problemsRoute, queryRoute, router, routeAnsible, routeArgo, routeCI, routeClone, routeCompose, routeFile, routeHelm, routeK8s, routeKustomize, routeTool } from './lib/stores/router.svelte'
   import { layout } from './lib/stores/layout.svelte'
   import { shortcut } from './lib/stores/shortcuts.svelte'
   import { commands } from './lib/stores/commands.svelte'
@@ -132,6 +136,26 @@
       icon: TextSearch,
       keywords: ['jq', 'yq', 'search', 'find', 'select'],
       run: () => queries.open(),
+    },
+    {
+      id: 'scaffold.new',
+      title: 'New file from a starter…',
+      group: 'Workspace',
+      icon: FilePlus,
+      keywords: ['new', 'create', 'template', 'starter', 'scaffold', 'generate', 'deployment', 'chart', 'workflow', 'pipeline', 'playbook'],
+      run: () => layout.open(newRoute),
+    },
+    {
+      id: 'scaffold.clone',
+      title: 'Clone with a new name…',
+      group: 'Workspace',
+      icon: CopyPlus,
+      keywords: ['copy', 'duplicate', 'rename', 'clone'],
+      run: () => {
+        const f = router.filePath
+        if (f) layout.open(cloneRoute(f))
+        else workspace.pickFile('Clone which file?', (p) => layout.open(cloneRoute(p)))
+      },
     },
     {
       id: 'lint.settings',
@@ -378,6 +402,14 @@
           {:else if route === queryRoute}
             <div class="panel" hidden={router.path !== route}>
               <QueryView active={router.path === route} />
+            </div>
+          {:else if route === newRoute}
+            <div class="panel" hidden={router.path !== route}>
+              <NewView active={router.path === route} />
+            </div>
+          {:else if routeClone(route) !== null}
+            <div class="panel" hidden={router.path !== route}>
+              <CloneView path={routeClone(route)!} active={router.path === route} />
             </div>
           {:else if route === lintSettingsRoute}
             <div class="panel" hidden={router.path !== route}>

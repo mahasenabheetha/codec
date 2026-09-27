@@ -85,6 +85,16 @@ func Dir() (string, error) {
 	return filepath.Join(base, "codec"), nil
 }
 
+// TemplatesDir is where personal starters live: a "templates" folder
+// next to the settings file. codec only reads it; the user fills it.
+func TemplatesDir() (string, error) {
+	dir, err := Dir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(dir, "templates"), nil
+}
+
 // Open loads the settings file. A missing file is a fresh start. If
 // there is no usable profile directory (e.g. a container without
 // $HOME) the store still works, in memory only. A corrupt file is

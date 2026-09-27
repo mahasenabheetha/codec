@@ -1,0 +1,22 @@
+title: Ansible playbook
+category: Ansible
+description: A play with variables, tasks and a handler.
+fields:
+  - name: file
+    label: File name
+    default: site
+    pattern: "[A-Za-z0-9_.-]+"
+  - name: title
+    label: Play name
+    default: Configure web servers
+  - name: hosts
+    default: webservers
+  - name: package
+    default: nginx
+  - name: become
+    label: Run as root (become)
+    type: bool
+    default: "true"
+files:
+  - template: playbook.yml.tmpl
+    path: <% .file %>.yml

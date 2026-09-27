@@ -132,6 +132,9 @@ type checker struct {
 	cfg  Config
 	text *lines
 	out  []yamlkit.Diagnostic
+	// events is the GitHub Actions "on:" map of the document being
+	// checked, whose keys may be empty.
+	events *yamlkit.Node
 }
 
 // report adds a finding for rule id unless the rule is off. why

@@ -1,0 +1,37 @@
+title: Helm chart
+category: Helm
+description: A chart skeleton with a Deployment, a Service and helpers, like helm create but smaller.
+fields:
+  - name: name
+    label: Chart name
+    default: my-chart
+    pattern: dns-label
+  - name: description
+    default: A Helm chart for Kubernetes
+  - name: repository
+    label: Image repository
+    default: nginxinc/nginx-unprivileged
+    pattern: image
+  - name: tag
+    label: Image tag
+    default: "1.27"
+    pattern: image
+  - name: port
+    label: Container port
+    default: "8080"
+    pattern: port
+files:
+  - template: Chart.yaml.tmpl
+    path: <% .name %>/Chart.yaml
+  - template: values.yaml.tmpl
+    path: <% .name %>/values.yaml
+  - template: helmignore.tmpl
+    path: <% .name %>/.helmignore
+  - template: templates/_helpers.tpl.tmpl
+    path: <% .name %>/templates/_helpers.tpl
+  - template: templates/deployment.yaml.tmpl
+    path: <% .name %>/templates/deployment.yaml
+  - template: templates/service.yaml.tmpl
+    path: <% .name %>/templates/service.yaml
+  - template: templates/NOTES.txt.tmpl
+    path: <% .name %>/templates/NOTES.txt

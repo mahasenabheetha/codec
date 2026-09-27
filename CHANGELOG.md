@@ -6,6 +6,31 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+### Added (Scaffolding)
+
+- New view: starters for Deployment + Service (+ Ingress), ConfigMap,
+  Secret, a Helm chart, Argo WorkflowTemplate and CronWorkflow, Argo CD
+  Application, GitHub Actions, GitLab CI and Azure pipelines, a Compose
+  service and an Ansible playbook and role. A small form fills them in;
+  the result is linted, schema-checked and (charts) rendered with
+  helm template before you copy a file or download a zip. Edits in the
+  preview are what-if only.
+- Personal starters in the `templates` folder of codec's settings
+  folder: a folder per starter with an optional `starter.yaml`, or
+  single files whose fields are the `<% .name %>` placeholders they use.
+- Clone with a new name: a copy of a file or one document, renaming
+  every whole-word use of the old name (labels, template and job names,
+  internal references, keeping comments and layout). References to
+  objects outside the copy, Secrets, images and addresses are listed as
+  suggestions; images, hosts and Secret references as things to check.
+- Editor snippets: container, probe, resources (Kubernetes, Helm, Argo),
+  DAG task after the last one (Argo), step, action and job (GitHub),
+  job (GitLab), task (Ansible), service (Compose). In Argo DAGs,
+  `depends:`, `dependencies:` and `template:` complete from the tasks
+  and templates around.
+- CLI: `codec new [starter] --set name=value`, `codec clone <file> --to
+  <name>`.
+
 ### Added (Compose and Ansible)
 
 - Compose view: the project's files merged with the Compose rules
@@ -38,6 +63,8 @@ All notable changes to codec are documented here. The format follows
 
 ### Fixed
 
+- Lint no longer flags GitHub Actions events written without settings
+  (`workflow_dispatch:`) as empty values.
 - Merged keys in effective configurations (GitLab, Compose) now show
   the line of the file that set them.
 
