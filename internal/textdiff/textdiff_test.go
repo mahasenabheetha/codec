@@ -110,7 +110,7 @@ func TestUnifiedWithGitApply(t *testing.T) {
 				t.Fatal("empty patch")
 			}
 			os.WriteFile(filepath.Join(dir, "p.diff"), []byte(patch), 0o644)
-			cmd := exec.Command("git", "apply", "p.diff")
+			cmd := gitApply("p.diff")
 			cmd.Dir = dir
 			if out, err := cmd.CombinedOutput(); err != nil {
 				t.Fatalf("git apply failed: %v\n%s\npatch:\n%s", err, out, patch)
@@ -145,7 +145,7 @@ func TestPatchKeepsFileEndings(t *testing.T) {
 			os.WriteFile(filepath.Join(dir, "f.yaml"), []byte(tt.disk), 0o644)
 			patch := Patch("f.yaml", []byte(tt.disk), tt.edited)
 			os.WriteFile(filepath.Join(dir, "p.diff"), []byte(patch), 0o644)
-			cmd := exec.Command("git", "apply", "p.diff")
+			cmd := gitApply("p.diff")
 			cmd.Dir = dir
 			if out, err := cmd.CombinedOutput(); err != nil {
 				t.Fatalf("git apply: %v\n%s\n%q", err, out, patch)
@@ -158,4 +158,12 @@ func TestPatchKeepsFileEndings(t *testing.T) {
 	if p := Patch("f.yaml", []byte("a: 1\r\n"), "a: 1\n"); p != "" {
 		t.Errorf("line endings alone are not an edit, got %q", p)
 	}
+}
+
+// gitApply runs git apply with line-ending conversion off, so the test
+// sees the bytes the patch produces. Git for Windows (and GitHub's
+// Windows runners) set core.autocrlf=true system-wide, which would
+// otherwise turn every written LF into CRLF.
+func gitApply(patch string) *exec.Cmd {
+	return exec.Command("git", "-c", "core.autocrlf=false", "apply", patch)
 }
