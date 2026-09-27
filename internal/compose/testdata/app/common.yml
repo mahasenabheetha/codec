@@ -1,0 +1,6 @@
+services:
+  base:
+    image: shop/worker:${TAG:-latest}
+    restart: unless-stopped
+    environment:
+      LOG_LEVEL: info

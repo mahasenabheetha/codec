@@ -60,6 +60,8 @@ const k8s = prefixed("/k8s/")
 const kustomize = prefixed("/kustomize/")
 const argo = prefixed("/argo/")
 const ciPrefix = prefixed("/ci/")
+const composePrefix = prefixed("/compose/")
+const ansiblePrefix = prefixed("/ansible/")
 
 /** Route of the Kubernetes resources view of a folder ("." = root). */
 export const k8sRoute = k8s.route
@@ -77,6 +79,14 @@ export const routeArgo = argo.parse
 export const ciRoute = ciPrefix.route
 /** The file a pipeline route points at, or null. */
 export const routeCI = ciPrefix.parse
+/** Route of the Compose view of a file. */
+export const composeRoute = composePrefix.route
+/** The file a Compose route points at, or null. */
+export const routeCompose = composePrefix.parse
+/** Route of the Ansible view of a playbook, task file or inventory. */
+export const ansibleRoute = ansiblePrefix.route
+/** The file an Ansible route points at, or null. */
+export const routeAnsible = ansiblePrefix.parse
 
 /** Fixed app views that open as tabs. */
 export const problemsRoute = '/problems'
@@ -86,7 +96,7 @@ export const queryRoute = '/query'
 
 /** Is route one of the fixed views? */
 export function isView(route: string): boolean {
-  return [problemsRoute, lintSettingsRoute, compareRoute, queryRoute].includes(route) || routeK8s(route) !== null || routeKustomize(route) !== null || routeArgo(route) !== null || routeCI(route) !== null
+  return [problemsRoute, lintSettingsRoute, compareRoute, queryRoute].includes(route) || routeK8s(route) !== null || routeKustomize(route) !== null || routeArgo(route) !== null || routeCI(route) !== null || routeCompose(route) !== null || routeAnsible(route) !== null
 }
 
 /** The tool id a route points at, or null. */

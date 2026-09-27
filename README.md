@@ -47,6 +47,16 @@ codec **never writes to your files** and nothing leaves your machine.
   combination, and each job's effective configuration after includes,
   `extends`, `!reference`, templates and reusable workflows — every
   line saying where it came from.
+- **Compose.** A project as `docker compose config` sees it: the
+  override (or any files you pick) merged with the Compose rules, every
+  line saying which file set it; `${VAR}` filled from `.env` and what-if
+  values; services as a graph with networks and volumes; ports and
+  volumes tables; unknown services, undeclared networks and port clashes.
+- **Ansible.** Playbooks in the order Ansible runs them — pre_tasks,
+  roles (dependencies first), tasks, post_tasks, handler flushes — with
+  roles and includes opened in place; hover a `{{ variable }}` to see
+  where it is defined, highest precedence first; inventories as groups
+  and hosts. The Ansible log tool links a failed task to its definition.
 - **Compare and query.** Diff two files, a what-if edit against disk, or
   a chart's dev and prod renders by meaning — key and list order don't
   count, containers and env pair up by name. Run jq over the workspace,
@@ -128,6 +138,9 @@ values from the file's schema. **Argo** on a workflow or application
 file (or the Argo tab of a Helm render) opens the workflow as a graph
 with its parameters resolved. **Pipeline** on a GitHub Actions, GitLab
 CI or Azure Pipelines file shows its jobs in execution order.
+**Compose** on a Compose file shows its services with the override
+merged; **Ansible** on a playbook, task file or inventory shows it in
+execution order (or as groups and hosts).
 
 | Shortcut | Action |
 |---|---|
@@ -236,6 +249,41 @@ codec ci graph azure-pipelines.yml -p env=prod --format dot | dot -Tsvg > ci.svg
 Includes, templates and actions are read from the repository (the
 folder holding `.git`, or `--root`); remote ones are listed, never
 fetched.
+
+### Compose
+
+```bash
+codec compose services                       # compose.yaml + its override, here
+#   web  · build ./web
+#     after db (healthy)
+#     port 8080 → 80/tcp  (compose.yaml)
+#     port 9229 → 9229/tcp  (compose.override.yaml)
+codec compose config                         # merged services, which file set each line
+#   command: npm run dev   # ← compose.override.yaml:3
+#     - 8080:80            # ← compose.yaml:13
+codec compose services compose.yaml compose.prod.yaml -e TAG=1.2 --json
+```
+
+`${VAR}` comes from `.env` (or `--env-file`) and `-e`; your shell's
+environment isn't read.
+
+### Ansible
+
+```bash
+codec ansible plays playbooks/site.yml       # plays and tasks in execution order
+#   play Web servers  · hosts web
+#     (gathering facts)
+#     pre_tasks:
+#       Update cache  · apt  → notifies web restart
+#     (run notified handlers)
+#     roles:
+#       role common
+codec ansible vars playbooks/site.yml app_port   # where it is defined, highest precedence first
+#   play vars (Web servers)    8080  playbooks/site.yml:5
+#   group_vars (web)           9090  group_vars/web.yml:1
+codec ansible task "nginx : restart nginx"   # a task from a log → its definition
+codec ansible inventory inventory/hosts.yml
+```
 
 ### Diff and query
 

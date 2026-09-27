@@ -22,8 +22,8 @@ Compose:
 
 ## Acceptance
 
-- [ ] Real playbook outline matches execution order.
-- [ ] Log-tool link finds the task definition.
-- [ ] Compose override merge shows which file set each field.
+- [x] Real playbook outline matches execution order.
+- [x] Log-tool link finds the task definition.
+- [x] Compose override merge shows which file set each field.
 
 **Go concepts:** reusing generic packages across domains.

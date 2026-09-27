@@ -6,6 +6,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/mahasenabheetha/codec/v2/internal/names"
 	"github.com/mahasenabheetha/codec/v2/internal/yamlkit"
 )
 
@@ -93,10 +94,10 @@ func (g *gitlab) readFile(file string, f *yamlkit.File, main bool) {
 		if name == "include" || name == "" {
 			continue
 		}
-		owned := g.t.own(pr.Value, file)
+		owned := g.t.Own(pr.Value, file)
 		if e, ok := g.cfg[name]; ok {
 			// The including file wins; hashes merge.
-			e.node = g.t.merge(e.node, owned, "")
+			e.node = g.t.Merge(e.node, owned, "", nil)
 			continue
 		}
 		g.cfg[name] = &glEntry{node: owned, file: file, key: pr.Key}
@@ -269,11 +270,11 @@ func (g *gitlab) unknown(name string, candidates []string) (yamlkit.Severity, st
 	if g.opts.Load == nil && len(g.unresolved) > 0 {
 		return "", "" // local includes weren't read: nothing to say
 	}
-	if c := closest(name, candidates); c != "" {
+	if c := names.Closest(name, candidates); c != "" {
 		if len(g.unresolved) > 0 {
-			return yamlkit.SeverityWarning, didYouMean(name, candidates)
+			return yamlkit.SeverityWarning, names.DidYouMean(name, candidates)
 		}
-		return yamlkit.SeverityError, didYouMean(name, candidates)
+		return yamlkit.SeverityError, names.DidYouMean(name, candidates)
 	}
 	if len(g.unresolved) == 0 {
 		return yamlkit.SeverityError, ""
@@ -354,9 +355,9 @@ func (g *gitlab) reference(n *yamlkit.Node, file string, depth int) *yamlkit.Nod
 		v = next
 	}
 	v = g.deref(v, e.file, depth+1)
-	via := origin{file: e.file, via: "!reference " + path[0]}
+	via := origin{File: e.file, Via: "!reference " + path[0]}
 	if v.Kind == yamlkit.KindMap {
-		return g.t.copyTree(v, via, true)
+		return g.t.Copy(v, via, true)
 	}
 	c := *v
 	g.t[&c] = via
@@ -400,9 +401,9 @@ func (g *gitlab) effective(name string) *glEff {
 		res.unread = res.unread || pe.unread
 		res.chain = append(res.chain, pe.chain...)
 		res.chain = append(res.chain, parent)
-		acc = g.t.merge(acc, pe.node, "extends "+parent)
+		acc = g.t.Merge(acc, pe.node, "extends "+parent, nil)
 	}
-	res.node = g.t.merge(acc, own, "")
+	res.node = g.t.Merge(acc, own, "", nil)
 	if i := indexOf(res.node, "extends"); i >= 0 {
 		res.node.Pairs = slices.Delete(res.node.Pairs, i, i+1)
 	}
@@ -462,7 +463,7 @@ func (g *gitlab) pipeline() {
 	for _, j := range p.Jobs {
 		if _, ok := stageAt[j.Stage]; !ok {
 			p.problem(yamlkit.SeverityError, "gitlab-stage-undefined", j.ID, keySrc(j.Source.File, j.node, "stage"),
-				fmt.Sprintf("Job %s uses stage %q, which isn't in stages", j.ID, j.Stage), didYouMean(j.Stage, declared))
+				fmt.Sprintf("Job %s uses stage %q, which isn't in stages", j.ID, j.Stage), names.DidYouMean(j.Stage, declared))
 			p.Stages = append(p.Stages[:len(p.Stages)-1], Stage{Name: j.Stage}, p.Stages[len(p.Stages)-1])
 			for i := range p.Stages {
 				stageAt[p.Stages[i].Name] = i
@@ -489,7 +490,7 @@ func (g *gitlab) get(name string) *yamlkit.Node {
 
 // srcOf is where a tagged key was written.
 func (g *gitlab) srcOf(k *yamlkit.Node) Source {
-	return src(g.t[k].file, k)
+	return src(g.t[k].File, k)
 }
 
 func (g *gitlab) job(name string) *Job {
@@ -497,7 +498,7 @@ func (g *gitlab) job(name string) *Job {
 	eff := g.effective(name)
 	// A copy: the memoized tree may be extended by other jobs, and
 	// default: applies after extends.
-	n := g.t.copyTree(eff.node, origin{}, false)
+	n := g.t.Copy(eff.node, origin{}, false)
 	g.inherit(n)
 	for _, k := range []string{"before_script", "script", "after_script"} {
 		if i := indexOf(n, k); i >= 0 {
@@ -544,14 +545,14 @@ func (g *gitlab) job(name string) *Job {
 		}
 		for _, l := range lines {
 			o := g.originOf(n, sec, l)
-			st.Children = append(st.Children, Step{Name: firstLine(text(l)), Kind: "script", Source: src(o.file, l), From: o.via})
+			st.Children = append(st.Children, Step{Name: firstLine(text(l)), Kind: "script", Source: src(o.File, l), From: o.Via})
 		}
 		j.Steps = append(j.Steps, st)
 	}
 	if nd := n.Pair("needs"); nd != nil {
 		j.Needs = []Need{}
 		for _, it := range items(nd.Value) {
-			need := Need{Source: srcp(g.t[nd.Key].file, it)}
+			need := Need{Source: srcp(g.t[nd.Key].File, it)}
 			if it.Kind == yamlkit.KindScalar {
 				need.Job = it.Value
 			} else {
@@ -572,7 +573,7 @@ func (g *gitlab) job(name string) *Job {
 			j.Needs = append(j.Needs, need)
 		}
 	}
-	j.Effective = g.t.emit(n, origin{file: e.file})
+	j.Effective = emit(g.t, n, origin{File: e.file})
 	return j
 }
 
@@ -602,12 +603,12 @@ func (g *gitlab) inherit(n *yamlkit.Node) {
 		if pr == nil && (k == "image" || k == "services" || k == "cache" || k == "before_script" || k == "after_script") {
 			if top := g.cfg[k]; top != nil {
 				pr = &yamlkit.Pair{Key: top.key, Value: g.get(k)}
-				g.t[top.key] = origin{file: top.file}
+				g.t[top.key] = origin{File: top.file}
 				via = "global " + k
 			}
 		}
 		if pr != nil {
-			n.Pairs = append(n.Pairs, g.t.copyPair(pr, origin{via: via}))
+			n.Pairs = append(n.Pairs, g.t.CopyPair(pr, origin{Via: via}))
 		}
 	}
 	global := g.get("variables")
@@ -623,18 +624,18 @@ func (g *gitlab) inherit(n *yamlkit.Node) {
 	if len(in.Pairs) == 0 {
 		return
 	}
-	merged := g.t.merge(in, &yamlkit.Node{Kind: yamlkit.KindMap}, "")
+	merged := g.t.Merge(in, &yamlkit.Node{Kind: yamlkit.KindMap}, "", nil)
 	for _, pr := range merged.Pairs {
 		o := g.t[pr.Key]
-		o.via = "global variables"
+		o.Via = "global variables"
 		g.t[pr.Key] = o
 	}
 	if i := indexOf(n, "variables"); i >= 0 {
-		n.Pairs[i].Value = g.t.merge(merged, n.Pairs[i].Value, "")
+		n.Pairs[i].Value = g.t.Merge(merged, n.Pairs[i].Value, "", nil)
 		return
 	}
 	k := &yamlkit.Node{Kind: yamlkit.KindScalar, Tag: yamlkit.TagStr, Value: "variables", Style: yamlkit.StylePlain}
-	g.t[k] = origin{file: g.cfg["variables"].file, via: "global variables"}
+	g.t[k] = origin{File: g.cfg["variables"].file, Via: "global variables"}
 	n.Pairs = append(n.Pairs, &yamlkit.Pair{Key: k, Value: merged})
 }
 
@@ -690,7 +691,7 @@ func (g *gitlab) originOf(n *yamlkit.Node, key string, l *yamlkit.Node) origin {
 
 func (g *gitlab) nodeSrc(n *yamlkit.Node, key string) Source {
 	pr := n.Pair(key)
-	return src(g.t[pr.Key].file, pr.Key)
+	return src(g.t[pr.Key].File, pr.Key)
 }
 
 // trigger reads a trigger: job (child or multi-project pipeline).
@@ -734,7 +735,7 @@ func (g *gitlab) trigger(j *Job, n *yamlkit.Node) {
 		}
 		j.Uses = "child pipeline " + target
 		pth := g.opts.repoPath(target)
-		inc := Include{Kind: "child", Target: target, File: pth, State: "resolved", Source: src(g.t[n.Pair("trigger").Key].file, it), Note: "child pipeline of " + j.ID}
+		inc := Include{Kind: "child", Target: target, File: pth, State: "resolved", Source: src(g.t[n.Pair("trigger").Key].File, it), Note: "child pipeline of " + j.ID}
 		if g.opts.Load == nil {
 			inc.State, inc.File = "unresolved", ""
 		} else if _, _, err := g.opts.load(pth); err != nil {

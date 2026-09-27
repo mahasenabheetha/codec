@@ -1,0 +1,46 @@
+name: shop
+
+x-logging: &logging
+  logging:
+    driver: json-file
+
+services:
+  web:
+    <<: *logging
+    build: ./web
+    command: npm start
+    ports:
+      - "8080:80"
+    environment:
+      - NODE_ENV=production
+      - API_URL=http://api:${API_PORT:-3000}
+    volumes:
+      - static:/srv/static
+      - ./web/conf:/etc/web:ro
+    networks: [front, back]
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: postgres:${PG_VERSION:-16}
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    networks: [back]
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+      interval: 5s
+  worker:
+    extends:
+      file: common.yml
+      service: base
+    command: ["worker", "--queue", "${QUEUE}"]
+    depends_on: [db]
+    networks: [back]
+
+networks:
+  front: {}
+  back: {}
+
+volumes:
+  static: {}
+  dbdata: {}

@@ -12,8 +12,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mahasenabheetha/codec/v2/internal/ansible"
 	"github.com/mahasenabheetha/codec/v2/internal/argo"
 	"github.com/mahasenabheetha/codec/v2/internal/ci"
+	"github.com/mahasenabheetha/codec/v2/internal/compose"
 	"github.com/mahasenabheetha/codec/v2/internal/provider"
 	"github.com/mahasenabheetha/codec/v2/internal/textdiff"
 	"github.com/mahasenabheetha/codec/v2/internal/workspace"
@@ -175,6 +177,11 @@ func (s *Server) handleAnalyze(w http.ResponseWriter, r *http.Request) {
 			a.Diagnostics = append(a.Diagnostics, ci.Diagnose(ci.Analyze(a.Type, f.Path, f.Content, f.YAML, opts), f.Path)...)
 			slices.SortStableFunc(a.Diagnostics, func(x, y yamlkit.Diagnostic) int { return cmp.Compare(x.Range.Start.Offset, y.Range.Start.Offset) })
 		}
+		if a.Type == compose.ID || a.Type == ansible.PlaybookID {
+			// Compose layers and .env, Ansible roles and vars: other files.
+			a.Diagnostics = s.lensDiagnostics(r.Context(), f, a.Type, a.Diagnostics)
+			slices.SortStableFunc(a.Diagnostics, func(x, y yamlkit.Diagnostic) int { return cmp.Compare(x.Range.Start.Offset, y.Range.Start.Offset) })
+		}
 		return a
 	})
 }
@@ -206,6 +213,9 @@ func (s *Server) handleHover(w http.ResponseWriter, r *http.Request) {
 			h = ci.HoverIn(p.ID(), f, at, opts) // includes and templates too
 		}
 		if h == nil {
+			h = s.lensHover(r.Context(), f, p.ID(), at) // Compose and Ansible with the folder
+		}
+		if h == nil {
 			h = provider.HoverAt(p, f, at)
 		}
 		if h != nil && strings.HasSuffix(h.Title, "template expression") {
@@ -230,6 +240,9 @@ func (s *Server) handleDefinition(w http.ResponseWriter, r *http.Request) {
 		}
 		if opts, ok := s.ciFor(r.Context(), f, p.ID()); ok && len(locs) == 0 {
 			locs = ci.DefinitionIn(p.ID(), f, pos(req, f), opts) // extends, templates, actions in other files
+		}
+		if len(locs) == 0 {
+			locs = s.lensDefinition(r.Context(), f, p.ID(), pos(req, f)) // roles, handlers, layers, .env
 		}
 		if len(locs) == 0 {
 			locs = provider.DefinitionAt(p, f, pos(req, f))

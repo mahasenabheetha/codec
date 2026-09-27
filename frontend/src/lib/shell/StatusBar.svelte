@@ -14,7 +14,7 @@
   import { workspace } from '../../features/workspace/workspace.svelte'
   import { getVersion, type VersionInfo } from '../api/version'
   import { layout } from '../stores/layout.svelte'
-  import { compareRoute, lintSettingsRoute, problemsRoute, queryRoute, router, routeArgo, routeCI, routeHelm, routeK8s, routeKustomize } from '../stores/router.svelte'
+  import { compareRoute, lintSettingsRoute, problemsRoute, queryRoute, router, routeAnsible, routeArgo, routeCI, routeCompose, routeHelm, routeK8s, routeKustomize } from '../stores/router.svelte'
   import { toolById } from '../tools'
 
   let version = $state<VersionInfo | null>(null)
@@ -86,6 +86,12 @@
     {:else if routeCI(router.path) !== null}
       <span class="where">Pipeline</span>
       <span class="path">{routeCI(router.path)} · local includes and templates followed; remote ones listed, never fetched</span>
+    {:else if routeCompose(router.path) !== null}
+      <span class="where">Compose</span>
+      <span class="path">{routeCompose(router.path)} · merged like docker compose config; variables from .env and what-if values, not your shell</span>
+    {:else if routeAnsible(router.path) !== null}
+      <span class="where">Ansible</span>
+      <span class="path">{routeAnsible(router.path)} · in execution order; roles and includes followed in the folder</span>
     {:else if router.path === compareRoute}
       <span class="where">Compare</span>
       <span class="path">by meaning: key and list order ignored, list items paired by name</span>

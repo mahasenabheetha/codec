@@ -243,3 +243,28 @@ Settled unless the user reopens them. Add new ones at the bottom:
     `.github/`, else the nearest folder holding `.git` (an opened
     folder may hold several repositories); the CLI defaults to the
     folder holding `.git` (2026-09-27).
+61. The layered merge with origins lives in `yamlkit` (`Origins`,
+    `MergeRules`, `Emit`) and serves CI and Compose; a merged key takes
+    the overriding side's key node, so file and line agree. Compose
+    rules: maps merge, `command`/`entrypoint`/`healthcheck` replace,
+    ports/volumes/secrets/configs/devices merge by what they are, other
+    lists add missing items, list-form environment/labels merge by
+    name, `!reset` removes, `!override` replaces (2026-09-27).
+62. Compose `${VAR}` comes from what-if values, then the env file
+    (`.env` next to the first file, or one chosen); the process
+    environment is never read. Default layers are what `docker
+    compose` reads: `compose.yaml` and its override; other Compose
+    files in the folder can be added as layers (2026-09-27).
+63. Ansible roles are searched in roles/ next to the playbook,
+    `roles_path` from the nearest ansible.cfg, roles/ in folders up to
+    the repository root, then a folder of that name. A role not there
+    but in another repository of the open folder is read from there
+    (info); otherwise it is info (installed at run time; a
+    requirements file listing it is named) unless a near miss makes it
+    a warning — as #58 (2026-09-27).
+64. Ansible variable definitions are ranked by Ansible's precedence
+    list (role defaults 2 … role params 20); group_vars/host_vars are
+    collected from the repository without knowing which hosts run, and
+    say so. A logged task is found by its task path (longest shared
+    tail of path segments), else by name, `{{ }}` matching any value
+    when the name has at least 4 literal characters (2026-09-27).

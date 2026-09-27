@@ -1,0 +1,38 @@
+---
+- name: Web servers
+  hosts: web
+  vars:
+    app_port: 8080
+  vars_files:
+    - ../vars/common.yml
+  tasks:
+    - name: Deploy app {{ app_version }}
+      template:
+        src: app.conf.j2
+        dest: /etc/app.conf
+      notify: restart app
+    - import_tasks: tasks/extra.yml
+    - block:
+        - name: Try it
+          command: /bin/true
+      rescue:
+        - name: Recover
+          debug: msg=failed
+  roles:
+    - common
+    - role: nginx
+      nginx_port: "{{ app_port }}"
+  pre_tasks:
+    - name: Update cache
+      apt: update_cache=yes
+      notify: web restart
+  post_tasks:
+    - name: Done
+      debug:
+        msg: "done on {{ inventory_hostname }} port {{ nginx_port }}"
+      when: app_port is defined
+  handlers:
+    - name: restart app
+      service: name=app state=restarted
+
+- import_playbook: db.yml

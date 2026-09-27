@@ -7,6 +7,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/mahasenabheetha/codec/v2/internal/names"
 	"github.com/mahasenabheetha/codec/v2/internal/yamlkit"
 )
 
@@ -53,7 +54,7 @@ func readAzure(p *Pipeline, content []byte, f *yamlkit.File, opts Options) {
 			sc.params[in.Name] = v
 		}
 	}
-	at := origin{file: p.File}
+	at := origin{File: p.File}
 	body := r
 	if ext := r.Get("extends"); ext != nil {
 		body = az.extends(ext, sc, at)
@@ -79,7 +80,7 @@ func readAzure(p *Pipeline, content []byte, f *yamlkit.File, opts Options) {
 		steps := az.expandSeq(body.Get("steps"), "steps", sc, at, 0)
 		j := &Job{ID: "Job", Name: "Job", Kind: "job", Runner: pool, Source: *keySrc(p.File, body, "steps"), node: body, Needs: []Need{}}
 		j.Steps = az.steps(steps)
-		j.Effective = az.t.emit(&yamlkit.Node{Kind: yamlkit.KindMap, Pairs: []*yamlkit.Pair{{Key: body.Pair("steps").Key, Value: steps}}}, at)
+		j.Effective = emit(az.t, &yamlkit.Node{Kind: yamlkit.KindMap, Pairs: []*yamlkit.Pair{{Key: body.Pair("steps").Key, Value: steps}}}, at)
 		p.Stages = []Stage{{Name: "", Defined: true, Jobs: []string{j.ID}}}
 		p.Jobs = append(p.Jobs, j)
 	}
@@ -305,7 +306,7 @@ func noted(at origin, note string) origin {
 	if note == "" {
 		return at
 	}
-	at.via = strings.TrimPrefix(at.via+" · "+note, " · ")
+	at.Via = strings.TrimPrefix(at.Via+" · "+note, " · ")
 	return at
 }
 
@@ -439,7 +440,7 @@ func (az *azure) expandSeq(n *yamlkit.Node, ctx string, sc *azScope, at origin, 
 // template inserts a template file's items.
 func (az *azure) template(it *yamlkit.Node, ctx string, sc *azScope, at origin, depth int) *yamlkit.Node {
 	ref := az.expand(it.Get("template"), sc, at, depth).Str()
-	inc := Include{Kind: "template-file", Target: ref, Source: src(at.file, it.Get("template")), State: "unresolved"}
+	inc := Include{Kind: "template-file", Target: ref, Source: src(at.File, it.Get("template")), State: "unresolved"}
 	placeholder := func(note string) *yamlkit.Node {
 		inc.Note = note
 		az.p.Includes = append(az.p.Includes, inc)
@@ -458,7 +459,7 @@ func (az *azure) template(it *yamlkit.Node, ctx string, sc *azScope, at origin, 
 		az.p.problem(yamlkit.SeverityError, "azure-template-depth", "", &inc.Source, "Templates nest more than 20 levels deep", "")
 		return placeholder("too deep")
 	}
-	p := az.templatePath(at.file, file)
+	p := az.templatePath(at.File, file)
 	_, f, err := az.opts.load(p)
 	if err != nil {
 		inc.State = "missing"
@@ -475,9 +476,9 @@ func (az *azure) template(it *yamlkit.Node, ctx string, sc *azScope, at origin, 
 		return nil
 	}
 	sc2 := az.bind(p, tr.Get("parameters"), it.Get("parameters"), sc, at, depth, &inc.Source)
-	tat := origin{file: p, via: "template " + path.Base(p)}
-	if at.via != "" && !strings.HasPrefix(at.via, "template ") {
-		tat.via = at.via + " · " + tat.via
+	tat := origin{File: p, Via: "template " + path.Base(p)}
+	if at.Via != "" && !strings.HasPrefix(at.Via, "template ") {
+		tat.Via = at.Via + " · " + tat.Via
 	}
 	body := tr.Get(ctx)
 	if body == nil {
@@ -498,7 +499,7 @@ func (az *azure) templatePath(from, ref string) string {
 // bind computes a template's parameter values from what the caller
 // passes (evaluated in the caller's scope) and the defaults.
 func (az *azure) bind(file string, decl, passed *yamlkit.Node, sc *azScope, at origin, depth int, s *Source) *azScope {
-	params, names := azParams(file, decl)
+	params, declared := azParams(file, decl)
 	out := &azScope{params: map[string]*yamlkit.Node{}, vars: sc.vars}
 	var given *yamlkit.Node
 	if passed != nil {
@@ -513,15 +514,15 @@ func (az *azure) bind(file string, decl, passed *yamlkit.Node, sc *azScope, at o
 			}
 			out.params[in.Name] = v
 		case in.node != nil:
-			out.params[in.Name] = az.expand(in.node, out, origin{file: file, via: "template " + path.Base(file)}, depth)
+			out.params[in.Name] = az.expand(in.node, out, origin{File: file, Via: "template " + path.Base(file)}, depth)
 		case in.Required:
 			az.p.problem(yamlkit.SeverityError, "azure-param-missing", "", s, fmt.Sprintf("Template %s needs parameter %s", path.Base(file), in.Name), "")
 		}
 	}
 	if isMap(given) && decl != nil {
 		for _, pr := range given.Pairs {
-			if name := keyName(pr.Key); !names[name] {
-				az.p.problem(yamlkit.SeverityError, "azure-param-unknown", "", s, fmt.Sprintf("Template %s has no parameter %s", path.Base(file), name), didYouMean(name, keys(names)))
+			if name := keyName(pr.Key); !declared[name] {
+				az.p.problem(yamlkit.SeverityError, "azure-param-unknown", "", s, fmt.Sprintf("Template %s has no parameter %s", path.Base(file), name), names.DidYouMean(name, keys(declared)))
 			}
 		}
 	}
@@ -546,7 +547,7 @@ func (az *azure) extends(ext *yamlkit.Node, sc *azScope, at origin) *yamlkit.Nod
 	az.p.Includes = append(az.p.Includes, Include{Kind: "template-file", Target: ref, File: p, State: "resolved", Note: "extends", Source: src(az.p.File, ext.Get("template"))})
 	tr := resolved(root(f))
 	sc2 := az.bind(p, tr.Get("parameters"), ext.Get("parameters"), sc, at, 0, srcp(az.p.File, ext))
-	tat := origin{file: p, via: "extends " + path.Base(p)}
+	tat := origin{File: p, Via: "extends " + path.Base(p)}
 	body := &yamlkit.Node{Kind: yamlkit.KindMap}
 	for _, k := range []string{"variables", "pool", "stages", "jobs", "steps"} {
 		if pr := tr.Pair(k); pr != nil {
@@ -575,7 +576,7 @@ func (az *azure) variables(n *yamlkit.Node, scope string, sc *azScope) []Var {
 	var out []Var
 	add := func(name, value string, key *yamlkit.Node) {
 		o := az.t[key]
-		out = append(out, Var{Name: name, Value: value, Scope: scope, Source: src(orFile(o.file, az.p.File), key)})
+		out = append(out, Var{Name: name, Value: value, Scope: scope, Source: src(orFile(o.File, az.p.File), key)})
 		if scope == "pipeline" && !strings.Contains(value, "$") {
 			sc.vars[name] = value
 		}
@@ -590,7 +591,7 @@ func (az *azure) variables(n *yamlkit.Node, scope string, sc *azScope) []Var {
 		for _, it := range n.Items {
 			switch {
 			case it.Get("group") != nil:
-				out = append(out, Var{Name: it.Get("group").Str(), Value: "(variable group)", Scope: "group", Source: src(orFile(az.t[it].file, az.p.File), it)})
+				out = append(out, Var{Name: it.Get("group").Str(), Value: "(variable group)", Scope: "group", Source: src(orFile(az.t[it].File, az.p.File), it)})
 			case it.Get("name") != nil:
 				add(it.Get("name").Str(), text(it.Get("value")), it)
 			}
@@ -608,7 +609,7 @@ func orFile(f, def string) string {
 
 // fileOf is the file an expanded node was written in.
 func (az *azure) fileOf(n *yamlkit.Node) string {
-	return orFile(az.t[n].file, az.p.File)
+	return orFile(az.t[n].File, az.p.File)
 }
 
 func (az *azure) stage(st *yamlkit.Node, pool string, sc *azScope) {
@@ -622,8 +623,8 @@ func (az *azure) stage(st *yamlkit.Node, pool string, sc *azScope) {
 		return
 	}
 	s := Stage{Name: name, Title: st.Get("displayName").Str(), If: text(st.Get("condition")), Defined: true, Source: srcp(az.fileOf(st), st)}
-	if o := az.t[st]; strings.HasPrefix(o.via, "template ") || strings.Contains(o.via, "template ") {
-		s.From = o.file
+	if o := az.t[st]; strings.HasPrefix(o.Via, "template ") || strings.Contains(o.Via, "template ") {
+		s.From = o.File
 	}
 	if d := st.Get("dependsOn"); d != nil {
 		s.DependsOn = orEmpty(strs(d))
@@ -661,8 +662,8 @@ func (az *azure) job(s *Stage, n *yamlkit.Node, pool string, sc *azScope) {
 	if dn := n.Get("displayName").Str(); dn != "" {
 		j.Name = dn
 	}
-	if o := az.t[n]; strings.Contains(o.via, "template ") {
-		j.From = o.file
+	if o := az.t[n]; strings.Contains(o.Via, "template ") {
+		j.From = o.File
 	}
 	j.If = text(n.Get("condition"))
 	j.Runner = pool
@@ -731,7 +732,7 @@ func (az *azure) job(s *Stage, n *yamlkit.Node, pool string, sc *azScope) {
 			}
 		}
 	}
-	j.Effective = az.t.emit(n, origin{file: file})
+	j.Effective = emit(az.t, n, origin{File: file})
 	s.Jobs = append(s.Jobs, j.ID)
 	p.Jobs = append(p.Jobs, j)
 }
@@ -765,10 +766,10 @@ func (az *azure) steps(n *yamlkit.Node) []Step {
 		if s.Name == "" {
 			s.Name = s.Kind
 		}
-		if o := az.t[st]; strings.Contains(o.via, "template ") || strings.Contains(o.via, "if ") {
-			s.From = o.file
-			if i := strings.Index(o.via, "if "); i >= 0 {
-				s.Note = "only " + o.via[i:] + " (not known before the run)"
+		if o := az.t[st]; strings.Contains(o.Via, "template ") || strings.Contains(o.Via, "if ") {
+			s.From = o.File
+			if i := strings.Index(o.Via, "if "); i >= 0 {
+				s.Note = "only " + o.Via[i:] + " (not known before the run)"
 			}
 		}
 		if s.Kind == "template" {
@@ -796,7 +797,7 @@ func (az *azure) edges() {
 		for _, nd := range j.Needs {
 			if p.Job(nd.Job) == nil {
 				name := strings.TrimPrefix(nd.Job, j.Stage+".")
-				p.problem(yamlkit.SeverityError, "azure-depends-unknown", j.ID, nd.Source, fmt.Sprintf("Job %s depends on %s, which isn't a job of stage %s", j.Name, name, orFile(j.Stage, "(the pipeline)")), didYouMean(name, ids))
+				p.problem(yamlkit.SeverityError, "azure-depends-unknown", j.ID, nd.Source, fmt.Sprintf("Job %s depends on %s, which isn't a job of stage %s", j.Name, name, orFile(j.Stage, "(the pipeline)")), names.DidYouMean(name, ids))
 				continue
 			}
 			p.Edges = append(p.Edges, Edge{From: nd.Job, To: j.ID, Label: "dependsOn"})
@@ -827,7 +828,7 @@ func (az *azure) edges() {
 		for _, d := range deps {
 			ds := byStage[d]
 			if ds == nil {
-				p.problem(yamlkit.SeverityError, "azure-depends-unknown", "", s.Source, fmt.Sprintf("Stage %s depends on %s, which isn't a stage", s.Name, d), didYouMean(d, stageNames))
+				p.problem(yamlkit.SeverityError, "azure-depends-unknown", "", s.Source, fmt.Sprintf("Stage %s depends on %s, which isn't a stage", s.Name, d), names.DidYouMean(d, stageNames))
 				continue
 			}
 			for _, id := range s.Jobs {

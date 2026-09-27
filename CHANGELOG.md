@@ -6,6 +6,41 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+### Added (Compose and Ansible)
+
+- Compose view: the project's files merged with the Compose rules
+  (ports and volumes merge, commands replace, `!reset`/`!override`,
+  `extends`, `include`), every line of a service saying which file set
+  it; `${VAR}` from `.env` and what-if values (never saved, shell
+  environment not read); services graph with start order, networks and
+  volumes; ports and volumes tables; other Compose files in the folder
+  can be added as layers.
+- Compose checks: unknown services in depends_on/links, undeclared
+  networks, volumes, secrets and configs, dependency loops, unset and
+  required variables, host port clashes. Editor: outline of services,
+  hover and go to definition for `${VAR}` (to `.env`), services
+  (including `extends` into another file), networks and volumes.
+- Ansible view: plays in execution order (facts, pre_tasks, roles with
+  their dependencies, tasks, post_tasks, handler flushes), roles and
+  import/include_tasks/role opened in place, handlers, variables with
+  every definition ranked by Ansible's precedence, YAML inventories as
+  groups and hosts.
+- Ansible roles found via roles/, `roles_path` in ansible.cfg, folders
+  above, or another repository of the open folder; roles installed at
+  run time are info (naming the requirements file that lists them).
+- Ansible editor: outline in execution order, Jinja tints, hover and
+  go to definition for `{{ variables }}` and `when:` expressions, roles,
+  handlers (`notify` → handler or `listen`), included files, templates.
+- Ansible log tool: "Defined in" links a failed task to its definition
+  in the open folder (by task path, else by name).
+- CLI: `codec compose services|config`, `codec ansible
+  plays|vars|task|inventory`.
+
+### Fixed
+
+- Merged keys in effective configurations (GitLab, Compose) now show
+  the line of the file that set them.
+
 ### Added (CI pipelines)
 
 - Pipeline view for GitHub Actions, GitLab CI and Azure Pipelines: jobs

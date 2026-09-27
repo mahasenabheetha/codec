@@ -5,6 +5,7 @@
   import Toggle from '../../lib/components/Toggle.svelte'
   import SearchInput from '../../lib/components/SearchInput.svelte'
   import type { AnsibleSection, AnsibleTask } from '../../lib/api/transform'
+  import TaskDefinition from './TaskDefinition.svelte'
 
   // Rich view of one parsed ansible task. The engine decides status,
   // cause and line severities; this component only presents them.
@@ -43,6 +44,7 @@
     </span>
   </header>
   {#if task.path}<p class="path">{task.path}</p>{/if}
+  <TaskDefinition name={task.name} path={task.path} />
 
   {#if task.cause}
     <div class="cause">

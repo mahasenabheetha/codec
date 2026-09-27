@@ -9,7 +9,8 @@ internal/
   codec/              ENGINE v1 transforms (base64, JSON, JWT, ansible)
   yamlkit/            ENGINE YAML core: parse, positions, docs, detect,
                       outline, paths, format, convert, diagnostics,
-                      semantic diff
+                      semantic diff, layered merge with origins (CI, Compose)
+  names/              ENGINE "did you mean" (edit distance) for every lens
   query/              ENGINE jq (gojq) over documents, results mapped to lines
   provider/           ENGINE provider interface + registry
   helm/               ENGINE Helm 4 SDK render + values provenance (from
@@ -28,8 +29,12 @@ internal/
                       composite actions), GitLab CI (includes, !reference,
                       extends, default: merged with origins), Azure Pipelines
                       (templates, ${{ }} evaluator); registers providers
-  ansible/            ENGINE later lenses (one package per domain)
-  compose/
+  ansible/            ENGINE Ansible lens: playbooks in execution order, roles
+                      (roles_path, dependencies), includes, handlers, variable
+                      precedence, YAML inventories, log task → definition
+  compose/            ENGINE Compose lens: files merged with the Compose rules and
+                      origins, extends/include, ${VAR} from .env + what-if,
+                      services graph, ports, volumes, checks
   workspace/          ADAPTER read-only folder access, index, watcher
   config/             ADAPTER user settings in os.UserConfigDir()/codec
   schemacache/        ADAPTER schema fetch + cache (os.UserCacheDir()/codec/
@@ -107,6 +112,12 @@ resources, jobs, references) built by the workspace adapter.
   (steps, matrix, effective config with origins), edges, includes,
   problems; `/yaml/hover|definition|analyze` follow includes and
   templates in the repository around the file.
+  Compose: `POST /compose/analyze` {path, files, env, envFile, overrides}
+  → services (effective config with the file per line), edges, ports,
+  mounts, variables, problems. Ansible: `POST /ansible/analyze` {path,
+  overrides} → playbook (plays, steps, roles, variables) or inventory;
+  `POST /ansible/find-task` {name, path} → definitions of a logged
+  task. `/yaml/hover|definition|analyze` read the folder for both.
 - Errors: `{"error": "...", "line"?, "column"?, "file"?}` with 400 for
   caller bugs, 422 for bad input, 404 missing, 500 unexpected.
 - Push updates via Server-Sent Events, `GET /api/v2/events`: `workspace`

@@ -17,6 +17,7 @@
   import GitBranch from '@lucide/svelte/icons/git-branch'
   import RotateCcw from '@lucide/svelte/icons/rotate-ccw'
   import Badge from '../../lib/components/Badge.svelte'
+  import EffectiveLines from '../../lib/components/EffectiveLines.svelte'
   import EmptyState from '../../lib/components/EmptyState.svelte'
   import Graph from '../../lib/components/Graph.svelte'
   import IconButton from '../../lib/components/IconButton.svelte'
@@ -147,6 +148,12 @@
 
   function jump(s: CISource | undefined) {
     if (s) onopen({ ...s, file: s.file || path })
+  }
+
+  // A source for a file and line, when only those are known.
+  function lineSource(file: string, line: number): CISource {
+    const at = { line, col: 1, offset: 0 }
+    return { file, line, range: { start: at, end: at } }
   }
 
   function short(file: string | undefined): string {
@@ -412,18 +419,7 @@
 
           {#if selected.effective.length}
             <h3>Effective configuration</h3>
-            <div class="eff" role="list">
-              {#each selected.effective as l, i (i)}
-                <div class="eline" role="listitem">
-                  <span class="etext">{l.text}</span>
-                  {#if l.from || (l.source?.file && l.source.file !== selected.source.file)}
-                    <button type="button" class="efrom" onclick={() => jump(l.source)} title={l.source ? `${l.source.file || path}:${l.source.line}` : ''}>
-                      {l.from || short(l.source?.file)}
-                    </button>
-                  {/if}
-                </div>
-              {/each}
-            </div>
+            <EffectiveLines lines={selected.effective} home={selected.source.file || path} onjump={(s) => onopen(lineSource(s.file, s.line))} />
             <p class="note">Lines marked on the right come from somewhere else; click to open it.</p>
           {/if}
         {:else}
@@ -819,45 +815,5 @@
   }
   .snote.from-t {
     color: var(--syn-expr-tpl);
-  }
-  .eff {
-    max-height: 60vh;
-    overflow: auto;
-    padding: var(--s-2);
-    font-family: var(--font-mono);
-    font-size: var(--fs-xs);
-    line-height: var(--lh-code);
-    background: var(--bg-2);
-    border: 1px solid var(--border);
-    border-radius: var(--r-md);
-  }
-  .eline {
-    display: flex;
-    align-items: baseline;
-    gap: var(--s-2);
-  }
-  .etext {
-    flex: 1;
-    min-width: 0;
-    white-space: pre;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .efrom {
-    flex: 0 0 auto;
-    max-width: 45%;
-    padding: 0 var(--s-1);
-    font-family: var(--font-ui);
-    font-size: var(--fs-xs);
-    color: var(--syn-expr-tpl);
-    background: var(--syn-expr-tpl-bg);
-    border: none;
-    border-radius: var(--r-sm);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .efrom:hover {
-    text-decoration: underline;
   }
 </style>

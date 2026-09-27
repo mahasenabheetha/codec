@@ -32,7 +32,7 @@
   import Tabs from '../../lib/components/Tabs.svelte'
   import { completeAt, definitionAt, diffFile, hoverAt, type Diagnostic, type Pos } from '../../lib/api/yaml'
   import { layout } from '../../lib/stores/layout.svelte'
-  import { argoRoute, ciRoute, k8sRoute, kustomizeRoute } from '../../lib/stores/router.svelte'
+  import { ansibleRoute, argoRoute, ciRoute, composeRoute, k8sRoute, kustomizeRoute } from '../../lib/stores/router.svelte'
   import { neat } from '../../lib/api/k8s'
   import { toast } from '../../lib/stores/toast.svelte'
   import { copyText } from '../../lib/utils/clipboard'
@@ -290,6 +290,16 @@
     {#if kind === 'github-actions' || kind === 'gitlab-ci' || kind === 'azure-pipelines'}
       <Button size="sm" variant="ghost" onclick={() => layout.open(ciRoute(path))} title="Jobs in execution order, with includes, extends and templates applied">
         <span class="render"><FileIcon file={{ type: kind, lang: 'yaml' }} /> Pipeline</span>
+      </Button>
+    {/if}
+    {#if kind === 'compose'}
+      <Button size="sm" variant="ghost" onclick={() => layout.open(composeRoute(path))} title="Services, start order, ports and volumes, with the override merged and ${'{'}VAR{'}'} filled in">
+        <span class="render"><FileIcon file={{ type: kind, lang: 'yaml' }} /> Compose</span>
+      </Button>
+    {/if}
+    {#if kind === 'ansible-playbook' || kind === 'ansible-inventory'}
+      <Button size="sm" variant="ghost" onclick={() => layout.open(ansibleRoute(path))} title={kind === 'ansible-inventory' ? 'Groups and hosts as a tree' : 'Tasks in execution order, with roles and includes opened'}>
+        <span class="render"><FileIcon file={{ type: kind, lang: 'yaml' }} /> Ansible</span>
       </Button>
     {/if}
     {#if kind === 'argo-workflows' || kind === 'argocd'}

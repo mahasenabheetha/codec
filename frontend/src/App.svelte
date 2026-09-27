@@ -14,6 +14,8 @@
   import Layers from '@lucide/svelte/icons/layers'
   import Workflow from '@lucide/svelte/icons/workflow'
   import GitBranch from '@lucide/svelte/icons/git-branch'
+  import Container from '@lucide/svelte/icons/container'
+  import ListTree from '@lucide/svelte/icons/list-tree'
   import ListChecks from '@lucide/svelte/icons/list-checks'
   import TextSearch from '@lucide/svelte/icons/text-search'
   import Settings2 from '@lucide/svelte/icons/settings-2'
@@ -35,6 +37,8 @@
   import KustomizeView from './features/kube/KustomizeView.svelte'
   import ArgoFileView from './features/argo/ArgoFileView.svelte'
   import CIFileView from './features/ci/CIFileView.svelte'
+  import ComposeFileView from './features/compose/ComposeFileView.svelte'
+  import AnsibleFileView from './features/ansible/AnsibleFileView.svelte'
   import QueryView from './features/compare/QueryView.svelte'
   import { comparison, queries } from './features/compare/compare.svelte'
   import WorkspaceProblems from './features/lint/WorkspaceProblems.svelte'
@@ -44,7 +48,7 @@
   import QuickOpen from './features/workspace/QuickOpen.svelte'
   import { openFolder, workspace } from './features/workspace/workspace.svelte'
   import { tools, toolById } from './lib/tools'
-  import { argoRoute, ciRoute, compareRoute, isView, k8sRoute, kustomizeRoute, lintSettingsRoute, problemsRoute, queryRoute, router, routeArgo, routeCI, routeFile, routeHelm, routeK8s, routeKustomize, routeTool } from './lib/stores/router.svelte'
+  import { ansibleRoute, argoRoute, ciRoute, compareRoute, composeRoute, isView, k8sRoute, kustomizeRoute, lintSettingsRoute, problemsRoute, queryRoute, router, routeAnsible, routeArgo, routeCI, routeCompose, routeFile, routeHelm, routeK8s, routeKustomize, routeTool } from './lib/stores/router.svelte'
   import { layout } from './lib/stores/layout.svelte'
   import { shortcut } from './lib/stores/shortcuts.svelte'
   import { commands } from './lib/stores/commands.svelte'
@@ -243,6 +247,26 @@
           keywords: ['pipeline', 'ci', 'jobs', 'stages', 'matrix', 'gitlab', 'github', 'azure', f.path],
           run: () => layout.open(ciRoute(f.path)),
         })),
+      ...workspace.files
+        .filter((f) => f.type === 'compose')
+        .map((f) => ({
+          id: `compose.${f.path}`,
+          title: `Compose: ${f.path}`,
+          group: 'Compose',
+          icon: Container,
+          keywords: ['compose', 'docker', 'services', 'ports', 'volumes', 'env', f.path],
+          run: () => layout.open(composeRoute(f.path)),
+        })),
+      ...workspace.files
+        .filter((f) => f.type === 'ansible-playbook' || f.type === 'ansible-inventory')
+        .map((f) => ({
+          id: `ansible.${f.path}`,
+          title: `Ansible: ${f.path}`,
+          group: 'Ansible',
+          icon: ListTree,
+          keywords: ['ansible', 'playbook', 'roles', 'tasks', 'inventory', 'variables', f.path],
+          run: () => layout.open(ansibleRoute(f.path)),
+        })),
     ]),
   )
   // Recent folders, one palette entry each; re-registered as they change.
@@ -338,6 +362,14 @@
           {:else if routeCI(route) !== null}
             <div class="panel" hidden={router.path !== route}>
               <CIFileView path={routeCI(route)!} active={router.path === route} />
+            </div>
+          {:else if routeCompose(route) !== null}
+            <div class="panel" hidden={router.path !== route}>
+              <ComposeFileView path={routeCompose(route)!} active={router.path === route} />
+            </div>
+          {:else if routeAnsible(route) !== null}
+            <div class="panel" hidden={router.path !== route}>
+              <AnsibleFileView path={routeAnsible(route)!} active={router.path === route} />
             </div>
           {:else if route === compareRoute}
             <div class="panel" hidden={router.path !== route}>

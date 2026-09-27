@@ -6,6 +6,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/mahasenabheetha/codec/v2/internal/names"
 	"github.com/mahasenabheetha/codec/v2/internal/yamlkit"
 )
 
@@ -199,7 +200,7 @@ func (gh *github) job(file, prefix, group string, pr *yamlkit.Pair, depth int) [
 			j.Outputs = append(j.Outputs, KV{keyName(o.Key), text(o.Value)})
 		}
 	}
-	j.Effective = gh.t.emit(gh.t.own(n, file), origin{file: file})
+	j.Effective = emit(gh.t, gh.t.Own(n, file), origin{File: file})
 	gh.known[j.ID] = true
 
 	if uses := n.Get("uses").Str(); uses != "" {
@@ -392,15 +393,15 @@ func (gh *github) args(j *Job, file string, n *yamlkit.Node, inputs []Input) {
 		j.With = append(j.With, a)
 	}
 	if isMap(with) {
-		var names []string
+		var declared []string
 		for _, in := range inputs {
-			names = append(names, in.Name)
+			declared = append(declared, in.Name)
 		}
 		for _, pr := range with.Pairs {
 			if name := keyName(pr.Key); !passed[name] {
 				j.With = append(j.With, Arg{Name: name, Value: text(pr.Value), State: "unknown"})
 				gh.p.problem(yamlkit.SeverityError, "gh-input-unknown", j.ID, srcp(file, pr.Key),
-					fmt.Sprintf("%s has no input %s", j.Uses, name), didYouMean(name, names))
+					fmt.Sprintf("%s has no input %s", j.Uses, name), names.DidYouMean(name, declared))
 			}
 		}
 	}
@@ -430,7 +431,7 @@ func (gh *github) edges() {
 	for _, j := range p.Jobs {
 		for _, nd := range j.Needs {
 			if !gh.known[nd.Job] {
-				p.problem(yamlkit.SeverityError, "gh-needs-unknown", j.ID, nd.Source, fmt.Sprintf("Job %s needs %s, which isn't a job of this workflow", j.ID, nd.Job), didYouMean(nd.Job, ids))
+				p.problem(yamlkit.SeverityError, "gh-needs-unknown", j.ID, nd.Source, fmt.Sprintf("Job %s needs %s, which isn't a job of this workflow", j.ID, nd.Job), names.DidYouMean(nd.Job, ids))
 				continue
 			}
 			for _, from := range gh.ends(nd.Job, 0) {
@@ -493,7 +494,7 @@ func (gh *github) action(r *yamlkit.Node) {
 	for _, st := range items(runs.Get("steps")) {
 		j.Steps = append(j.Steps, gh.step(p.File, st, 0))
 	}
-	j.Effective = gh.t.emit(gh.t.own(runs, p.File), origin{file: p.File})
+	j.Effective = emit(gh.t, gh.t.Own(runs, p.File), origin{File: p.File})
 	p.Jobs = []*Job{j}
 }
 
@@ -543,7 +544,7 @@ func (gh *github) checkExpressions(f *yamlkit.File) {
 							ids = append(ids, s.ID)
 						}
 					}
-					p.problem(yamlkit.SeverityWarning, "gh-step-unknown", j.ID, s, fmt.Sprintf("steps.%s: no step in job %s has id %s", name, j.ID, name), didYouMean(name, ids))
+					p.problem(yamlkit.SeverityWarning, "gh-step-unknown", j.ID, s, fmt.Sprintf("steps.%s: no step in job %s has id %s", name, j.ID, name), names.DidYouMean(name, ids))
 				}
 			case "matrix":
 				if j == nil || name == "" || j.Matrix == nil || j.Matrix.Runtime != "" {
@@ -556,7 +557,7 @@ func (gh *github) checkExpressions(f *yamlkit.File) {
 				if name == "" || declared[name] {
 					continue
 				}
-				hint := didYouMean(name, keys(declared))
+				hint := names.DidYouMean(name, keys(declared))
 				if !hasInputs {
 					hint = "Only workflow_dispatch and workflow_call workflows have inputs."
 				}

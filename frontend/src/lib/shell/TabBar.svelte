@@ -5,6 +5,8 @@
   import Layers from '@lucide/svelte/icons/layers'
   import Workflow from '@lucide/svelte/icons/workflow'
   import GitBranch from '@lucide/svelte/icons/git-branch'
+  import Container from '@lucide/svelte/icons/container'
+  import ListTree from '@lucide/svelte/icons/list-tree'
   import ListChecks from '@lucide/svelte/icons/list-checks'
   import TextSearch from '@lucide/svelte/icons/text-search'
   import Settings2 from '@lucide/svelte/icons/settings-2'
@@ -25,6 +27,8 @@
     routeKustomize,
     routeArgo,
     routeCI,
+    routeCompose,
+    routeAnsible,
     routeTool,
   } from '../stores/router.svelte'
   import { charts } from '../../features/helm/helm.svelte'
@@ -71,6 +75,10 @@
     if (ar !== null) return { title: `Argo · ${base(ar)}`, icon: Workflow }
     const cr = routeCI(route)
     if (cr !== null) return { title: `Pipeline · ${base(cr)}`, icon: GitBranch }
+    const co = routeCompose(route)
+    if (co !== null) return { title: `Compose · ${base(co)}`, icon: Container }
+    const an = routeAnsible(route)
+    if (an !== null) return { title: `Ansible · ${base(an)}`, icon: ListTree }
     return undefined
   }
 
