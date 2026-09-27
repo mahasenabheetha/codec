@@ -47,10 +47,10 @@ checks on renders (decisions #70–#71).
 - [x] A new user can go from download to rendered chart in < 2 minutes.
       *(`codec serve --open` → Open the sample → chart rendered in ~2 s.)*
 
-Cross-platform: Windows native without admin rights; Linux: full test
-suite with `-race` in `golang:1.26`, and the image run with a read-only
-mount and with `--sample`; macOS arm64 cross-compiles, run it natively
-before tagging. The GIF was not made (no recorder here); README has a
+Cross-platform: Windows native without admin rights; Linux: the image
+run with a read-only mount and with `--sample` (the full suite runs on
+Linux in CI; a local `-race` run was stopped before it finished);
+macOS arm64 cross-compiles, run it natively before tagging. The GIF was not made (no recorder here); README has a
 new first-run screenshot.
 
 **Next:** v3 (Wails desktop app) — plan in a new phase set.
