@@ -27,7 +27,7 @@
 <div class="home">
   <div class="inner">
     <header class="hero">
-      <img src="/favicon.svg" alt="" width="44" height="44" />
+      <img src="/icon.svg" alt="" width="44" height="44" />
       <div>
         <h1>codec</h1>
         <p>A read-only workbench for your YAML, and tools for the text you handle all day.</p>

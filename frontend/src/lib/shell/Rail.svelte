@@ -44,7 +44,7 @@
 
 <nav class="rail" class:collapsed aria-label="Tools">
   <div class="brand">
-    <img src="/favicon.svg" alt="" width="22" height="22" />
+    <img src="/icon.svg" alt="" width="22" height="22" />
     {#if !collapsed}<span>codec</span>{/if}
   </div>
 
