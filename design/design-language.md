@@ -96,6 +96,11 @@ Icons: `@lucide/svelte`, imported per icon
 (`@lucide/svelte/icons/<name>`), 16 px, stroke 1.75, `currentColor`.
 Logos: local SVGs in `frontend/src/assets/logos/`, source and licence
 per file in its `SOURCES.md`; only to label file types.
+App icon: `frontend/public/icon.svg` (also `docs/assets/logo.svg`), a YAML
+key over nested key: value rows in `--accent` to `--syn-anchor`. The PNGs
+beside it (192, 512, maskable 512 with the glyph in the 80% safe zone,
+180 touch icon) and `favicon.ico` (16 + 32) are renders of it; re-render
+them when it changes, and rename the SVG if browser tabs keep the old one.
 
 ## Patterns
 
