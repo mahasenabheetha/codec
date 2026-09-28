@@ -6,6 +6,12 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+### Changed
+
+- New app icon for codec 2 (a YAML key with nested key: value rows), with a
+  maskable icon so the installed app fills its tile. The installed app is
+  named "codec 2", so it sits apart from a v1 install.
+
 ## [2.0.0] - 2026-09-27
 
 codec 2.0: the read-only YAML workbench for Kubernetes, Helm, Kustomize,
