@@ -41,6 +41,9 @@ version, and add a CHANGELOG entry.
 | [Reload prompt after a server restart](#reload-prompt-after-a-server-restart) | S | Today requests fail until the page is reloaded |
 | [Kustomize helmCharts](#kustomize-helmcharts) | M | Helm SDK is already embedded |
 | [Window long lists](#window-long-lists) | S | Problems and Resources cards, like TreeView |
+| [Compare: paste as a source](#compare-paste-as-a-source) | M | Third source per side; works with no folder open |
+| [Compare: pick files from the Explorer](#compare-pick-files-from-the-explorer) | M | Drag and drop, plus a new Explorer context menu |
+| [Compare: clear](#compare-clear) | S | Per-side × and a Clear button |
 
 ## Later
 
@@ -91,3 +94,64 @@ version, and add a CHANGELOG entry.
 - **Result:** only visible rows are in the DOM, like TreeView (decision 70).
 - **Scope:** `frontend/src/features/lint`, `features/kube`, possibly a shared list component.
 - **Done when:** 5,000 findings scroll smoothly; `scripts/perf.sh` notes it.
+
+### Compare: paste as a source
+- **Problem:** Compare only takes workspace files and Helm renders, and
+  needs a folder open. Comparing a live object (`kubectl get -o yaml`),
+  two API responses or two snippets means saving them as files first.
+- **Result:** each side's source is File · Helm render · **Paste**; a
+  Paste side is an editor box. Both sides pasted, or one pasted against
+  a file or render. Comparing two pasted sides works with no folder open,
+  reachable from Home and Tools ("Compare text") as well as the Compare tab.
+  - Compared by structure (as today) only when both sides parse to a
+    mapping or list; YAML and JSON mix freely (JSON is YAML). Anything
+    else — plain text, logs, XML, ini, a lone scalar — gets the text diff,
+    so two paragraphs don't show as one "value changed".
+  - "Compare as: Auto · Structure · Text" (the API's `text` flag already
+    forces a text diff); "Ignore whitespace" and "Ignore case" for text.
+  - A "Live object noise" ignore preset: `metadata.managedFields`,
+    `resourceVersion`, `uid`, `creationTimestamp`, `generation`, `status`.
+- **Scope:** `internal/web/compare_api.go` (a `paste` side kind; no
+  workspace needed when neither side reads one), `internal/textdiff`
+  (whitespace/case options), `features/compare` (SidePicker, paste editor),
+  Home and Tools entries, docs `compare.html`. Out of scope: per-format
+  parsers (XML, ini); saving pasted text.
+- **Done when:** compare_api tests cover paste × paste with no folder,
+  paste × file, the scalar-to-text rule and the forced modes; the sample's
+  Deployment against a pasted live copy with the noise preset shows only
+  real changes; docs updated.
+- **Decisions:** 19 (pasted text is never persisted, so it is gone after
+  a reload — agreed), 44 (semantic diff identity). New: Paste is a third
+  source per side, not a separate screen (agreed 2026-10-02).
+
+### Compare: pick files from the Explorer
+- **Problem:** a side's file can only be chosen through the quick-open
+  search; the Explorer tree can't feed Compare.
+- **Result:** drag a file from the Explorer onto the Left or Right side;
+  the side shows "Choose a file… or drop one here". A new Explorer
+  context menu (right-click) has "Select for compare", "Compare with
+  selected", and with two files Ctrl+clicked, "Compare selected". The
+  search stays. No second tree inside Compare, and a plain click in the
+  Explorer still opens the file.
+- **Scope:** `features/workspace` (Explorer/TreeView: context menu,
+  drag source, Ctrl+click selection), `features/compare/SidePicker.svelte`
+  (drop target), a shared context-menu component in `lib/components`,
+  docs `compare.html` and `workspace.html`, `shortcuts.html`. Out of
+  scope: other menu entries (copy path, reveal, lint this file) — the
+  menu is built so they can be added later.
+- **Done when:** dragging and each menu entry open the right comparison on
+  the sample; the menu works with the keyboard (Shift+F10 / context-menu
+  key, arrows, Esc); docs updated.
+- **Decisions:** agreed 2026-10-02: drag and drop plus a context menu,
+  one Explorer tree only, click keeps meaning "open".
+
+### Compare: clear
+- **Problem:** resetting Compare means re-picking both sides by hand.
+- **Result:** an × on each side clears that side; "Clear" next to Swap
+  empties both sides and the result. Saved ignore patterns stay. No
+  confirmation; when a pasted side is cleared, a brief "Cleared · Undo"
+  toast brings it back (memory only, decision 19).
+- **Scope:** `features/compare` (CompareView, SidePicker, compare.svelte.ts).
+- **Done when:** both buttons reset the view; Undo
+  restores pasted text; docs `compare.html` updated.
+- **Decisions:** none new.
