@@ -9,7 +9,9 @@
 
   // Rich view of one parsed ansible task. The engine decides status,
   // cause and line severities; this component only presents them.
-  let { task }: { task: AnsibleTask } = $props()
+  // Embedded (in the log analyzer), the host page already names the
+  // task, so its header and path line are left out.
+  let { task, embedded = false }: { task: AnsibleTask; embedded?: boolean } = $props()
 
   let errorsOnly = $state(false)
   let filter = $state('')
@@ -34,6 +36,7 @@
 </script>
 
 <div class="task">
+  {#if !embedded}
   <header>
     <Badge {tone} solid>{task.status}</Badge>
     {#if task.name}<h3>{task.name}</h3>{/if}
@@ -44,6 +47,7 @@
     </span>
   </header>
   {#if task.path}<p class="path">{task.path}</p>{/if}
+  {/if}
   <TaskDefinition name={task.name} path={task.path} />
 
   {#if task.cause}
