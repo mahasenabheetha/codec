@@ -6,6 +6,12 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-10-03
+
+Compare takes pasted text and files picked in the Explorer, Find in
+Files searches the text of every file, and a page left open across a
+restart offers a reload.
+
 ### Added
 
 - Find in Files (Ctrl+Shift+F, or Search in the sidebar): text across
@@ -28,6 +34,8 @@ All notable changes to codec are documented here. The format follows
   run that served it, instead of failing requests.
 - Compare: an × on each side clears it, and Clear empties both sides and
   the result. Ignored paths stay; cleared pasted text can be undone.
+
+## [2.0.1] - 2026-09-28
 
 ### Changed
 
@@ -393,7 +401,9 @@ First tagged release: codec as it stood before the 2.0 work began.
 - Release pipeline: pushing a `v*` tag publishes binaries for Linux,
   Windows and macOS (amd64/arm64) to GitHub Releases via GoReleaser.
 
-[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v2.1.0...HEAD
+[2.1.0]: https://github.com/mahasenabheetha/codec/compare/v2.0.1...v2.1.0
+[2.0.1]: https://github.com/mahasenabheetha/codec/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/mahasenabheetha/codec/compare/v2.0.0-alpha.1...v2.0.0
 [2.0.0-alpha.1]: https://github.com/mahasenabheetha/codec/compare/v1.0.0...v2.0.0-alpha.1
 [1.0.0]: https://github.com/mahasenabheetha/codec/releases/tag/v1.0.0

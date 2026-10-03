@@ -83,10 +83,11 @@ Build once in `frontend/src/lib/components` and reuse:
 | `Graph` | Node graphs (dagre layout, pan/zoom, colour groups `g-<group>`) |
 | `EffectiveLines` | Config with an origin per line (CI, Compose) |
 | `Popover`, `Dialog`, `Tooltip` | Overlays; dialogs trap focus and close on Esc |
+| `ContextMenu` | Right-click menus (also Shift+F10); entries built per open from the event; sentence case, an icon per entry |
 | `Badge`, `Kbd` | File type with logo; key combos |
 | `EmptyState` | Nothing to show yet: icon, one sentence, the action that fills it |
 | `Skeleton` | Loading placeholders in the content's shape |
-| `Toaster` / `toast()` | Brief confirmations and non-blocking errors |
+| `Toaster` / `toast()` | Brief confirmations and non-blocking errors; an optional action ("Cleared · Undo") for undoable clears |
 
 Shell pieces live in `lib/shell` (Rail, TabBar, StatusBar,
 CommandPalette, ShortcutsDialog). New tools register in `lib/tools.ts`

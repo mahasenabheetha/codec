@@ -62,8 +62,6 @@ keep the UI consistent and polished. Work efficiently: read only what a
 task needs and run only the tests for packages touched (the full suite
 runs once, at step 4).
 
-Before starting 2.1.0, merge the branch that added these plans.
-
 ### v2.1.0 — Compare, reload prompt, Find in Files
 Branch `feature/mab/v2.1.0`.
 
@@ -77,7 +75,7 @@ Branch `feature/mab/v2.1.0`.
 | T6 | Reload prompt | Server marks a stale token; "codec restarted — Reload" banner; docs | Done |
 | T7 | Find in Files: engine + API + CLI | `internal/search`, endpoint, result cap; tests; `codec search` | Done |
 | T8 | Find in Files: UI | Search panel in the Explorer's slot, Ctrl+Shift+F, results open at the line; docs | Done |
-| — | Release | If T7–T8 run long, release without them; they move to 2.2.0 | |
+| — | Release | Full checks passed; CHANGELOG cut as 2.1.0 | Ready to merge and tag |
 
 ### v2.2.0 — Ansible log analyzer, playbook map
 Branch `feature/mab/v2.2.0`.

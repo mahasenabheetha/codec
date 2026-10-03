@@ -52,6 +52,7 @@ contributor or AI agent; follow it step by step. Background:
 | Ansible order, roles, precedence, inventories, log tasks | `internal/ansible` |
 | Starters, clone, snippets | `internal/scaffold` |
 | jq query | `internal/query` |
+| Find in Files matches, globs, result cap | `internal/search` |
 | Files missing, reading, watching, classification | `internal/workspace` |
 | Settings file | `internal/config` |
 | API shape, request handling, security | `internal/web` (`<feature>_api.go`, `security.go`) |
