@@ -139,7 +139,7 @@ func marker(s string, l *Line) (Kind, string) {
 }
 
 // unwrap learns wrapper prefixes from the text seen before Ansible
-// headers (Packer's "    azure-arm: ", Compose's "web-1  | ") and
+// headers and results (Packer's "    azure-arm: ", Compose's "web-1  | ") and
 // removes them from every line that carries one, so later stages see
 // Ansible's output as Ansible printed it.
 func unwrap(lines []Line) {
@@ -154,7 +154,7 @@ func unwrap(lines []Line) {
 			}
 		}
 	}
-	// A run prints at least a PLAY and a TASK header; one sighting is
+	// A run prints at least a header and a result; one sighting is
 	// more likely a quoted header than a wrapper.
 	var prefixes []string
 	for p, n := range counts {
@@ -186,11 +186,14 @@ func unwrap(lines []Line) {
 	}
 }
 
-// headerIndex is where the first Ansible header starts in s, or -1.
-// Plain substring searches: this runs on every line of a big log.
+// headerIndex is where the first Ansible header, result or task path
+// starts in s, or -1. Results count too: a single task copied from a
+// wrapped log may have lost the prefix of its only header. Plain
+// substring searches: this runs on every line of a big log.
 func headerIndex(s string) int {
 	first := -1
-	for _, h := range [...]string{"PLAY [", "TASK [", "RUNNING HANDLER [", "PLAY RECAP *"} {
+	for _, h := range [...]string{"PLAY [", "TASK [", "RUNNING HANDLER [", "PLAY RECAP *",
+		"ok: [", "changed: [", "skipping: [", "failed: [", "fatal: [", "included: ", "task path: "} {
 		if i := strings.Index(s, h); i >= 0 && (first < 0 || i < first) {
 			first = i
 		}

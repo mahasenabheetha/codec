@@ -13,14 +13,13 @@
   import SearchInput from '../../lib/components/SearchInput.svelte'
   import SegmentedControl from '../../lib/components/SegmentedControl.svelte'
   import Select from '../../lib/components/Select.svelte'
-  import SplitPane from '../../lib/components/SplitPane.svelte'
   import type { LogAnalysis } from '../../lib/api/ansiblelog'
   import LogDetail from './LogDetail.svelte'
   import { duration, logs, taskShown, type LogFilter, type LogSelection } from './log.svelte'
 
   // A whole log: the summary on top, an outline (runs, plays, tasks
-  // and the output between them) on the left, the selection on the
-  // right. The outline is windowed: only rows in view are drawn.
+  // and the output between them) beside or above the selection. The
+  // outline is windowed: only rows in view are drawn.
   let { analysis }: { analysis: LogAnalysis } = $props()
 
   const s = $derived(analysis.summary)
@@ -240,7 +239,8 @@
     {#if s.verdict}<span class="verdict {verdictTone}">{s.verdict}</span>{/if}
   </div>
   <div class="body">
-    <SplitPane id="ansible-log" initial={0.38} min={260} first={outline} second={detail} />
+    {@render outline()}
+    <div class="detail-pane">{@render detail()}</div>
   </div>
 </div>
 
@@ -248,6 +248,7 @@
   .analyzer {
     height: 100%;
     min-height: 0;
+    container-type: inline-size;
     display: flex;
     flex-direction: column;
     gap: var(--s-2);
@@ -276,9 +277,27 @@
   .verdict.err {
     color: var(--err);
   }
+  /* Outline beside the detail when there is room, above it when not. */
   .body {
     flex: 1;
     min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(240px, 40%) minmax(0, 1fr);
+    gap: var(--s-2);
+  }
+  @container (max-width: 720px) {
+    .body {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: minmax(140px, 42%) minmax(0, 1fr);
+    }
+  }
+  .detail-pane {
+    min-height: 0;
+    min-width: 0;
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    overflow: hidden;
   }
   .side {
     height: 100%;

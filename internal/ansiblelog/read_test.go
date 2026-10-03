@@ -220,3 +220,18 @@ ok: [web-1]
 		t.Errorf("a: %v, %d other", tasks[0].Duration, len(tasks[0].Other))
 	}
 }
+
+// One task copied from a wrapped log, its header without the prefix:
+// the wrapper is learned from the task path and result lines.
+func TestReadWrappedFragment(t *testing.T) {
+	log := "TASK [db : Deploy code] ****\n" +
+		"    azure-arm: task path: /src/roles/db/tasks/main.yml:135\n" +
+		"    azure-arm: ok: [default] => {\"changed\": false, \"rc\": 0, \"msg\": \"\"}\n"
+	lg := read(log)
+	if got := results(lg); got != "Deploy code: ok default json msg=" {
+		t.Errorf("got %q", got)
+	}
+	if tk := lg.Blocks[0].Run.Plays[0].Tasks[0]; tk.Path != "/src/roles/db/tasks/main.yml" || tk.PathLine != 135 {
+		t.Errorf("path %s:%d", tk.Path, tk.PathLine)
+	}
+}

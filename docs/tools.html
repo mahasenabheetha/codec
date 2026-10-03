@@ -93,7 +93,7 @@
   <li>for the selected task, each host's result: failures a <code>rescue</code> caught and <code>ignore_errors</code> failures are told apart from real ones, as are unreachable hosts, retries, loop items and <code>no_log</code> output. Each result opens in the single-task view: <strong>probable cause</strong>, key fields, <code>stdout</code>/<code>stderr</code> with errors highlighted, and with a folder open <strong>Defined in</strong> (see <a href="ansible.html#log">Ansible</a>);</li>
   <li>for a run, its <strong>PLAY RECAP</strong> as a table, and its warnings.</li>
 </ul>
-<p>Durations come from a timer callback (<code>profile_tasks</code>) when the run used one, otherwise from the CI timestamps. Output of one task alone (a result line with no <code>TASK</code> header) opens straight in the single-task view. <kbd>Alt</kbd> <kbd>C</kbd> copies the outcome and the failures as text. On the command line: <code>codec ansible log</code> (see <a href="cli.html">CLI</a>).</p>
+<p>Durations come from a timer callback (<code>profile_tasks</code>) when the run used one, otherwise from the CI timestamps. One task with one result — the <code>TASK</code> line, its <code>task path</code> and the result, even copied out of a Packer or Compose log — opens straight in the single-task view, as does a result line on its own. What you paste stays in the box; a file shows as a card instead. <kbd>Alt</kbd> <kbd>C</kbd> copies the outcome and the failures as text. On the command line: <code>codec ansible log</code> (see <a href="cli.html">CLI</a>).</p>
 
 <h2 id="keys">Keyboard<a class="anchor" href="#keys">#</a></h2>
 <div class="table-wrap"><table>

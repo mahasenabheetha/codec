@@ -3,18 +3,16 @@
   import type { ToolDef } from '../../lib/tools'
   import SplitPane from '../../lib/components/SplitPane.svelte'
 
-  // Standard tool page: title + toolbar, then input and output panes,
-  // or one full-width body when the tool has its own layout.
+  // Standard tool page: title + toolbar, then input and output panes.
   interface Props {
     tool: ToolDef
     controls?: Snippet
     actions?: Snippet
     input: Snippet
     output: Snippet
-    body?: Snippet
   }
 
-  let { tool, controls, actions, input, output, body }: Props = $props()
+  let { tool, controls, actions, input, output }: Props = $props()
 </script>
 
 <div class="tool">
@@ -28,7 +26,7 @@
     {#if actions}<div class="actions">{@render actions()}</div>{/if}
   </header>
   <div class="body">
-    {#if body}{@render body()}{:else}<SplitPane id={tool.id} first={input} second={output} />{/if}
+    <SplitPane id={tool.id} first={input} second={output} />
   </div>
 </div>
 

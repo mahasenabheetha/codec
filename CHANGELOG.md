@@ -18,7 +18,9 @@ All notable changes to codec are documented here. The format follows
   (up to 64 MB). A summary and verdict, an outline of runs, plays and
   tasks with the output around them, filters (Failed, Changed, Skipped),
   a host picker and search, the first failure selected; each host's
-  result in the single-task view, and the recap as a table.
+  result in the single-task view, and the recap as a table. One task's
+  output still opens in the detailed single-task view; the pasted text
+  stays in view beside the result.
 - Ansible lens: a playbook map of plays, roles, task files and handlers;
   imports solid, includes dashed, templated include files resolved when
   their variable has one definition. With a log loaded, the map is

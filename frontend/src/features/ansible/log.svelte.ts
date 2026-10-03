@@ -16,7 +16,7 @@ export type LogSelection =
 
 class LogState {
   analysis = $state.raw<LogAnalysis | null>(null)
-  source = $state.raw<{ name: string; size: number } | null>(null)
+  source = $state.raw<{ name: string; size: number; file: boolean } | null>(null)
   running = $state(false)
   error = $state<string | null>(null)
 
@@ -38,7 +38,7 @@ class LogState {
       const a = await analyzeLog(body, c.signal)
       if (c.signal.aborted) return
       this.analysis = a
-      this.source = { name, size: typeof body === 'string' ? body.length : body.size }
+      this.source = typeof body === 'string' ? { name, size: body.length, file: false } : { name, size: body.size, file: true }
       this.host = ''
       this.query = ''
       this.filter = 'all'
