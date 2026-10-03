@@ -44,6 +44,7 @@ version, and add a CHANGELOG entry.
 | [Compare: paste as a source](#compare-paste-as-a-source) | M | Third source per side; works with no folder open |
 | [Compare: pick files from the Explorer](#compare-pick-files-from-the-explorer) | M | Drag and drop, plus a new Explorer context menu |
 | [Compare: clear](#compare-clear) | S | Per-side × and a Clear button |
+| [Find in Files](#find-in-files) | M | Text search across the workspace; read-only, no replace |
 
 ## Later
 
@@ -155,3 +156,31 @@ version, and add a CHANGELOG entry.
 - **Done when:** both buttons reset the view; Undo
   restores pasted text; docs `compare.html` updated.
 - **Decisions:** none new.
+
+### Find in Files
+- **Problem:** text can only be found inside one open file (Ctrl+F).
+  Quick open matches file names, and Query (jq) sees YAML values only —
+  not comments, keys as text, or non-YAML files (README, scripts, raw
+  templates).
+- **Result:** a Search view in the sidebar beside the Explorer
+  (Ctrl+Shift+F, also in the palette). A word, phrase or regular
+  expression; match case and whole word; include/exclude globs
+  (`charts/**`, `!**/tests/**`). Results are grouped by file with the
+  matching line and the match highlighted; clicking opens the file at
+  that line. Optional CLI: `codec search "phrase" [path]`.
+  - Read-only: no replace (decision 3).
+  - Searches the files the Explorer lists (same skipped folders and
+    .gitignore), skips binaries and files over the size limit, caps the
+    results ("showing first N") and cancels when the query changes.
+- **Scope:** a new `internal/search` package (pure: files in, matches
+  out), `internal/web` (`POST /api/v2/search`), a new
+  `features/search` view, the sidebar and palette, optionally
+  `internal/cli/search.go`; docs `workspace.html`, `shortcuts.html`,
+  `cli.html`. Out of scope: replace, an index (plain scanning is enough
+  at the 8 MB-per-file limit), searching outside the open folder.
+- **Done when:** search tests cover case, whole word, regex, globs,
+  binary skip and the result cap; finding a phrase on the sample opens
+  the right file and line; a large repository (`scripts/perf.sh`) returns
+  first results quickly; docs updated.
+- **Decisions:** 3 (read-only). New: Find in Files sits beside Query —
+  text vs structure — rather than replacing it.
