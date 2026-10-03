@@ -109,11 +109,12 @@ set       spec.template.spec.containers[0].image=</span></code></pre>
     curl -sSL https://github.com/mahasenabheetha/codec/releases/download/v2.0.0/codec_2.0.0_linux_amd64.tar.gz | tar xz codec
     ./codec yaml lint deploy/ charts/ --k8s-version 1.31</code></pre>
 
-<h2 id="diff">Diff and query<a class="anchor" href="#diff">#</a></h2>
+<h2 id="diff">Diff, query and search<a class="anchor" href="#diff">#</a></h2>
 <div class="table-wrap"><table>
   <tr><th>Command</th><th>What it does</th><th>Flags</th></tr>
   <tr><td><code>yaml diff &lt;a&gt; &lt;b&gt;</code></td><td>Semantic diff; exit 2 when different</td><td><code>--ignore PATTERN</code> (repeatable) · <code>--text</code> · <code>--json</code></td></tr>
   <tr><td><code>yaml query &lt;expr&gt; [file|folder…]</code></td><td>jq over each document</td><td><code>--with-location</code> · <code>--limit</code> (1000) · <code>--json</code></td></tr>
+  <tr><td><code>search &lt;text&gt; [folder]</code></td><td>Text in every listed file (honours <code>.gitignore</code>), printed as <code>path:line:col: text</code>; exit 1 when nothing is found</td><td><code>-e</code> regex · <code>-s</code> case-sensitive · <code>-w</code> whole word · <code>-g GLOB</code> (repeatable, <code>!</code> excludes) · <code>--limit</code> (2000) · <code>--json</code></td></tr>
 </table></div>
 
 <h2 id="helm">Helm<a class="anchor" href="#helm">#</a></h2>

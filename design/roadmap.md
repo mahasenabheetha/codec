@@ -75,7 +75,7 @@ Branch `feature/mab/v2.1.0`.
 | T4 | Explorer: context menu + Ctrl+click | Shared context-menu component; multi-select; keyboard | Done |
 | T5 | Explorer → Compare | Drag and drop onto a side; "Select for compare", "Compare with selected", "Compare selected"; docs | Done |
 | T6 | Reload prompt | Server marks a stale token; "codec restarted — Reload" banner; docs | Done |
-| T7 | [Find in Files](#find-in-files): engine + API + CLI | `internal/search`, endpoint, result cap; tests; `codec search` | |
+| T7 | [Find in Files](#find-in-files): engine + API + CLI | `internal/search`, endpoint, result cap; tests; `codec search` | Done |
 | T8 | Find in Files: UI | Search panel in the Explorer's slot, Ctrl+Shift+F, results open at the line; docs | |
 | — | Release | If T7–T8 run long, release without them; they move to 2.2.0 | |
 

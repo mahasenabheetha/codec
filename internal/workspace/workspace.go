@@ -201,6 +201,20 @@ func (w *Workspace) Read(p string) (*Content, error) {
 
 var bom = []byte{0xEF, 0xBB, 0xBF}
 
+// ReadText returns a file's bytes without a BOM and without parsing
+// them, for full-text search. Like Read it opens through the root, so a
+// symlink can't lead outside the folder.
+func (w *Workspace) ReadText(p string) ([]byte, error) {
+	if err := validPath(p); err != nil {
+		return nil, err
+	}
+	data, _, err := w.readFile(p)
+	if err != nil {
+		return nil, w.wrapErr(p, err)
+	}
+	return bytes.TrimPrefix(data, bom), nil
+}
+
 // readFile reads p through the root, refusing directories, big files
 // and binaries. Every path a client asks for is read this way.
 func (w *Workspace) readFile(p string) ([]byte, fs.FileInfo, error) {
