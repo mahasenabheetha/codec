@@ -30,7 +30,7 @@ export class Job<T> {
     } catch (e) {
       if (seq !== this.#seq) return
       this.result = null
-      this.error = e instanceof ApiError ? { message: e.message } : { message: String(e) }
+      this.error = e instanceof ApiError ? { message: e.message, body: e.body } : { message: String(e) }
     } finally {
       if (seq === this.#seq) this.busy = false
     }

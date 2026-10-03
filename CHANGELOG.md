@@ -20,6 +20,10 @@ All notable changes to codec are documented here. The format follows
   query as a table), hex, hashes and HMAC with an expected-digest check,
   secrets and UUIDs, and htpasswd lines with a check. Tools can have
   sub-tabs; Home and the palette list each one.
+- Time, under Utilities: Timestamp (epoch units told by size, dates,
+  any zone, relative time, Now) and Cron (plain words, field by field,
+  next runs, presets and a form that builds the expression and fills
+  from it).
 
 ## [2.2.0] - 2026-10-03
 

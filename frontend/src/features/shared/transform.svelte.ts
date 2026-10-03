@@ -10,6 +10,7 @@ export interface ToolError {
   message: string
   line?: number
   column?: number
+  body?: Record<string, unknown> // the API's whole error, when it says more
 }
 
 export type RequestOptions = Omit<TransformRequest, 'input'>
