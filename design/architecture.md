@@ -45,6 +45,8 @@ internal/
   ansiblelog/         ENGINE whole Ansible logs from pipelines: clean (CI
                       prefixes, colours, learned wrappers), segment into runs and
                       other output, read results; the analysis model
+  encode/             ENGINE Encode & hash tool: URL and hex encoding, digests and
+                      HMAC, random secrets and UUIDs, bcrypt htpasswd lines
   compose/            ENGINE Compose lens: files merged with the Compose rules and
                       origins, extends/include, ${VAR} from .env + what-if,
                       services graph, ports, volumes, checks

@@ -6,6 +6,13 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- CLI: `codec url`, `hex`, `hash`, `secret`, `uuid` and `htpasswd` for
+  percent-encoding, hex, digests and HMACs, random secrets, UUIDs and
+  bcrypt basic-auth lines. Passwords and HMAC keys are never taken as
+  arguments.
+
 ## [2.2.0] - 2026-10-03
 
 The Ansible log tool reads whole pipeline logs, from one failed task to

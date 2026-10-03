@@ -99,7 +99,7 @@ Branch `feature/mab/v2.3.0`. Shared rules in [Utilities](#utilities-applies-to-t
 | # | Task | Main parts | Status |
 |---|---|---|---|
 | T1 | Utilities setup | Sub-tabs in `lib/tools.ts`, "Utilities" rail heading, palette and Home entries per sub-tab; placeholders until each tool lands | Done |
-| T2 | [Encode & hash](#utilities-encode--hash): engine + API + CLI | URL, hex, hash/HMAC, secrets & UUID, htpasswd (bcrypt); test vectors | |
+| T2 | [Encode & hash](#utilities-encode--hash): engine + API + CLI | URL, hex, hash/HMAC, secrets & UUID, htpasswd (bcrypt); test vectors; `internal/encode`, `POST /api/v2/encode/{kind}`, decision 78 | Done |
 | T3 | Encode & hash: UI | Five sub-tabs; docs | |
 | T4 | [Time](#utilities-time): engine + API + CLI | Timestamps; cron parse, next runs, describe, build; dialect messages; DST tests | |
 | T5 | Time: UI | Timestamp with Now; cron explainer + generator; docs | |

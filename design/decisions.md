@@ -323,3 +323,9 @@ Settled unless the user reopens them. Add new ones at the bottom:
     matching only: a task's task path (file, or a role's folder), else
     its role prefix, else its play; handlers by name. No playbook
     evaluation; nodes no task reached show "never ran" (2026-10-03).
+78. Encode & hash: `golang.org/x/crypto` (bcrypt) and `golang.org/x/term`
+    (password prompt) become direct dependencies; both were already
+    indirect. htpasswd lines use `$2y$` as Apache writes them. The CLI
+    never takes a password or HMAC key as an argument (prompt, stdin or
+    an environment variable), so they stay out of shell history; hashes
+    are of the exact bytes given (2026-10-03).

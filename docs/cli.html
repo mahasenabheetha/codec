@@ -186,6 +186,18 @@ set       spec.template.spec.containers[0].image=</span></code></pre>
   <tr><td><code>watch</code></td><td>Transform recognisable clipboard content in place (<code>--interval</code>)</td></tr>
 </table></div>
 
+<h2 id="encode">Encode and hash<a class="anchor" href="#encode">#</a></h2>
+<div class="table-wrap"><table>
+  <tr><th>Command</th><th>What it does</th></tr>
+  <tr><td><code>url encode|decode [text]</code></td><td>Percent-encoding; <code>--whole</code> keeps a URL's structure, <code>--plus</code> treats a space as <code>+</code></td></tr>
+  <tr><td><code>url parse [url]</code></td><td>A URL's parts and its query string as a table (<code>--json</code>); a bare <code>a=1&amp;b=2</code> works too</td></tr>
+  <tr><td><code>hex encode|decode [text]</code></td><td><code>--upper</code>, <code>--sep :</code>; decoding accepts spaces, colons, <code>0x</code> and <code>\x</code></td></tr>
+  <tr><td><code>hash [text]</code></td><td>SHA-256, SHA-384, SHA-512, SHA-1, MD5 of the exact bytes (<code>-a sha256</code> prints only that digest, <code>--base64</code>); <code>--hmac-key-env VAR</code> for HMACs</td></tr>
+  <tr><td><code>secret</code></td><td>Random secrets: <code>--length</code>, <code>--sets lower,upper,digits,symbols</code>, <code>--format hex|base64|base64url</code>, <code>--no-ambiguous</code>, <code>-n</code></td></tr>
+  <tr><td><code>uuid</code></td><td>Random UUIDs (version 4), <code>-n</code> for more than one</td></tr>
+  <tr><td><code>htpasswd &lt;user&gt;</code></td><td>A bcrypt <code>user:hash</code> line for basic auth; the password is asked for or piped in (<code>--cost</code>). <code>--check "&lt;line&gt;"</code> checks one, exit 2 when it doesn't match</td></tr>
+</table></div>
+
 <h2 id="completion">Shell completion<a class="anchor" href="#completion">#</a></h2>
 <pre><code>codec completion powershell | Out-String | Invoke-Expression   <span class="c"># PowerShell</span>
 source &lt;(codec completion bash)                                <span class="c"># bash; also zsh and fish</span></code></pre>
