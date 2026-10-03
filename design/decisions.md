@@ -302,3 +302,8 @@ Settled unless the user reopens them. Add new ones at the bottom:
 72. After v2 merges, `main` is the base. Work happens on short-lived
     branches with pull requests; the phase files were compacted into
     history.md and new work is planned in roadmap.md (2026-09-27).
+73. One branch per release: `feature/mab/vX.Y.Z` from `main`, holding
+    that version's tasks in order (one or more commits each), merged by
+    PR and tagged on `main`; then the next version branches from `main`.
+    Fixes for a released version go on `fix/<topic>` as a patch release.
+    New features are minor releases. Refines 72 (2026-10-03).

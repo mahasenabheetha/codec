@@ -35,21 +35,85 @@ version, and add a CHANGELOG entry.
 
 ## Releases
 
-Planned order (agreed 2026-10-03). Semantic Versioning: new features
-are minor releases (2.x.0); patch releases (2.x.1) are bug fixes only.
-Each item gets its own short branch from `main` (decision 72) and its
-CHANGELOG line under "Unreleased"; a version is tagged when its items
-are merged, following [releases.md](releases.md). After a release, copy
-the new binary to the local launcher folder.
+Agreed 2026-10-03 (decision 73). Semantic Versioning: new features are
+minor releases (2.x.0); patch releases (2.x.1) are bug fixes only.
 
-| Version | Items, in build order | Notes |
-|---|---|---|
-| 2.1.0 | [Compare: clear](#compare-clear) → [Compare: paste as a source](#compare-paste-as-a-source) → [Compare: pick files from the Explorer](#compare-pick-files-from-the-explorer), [Reload prompt after a server restart](#reload-prompt-after-a-server-restart), then [Find in Files](#find-in-files) | Find in Files is last: if it runs long, 2.1.0 ships without it and it moves to the next release |
-| 2.2.0 | [Ansible log analyzer: whole runs](#ansible-log-analyzer-whole-runs) → [Ansible playbook map](#ansible-playbook-map) | The map's run colours need the analyzer; if the map runs long, release the analyzer as 2.2.0 and the map next |
-| 2.3.0 | [Utilities: Encode & hash](#utilities-encode--hash) → [Utilities: Time](#utilities-time) → [Utilities: Regex](#utilities-regex) | Encode & hash first: it sets up the Utilities heading and sub-tabs |
-| later | The rest of "Next" | Picked up after 2.3.0, or slotted in when it fits |
+### Routine for every version
+
+1. Start from an up-to-date `main`: `git switch -c feature/mab/v2.X.0`.
+2. Do the tasks in order. Each is finished before the next: code, tests
+   for the packages it touches only, its docs page, its CHANGELOG line
+   under "Unreleased". Commits: `2.X.0 T<n>: <what>`.
+3. After each task, stop with a short summary and how to try it
+   (`scripts/dev.sh run`); continue when the user says so.
+4. Finish: `go vet ./...`, `go test ./...`, frontend build and
+   `svelte-check`; docs pass over the changed pages; CHANGELOG
+   "Unreleased" → `## [2.X.0] - <date>`; roadmap rows → "Done".
+5. The user pushes, opens the PR and merges; then tags `main`
+   (`git tag -a v2.X.0 -m "codec v2.X.0"`, `git push origin v2.X.0`);
+   the release workflow publishes ([releases.md](releases.md)). Copy the
+   new binary to the local launcher folder.
+6. A bug in a released version meanwhile: `fix/<topic>` from `main`,
+   released as a patch (2.X.1); then merge `main` into the open version
+   branch.
+
+Work as the code already does: follow [workflow.md](workflow.md),
+[conventions.md](conventions.md) and
+[design-language.md](design-language.md); reuse existing components;
+keep the UI consistent and polished. Work efficiently: read only what a
+task needs and run only the tests for packages touched (the full suite
+runs once, at step 4).
 
 Before starting 2.1.0, merge the branch that added these plans.
+
+### v2.1.0 — Compare, reload prompt, Find in Files
+Branch `feature/mab/v2.1.0`.
+
+| # | Task | Main parts |
+|---|---|---|
+| T1 | [Compare: clear](#compare-clear) | × per side, Clear next to Swap; ignore patterns kept |
+| T2 | [Paste](#compare-paste-as-a-source): API | `paste` side kind; no folder needed; structure only for mappings/lists; whitespace and case options in `textdiff`; tests |
+| T3 | Paste: UI | Third source with an editor box; "Compare as"; "Live object noise" preset; "Compare text" on Home and in Tools; "Cleared · Undo"; docs |
+| T4 | [Explorer](#compare-pick-files-from-the-explorer): context menu + Ctrl+click | Shared context-menu component; multi-select; keyboard |
+| T5 | Explorer → Compare | Drag and drop onto a side; "Select for compare", "Compare with selected", "Compare selected"; docs |
+| T6 | [Reload prompt](#reload-prompt-after-a-server-restart) | Server marks a stale token; "codec restarted — Reload" banner; docs |
+| T7 | [Find in Files](#find-in-files): engine + API + CLI | `internal/search`, endpoint, result cap; tests; `codec search` |
+| T8 | Find in Files: UI | Search panel in the Explorer's slot, Ctrl+Shift+F, results open at the line; docs |
+| — | Release | If T7–T8 run long, release without them; they move to 2.2.0 |
+
+### v2.2.0 — Ansible log analyzer, playbook map
+Branch `feature/mab/v2.2.0`.
+
+| # | Task | Main parts |
+|---|---|---|
+| T1 | [Analyzer](#ansible-log-analyzer-whole-runs) stage 1: clean | ANSI, `\r`, CI timestamps/markers, learned wrapper prefixes; tests |
+| T2 | Stage 2: segment | Anchors, several runs, "other output", stray lines to their task; tests |
+| T3 | Stage 3: read results | Brace matching → YAML → raw; loops, retries, ignored, rescued, unreachable, `no_log`; `json` callback |
+| T4 | Stage 4: model + API + CLI | Run → plays → tasks → host results, recap, durations; `codec ansible log`; synthetic fixtures; fuzz test |
+| T5 | Analyzer UI | Summary bar, outline, filters, host picker, recap table, other-output blocks, file drop, first failure selected; existing task view as detail; docs |
+| T6 | [Playbook map](#ansible-playbook-map): graph | From the execution-order analysis; static/dynamic includes, "assumed", external roles; tests |
+| T7 | Playbook map: UI | Pipeline graph component, click to open; docs |
+| T8 | Run colours on the map | Failed, changed, ok, never ran |
+| — | Release | If T6–T8 run long, release the analyzer alone; the map moves to 2.3.0 |
+
+### v2.3.0 — Utilities
+Branch `feature/mab/v2.3.0`. Shared rules in [Utilities](#utilities-applies-to-the-three-items-below).
+
+| # | Task | Main parts |
+|---|---|---|
+| T1 | Utilities setup | Sub-tabs in `lib/tools.ts`, "Utilities" rail heading, palette and Home entries per sub-tab |
+| T2 | [Encode & hash](#utilities-encode--hash): engine + API + CLI | URL, hex, hash/HMAC, secrets & UUID, htpasswd (bcrypt); test vectors |
+| T3 | Encode & hash: UI | Five sub-tabs; docs |
+| T4 | [Time](#utilities-time): engine + API + CLI | Timestamps; cron parse, next runs, describe, build; dialect messages; DST tests |
+| T5 | Time: UI | Timestamp with Now; cron explainer + generator; docs |
+| T6 | Cron hover | CronJob, GitHub and Azure schedules |
+| T7 | [Regex](#utilities-regex): engine + API + CLI | RE2 and regexp2, time limit, replace, explainer; tests |
+| T8 | Regex: UI | Tester and explainer on one screen; docs |
+| T9 | Smart paste | Epoch numbers, URL-encoded text, cron expressions |
+| — | Release | |
+
+### Later
+The rest of "Next", picked up after 2.3.0 or slotted in when it fits.
 
 ## Next
 
