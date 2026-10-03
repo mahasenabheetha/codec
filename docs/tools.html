@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Encode, decode and logs · codec docs</title>
-<meta name="description" content="Smart paste, base64, JSON, JWT, whole Ansible log analysis, URL, hex, hashes, secrets, htpasswd, timestamps and cron, in the UI and on the command line. Nothing you paste is stored.">
+<meta name="description" content="Smart paste, base64, JSON, JWT, whole Ansible log analysis, URL, hex, hashes, secrets, htpasswd, timestamps, cron and regular expressions, in the UI and on the command line. Nothing you paste is stored.">
 <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/site.css">
 </head>
@@ -113,6 +113,17 @@
   <li><strong>Cron</strong> — type an expression, pick a preset, or build one: every N minutes, hourly, daily, weekly on chosen days, or monthly. The schedule shows in plain words ("Every 15 minutes, from 02:00 to 06:59, Monday to Friday"), field by field, with the next 10 runs. A typed expression fills the form when it fits. Standard 5-field cron, <code>@daily</code>-style shortcuts and a <code>CRON_TZ=</code> prefix are read; when both day fields are set, a day matching either runs, as in Kubernetes. A run that a daylight-saving change skips is named. Quartz (seconds, <code>?</code>, <code>L</code>, <code>W</code>, <code>#</code>) and Jenkins (<code>H</code>) expressions are recognised and named as unsupported.</li>
 </ul>
 <p>On the command line: <code>codec time</code> and <code>codec cron</code> (see <a href="cli.html#time">CLI</a>).</p>
+
+<h2 id="regex">Regex<a class="anchor" href="#regex">#</a></h2>
+<p>Under <strong>Utilities</strong>: a tester and an explainer on one screen. Type a pattern and some test text; matches light up in the text as you type.</p>
+<ul>
+  <li><strong>Style</strong>: <strong>Go (RE2)</strong>, Go's own regular expressions, which run in linear time but have no lookarounds or backreferences; or <strong>Python / .NET / JS</strong>, with lookahead and lookbehind, backreferences, atomic groups and Python's <code>(?P&lt;name&gt;…)</code>. A test in that style stops after 2 seconds if the pattern backtracks badly, and says so. When RE2 refuses a pattern the other style takes, the error says so and <strong>Switch</strong> changes style.</li>
+  <li><strong>Flags</strong> as toggles: <code>i</code> ignore case, <code>m</code> <code>^</code> and <code>$</code> at line breaks (on by default), <code>s</code> <code>.</code> matches line breaks, <code>x</code> ignore whitespace (Python / .NET / JS). <strong>All matches</strong> off finds only the first.</li>
+  <li><strong>Matches</strong>: each match with its line and capture groups, numbered and named; click one to select it in the text, hover a group to light up what it captured in every match. Up to 1000 matches.</li>
+  <li><strong>Explanation</strong>: the pattern part by part in plain words ("One or more times, as few as possible (lazy)", "Group 1, named "year""). Hover a part to find it in the pattern, and a group to see what it matched.</li>
+  <li><strong>Replace</strong>: type a replacement under the pattern (<code>$1</code>, <code>${name}</code>, <code>$0</code>; Python's <code>\1</code> and <code>\g&lt;name&gt;</code> work too) and see the result.</li>
+</ul>
+<p>On the command line: <code>codec regex</code> (see <a href="cli.html#regex">CLI</a>).</p>
 
 <h2 id="keys">Keyboard<a class="anchor" href="#keys">#</a></h2>
 <div class="table-wrap"><table>

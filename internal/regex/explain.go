@@ -15,6 +15,7 @@ type Node struct {
 	End      int     `json:"end"`
 	Text     string  `json:"text"`
 	Desc     string  `json:"desc"`
+	Group    int     `json:"group,omitempty"` // a capture group's number
 	Children []*Node `json:"children,omitempty"`
 }
 
@@ -352,7 +353,11 @@ func (p *parser) groupNode(depth int) *Node {
 		return p.node("error", from, "A ( without a matching )", children...)
 	}
 	p.i++ // )
-	return p.node("group", from, desc, children...)
+	g := p.node("group", from, desc, children...)
+	if capture {
+		g.Group = p.numbers[from]
+	}
+	return g
 }
 
 func flagWords(fl string) string {

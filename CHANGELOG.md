@@ -31,6 +31,10 @@ All notable changes to codec are documented here. The format follows
 - Hover a cron schedule in a Kubernetes CronJob, an Argo CronWorkflow,
   a GitHub workflow or an Azure pipeline to read it in plain words, with
   the zone it runs in and the next runs. The sample has one of each.
+- Regex, under Utilities: matches highlighted as you type, capture
+  groups per match, a replace preview, and an explanation of the pattern
+  part by part; hovering a part finds it in the pattern and a group
+  lights up what it captured. Go (RE2) or Python / .NET / JS style.
 
 ## [2.2.0] - 2026-10-03
 
