@@ -96,9 +96,7 @@
     <ToolTabs {tool} />
     <span class="divider" aria-hidden="true"></span>
     <ZonePicker bind:value={zones.timestamp} label="Show times in" />
-  {/snippet}
-  {#snippet actions()}
-    <Button icon={TimerReset} onclick={now} title="The current Unix timestamp">Now</Button>
+    <Button variant="primary" icon={TimerReset} onclick={now} title="The current Unix timestamp">Now</Button>
   {/snippet}
   {#snippet body()}
     <LineInput bind:value={job.input} bind:field label="Timestamp or date" invalid={!!job.error} onclear={clear} placeholder="1770120309, 1770120309123 or 2026-02-03T14:05:09Z">
@@ -116,8 +114,10 @@
           {#each rows as r (r.label)}
             <div class="row">
               <dt>{r.label}</dt>
-              <dd><code>{r.value}</code></dd>
-              <IconButton icon={Copy} label="Copy {r.label}" size="sm" onclick={() => copyText(r.value, r.label)} />
+              <dd>
+                <code>{r.value}</code>
+                <IconButton icon={Copy} label="Copy {r.label}" size="sm" onclick={() => copyText(r.value, r.label)} />
+              </dd>
             </div>
           {/each}
         </dl>
@@ -149,7 +149,7 @@
   }
   .row {
     display: grid;
-    grid-template-columns: minmax(140px, 220px) 1fr auto;
+    grid-template-columns: minmax(140px, 220px) 1fr;
     align-items: center;
     gap: var(--s-3);
     padding: var(--s-2) 0;
@@ -160,9 +160,13 @@
     color: var(--fg-1);
     overflow-wrap: anywhere;
   }
+  /* The copy button sits right after its value, not at the far edge. */
   dd {
     margin: 0;
     min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
   }
   code {
     font-size: var(--fs-md);
