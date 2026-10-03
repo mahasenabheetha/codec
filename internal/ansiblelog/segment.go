@@ -3,6 +3,7 @@ package ansiblelog
 import (
 	"regexp"
 	"strings"
+	"time"
 )
 
 // Log is a cleaned log cut into Ansible runs and the output around them.
@@ -24,9 +25,10 @@ type Run struct {
 	Playbook string // from "PLAYBOOK: site.yml" (-v and up), if printed
 	JSON     bool   // the json stdout callback: one document, no headers
 	Plays    []Play
-	Recap    []int // the host rows after PLAY RECAP (line indexes)
-	Notes    []int // [WARNING], [DEPRECATION WARNING] and ERROR! lines
-	Complete bool  // ended with its recap
+	Recap    []int       // the host rows after PLAY RECAP (line indexes)
+	Notes    []int       // [WARNING], [DEPRECATION WARNING] and ERROR! lines
+	Complete bool        // ended with its recap
+	Hosts    []HostRecap // the recap read by Read
 }
 
 // Play is a PLAY header and the tasks under it.
@@ -43,7 +45,12 @@ type Task struct {
 	Name     string // without the role
 	Role     string // "role : name" headers
 	Handler  bool
-	From, To int // body line indexes, [From, To)
+	From, To int           // body line indexes, [From, To)
+	Path     string        // "task path:" (-vv): the file defining it
+	PathLine int           // and the line there
+	Duration time.Duration // from a timer callback (profile_tasks), if any
+	Results  []Result      // filled in by Read
+	Other    []int         // body lines that aren't results (-vvv, interleaved output)
 }
 
 var (
