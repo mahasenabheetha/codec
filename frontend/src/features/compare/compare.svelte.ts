@@ -18,6 +18,7 @@ import { openSessions } from '../editor/active.svelte'
 
 /** A side with its what-if buffer filled in, if the file has one. */
 function withBuffer(s: Side, useWhatIf: boolean): Side {
+  if (s.kind === 'paste') return s
   if (s.kind !== 'file' || !s.path || !useWhatIf) return { ...s, content: undefined }
   const session = openSessions.get(s.path)
   return session?.dirty ? { ...s, content: session.buffer } : { ...s, content: undefined }
@@ -99,7 +100,7 @@ class Compare {
     this.inflight = ctrl
     this.running = true
     try {
-      const r = await compare(withBuffer(this.left, this.leftWhatIf), withBuffer(this.right, this.rightWhatIf), this.ignore, ctrl.signal)
+      const r = await compare(withBuffer(this.left, this.leftWhatIf), withBuffer(this.right, this.rightWhatIf), this.ignore, {}, ctrl.signal)
       if (ctrl.signal.aborted) return
       this.result = r
       this.error = null

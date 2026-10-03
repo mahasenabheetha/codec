@@ -163,6 +163,31 @@ func Unified(path, old, new string, context int) string {
 	return format(path, Lines(SplitLines(old), SplitLines(new)), context)
 }
 
+// Options loosen which lines count as the same.
+type Options struct {
+	IgnoreSpace bool // runs of spaces and tabs, indentation, line endings
+	IgnoreCase  bool
+}
+
+// UnifiedWith is Unified with looser line equality. Lines that match
+// only loosely show as context, taken from old. With no options set it
+// is Unified.
+func UnifiedWith(path, old, new string, context int, o Options) string {
+	if !o.IgnoreSpace && !o.IgnoreCase {
+		return Unified(path, old, new, context)
+	}
+	norm := func(s string) string {
+		if o.IgnoreSpace {
+			s = strings.Join(strings.Fields(s), " ")
+		}
+		if o.IgnoreCase {
+			s = strings.ToLower(s)
+		}
+		return s
+	}
+	return format(path, LinesFunc(SplitLines(old), SplitLines(new), func(x, y string) bool { return norm(x) == norm(y) }), context)
+}
+
 // format writes edits as a unified diff.
 func format(path string, edits []Edit, context int) string {
 
