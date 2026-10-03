@@ -45,6 +45,10 @@ version, and add a CHANGELOG entry.
 | [Compare: pick files from the Explorer](#compare-pick-files-from-the-explorer) | M | Drag and drop, plus a new Explorer context menu |
 | [Compare: clear](#compare-clear) | S | Per-side × and a Clear button |
 | [Find in Files](#find-in-files) | M | Text search across the workspace; read-only, no replace |
+| [Helm environment matrix](#helm-environment-matrix) | M | All profiles of a chart at once: what differs per environment |
+| [Kubernetes resource totals](#kubernetes-resource-totals) | S | Requests and limits × replicas, summed |
+| [RBAC view](#rbac-view) | M | Who can do what; flags wildcards and cluster-admin |
+| [NetworkPolicy view](#networkpolicy-view) | M | Which pods can talk to which |
 
 ## Later
 
@@ -55,6 +59,8 @@ version, and add a CHANGELOG entry.
 | User-defined lint rules (CEL) | Per-user rules in settings, never in repos |
 | v3 desktop app (Wails) | The frontend talks to the backend only through `lib/api`; swap the transport |
 | Optional AI assist | Must stay opt-in and local-first |
+| Several folders open at once | e.g. an app and an infra repository; search and compare across them |
+| References across folders | e.g. an Argo Application pointing at a chart in another local folder; needs the item above |
 
 ## Done
 
@@ -184,3 +190,61 @@ version, and add a CHANGELOG entry.
   first results quickly; docs updated.
 - **Decisions:** 3 (read-only). New: Find in Files sits beside Query —
   text vs structure — rather than replacing it.
+
+### Helm environment matrix
+- **Problem:** Compare shows two renders at a time; seeing how dev, test
+  and prod drift apart means many pairwise compares.
+- **Result:** for a chart, render it with every saved profile (and the
+  defaults) and show one table: objects present per profile, and the
+  fields that differ (replicas, images, resources, env, hosts), one
+  column per profile. A cell opens the pairwise Compare for those two.
+- **Scope:** `internal/helm` (render each profile, reuse the semantic
+  diff), `internal/web`, `features/helm`; docs `helm.html`. Out of scope:
+  values files that aren't saved profiles; rendering in parallel beyond
+  what the Helm view already does.
+- **Done when:** the sample chart with two or more profiles shows the
+  expected differences; helm tests cover the table; docs updated.
+- **Decisions:** 44 (semantic diff identity); profiles stay in the user
+  profile, never in the repository.
+
+### Kubernetes resource totals
+- **Problem:** how much a release asks of the cluster (CPU, memory) is
+  scattered across containers and replica counts.
+- **Result:** in Resources (and per Helm render): requests and limits
+  per workload multiplied by replicas, summed per namespace and overall,
+  with init containers counted as Kubernetes does (max, not sum) and
+  containers without values listed as "not set". HPA min/max shown when
+  present.
+- **Scope:** `internal/kube` (quantity parsing and sums), `features/kube`;
+  docs `kubernetes.html`.
+- **Done when:** kube tests cover quantities (`100m`, `1.5`, `512Mi`,
+  `1G`), replicas, init containers and missing values; the sample shows
+  correct totals.
+- **Decisions:** none new.
+
+### RBAC view
+- **Problem:** what a ServiceAccount, user or group may do is spread over
+  Roles, ClusterRoles and their bindings.
+- **Result:** a table per subject: verbs × resources × namespace, with
+  the binding and role it comes from. Flags `*` verbs or resources,
+  `cluster-admin` bindings and bindings to roles not in the repository.
+- **Scope:** `internal/kube` (graph already links objects), `features/kube`,
+  possibly lint rules; docs `kubernetes.html`. Out of scope: aggregated
+  ClusterRoles from the cluster, built-in roles beyond a known list.
+- **Done when:** kube tests cover Role vs ClusterRole bindings and
+  wildcards; the sample shows its ServiceAccount's rights.
+- **Decisions:** none new.
+
+### NetworkPolicy view
+- **Problem:** NetworkPolicy YAML is hard to read: which pods can reach
+  which, on which ports, is not obvious.
+- **Result:** per namespace, a diagram and a table: for each workload,
+  allowed ingress and egress (pods, namespaces, CIDRs, ports), and
+  workloads not selected by any policy (allow all). States clearly that
+  it shows the repository's policies, not a cluster's.
+- **Scope:** `internal/kube` (selector matching exists), `features/kube`;
+  docs `kubernetes.html`. Out of scope: CNI-specific policies (Calico,
+  Cilium CRDs).
+- **Done when:** kube tests cover podSelector, namespaceSelector, ipBlock,
+  ports and default deny; the sample has a policy to show.
+- **Decisions:** none new.
