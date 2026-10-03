@@ -174,6 +174,9 @@ func TestFindTask(t *testing.T) {
 		{"Nothing like it", "", ""},
 		// Another role's tasks/main.yml is not this task's file.
 		{"app : Run migrations", "/builds/team/repo/roles/app/tasks/main.yml:9", ""},
+		// A "roles" folder higher up in the CI path does not count.
+		{"common : Create users", "/builds/roles/repo/roles/common/tasks/users.yml:1", "repo/roles/common/tasks/users.yml:1 task path Create users"},
+		{"Done", "/srv/roles/repo/playbooks/site.yml:30", "repo/playbooks/site.yml:30 task path Done"},
 	} {
 		got := ""
 		if ms := FindTask(tc.name, tc.path, ws.Files, ws.Load); len(ms) > 0 {

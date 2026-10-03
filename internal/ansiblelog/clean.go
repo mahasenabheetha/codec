@@ -55,34 +55,56 @@ var (
 // the line they continue), so nothing is dropped.
 func Clean(input string) []Line {
 	raw := strings.Split(strings.TrimSuffix(input, "\n"), "\n")
-	out := make([]Line, 0, len(raw))
+	// First the records: a continuation's raw text joins the line it
+	// continues, so a colour code or JSON value split between pieces is
+	// whole again before anything is stripped.
+	type record struct {
+		n     int
+		parts []string
+		time  time.Time
+		err   bool
+	}
+	isMarker := func(s string) bool { return strings.HasPrefix(stripANSI(s), "section_") }
+	recs := make([]record, 0, len(raw))
 	for i, s := range raw {
-		l := Line{N: i + 1}
+		r := record{n: i + 1}
 		cont := false
 		if m := gitlabPrefix.FindStringSubmatchIndex(s); m != nil {
-			l.Time = parseTime(s[m[2]:m[3]])
-			l.Err = s[m[1]-2] == 'E'
+			r.time = parseTime(s[m[2]:m[3]])
+			r.err = s[m[1]-2] == 'E'
 			cont = s[m[4]] == '+'
 			s = s[m[1]:]
 		} else if m := isoPrefix.FindStringSubmatchIndex(s); m != nil {
 			if t := parseTime(s[m[2]:m[3]]); !t.IsZero() {
-				l.Time = t
+				r.time = t
 				s = s[m[1]:]
 			}
 		}
-		s = redraw(stripANSI(s))
-		l.Kind, s = marker(s, &l)
-		l.Text = s
-
-		// A continuation belongs to the text line before it.
-		if cont && l.Kind == Text && len(out) > 0 && out[len(out)-1].Kind == Text {
-			prev := &out[len(out)-1]
-			prev.Text += s
-			if prev.Time.IsZero() {
-				prev.Time = l.Time
+		// Section markers stand alone, even when GitLab writes them as
+		// a continuation.
+		if cont && len(recs) > 0 && !isMarker(s) && !isMarker(recs[len(recs)-1].parts[0]) {
+			prev := &recs[len(recs)-1]
+			// A piece's trailing \r ended its record, it isn't a redraw.
+			last := len(prev.parts) - 1
+			prev.parts[last] = strings.TrimSuffix(prev.parts[last], "\r")
+			prev.parts = append(prev.parts, s)
+			if prev.time.IsZero() {
+				prev.time = r.time
 			}
 			continue
 		}
+		r.parts = []string{s}
+		recs = append(recs, r)
+	}
+	out := make([]Line, 0, len(recs))
+	for _, r := range recs {
+		s := r.parts[0]
+		if len(r.parts) > 1 {
+			s = strings.Join(r.parts, "")
+		}
+		l := Line{N: r.n, Time: r.time, Err: r.err}
+		s = redraw(stripANSI(s))
+		l.Kind, l.Text = marker(s, &l)
 		out = append(out, l)
 	}
 	unwrap(out)
@@ -211,7 +233,7 @@ func label(p string) string {
 
 func parseTime(s string) time.Time {
 	s = strings.Replace(s, ",", ".", 1)
-	for _, layout := range []string{time.RFC3339Nano, "2006-01-02 15:04:05.999999999Z07:00", "2006-01-02T15:04:05.999999999", "2006-01-02 15:04:05.999999999", "2006-01-02T15:04:05.999999999Z0700"} {
+	for _, layout := range []string{time.RFC3339Nano, "2006-01-02 15:04:05.999999999Z07:00", "2006-01-02T15:04:05.999999999", "2006-01-02 15:04:05.999999999", "2006-01-02T15:04:05.999999999Z0700", "2006-01-02 15:04:05.999999999Z0700"} {
 		if t, err := time.Parse(layout, s); err == nil {
 			return t
 		}

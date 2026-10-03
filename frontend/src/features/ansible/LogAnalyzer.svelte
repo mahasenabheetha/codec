@@ -94,6 +94,9 @@
     else logs.sel = { kind: 'other', block: r.block }
   }
 
+  // Rows never take focus (mousedown is held back): the list keeps it,
+  // so arrow keys work even when the row scrolls out of the window.
+
   // Keep the selection in view (first failure on open, arrow keys).
   async function reveal(i: number) {
     await tick()
@@ -169,7 +172,7 @@
       onscroll={() => (scrollTop = list!.scrollTop)}
       role="listbox"
       aria-label="Runs, tasks and other output"
-      aria-activedescendant={selIndex >= 0 ? `logrow-${selIndex}` : undefined}
+      aria-activedescendant={selIndex >= first && selIndex < last ? `logrow-${selIndex}` : undefined}
       tabindex="0"
       {onkeydown}
     >
@@ -186,7 +189,8 @@
             role="option"
             aria-selected={on}
             tabindex="-1"
-            onclick={() => choose(r)}
+            onmousedown={(e) => e.preventDefault()}
+            onclick={() => (choose(r), list?.focus())}
             onkeydown={(e) => e.key === 'Enter' && choose(r)}
           >
             {#if r.type === 'other'}

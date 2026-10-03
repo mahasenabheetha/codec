@@ -40,6 +40,7 @@
   $effect(() => {
     const text = task && result ? blockText(task, result) : null
     parsed = null
+    parsing = false
     if (!text) return
     let live = true
     parsing = true
@@ -47,7 +48,10 @@
       .then((r) => live && (parsed = r.task ?? null))
       .catch(() => live && (parsed = null))
       .finally(() => live && (parsing = false))
-    return () => (live = false)
+    return () => {
+      live = false
+      parsing = false
+    }
   })
 
   let otherOpen = $state(false)

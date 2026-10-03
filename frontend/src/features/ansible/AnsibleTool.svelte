@@ -36,21 +36,22 @@
     const text = session.input
     if (!text.trim()) return
     single = false
-    await logs.analyze(text, 'Pasted log')
-    const a = logs.analysis
-    if (!a) return
+    const a = await logs.analyze(text, 'Pasted log')
+    if (!a) return // failed, or a newer read took over
     // One task and one result (or output with no run around it): the
     // single-task view shows it best, as before the analyzer.
     const tasks = a.blocks.flatMap((b) => b.run?.plays.flatMap((p) => p.tasks) ?? [])
     if (a.summary.runs === 0 || (tasks.length === 1 && tasks[0].results.length <= 1)) {
       await session.run({ mode: 'ansible' })
-      single = !!session.result?.task
+      // Still the text that was read, and no file opened meanwhile.
+      single = session.input === text && logs.analysis === a && !!session.result?.task
     }
   }
 
-  // Emptying the box clears what was read from it.
+  // Emptying the box clears what was read from it (not while a file,
+  // which empties the box, is being read).
   $effect(() => {
-    if (session.input.trim() || logs.source?.file) return
+    if (session.input.trim() || logs.source?.file || logs.running) return
     untrack(() => {
       if (logs.analysis || single) {
         single = false
@@ -85,6 +86,7 @@
     dropping = false
     if (!hasFile(e)) return
     e.preventDefault()
+    e.stopPropagation()
     openFile(e.dataTransfer?.files[0])
   }
 
@@ -128,7 +130,19 @@
 
 <input bind:this={picker} type="file" accept=".log,.txt,text/plain" hidden onchange={(e) => openFile((e.currentTarget as HTMLInputElement).files?.[0])} />
 
-<div class="tool-wrap" class:dropping role="region" aria-label="Ansible log" {ondragover} ondragleave={() => (dropping = false)} {ondrop}>
+<!-- Capture phase: a file dropped on the editor is read as a file, not
+     inserted as text by CodeMirror. -->
+<div
+  class="tool-wrap"
+  class:dropping
+  role="region"
+  aria-label="Ansible log"
+  ondragovercapture={ondragover}
+  ondragleave={(e) => {
+    if (!(e.currentTarget as HTMLElement).contains(e.relatedTarget as Node | null)) dropping = false
+  }}
+  ondropcapture={ondrop}
+>
   <ToolLayout {tool}>
     {#snippet actions()}
       <Button icon={FileUp} onclick={() => picker?.click()}>Open log file…</Button>

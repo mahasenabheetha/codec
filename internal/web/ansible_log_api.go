@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"unsafe"
 
 	"github.com/mahasenabheetha/codec/v2/internal/ansiblelog"
 )
@@ -22,6 +23,20 @@ var logSlots = make(chan struct{}, 2)
 // read into runs, plays, tasks and results, with the output around
 // them. Nothing is stored (decision 19); no folder is needed.
 func (s *Server) handleAnsibleLog(w http.ResponseWriter, r *http.Request) {
+	// The slot is taken before the body is read and held until the
+	// answer is written, or until the analysis ends if the client gave
+	// up: at most two logs are in memory at once.
+	select {
+	case logSlots <- struct{}{}:
+	case <-r.Context().Done():
+		return
+	}
+	held := true
+	defer func() {
+		if held {
+			<-logSlots
+		}
+	}()
 	body, err := io.ReadAll(http.MaxBytesReader(w, r.Body, maxLog))
 	if err != nil {
 		if errors.As(err, new(*http.MaxBytesError)) {
@@ -31,23 +46,23 @@ func (s *Server) handleAnsibleLog(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "reading the log: "+err.Error())
 		return
 	}
-	if bytes.IndexByte(body[:min(len(body), 8000)], 0) >= 0 {
+	if len(body) == 0 || bytes.IndexByte(body[:min(len(body), 8000)], 0) >= 0 {
 		writeError(w, http.StatusUnprocessableEntity, "this doesn't look like a text log")
 		return
 	}
+	done := make(chan *ansiblelog.Analysis, 1)
+	go func() {
+		// body is never written again, so the text can share its bytes.
+		done <- ansiblelog.Analyze(unsafe.String(&body[0], len(body)))
+	}()
 	select {
-	case logSlots <- struct{}{}:
+	case a := <-done:
+		writeJSON(w, http.StatusOK, a)
 	case <-r.Context().Done():
-		return
+		held = false
+		go func() {
+			<-done
+			<-logSlots
+		}()
 	}
-	// The slot is held until the analysis ends, even if the client
-	// stopped waiting for it.
-	a, err := cancellable(r.Context(), func() (*ansiblelog.Analysis, error) {
-		defer func() { <-logSlots }()
-		return ansiblelog.Analyze(string(body)), nil
-	})
-	if err != nil {
-		return // the client gave up
-	}
-	writeJSON(w, http.StatusOK, a)
 }

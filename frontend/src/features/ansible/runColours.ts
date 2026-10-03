@@ -26,6 +26,8 @@ function colourOf(t: LogTask): RunColour {
       return 'rescued'
     case 'changed':
       return 'changed'
+    case 'skipping':
+      return 'never' // skipped on every host: it didn't run
   }
   return 'ok'
 }
@@ -48,7 +50,7 @@ export function runColours(graph: PlaybookGraph, run: LogRun): Map<string, RunCo
 
   function nodeFor(t: LogTask, play: string): PlaybookNode | undefined {
     if (t.handler) {
-      const h = graph.nodes.find((n) => n.kind === 'handler' && n.label === t.name)
+      const h = graph.nodes.find((n) => n.kind === 'handler' && n.label === t.name && (!t.role || !n.role || n.role === t.role))
       if (h) return h
     }
     if (t.path) {

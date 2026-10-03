@@ -1,6 +1,7 @@
 package ansiblelog
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -158,5 +159,41 @@ func BenchmarkAnalyze50MB(b *testing.B) {
 	b.ResetTimer()
 	for b.Loop() {
 		Analyze(in)
+	}
+}
+
+// Findings from the 2.2.0 review, one log each.
+func TestReviewCases(t *testing.T) {
+	first := func(a *Analysis) string {
+		if f := a.Summary.FirstFailure; f != nil {
+			return a.Blocks[f.Block].Run.Plays[f.Play].Tasks[f.Task].Name
+		}
+		return ""
+	}
+	// An always: task runs after a failure; the recap says nothing was
+	// rescued, so the failure stands.
+	a := Analyze("PLAY [p] ***\nTASK [deploy] ***\nfatal: [h]: FAILED! => {\"msg\": \"x\"}\nTASK [cleanup] ***\nok: [h]\nPLAY RECAP ***\nh : ok=1 changed=0 unreachable=0 failed=1 skipped=0 rescued=0 ignored=0\n")
+	if first(a) != "deploy" || a.Blocks[0].Run.Status != Failed {
+		t.Errorf("always: first failure %q, status %s", first(a), a.Blocks[0].Run.Status)
+	}
+	// A loop with ignore_errors prints "...ignoring" once for all items.
+	a = Analyze("PLAY [p] ***\nTASK [try] ***\nfailed: [h] (item=1) => {\"msg\": \"a\"}\nfailed: [h] (item=2) => {\"msg\": \"b\"}\n...ignoring\nPLAY RECAP ***\nh : ok=0 changed=0 unreachable=0 failed=0 skipped=0 rescued=0 ignored=1\n")
+	if first(a) != "" || a.Blocks[0].Run.Plays[0].Tasks[0].Counts.Ignored != 2 {
+		t.Errorf("ignored loop: first failure %q, counts %+v", first(a), a.Blocks[0].Run.Plays[0].Tasks[0].Counts)
+	}
+	// An apostrophe in a loop item isn't a quote.
+	a = Analyze("PLAY [p] ***\nTASK [t] ***\nfailed: [h] (item=don't) => {\"msg\": \"boom\"}\n")
+	if r := a.Blocks[0].Run.Plays[0].Tasks[0].Results[0]; r.Item != "don't" || r.Msg != "boom" {
+		t.Errorf("apostrophe: item %q msg %q", r.Item, r.Msg)
+	}
+	// YAML with numeric keys and .nan still encodes as JSON.
+	a = Analyze("PLAY [p] ***\nTASK [t] ***\nok: [h] => \n  ports:\n    80: http\n  ratio: .nan\n")
+	if _, err := json.Marshal(a); err != nil {
+		t.Errorf("yaml payload: %v", err)
+	}
+	// A delegated retry counts for its host, and only once.
+	a = Analyze("PLAY [p] ***\nTASK [wait] ***\nFAILED - RETRYING: [h -> db]: wait (2 retries left).\nok: [h -> db]\nok: [g]\n")
+	if rs := a.Blocks[0].Run.Plays[0].Tasks[0].Results; rs[0].Retries != 1 || rs[1].Retries != 0 {
+		t.Errorf("retries %d %d", rs[0].Retries, rs[1].Retries)
 	}
 }

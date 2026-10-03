@@ -174,3 +174,27 @@ func BenchmarkClean(b *testing.B) {
 		Clean(in)
 	}
 }
+
+// GitLab can split a colour code between two records; the pieces are
+// joined before codes are stripped. One long line in many pieces stays
+// linear.
+func TestCleanSplitPieces(t *testing.T) {
+	in := "2026-01-02T10:00:00.1Z 01O \x1b[3\n2026-01-02T10:00:00.2Z 01O+2mPLAY [p] ***\x1b[0m\n"
+	if got := texts(Clean(in)); got != "PLAY [p] ***" {
+		t.Errorf("got %q", got)
+	}
+	var b strings.Builder
+	b.WriteString("2026-01-02T10:00:00.1Z 01O ok: [h] => {\"x\": \"")
+	for range 5000 {
+		b.WriteString("\n2026-01-02T10:00:00.1Z 01O+" + strings.Repeat("a", 4000))
+	}
+	b.WriteString("\"}\n")
+	start := time.Now()
+	lines := Clean(b.String())
+	if len(lines) != 1 || time.Since(start) > 2*time.Second {
+		t.Errorf("%d lines in %v", len(lines), time.Since(start))
+	}
+	if got := texts(Clean("2026-10-01 20:50:33+0000 PLAY [p] ***")); got != "PLAY [p] ***" {
+		t.Errorf("space and offset timestamp: %q", got)
+	}
+}

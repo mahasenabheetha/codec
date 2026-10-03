@@ -1,5 +1,5 @@
 lines=8 runs=1 hosts=[app-1] tasks=2 ok=1 changed=0 failed=0 unreachable=0 skipped=0 rescued=0 ignored=0 durationMs=3605300 other=2 otherErrors=1
-verdict: The last Ansible run stopped before its recap.
+verdict: An Ansible run stopped before its recap.
 
 other 1-2 [step_script] errors=0 warnings=0
   | $ ansible-playbook site.yml

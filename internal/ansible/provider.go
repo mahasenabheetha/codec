@@ -455,7 +455,7 @@ func HoverIn(f *provider.File, pos yamlkit.Pos, opts Options) *provider.Hover {
 		switch {
 		case t.role == nil:
 		case t.role.External:
-			row("From", "a collection (not in the folder)")
+			row("From", t.role.Origin()+" (not in the folder)")
 		case !t.role.Found && opts.Files == nil:
 			row("Found", "open the folder to look for it")
 		case !t.role.Found:

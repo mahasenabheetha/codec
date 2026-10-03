@@ -51,7 +51,7 @@ unreachable host, a run cut short, or errors in the output around it).`,
 		} else {
 			printLog(cmd.OutOrStdout(), name, a, logAll)
 		}
-		if a.Summary.FirstFailure != nil || a.Summary.Unreachable > 0 || a.Summary.Verdict != "" {
+		if s := a.Summary; s.FirstFailure != nil || s.Failed+s.Unreachable > 0 || s.Verdict != "" {
 			return exitCode(2)
 		}
 		return nil

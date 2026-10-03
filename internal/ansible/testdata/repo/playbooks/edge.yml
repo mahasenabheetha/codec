@@ -1,0 +1,31 @@
+---
+# Graph edge cases: include_role of a role with a dependency, two
+# handlers on one listen topic, a handler name reused by another play,
+# an include whose file name uses a filter.
+- name: One
+  hosts: a
+  tasks:
+    - name: Pull in nginx
+      include_role:
+        name: nginx
+    - name: Poke
+      command: /bin/true
+      notify: web
+    - include_tasks: "{{ tf | default('x.yml') }}"
+  handlers:
+    - name: h1
+      listen: web
+      command: /bin/true
+    - name: h2
+      listen: web
+      command: /bin/true
+
+- name: Two
+  hosts: b
+  tasks:
+    - name: Poke again
+      command: /bin/true
+      notify: h1
+  handlers:
+    - name: h1
+      command: /bin/true

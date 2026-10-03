@@ -27,24 +27,32 @@ class LogState {
 
   private ctrl: AbortController | null = null
 
-  /** Read a log: pasted text, or a dropped or picked file. */
-  async analyze(body: Blob | string, name: string) {
+  /** Read a log: pasted text, or a dropped or picked file. Returns the
+   *  analysis, or null when it failed or a newer read replaced it. */
+  async analyze(body: Blob | string, name: string): Promise<LogAnalysis | null> {
     this.ctrl?.abort()
     const c = new AbortController()
     this.ctrl = c
     this.running = true
     this.error = null
+    // The source is known at once, so the page shows what is being read.
+    this.source = typeof body === 'string' ? { name, size: body.length, file: false } : { name, size: body.size, file: true }
     try {
       const a = await analyzeLog(body, c.signal)
-      if (c.signal.aborted) return
+      if (c.signal.aborted) return null
       this.analysis = a
-      this.source = typeof body === 'string' ? { name, size: body.length, file: false } : { name, size: body.size, file: true }
       this.host = ''
       this.query = ''
       this.filter = 'all'
       this.selectFirst()
+      return a
     } catch (e) {
-      if (!isAbort(e)) this.error = e instanceof Error ? e.message : String(e)
+      if (isAbort(e) || c.signal.aborted) return null
+      // A failed read doesn't leave the previous log on screen.
+      this.error = e instanceof Error ? e.message : String(e)
+      this.analysis = null
+      this.sel = null
+      return null
     } finally {
       if (this.ctrl === c) this.running = false
     }

@@ -210,7 +210,7 @@ func Model(lg *Log) *Analysis {
 			sum.Tasks += len(p.Tasks)
 			for ti, t := range p.Tasks {
 				for ri, res := range t.Results {
-					if res.Status == Failed && !res.Ignored && !res.Rescued && sum.FirstFailure == nil {
+					if (res.Status == Failed || res.Status == Unreachable) && !res.Ignored && !res.Rescued && sum.FirstFailure == nil {
 						sum.FirstFailure = &Ref{bi, pi, ti, ri}
 					}
 				}
@@ -239,7 +239,7 @@ func Model(lg *Log) *Analysis {
 				}
 			}
 		}
-		failedRun = failedRun || r.Status == Failed || r.Status == Unreachable
+		failedRun = failedRun || r.Status == Failed || r.Status == Unreachable || r.Status == Unfinished
 		a.Blocks = append(a.Blocks, bv)
 	}
 	if first, last := span(lg.Lines); !first.IsZero() {
@@ -257,11 +257,13 @@ func verdict(a *Analysis, failedRun bool, lastRun int) string {
 		}
 		return ""
 	}
+	for _, b := range a.Blocks {
+		if b.Run != nil && !b.Run.Complete && b.Run.Status != Failed && b.Run.Status != Unreachable {
+			return "An Ansible run stopped before its recap."
+		}
+	}
 	if failedRun {
 		return ""
-	}
-	if !a.Blocks[lastRun].Run.Complete {
-		return "The last Ansible run stopped before its recap."
 	}
 	for _, b := range a.Blocks[lastRun+1:] {
 		if b.Errors > 0 {
@@ -309,6 +311,10 @@ func runView(lg *Log, b Block) *RunView {
 	// A failed host runs no more tasks unless a rescue block caught the
 	// failure, so a failure followed by more results for the same host
 	// in the same play was rescued.
+	budget := map[string]int{} // rescues the recap counts per host
+	for _, h := range r.Hosts {
+		budget[h.Host] = h.Rescued
+	}
 	last := make([]map[string]int, len(r.Plays)) // per play: host → its last task
 	for pi, p := range r.Plays {
 		last[pi] = map[string]int{}
@@ -324,7 +330,20 @@ func runView(lg *Log, b Block) *RunView {
 			pv.Line = lg.Lines[p.Line].N
 		}
 		for ti, t := range p.Tasks {
-			rescued := func(host string) bool { return last[pi][host] > ti }
+			rescued := func(host string) bool {
+				if last[pi][host] <= ti {
+					return false
+				}
+				// always: blocks and forced handlers also run after a
+				// failure; the recap says how many were rescued.
+				if len(r.Hosts) > 0 {
+					if budget[host] == 0 {
+						return false
+					}
+					budget[host]--
+				}
+				return true
+			}
 			tv := taskView(lg, t, rescued)
 			for _, res := range tv.Results {
 				addHost(res.Host)
@@ -430,9 +449,10 @@ func taskView(lg *Log, t Task, rescued func(host string) bool) TaskView {
 }
 
 // worse is the status that matters more in a summary.
+var statusRank = map[Status]int{Skipped: 0, OK: 1, Changed: 2, Rescued: 3, Unfinished: 4, Unreachable: 5, Failed: 6}
+
 func worse(a, b Status) Status {
-	rank := map[Status]int{Skipped: 0, OK: 1, Changed: 2, Rescued: 3, Unfinished: 4, Unreachable: 5, Failed: 6}
-	if rank[b] > rank[a] {
+	if statusRank[b] > statusRank[a] {
 		return b
 	}
 	return a

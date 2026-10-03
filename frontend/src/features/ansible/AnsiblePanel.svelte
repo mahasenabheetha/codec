@@ -139,11 +139,12 @@
     { value: 'none', label: 'No run colours' },
     ...logs.runs.map((r, i) => ({ value: String(r.block), label: `Run ${i + 1}${r.run.playbook ? ' · ' + r.run.playbook : ''} (log line ${r.from})` })),
   ])
+  // Picked again when another log loads or another playbook opens.
   $effect(() => {
     const runs = logs.runs
+    const name = base(path)
     untrack(() => {
-      if (runs.some((r) => String(r.block) === colourBy)) return
-      colourBy = String(runs.find((r) => r.run.playbook && r.run.playbook === base(path))?.block ?? 'none')
+      colourBy = String(runs.find((r) => r.run.playbook && r.run.playbook === name)?.block ?? 'none')
     })
   })
   const colours = $derived.by(() => {

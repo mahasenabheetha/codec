@@ -2,6 +2,8 @@ package ansiblelog
 
 import (
 	"encoding/json"
+	"fmt"
+	"math"
 	"regexp"
 	"slices"
 	"strconv"
@@ -110,6 +112,7 @@ func Read(lg *Log) {
 // duration when a timer callback printed it here.
 func readTask(lines []Line, t *Task) (prevDuration time.Duration, timed bool) {
 	retries := map[string]int{}
+	ignoredUpTo := 0 // results before this were settled by an earlier "...ignoring"
 	for i := t.From; i < t.To; i++ {
 		s := lines[i].Text
 		if strings.TrimSpace(s) == "" {
@@ -139,16 +142,21 @@ func readTask(lines []Line, t *Task) (prevDuration time.Duration, timed bool) {
 			continue
 		}
 		if m := retrying.FindStringSubmatch(s); m != nil {
-			retries[m[1]]++
+			host, _, _ := strings.Cut(m[1], " -> ") // "[web-1 -> db-1]"
+			retries[host]++
 			continue
 		}
+		// "...ignoring" follows a host's failure; a loop prints it once
+		// after all its failed items, so they are all ignored.
 		if ignoring.MatchString(s) {
-			for k := len(t.Results) - 1; k >= 0; k-- {
-				if t.Results[k].Status == Failed {
-					t.Results[k].Ignored = true
-					break
+			host := ""
+			for k := len(t.Results) - 1; k >= ignoredUpTo; k-- {
+				r := &t.Results[k]
+				if r.Status == Failed && (host == "" || r.Host == host) {
+					r.Ignored, host = true, r.Host
 				}
 			}
+			ignoredUpTo = len(t.Results)
 			continue
 		}
 		if m := included.FindStringSubmatch(s); m != nil {
@@ -173,8 +181,10 @@ func readTask(lines []Line, t *Task) (prevDuration time.Duration, timed bool) {
 		rest := s[m[1]:]
 		r.Item, rest = item(rest)
 		i = payload(lines, i, len(s)-len(rest), t.To, &r)
+		// Older Ansible names no host in the retry line.
 		r.Retries = retries[r.Host] + retries[""]
 		delete(retries, r.Host)
+		delete(retries, "")
 		t.Results = append(t.Results, r)
 	}
 	return prevDuration, timed
@@ -198,7 +208,8 @@ func item(rest string) (string, string) {
 			} else if c == quote {
 				quote = 0
 			}
-		case c == '\'' || c == '"':
+		// A quote opens only where a value starts, so "don't" is text.
+		case (c == '\'' || c == '"') && strings.IndexByte("([{,:= ", s[j-1]) >= 0:
 			quote = c
 		case c == '(' || c == '[' || c == '{':
 			depth++
@@ -264,7 +275,7 @@ func payload(lines []Line, i, col, limit int, r *Result) int {
 		text := strings.Join(doc, "\n")
 		var v map[string]any
 		if yaml.Unmarshal([]byte(dedent(text)), &v) == nil && v != nil {
-			r.Payload, r.Format = v, "yaml"
+			r.Payload, r.Format = jsonSafe(v).(map[string]any), "yaml"
 			r.Censored = isCensored(v)
 		} else {
 			r.Format = "raw"
@@ -424,4 +435,32 @@ func sortedKeys[V any](m map[string]V) []string {
 	}
 	slices.Sort(keys)
 	return keys
+}
+
+// jsonSafe makes a YAML value encodable as JSON: maps with non-string
+// keys ("80: http") get string keys, and .nan or .inf become text.
+func jsonSafe(v any) any {
+	switch x := v.(type) {
+	case map[string]any:
+		for k, e := range x {
+			x[k] = jsonSafe(e)
+		}
+		return x
+	case map[any]any:
+		m := make(map[string]any, len(x))
+		for k, e := range x {
+			m[fmt.Sprint(k)] = jsonSafe(e)
+		}
+		return m
+	case []any:
+		for i, e := range x {
+			x[i] = jsonSafe(e)
+		}
+		return x
+	case float64:
+		if math.IsNaN(x) || math.IsInf(x, 0) {
+			return fmt.Sprint(x)
+		}
+	}
+	return v
 }

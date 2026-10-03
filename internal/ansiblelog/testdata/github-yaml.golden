@@ -1,5 +1,5 @@
 lines=30 runs=1 hosts=[db-1 db-2] tasks=2 ok=1 changed=0 failed=1 unreachable=1 skipped=0 rescued=0 ignored=0 durationMs=18276 other=2 otherErrors=1
-first failure: block 1 play 0 task 1 result 0
+first failure: block 1 play 0 task 0 result 1
 
 other 1-4 [Run ansible-playbook site.yml] errors=0 warnings=0
   | ANSIBLE_STDOUT_CALLBACK=yaml ansible-playbook site.yml

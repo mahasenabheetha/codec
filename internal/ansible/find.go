@@ -103,9 +103,15 @@ func byPath(logPath string, files []string, load Loader) (Match, bool) {
 	}
 	// Inside a role ("…/roles/app/tasks/main.yml") the role's name must
 	// be shared too: every role has a tasks/main.yml.
+	// The role is the last "roles/<name>/<part>/…" in the path, so a
+	// "roles" folder higher up (/builds/roles/repo/…) doesn't count.
 	need := 1
-	if segs := strings.Split(p, "/"); slices.Contains(segs, "roles") {
-		need = len(segs) - 1 - slices.Index(segs, "roles")
+	segs := strings.Split(p, "/")
+	for i := len(segs) - 3; i >= 0; i-- {
+		if segs[i] == "roles" && slices.Contains(rolePartNames, segs[i+2]) {
+			need = len(segs) - 1 - i
+			break
+		}
 	}
 	best, bestN := "", 0
 	for _, f := range files {
