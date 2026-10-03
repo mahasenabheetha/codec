@@ -161,26 +161,26 @@
       <p class="hint">{filtering ? 'No files of the selected types.' : 'No files here (after .gitignore).'}</p>
     {:else}
       <ContextMenu label="File actions" items={menuFor}>
-      <TreeView
-        {rows}
-        label="Files in {ws.info.name}"
-        active={router.filePath}
-        ontoggle={toggle}
-        onopen={(node) => layout.openFile(node.path)}
-        {selection}
-        selectable={(node) => !!node.file}
-        dragText={(node) => (node.file ? node.path : null)}
-      >
-        {#snippet row(node)}
-          {#if node.file}
-            <FileIcon file={node.file} />
-            <span class="label" title={node.path + ' · ' + lookOf(node.file).title}>{node.name}</span>
-          {:else}
-            <span class="folder"><Folder size={14} strokeWidth={1.75} /></span>
-            <span class="label">{node.name}</span>
-          {/if}
-        {/snippet}
-      </TreeView>
+        <TreeView
+          {rows}
+          label="Files in {ws.info.name}"
+          active={router.filePath}
+          ontoggle={toggle}
+          onopen={(node) => layout.openFile(node.path)}
+          {selection}
+          selectable={(node) => !!node.file}
+          dragText={(node) => (node.file ? node.path : null)}
+        >
+          {#snippet row(node)}
+            {#if node.file}
+              <FileIcon file={node.file} />
+              <span class="label" title={node.path + ' · ' + lookOf(node.file).title}>{node.name}</span>
+            {:else}
+              <span class="folder"><Folder size={14} strokeWidth={1.75} /></span>
+              <span class="label">{node.name}</span>
+            {/if}
+          {/snippet}
+        </TreeView>
       </ContextMenu>
       {#if ws.truncated}
         <p class="hint">Showing the first 50,000 files.</p>

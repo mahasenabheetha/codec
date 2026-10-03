@@ -36,10 +36,11 @@ export const openSessions = new SvelteMap<string, FileSession>()
 /** A request to show a position in a file tab; the tab's editor takes
  *  it once it is ready (e.g. clicking a Helm problem). */
 class EditorNav {
-  pending = $state<{ path: string; line: number; col: number } | null>(null)
+  pending = $state<{ path: string; line: number; col: number; endCol?: number } | null>(null)
 
-  request(path: string, line: number, col = 1) {
-    this.pending = { path, line: Math.max(1, line), col: Math.max(1, col) }
+  /** endCol selects up to that column on the same line (a search hit). */
+  request(path: string, line: number, col = 1, endCol?: number) {
+    this.pending = { path, line: Math.max(1, line), col: Math.max(1, col), endCol }
   }
 }
 

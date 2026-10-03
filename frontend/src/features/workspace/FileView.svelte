@@ -125,7 +125,7 @@
     const req = editorNav.pending
     if (!req || req.path !== path || !active || !session.disk) return
     queueMicrotask(() => {
-      jump({ line: req.line, col: req.col, offset: 0 })
+      jump({ line: req.line, col: req.col, offset: 0 }, req.endCol ? { line: req.line, col: req.endCol, offset: 0 } : undefined)
       editorNav.pending = null
     })
   })

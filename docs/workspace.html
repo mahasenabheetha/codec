@@ -98,6 +98,10 @@
 <h3 id="goto">Go to file<a class="anchor" href="#goto">#</a></h3>
 <p><kbd>Ctrl</kbd> <kbd>P</kbd> opens a fuzzy finder over every file: type a few letters of each path segment (<code>shdep</code> finds <code>charts/shop/templates/deployment.yaml</code>). Recently opened files come first. It answers in well under 100 ms on a 10,000-file repository.</p>
 
+<h3 id="search">Find in Files<a class="anchor" href="#search">#</a></h3>
+<p><kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>F</kbd> (or <strong>Search</strong> in the sidebar) finds text in every file the explorer lists — comments, keys, templates, scripts, READMEs — as you type. Toggle <strong>match case</strong>, <strong>whole word</strong> and <strong>regular expression</strong> (Go RE2 syntax) next to the box. The second box limits the files with comma-separated globs: <code>**</code> spans folders, a bare name matches at any depth, and <code>!</code> excludes — <code>charts/**, !**/tests/**</code>. Results are grouped by file; click a line to open the file with the match selected. A search stops at 2,000 lines; narrow it with globs. There is no replace: codec never writes to your files.</p>
+<p>Find in Files sees text; <a href="compare.html#query">Query</a> sees YAML structure (values by path, across documents). On the command line: <code>codec search</code> (see <a href="cli.html#diff">CLI</a>).</p>
+
 <h3 id="tabs">Tabs<a class="anchor" href="#tabs">#</a></h3>
 <p>Files, lens views and tools open as tabs that keep their state while you switch. A file tab refreshes when the file changes on disk; if you have what-if edits, codec asks whether to reload or keep them. A deleted file's tab says so rather than disappearing.</p>
 

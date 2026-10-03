@@ -11,6 +11,7 @@
         ['Mod+P', 'Go to file'],
         ['Mod+O', 'Open folder'],
         ['Mod+Shift+E', 'Toggle explorer'],
+        ['Mod+Shift+F', 'Find in files'],
         ['Mod+B', 'Toggle sidebar'],
         ['Mod+,', 'Settings'],
         ['?', 'Show keyboard shortcuts'],

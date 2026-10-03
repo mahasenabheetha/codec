@@ -75,8 +75,8 @@ Branch `feature/mab/v2.1.0`.
 | T4 | Explorer: context menu + Ctrl+click | Shared context-menu component; multi-select; keyboard | Done |
 | T5 | Explorer → Compare | Drag and drop onto a side; "Select for compare", "Compare with selected", "Compare selected"; docs | Done |
 | T6 | Reload prompt | Server marks a stale token; "codec restarted — Reload" banner; docs | Done |
-| T7 | [Find in Files](#find-in-files): engine + API + CLI | `internal/search`, endpoint, result cap; tests; `codec search` | Done |
-| T8 | Find in Files: UI | Search panel in the Explorer's slot, Ctrl+Shift+F, results open at the line; docs | |
+| T7 | Find in Files: engine + API + CLI | `internal/search`, endpoint, result cap; tests; `codec search` | Done |
+| T8 | Find in Files: UI | Search panel in the Explorer's slot, Ctrl+Shift+F, results open at the line; docs | Done |
 | — | Release | If T7–T8 run long, release without them; they move to 2.2.0 | |
 
 ### v2.2.0 — Ansible log analyzer, playbook map
@@ -120,7 +120,6 @@ The rest of "Next", picked up after 2.3.0 or slotted in when it fits.
 | [Expand matrix jobs in the pipeline graph](#expand-matrix-jobs-in-the-pipeline-graph) | S | A matrix job calling a reusable workflow shows as one node |
 | [Kustomize helmCharts](#kustomize-helmcharts) | M | Helm SDK is already embedded |
 | [Window long lists](#window-long-lists) | S | Problems and Resources cards, like TreeView |
-| [Find in Files](#find-in-files) | M | Text search across the workspace; read-only, no replace |
 | [Helm environment matrix](#helm-environment-matrix) | M | All profiles of a chart at once: what differs per environment |
 | [Kubernetes resource totals](#kubernetes-resource-totals) | S | Requests and limits × replicas, summed |
 | [RBAC view](#rbac-view) | M | Who can do what; flags wildcards and cluster-admin |
@@ -147,7 +146,7 @@ The rest of "Next", picked up after 2.3.0 or slotted in when it fits.
 
 | Version | Items |
 |---|---|
-| 2.1.0 | Compare: clear; Compare: paste as a source; Compare: pick files from the Explorer; Reload prompt after a server restart |
+| 2.1.0 | Compare: clear; Compare: paste as a source; Compare: pick files from the Explorer; Reload prompt after a server restart; Find in Files |
 | 2.0.0 | Everything in [history.md](history.md) |
 
 ## Items
@@ -175,34 +174,6 @@ The rest of "Next", picked up after 2.3.0 or slotted in when it fits.
 - **Result:** only visible rows are in the DOM, like TreeView (decision 70).
 - **Scope:** `frontend/src/features/lint`, `features/kube`, possibly a shared list component.
 - **Done when:** 5,000 findings scroll smoothly; `scripts/perf.sh` notes it.
-
-### Find in Files
-- **Problem:** text can only be found inside one open file (Ctrl+F).
-  Quick open matches file names, and Query (jq) sees YAML values only —
-  not comments, keys as text, or non-YAML files (README, scripts, raw
-  templates).
-- **Result:** a Search view in the sidebar beside the Explorer
-  (Ctrl+Shift+F, also in the palette). A word, phrase or regular
-  expression; match case and whole word; include/exclude globs
-  (`charts/**`, `!**/tests/**`). Results are grouped by file with the
-  matching line and the match highlighted; clicking opens the file at
-  that line. Optional CLI: `codec search "phrase" [path]`.
-  - Read-only: no replace (decision 3).
-  - Searches the files the Explorer lists (same skipped folders and
-    .gitignore), skips binaries and files over the size limit, caps the
-    results ("showing first N") and cancels when the query changes.
-- **Scope:** a new `internal/search` package (pure: files in, matches
-  out), `internal/web` (`POST /api/v2/search`), a new
-  `features/search` view, the sidebar and palette, optionally
-  `internal/cli/search.go`; docs `workspace.html`, `shortcuts.html`,
-  `cli.html`. Out of scope: replace, an index (plain scanning is enough
-  at the 8 MB-per-file limit), searching outside the open folder.
-- **Done when:** search tests cover case, whole word, regex, globs,
-  binary skip and the result cap; finding a phrase on the sample opens
-  the right file and line; a large repository (`scripts/perf.sh`) returns
-  first results quickly; docs updated.
-- **Decisions:** 3 (read-only). New: Find in Files sits beside Query —
-  text vs structure — rather than replacing it.
 
 ### Helm environment matrix
 - **Problem:** Compare shows two renders at a time; seeing how dev, test

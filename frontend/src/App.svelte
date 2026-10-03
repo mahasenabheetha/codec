@@ -33,6 +33,8 @@
   import RestartBanner from './lib/shell/RestartBanner.svelte'
   import Home from './features/home/Home.svelte'
   import Explorer from './features/workspace/Explorer.svelte'
+  import SearchPanel from './features/search/SearchPanel.svelte'
+  import { finder } from './features/search/search.svelte'
   import FileView from './features/workspace/FileView.svelte'
   import HelmView from './features/helm/HelmView.svelte'
   import SettingsView from './features/settings/SettingsView.svelte'
@@ -77,6 +79,11 @@
   // Tool code loads on first open and is cached, so switching tabs is
   // instant and each tool keeps its state while its tab stays open.
   const loaded = new Map<string, Promise<{ default: Component<{ active: boolean }> }>>()
+  function findInFiles() {
+    layout.showSearch()
+    finder.focusTick++
+  }
+
   function load(id: string) {
     if (!loaded.has(id)) loaded.set(id, toolById(id)!.load())
     return loaded.get(id)!
@@ -88,6 +95,7 @@
   shortcut('Mod+P', () => (workspace.quickOpen = true))
   shortcut('Mod+O', () => (workspace.dialogOpen = true))
   shortcut('Mod+Shift+E', () => layout.toggleExplorer())
+  shortcut('Mod+Shift+F', findInFiles)
   shortcut('?', () => (layout.shortcutsOpen = true))
   shortcut('Mod+,', () => layout.open(settingsRoute))
 
@@ -131,6 +139,15 @@
         layout.open(compareRoute)
         comparison.run()
       },
+    },
+    {
+      id: 'search.files',
+      title: 'Find in files',
+      group: 'Workspace',
+      icon: Search,
+      shortcut: 'Mod+Shift+F',
+      keywords: ['grep', 'text', 'search', 'find', 'word', 'regex'],
+      run: findInFiles,
     },
     {
       id: 'compare.text',
@@ -340,7 +357,7 @@
     <Rail />
     {#if layout.explorerOpen}
       <div class="explorer" style="width: {layout.explorerWidth}px">
-        <Explorer />
+        {#if layout.sidebarView === 'search'}<SearchPanel />{:else}<Explorer />{/if}
         <!-- The WAI-ARIA window splitter pattern; see SplitPane. -->
         <!-- svelte-ignore a11y_no_noninteractive_tabindex, a11y_no_noninteractive_element_interactions -->
         <div

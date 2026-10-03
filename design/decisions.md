@@ -307,3 +307,11 @@ Settled unless the user reopens them. Add new ones at the bottom:
     PR and tagged on `main`; then the next version branches from `main`.
     Fixes for a released version go on `fix/<topic>` as a patch release.
     New features are minor releases. Refines 72 (2026-10-03).
+74. Compare takes pasted text as a third source per side (File · Helm
+    render · Paste), not a separate screen. Auto mode compares by
+    structure only when both sides are mappings or lists; anything else
+    gets a text diff. Pasted text is never stored (19) (2026-10-03).
+75. Find in Files sits beside Query — text vs structure — instead of
+    replacing it. It searches exactly the files the Explorer lists,
+    through the root guard, with no index and no replace (3)
+    (2026-10-03).

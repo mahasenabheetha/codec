@@ -8,6 +8,10 @@ All notable changes to codec are documented here. The format follows
 
 ### Added
 
+- Find in Files (Ctrl+Shift+F, or Search in the sidebar): text across
+  every listed file as you type, with match case, whole word, regex and
+  include/exclude globs; results grouped by file open at the match.
+  `codec search <text> [folder]` does the same on the command line.
 - Compare: paste as a third source per side, next to File and Helm render
   — a live object against the repo file, or two pasted texts with no
   folder open ("Compare text" on Home and in the palette). Pasted text is

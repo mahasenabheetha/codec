@@ -6,6 +6,7 @@
   import GitCompare from '@lucide/svelte/icons/git-compare'
   import ListChecks from '@lucide/svelte/icons/list-checks'
   import TextSearch from '@lucide/svelte/icons/text-search'
+  import Search from '@lucide/svelte/icons/search'
   import FilePlus from '@lucide/svelte/icons/file-plus'
   import Settings2 from '@lucide/svelte/icons/settings-2'
   import PanelLeftClose from '@lucide/svelte/icons/panel-left-close'
@@ -13,6 +14,7 @@
   import type { Component } from 'svelte'
   import Tooltip from '../components/Tooltip.svelte'
   import { workspace } from '../../features/workspace/workspace.svelte'
+  import { finder } from '../../features/search/search.svelte'
   import { layout } from '../stores/layout.svelte'
   import { compareRoute, settingsRoute, newRoute, problemsRoute, queryRoute, router } from '../stores/router.svelte'
   import { toolGroups } from '../tools'
@@ -56,7 +58,11 @@
     {:else}
       <div class="group">Workspace</div>
     {/if}
-    {@render item(FolderTree, 'Explorer', layout.explorerOpen, () => layout.toggleExplorer(), 'Mod+Shift+E')}
+    {@render item(FolderTree, 'Explorer', layout.explorerOpen && layout.sidebarView === 'explorer', () => layout.toggleExplorer(), 'Mod+Shift+E')}
+    {@render item(Search, 'Search', layout.explorerOpen && layout.sidebarView === 'search', () => {
+      layout.toggleSearch()
+      finder.focusTick++
+    }, 'Mod+Shift+F')}
     {@render item(FolderOpen, 'Open folder…', false, () => (workspace.dialogOpen = true), 'Mod+O')}
     {@render item(ListChecks, 'Problems', router.path === problemsRoute, () => layout.open(problemsRoute))}
     {@render item(GitCompare, 'Compare', router.path === compareRoute, () => layout.open(compareRoute))}
