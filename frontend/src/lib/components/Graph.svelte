@@ -5,11 +5,13 @@
     sub?: string // small line above the label, e.g. the kind
     group?: string // colour group, see groupColor
     missing?: boolean // referenced but absent: drawn dashed
+    status?: 'failed' | 'changed' | 'ok' | 'rescued' | 'never' // from a loaded run
   }
   export interface GraphEdge {
     from: string
     to: string
     label?: string
+    dashed?: boolean // decided at run time
   }
 </script>
 
@@ -22,7 +24,7 @@
 
   // A directed graph laid out left to right with dagre, drawn as SVG.
   // Drag to pan, wheel to zoom; hovering a node highlights its edges.
-  // Shared by the Kubernetes, Argo and CI lenses.
+  // Shared by the Kubernetes, Argo, CI and Ansible lenses.
   interface Props {
     nodes: GraphNode[]
     edges: GraphEdge[]
@@ -146,7 +148,7 @@
     <g transform="translate({view.x},{view.y}) scale({view.k})">
       {#each laid.paths as p, i (i)}
         {@const lit = hover && (p.e.from === hover || p.e.to === hover)}
-        <path d={p.d} class="edge" class:lit class:dim={hover && !lit} marker-end="url(#arrow)" />
+        <path d={p.d} class="edge" class:lit class:dashed={p.e.dashed} class:dim={hover && !lit} marker-end="url(#arrow)" />
         {#if lit && p.e.label && p.mid}
           <text x={p.mid.x} y={p.mid.y - 4} class="edge-label">{p.e.label}</text>
         {/if}
@@ -155,13 +157,13 @@
         {@const p = laid.pos.get(n.id)}
         {#if p}
           <g
-            class="node g-{n.group ?? 'other'}"
+            class="node g-{n.group ?? 'other'} {n.status ? 's-' + n.status : ''}"
             class:missing={n.missing}
             class:dim={near && !near.has(n.id)}
             transform="translate({p.x - p.w / 2},{p.y - NODE_H / 2})"
             role="button"
             tabindex="0"
-            aria-label="{n.sub ?? ''} {n.label}"
+            aria-label="{n.sub ?? ''} {n.label}{n.status ? ', ' + (n.status === 'never' ? 'never ran' : n.status) : ''}"
             onpointerenter={() => (hover = n.id)}
             onpointerleave={() => (hover = null)}
             onclick={() => onselect?.(n.id)}
@@ -220,6 +222,9 @@
   }
   .edge.dim {
     opacity: 0.2;
+  }
+  .edge.dashed {
+    stroke-dasharray: 5 4;
   }
   .arrowhead {
     fill: var(--fg-2);
@@ -284,6 +289,52 @@
   }
   .g-scaling {
     --c: var(--syn-anchor);
+  }
+  .g-play {
+    --c: var(--accent);
+  }
+  .g-role {
+    --c: var(--info);
+  }
+  .g-tasks {
+    --c: var(--syn-bool);
+  }
+  .g-handler {
+    --c: var(--syn-anchor);
+  }
+  /* Run colours: what a loaded log did on each node. */
+  .s-failed,
+  .g-s-failed {
+    --c: var(--err);
+  }
+  .s-changed,
+  .g-s-changed {
+    --c: var(--warn);
+  }
+  .s-ok,
+  .g-s-ok {
+    --c: var(--ok);
+  }
+  .s-rescued,
+  .g-s-rescued {
+    --c: var(--accent);
+  }
+  .s-never,
+  .g-s-never {
+    --c: var(--fg-2);
+  }
+  .node.s-failed rect:first-child {
+    fill: var(--err-soft);
+    stroke: var(--err);
+  }
+  .node.s-changed rect:first-child {
+    stroke: var(--warn);
+  }
+  .node.s-never {
+    opacity: 0.55;
+  }
+  .node.s-never rect:first-child {
+    stroke-dasharray: 2 3;
   }
   .controls {
     position: absolute;

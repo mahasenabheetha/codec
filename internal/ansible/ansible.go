@@ -72,6 +72,7 @@ type Task struct {
 	Tags     []string `json:"tags"`
 	Register string   `json:"register,omitempty"`
 	Role     string   `json:"role,omitempty"`    // the role the task belongs to
+	Target   string   `json:"target,omitempty"`  // include_role/import_role: the role it names
 	Dynamic  bool     `json:"dynamic,omitempty"` // include_*: decided while running
 	Missing  bool     `json:"missing,omitempty"` // the file or role it names wasn't found
 	Source   *Source  `json:"source,omitempty"`
@@ -83,10 +84,18 @@ type Role struct {
 	Name         string   `json:"name"`
 	Path         string   `json:"path,omitempty"` // the role's folder; "" when not found
 	Found        bool     `json:"found"`
-	External     bool     `json:"external,omitempty"` // from a collection: not in the folder
+	External     bool     `json:"external,omitempty"` // installed at run time: a collection, or listed in a requirements file
 	Parts        []string `json:"parts"`              // tasks, handlers, defaults, vars, meta, templates, files
 	Dependencies []string `json:"dependencies"`
 	Elsewhere    bool     `json:"elsewhere,omitempty"` // found in another repository of the open folder
+}
+
+// Origin says where an external role comes from.
+func (r Role) Origin() string {
+	if strings.Count(r.Name, ".") >= 2 && !strings.Contains(r.Name, "/") {
+		return "from a collection"
+	}
+	return "installed when the playbook runs"
 }
 
 // File is one file the analysis read.
@@ -526,6 +535,7 @@ func (a *analyzer) task(n *yamlkit.Node, file, role string, depth int) Task {
 		if t.Name == "" {
 			t.Name = mod + " " + name
 		}
+		t.Target = name
 		if depth < 8 {
 			r := a.role(name, from, ptr(src(file, arg)), path.Dir(file), mod == "include_role")
 			t.Children, t.Missing, t.Detail = r.Children, r.Missing, r.Detail
@@ -569,7 +579,7 @@ func (a *analyzer) role(name, from string, at *Source, dir string, dynamic bool)
 	if !r.Found {
 		t.Missing = !r.External
 		if r.External {
-			t.Detail = "from a collection"
+			t.Detail = r.Origin()
 		}
 		return t
 	}
@@ -648,6 +658,7 @@ func (a *analyzer) findRole(name, dir string, at *Source) *Role {
 			hint := "It may be installed when the playbook runs (ansible-galaxy, or copied in by CI). codec searched roles/ next to the playbook, roles_path in ansible.cfg, and roles/ in the folders above."
 			if req := a.listedIn(name); req != "" {
 				hint = "Listed in " + req + ", so it is installed when the playbook runs."
+				r.External = true
 			}
 			a.problem(yamlkit.SeverityInfo, "ansible-role-missing", at, "Role "+name+" isn't in the folder", hint)
 		}
@@ -760,10 +771,13 @@ func isFalse(n *yamlkit.Node) bool {
 var roleKeywords = map[string]bool{"role": true, "name": true, "when": true, "tags": true, "become": true, "become_user": true,
 	"delegate_to": true, "environment": true, "vars": true, "ignore_errors": true, "any_errors_fatal": true, "no_log": true}
 
+// rolePartNames are the folders a role may have.
+var rolePartNames = []string{"tasks", "handlers", "defaults", "vars", "meta", "templates", "files"}
+
 // roleParts lists the parts of a role folder that exist.
 func (a *analyzer) roleParts(dir string) []string {
 	var parts []string
-	for _, part := range []string{"tasks", "handlers", "defaults", "vars", "meta", "templates", "files"} {
+	for _, part := range rolePartNames {
 		if a.hasDir(path.Join(dir, part)) {
 			parts = append(parts, part)
 		}

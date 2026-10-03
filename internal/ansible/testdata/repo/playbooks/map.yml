@@ -1,0 +1,19 @@
+---
+# Dynamic includes for the playbook map: one variable with a single
+# definition, one with two, one with none.
+- name: Map
+  hosts: all
+  vars:
+    setup_file: tasks/extra.yml
+    flavour: blue
+  vars_files:
+    - ../vars/flavour.yml
+  roles:
+    - nginx
+  tasks:
+    - include_tasks: "{{ setup_file }}"
+    - include_tasks: "tasks/{{ flavour }}.yml"
+    - include_tasks: "tasks/{{ nowhere }}.yml"
+    - name: Reload
+      command: /bin/true
+      notify: restart nginx

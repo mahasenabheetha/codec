@@ -1,0 +1,37 @@
+lines=45 runs=2 hosts=[web-1 web-2] tasks=5 ok=6 changed=3 failed=0 unreachable=0 skipped=0 rescued=1 ignored=1 durationMs=16000 other=4 otherErrors=0
+
+other 1-1 errors=0 warnings=0
+  | Starting: Deploy
+
+other 2-4 [Run ansible-playbook -i hosts site.yml -v] errors=0 warnings=0
+  | ansible-playbook -i hosts site.yml -v
+
+run 5-28 playbook="site.yml" json=false complete=true status=changed durationMs=11500 hosts=[web-1 web-2]
+  note 7 warning: [WARNING]: Found variable using reserved name: name
+  play "web" line=9
+    task "Deploy release" role="app" line=11 path=:0 durationMs=4100 status=changed counts={OK:0 Changed:2 Failed:0 Unreachable:0 Skipped:0 Ignored:0 Rescued:0 Included:0}
+      changed web-1 lines=12-12 format="json"
+      changed web-2 lines=13-13 format="json"
+    task "Run migrations" role="app" line=15 path=:0 durationMs=3500 status=rescued counts={OK:0 Changed:0 Failed:0 Unreachable:0 Skipped:0 Ignored:0 Rescued:1 Included:0}
+      failed web-1 lines=16-16 format="json" msg="non-zero return code: relation \"users\" already exists" rescued
+    task "Roll back" role="app" line=18 path=:0 durationMs=2000 status=changed counts={OK:0 Changed:1 Failed:0 Unreachable:0 Skipped:0 Ignored:0 Rescued:0 Included:0}
+      changed web-1 lines=19-19 format="json"
+    task "Optional cache warm-up" role="app" line=21 path=:0 durationMs=1300 status=ok counts={OK:0 Changed:0 Failed:0 Unreachable:0 Skipped:0 Ignored:1 Rescued:0 Included:0}
+      failed web-2 lines=22-22 format="json" msg="cache service not found" ignored
+  recap {Host:web-1 OK:2 Changed:2 Unreachable:0 Failed:0 Skipped:0 Rescued:1 Ignored:0}
+  recap {Host:web-2 OK:2 Changed:1 Unreachable:0 Failed:0 Skipped:0 Rescued:0 Ignored:1}
+
+other 29-32 [Run ./smoke-test.sh] errors=0 warnings=0
+  | Checking https://web-1.example.test/health ... 200
+  | Checking https://web-2.example.test/health ... 200
+
+run 33-44 [Run ansible-playbook -i hosts verify.yml] playbook="" json=false complete=true status=ok durationMs=1600 hosts=[web-1 web-2]
+  play "verify" line=35
+    task "Check version" role="" line=37 path=:0 durationMs=1200 status=ok counts={OK:2 Changed:0 Failed:0 Unreachable:0 Skipped:0 Ignored:0 Rescued:0 Included:0}
+      ok web-1 lines=38-38
+      ok web-2 lines=39-39
+  recap {Host:web-1 OK:1 Changed:0 Unreachable:0 Failed:0 Skipped:0 Rescued:0 Ignored:0}
+  recap {Host:web-2 OK:1 Changed:0 Unreachable:0 Failed:0 Skipped:0 Rescued:0 Ignored:0}
+
+other 45-45 errors=0 warnings=0
+  | Finishing: Deploy

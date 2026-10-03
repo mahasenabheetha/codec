@@ -1,0 +1,33 @@
+db-1       | database system is ready to accept connections
+ansible-1  | ansible-playbook [core 2.17.0]
+ansible-1  |   config file = /work/ansible.cfg
+ansible-1  | PLAYBOOK: provision.yml ********************************************************
+ansible-1  | 1 plays in provision.yml
+ansible-1  |
+ansible-1  | PLAY [db] **********************************************************************
+ansible-1  |
+ansible-1  | TASK [Create schema] ***********************************************************
+ansible-1  | task path: /work/provision.yml:8
+ansible-1  | Monday 05 January 2026  12:00:00 +0000 (0:00:00.050)       0:00:00.050 ********
+ansible-1  | <db-1> ESTABLISH SSH CONNECTION FOR USER: postgres
+ansible-1  | <db-1> SSH: EXEC ssh -C -o ControlMaster=auto db-1 '/bin/sh -c '"'"'echo ~postgres && sleep 0'"'"''
+db-1       | LOG:  connection received: host=ansible-1
+ansible-1  | changed: [db-1] => {
+ansible-1  |     "changed": true,
+ansible-1  |     "cmd": "psql -f schema.sql",
+ansible-1  |     "rc": 0,
+ansible-1  |     "stdout_lines": [
+ansible-1  |         "CREATE TABLE",
+ansible-1  |         "CREATE INDEX"
+ansible-1  |     ]
+ansible-1  | }
+ansible-1  |
+ansible-1  | TASK [Seed data] ***************************************************************
+ansible-1  | task path: /work/provision.yml:14
+ansible-1  | Monday 05 January 2026  12:00:04 +0000 (0:00:04.250)       0:00:04.300 ********
+ansible-1  | ok: [db-1] => {"changed": false, "msg": "already seeded"}
+ansible-1  |
+ansible-1  | PLAY RECAP *********************************************************************
+ansible-1  | db-1                       : ok=2    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+ansible-1  |
+ansible-1 exited with code 0

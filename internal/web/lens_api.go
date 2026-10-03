@@ -174,7 +174,7 @@ func (s *Server) handleAnsibleAnalyze(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			return
 		}
-		writeJSON(w, http.StatusOK, map[string]any{"kind": "playbook", "playbook": pb})
+		writeJSON(w, http.StatusOK, map[string]any{"kind": "playbook", "playbook": pb, "graph": ansible.BuildGraph(pb)})
 	default:
 		writeError(w, http.StatusUnprocessableEntity, req.Path+" isn't an Ansible playbook, task file or YAML inventory")
 	}

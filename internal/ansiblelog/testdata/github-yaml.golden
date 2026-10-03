@@ -1,0 +1,19 @@
+lines=30 runs=1 hosts=[db-1 db-2] tasks=2 ok=1 changed=0 failed=1 unreachable=1 skipped=0 rescued=0 ignored=0 durationMs=18276 other=2 otherErrors=1
+first failure: block 1 play 0 task 0 result 1
+
+other 1-4 [Run ansible-playbook site.yml] errors=0 warnings=0
+  | ANSIBLE_STDOUT_CALLBACK=yaml ansible-playbook site.yml
+  | 
+
+run 5-29 playbook="" json=false complete=true status=failed durationMs=17200 hosts=[db-1 db-2]
+  play "all" line=5
+    task "Wait for the service" role="" line=7 path=:0 durationMs=15200 status=unreachable counts={OK:1 Changed:0 Failed:0 Unreachable:1 Skipped:0 Ignored:0 Rescued:0 Included:0}
+      ok db-1 lines=10-10 retries=2
+      unreachable db-2 lines=11-13 format="yaml" msg="Failed to connect to the host via ssh: ssh: connect to host db-2 port 22: Connection timed out"
+    task "Check config" role="" line=15 path=:0 durationMs=1800 status=failed counts={OK:0 Changed:0 Failed:1 Unreachable:0 Skipped:0 Ignored:0 Rescued:0 Included:0}
+      failed db-1 lines=16-24 format="yaml" msg="non-zero return code: pg_ctl: no server running"
+  recap {Host:db-1 OK:1 Changed:0 Unreachable:0 Failed:1 Skipped:0 Rescued:0 Ignored:0}
+  recap {Host:db-2 OK:0 Changed:0 Unreachable:1 Failed:0 Skipped:0 Rescued:0 Ignored:0}
+
+other 30-30 errors=1 warnings=0
+  | Process completed with exit code 2.

@@ -1,0 +1,29 @@
+$ ANSIBLE_STDOUT_CALLBACK=json ansible-playbook site.yml
+{
+    "custom_stats": {},
+    "global_custom_stats": {},
+    "plays": [
+        {
+            "play": {"duration": {"end": "2026-01-05T13:00:05Z", "start": "2026-01-05T13:00:00Z"}, "id": "a1", "name": "web"},
+            "tasks": [
+                {
+                    "hosts": {
+                        "web-1": {"_ansible_no_log": false, "action": "ping", "changed": false, "ping": "pong"}
+                    },
+                    "task": {"duration": {"end": "2026-01-05T13:00:01Z", "start": "2026-01-05T13:00:00Z"}, "id": "t1", "name": "ping"}
+                },
+                {
+                    "hosts": {
+                        "web-1": {"action": "copy", "changed": false, "failed": true, "msg": "Destination /srv/{app} not writable"}
+                    },
+                    "task": {"duration": {"end": "2026-01-05T13:00:05Z", "start": "2026-01-05T13:00:01Z"}, "id": "t2", "name": "app : Copy config"}
+                }
+            ]
+        }
+    ],
+    "stats": {
+        "web-1": {"changed": 0, "failures": 1, "ignored": 0, "ok": 1, "rescued": 0, "skipped": 0, "unreachable": 0}
+    }
+}
+$ echo done
+done

@@ -6,6 +6,42 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-10-03
+
+The Ansible log tool reads whole pipeline logs, from one failed task to
+several playbook runs among other output, and the Ansible lens draws a
+playbook map that a loaded log colours by what ran.
+
+### Added
+
+- `codec ansible log <file|->` reads a whole pipeline log — CI
+  timestamps, Packer or Compose prefixes, colour codes, shell output,
+  several playbook runs — and prints each run's failures with their
+  reason and defining file, the recap, and other output with errors.
+  Rescued and ignored failures, unreachable hosts and runs cut short
+  are told apart. `--all` lists every task with its duration.
+- Ansible log tool reads whole pipeline logs: paste one or drop a file
+  (up to 64 MB). A summary and verdict, an outline of runs, plays and
+  tasks with the output around them, filters (Failed, Changed, Skipped),
+  a host picker and search, the first failure selected; each host's
+  result in the single-task view, and the recap as a table. One task's
+  output still opens in the detailed single-task view; the pasted text
+  stays in view beside the result.
+- Ansible lens: a playbook map of plays, roles, task files and handlers;
+  imports solid, includes dashed, templated include files resolved when
+  their variable has one definition. With a log loaded, the map is
+  coloured by a run: failed, changed, ok, rescued, never ran.
+
+### Changed
+
+- Roles listed in a requirements file show as external (installed when
+  the playbook runs) instead of not found.
+
+### Fixed
+
+- Ansible "Defined in" no longer matches another role's file with the
+  same name (every role has a tasks/main.yml).
+
 ## [2.1.0] - 2026-10-03
 
 Compare takes pasted text and files picked in the Explorer, Find in
@@ -406,7 +442,8 @@ First tagged release: codec as it stood before the 2.0 work began.
 - Release pipeline: pushing a `v*` tag publishes binaries for Linux,
   Windows and macOS (amd64/arm64) to GitHub Releases via GoReleaser.
 
-[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v2.1.0...HEAD
+[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v2.2.0...HEAD
+[2.2.0]: https://github.com/mahasenabheetha/codec/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/mahasenabheetha/codec/compare/v2.0.1...v2.1.0
 [2.0.1]: https://github.com/mahasenabheetha/codec/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/mahasenabheetha/codec/compare/v2.0.0-alpha.1...v2.0.0

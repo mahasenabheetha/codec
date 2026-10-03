@@ -251,7 +251,7 @@ func printPlaybook(w io.Writer, pb *ansible.Playbook) {
 		for _, r := range pb.Roles {
 			switch {
 			case r.External:
-				fmt.Fprintf(w, "  %-28s from a collection\n", r.Name)
+				fmt.Fprintf(w, "  %-28s %s\n", r.Name, r.Origin())
 			case !r.Found:
 				fmt.Fprintf(w, "  %-28s NOT FOUND\n", r.Name)
 			default:

@@ -94,7 +94,7 @@
 {/snippet}
 
 {#snippet line(r: DiffRow, from?: number)}
-  <div class="row {r.kind}" data-from={from} tabindex={from === undefined ? undefined : -1}>
+  <div class="row {r.kind}" data-from={from} tabindex="-1">
     {#if r.kind !== 'equal'}<span class="sr-only">{r.kind === 'change' ? 'Changed:' : r.kind === 'delete' ? 'Removed:' : 'Added:'}</span>{/if}
     {@render cell(r.left, 'left', r.kind)}
     {@render cell(r.right, 'right', r.kind)}

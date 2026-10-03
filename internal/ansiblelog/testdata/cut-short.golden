@@ -1,0 +1,14 @@
+lines=8 runs=1 hosts=[app-1] tasks=2 ok=1 changed=0 failed=0 unreachable=0 skipped=0 rescued=0 ignored=0 durationMs=3605300 other=2 otherErrors=1
+verdict: An Ansible run stopped before its recap.
+
+other 1-2 [step_script] errors=0 warnings=0
+  | $ ansible-playbook site.yml
+
+run 3-7 [step_script] playbook="" json=false complete=false status=unfinished durationMs=3604200 hosts=[app-1]
+  play "all" line=3
+    task "Long download" role="" line=4 path=:0 durationMs=4000 status=ok counts={OK:1 Changed:0 Failed:0 Unreachable:0 Skipped:0 Ignored:0 Rescued:0 Included:0}
+      ok app-1 lines=5-5
+    task "Very long build" role="" line=6 path=:0 durationMs=3600100 status=unfinished counts={OK:0 Changed:0 Failed:0 Unreachable:0 Skipped:0 Ignored:0 Rescued:0 Included:0}
+
+other 8-8 errors=1 warnings=0
+  | ERROR: Job failed: execution took longer than 1h0m0s seconds

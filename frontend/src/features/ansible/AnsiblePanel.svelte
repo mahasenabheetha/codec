@@ -9,6 +9,12 @@
   import EmptyState from '../../lib/components/EmptyState.svelte'
   import LensGrid from '../../lib/components/LensGrid.svelte'
   import SearchInput from '../../lib/components/SearchInput.svelte'
+  import Graph, { type GraphNode } from '../../lib/components/Graph.svelte'
+  import SegmentedControl from '../../lib/components/SegmentedControl.svelte'
+  import Select from '../../lib/components/Select.svelte'
+  import type { PlaybookNode } from '../../lib/api/ansible'
+  import { logs } from './log.svelte'
+  import { runColours } from './runColours'
   import { isAbort } from '../../lib/api/client'
   import { analyzeAnsible, type AnsibleAnalysis, type AnsibleSource, type AnsibleTask } from '../../lib/api/ansible'
   import ProblemItem from '../lint/ProblemItem.svelte'
@@ -62,7 +68,13 @@
   const bad = $derived(problems.filter((p) => p.severity !== 'info').length)
 
   // What the detail pane shows.
-  type Selection = { kind: 'task'; task: AnsibleTask } | { kind: 'var'; name: string } | { kind: 'group'; name: string } | { kind: 'host'; name: string } | null
+  type Selection =
+    | { kind: 'task'; task: AnsibleTask }
+    | { kind: 'var'; name: string }
+    | { kind: 'group'; name: string }
+    | { kind: 'host'; name: string }
+    | { kind: 'node'; node: PlaybookNode }
+    | null
   let sel = $state.raw<Selection>(null)
 
   function count(ts: AnsibleTask[]): number {
@@ -114,6 +126,67 @@
   })
   const base = (f: string | undefined) => (f ? f.split('/').pop()! : '')
   const where = (s: AnsibleSource | undefined) => (s ? (s.file && s.file !== path ? `${base(s.file)}:${s.line}` : `line ${s.line}`) : '')
+
+  // --- the map: plays → roles → task files, handlers off their
+  // notifiers; dashed edges are includes decided while running ---
+  let view = $state<'steps' | 'map'>('steps')
+  const pgraph = $derived(data?.kind === 'playbook' ? data.graph : null)
+
+  // A log loaded in the Ansible log tool colours the map. The run of
+  // this playbook is picked when the log names it (PLAYBOOK: with -v).
+  let colourBy = $state('none') // a run's block index, or "none"
+  const runItems = $derived([
+    { value: 'none', label: 'No run colours' },
+    ...logs.runs.map((r, i) => ({ value: String(r.block), label: `Run ${i + 1}${r.run.playbook ? ' · ' + r.run.playbook : ''} (log line ${r.from})` })),
+  ])
+  // Picked again when another log loads or another playbook opens.
+  $effect(() => {
+    const runs = logs.runs
+    const name = base(path)
+    untrack(() => {
+      colourBy = String(runs.find((r) => r.run.playbook && r.run.playbook === name)?.block ?? 'none')
+    })
+  })
+  const colours = $derived.by(() => {
+    const r = logs.runs.find((x) => String(x.block) === colourBy)
+    return pgraph && r ? runColours(pgraph, r.run) : null
+  })
+  const graphNodes = $derived<GraphNode[]>(
+    (pgraph?.nodes ?? []).map((n) => ({
+      id: n.id,
+      label: n.label,
+      sub: (n.sub ?? n.kind) + (n.tasks ? ` · ${n.tasks} ${n.tasks === 1 ? 'task' : 'tasks'}` : ''),
+      group: n.kind,
+      missing: n.missing && !n.external,
+      status: colours?.get(n.id),
+    })),
+  )
+  const graphEdges = $derived((pgraph?.edges ?? []).map((e) => ({ from: e.from, to: e.to, label: e.kind, dashed: e.dynamic })))
+  const legend = $derived(
+    colours
+      ? [
+          { group: 's-failed', label: 'failed' },
+          { group: 's-changed', label: 'changed' },
+          { group: 's-ok', label: 'ok' },
+          { group: 's-rescued', label: 'rescued' },
+          { group: 's-never', label: 'never ran' },
+        ]
+      : [
+          { group: 'play', label: 'play' },
+          { group: 'role', label: 'role' },
+          { group: 'tasks', label: 'task file' },
+          { group: 'handler', label: 'handler' },
+        ],
+  )
+  function selectNode(id: string) {
+    const n = pgraph?.nodes.find((x) => x.id === id)
+    if (n) sel = { kind: 'node', node: n }
+  }
+  // Where a node is written: a role opens at its tasks/main.yml.
+  function openNode(n: PlaybookNode) {
+    if (!n.file) return
+    onopen({ file: n.kind === 'role' ? `${n.file}/tasks/main.yml` : n.file, line: n.line ?? 1 })
+  }
 
   // --- inventory ---
   const groupBy = $derived(new Map((inv?.groups ?? []).map((g) => [g.name, g])))
@@ -198,7 +271,7 @@
                 <li class:missing={!r.found && !r.external}>
                   <span class="rname">{r.name}</span>
                   <span class="muted">
-                    {#if r.external}from a collection{:else if !r.found}not in the folder{:else}{r.path}{r.elsewhere ? ' (another repository)' : ''}{/if}
+                    {#if r.external}external: installed when the playbook runs{:else if !r.found}not in the folder{:else}{r.path}{r.elsewhere ? ' (another repository)' : ''}{/if}
                   </span>
                   {#if r.dependencies.length}<span class="muted">depends on {r.dependencies.join(', ')}</span>{/if}
                 </li>
@@ -248,9 +321,32 @@
       {#snippet main()}
         {#if pb}
           <nav class="bar">
-            <SearchInput bind:value={filter} placeholder="Filter tasks" label="Filter tasks" />
-            <button type="button" class="link" onclick={() => (collapsed = {})}>Expand all</button>
+            <SegmentedControl
+              label="View"
+              options={[
+                { value: 'steps', label: 'Steps', title: 'Every step in the order Ansible runs it' },
+                { value: 'map', label: 'Map', title: 'Plays, roles, task files and handlers, and how they pull each other in' },
+              ]}
+              bind:value={view}
+            />
+            {#if view === 'steps'}
+              <SearchInput bind:value={filter} placeholder="Filter tasks" label="Filter tasks" />
+              <button type="button" class="link" onclick={() => (collapsed = {})}>Expand all</button>
+            {:else if logs.runs.length}
+              <Select items={runItems} bind:value={colourBy} label="Colour by a run of the loaded log" />
+            {:else}
+              <span class="muted">Solid: import · dashed: include, decided while running · load a log in Ansible log to colour by a run</span>
+            {/if}
           </nav>
+          {#if view === 'map'}
+            <div class="map">
+              {#if graphNodes.length}
+                <Graph nodes={graphNodes} edges={graphEdges} label="Map of {base(path)}: plays, roles, task files and handlers" {legend} onselect={selectNode} />
+              {:else}
+                <EmptyState icon={ListTree} title="Nothing to draw" description="This file pulls in no roles, task files or handlers." />
+              {/if}
+            </div>
+          {:else}
           <div class="scroll">
             {#if pb.kind === 'tasks'}
               {@render tree(pb.tasks, 't', 0)}
@@ -277,6 +373,7 @@
               {/each}
             {/if}
           </div>
+          {/if}
         {:else if inv}
           <div class="scroll">
             <ul class="tree">
@@ -287,7 +384,32 @@
       {/snippet}
 
       {#snippet detail()}
-        {#if sel?.kind === 'task'}
+        {#if sel?.kind === 'node'}
+          {@const n = sel.node}
+          {@const c = colours?.get(n.id)}
+          <header class="dhead">
+            {#if n.file}
+              <button type="button" class="dname" onclick={() => openNode(n)} title="Open where it is written">{n.label}</button>
+            {:else}
+              <span class="dname">{n.label}</span>
+            {/if}
+            <Badge tone="accent">{n.kind === 'tasks' ? 'task file' : n.kind}</Badge>
+            {#if n.external}<Badge>external</Badge>{/if}
+            {#if n.missing && !n.external}<Badge tone="err">not found</Badge>{/if}
+            {#if n.assumed}<Badge tone="warn">assumed</Badge>{/if}
+            {#if c}<Badge tone={c === 'failed' ? 'err' : c === 'changed' ? 'warn' : c === 'ok' ? 'ok' : c === 'rescued' ? 'accent' : 'neutral'}>{c === 'never' ? 'never ran' : c}</Badge>{/if}
+          </header>
+          <dl>
+            {#if n.file}<dt>Where</dt><dd class="mono">{n.file}{n.line ? `:${n.line}` : ''}</dd>{/if}
+            {#if n.tasks}<dt>Tasks</dt><dd>{n.tasks} directly inside</dd>{/if}
+            {#if n.assumed}<dt>Resolved</dt><dd>The file name holds a variable with one definition, so codec assumes this file.</dd>{/if}
+            {#if n.candidates?.length}
+              <dt>One of</dt>
+              <dd><ul class="plain">{#each n.candidates as c (c)}<li class="mono">{c}</li>{/each}</ul><span class="muted">The variable has several definitions; the first wins by precedence.</span></dd>
+            {/if}
+            {#if n.sub?.includes('decided while running')}<dt>Target</dt><dd class="muted">Decided while running: the variable isn't defined where codec can see it.</dd>{/if}
+          </dl>
+        {:else if sel?.kind === 'task'}
           {@const t = sel.task}
           <header class="dhead">
             <button type="button" class="dname" onclick={() => jump(t.source)} title="Open where it is written">{t.name}</button>
@@ -407,6 +529,10 @@
   }
   .vlist .on {
     font-weight: var(--fw-semibold);
+  }
+  .map {
+    flex: 1;
+    min-height: 0;
   }
   .scroll {
     flex: 1;

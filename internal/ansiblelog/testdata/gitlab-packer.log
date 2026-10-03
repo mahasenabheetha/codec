@@ -1,0 +1,44 @@
+2026-01-05T09:00:00.000001Z 00O ␛[0KRunning with gitlab-runner 17.0.0␛[0;m␍
+2026-01-05T09:00:00.000002Z 00O section_start:1767603600:prepare_executor␍
+␛[0K␍
+2026-01-05T09:00:00.000003Z 00O+␛[0K␛[36;1mPreparing the "docker" executor␛[0;m␛[0;m␍
+2026-01-05T09:00:01.000000Z 00O section_end:1767603601:prepare_executor␍
+␛[0K␍
+2026-01-05T09:00:01.000001Z 00O+section_start:1767603601:step_script␍
+␛[0K␍
+2026-01-05T09:00:01.000002Z 00O+␛[0K␛[36;1mExecuting "step_script" stage of the job script␛[0;m␛[0;m␍
+2026-01-05T09:00:01.100000Z 00O ␛[32;1m$ packer build image.pkr.hcl␛[0;m␍
+2026-01-05T09:00:02.000000Z 01O ␛[1;32m==> azure-arm: Provisioning with Ansible...␛[0m␍
+2026-01-05T09:00:02.100000Z 01O ␛[0;32m    azure-arm:␛[0m␍
+2026-01-05T09:00:02.200000Z 01O ␛[0;32m    azure-arm: PLAY [Build image] *****************************************************␛[0m␍
+2026-01-05T09:00:02.300000Z 01O ␛[0;32m    azure-arm:␛[0m␍
+2026-01-05T09:00:02.400000Z 01O ␛[0;32m    azure-arm: TASK [Gathering Facts] *************************************************␛[0m␍
+2026-01-05T09:00:04.400000Z 01O ␛[0;32m    azure-arm: ␛[0;32mok: [default]␛[0m␍
+2026-01-05T09:00:04.500000Z 01O ␛[0;32m    azure-arm:␛[0m␍
+2026-01-05T09:00:04.600000Z 01O ␛[0;32m    azure-arm: TASK [base : Install packages] *****************************************␛[0m␍
+2026-01-05T09:00:20.000000Z 01O ␛[0;32m    azure-arm: ␛[0;33mchanged: [default] => (item=nginx) => {"ansible_loop_var": "item", "changed": true, "item": "nginx"}␛[0m␍
+2026-01-05T09:00:31.000000Z 01O ␛[0;32m    azure-arm: ␛[0;32mok: [default] => (item=curl) => {"ansible_loop_var": "item", "changed": false, "item": "curl", "msg": "alrea␍
+2026-01-05T09:00:31.000001Z 01O+dy installed"}␛[0m␍
+2026-01-05T09:00:31.100000Z 01O ␛[0;32m    azure-arm:␛[0m␍
+2026-01-05T09:00:31.200000Z 01O ␛[1;32m==> azure-arm: Ansible still running␛[0m␍
+2026-01-05T09:00:31.300000Z 01O ␛[0;32m    azure-arm: TASK [base : Include hardening] ****************************************␛[0m␍
+2026-01-05T09:00:31.400000Z 01O ␛[0;32m    azure-arm: ␛[0;36mincluded: /build/roles/base/tasks/hardening.yml for default␛[0m␍
+2026-01-05T09:00:31.500000Z 01O ␛[0;32m    azure-arm:␛[0m␍
+2026-01-05T09:00:31.600000Z 01O ␛[0;32m    azure-arm: TASK [base : Write sshd config] ****************************************␛[0m␍
+2026-01-05T09:00:32.600000Z 01O ␛[0;32m    azure-arm: ␛[0;33mchanged: [default]␛[0m␍
+2026-01-05T09:00:32.700000Z 01O ␛[0;32m    azure-arm:␛[0m␍
+2026-01-05T09:00:32.800000Z 01O ␛[0;32m    azure-arm: TASK [base : Read secret] **********************************************␛[0m␍
+2026-01-05T09:00:33.000000Z 01O ␛[0;32m    azure-arm: ␛[0;32mok: [default] => {"censored": "the output has been hidden due to the fact that 'no_log: true' was specified for this result", "changed": false}␛[0m␍
+2026-01-05T09:00:33.100000Z 01O ␛[0;32m    azure-arm:␛[0m␍
+2026-01-05T09:00:33.200000Z 01O ␛[0;32m    azure-arm: RUNNING HANDLER [base : restart sshd] **********************************␛[0m␍
+2026-01-05T09:00:34.200000Z 01O ␛[0;32m    azure-arm: ␛[0;33mchanged: [default]␛[0m␍
+2026-01-05T09:00:34.300000Z 01O ␛[0;32m    azure-arm:␛[0m␍
+2026-01-05T09:00:34.400000Z 01O ␛[0;32m    azure-arm: PLAY RECAP *************************************************************␛[0m␍
+2026-01-05T09:00:34.500000Z 01O ␛[0;32m    azure-arm: ␛[0;33mdefault␛[0m                    : ␛[0;32mok=6   ␛[0m ␛[0;33mchanged=3   ␛[0m unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   ␍
+2026-01-05T09:00:34.600000Z 01O ␛[0;32m    azure-arm:␛[0m␍
+2026-01-05T09:00:35.000000Z 01O ␛[1;32m==> azure-arm: Capturing image...␛[0m␍
+2026-01-05T09:01:35.000000Z 01E ␛[1;31m==> azure-arm: ERROR: quota exceeded for resource group␛[0m␍
+2026-01-05T09:01:35.100000Z 01E ␛[1;31mBuild 'azure-arm' errored after 1 minute 34 seconds: quota exceeded␛[0m␍
+2026-01-05T09:01:35.200000Z 00O section_end:1767603695:step_script␍
+␛[0K␍
+2026-01-05T09:01:35.300000Z 00O+␛[31;1mERROR: Job failed: exit code 1␛[0;m␍
