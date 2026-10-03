@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Encode, decode and logs · codec docs</title>
-<meta name="description" content="Smart paste, base64, JSON, JWT and whole Ansible log analysis, in the UI and on the command line. Nothing you paste is stored.">
+<meta name="description" content="Smart paste, base64, JSON, JWT, whole Ansible log analysis, and URL, hex, hashes, secrets and htpasswd, in the UI and on the command line. Nothing you paste is stored.">
 <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/site.css">
 </head>
@@ -94,6 +94,17 @@
   <li>for a run, its <strong>PLAY RECAP</strong> as a table, and its warnings.</li>
 </ul>
 <p>Durations come from a timer callback (<code>profile_tasks</code>) when the run used one, otherwise from the CI timestamps. One task with one result — the <code>TASK</code> line, its <code>task path</code> and the result, even copied out of a Packer or Compose log — opens straight in the single-task view, as does a result line on its own. What you paste stays in the box; a file shows as a card instead. <kbd>Alt</kbd> <kbd>C</kbd> copies the outcome and the failures as text. On the command line: <code>codec ansible log</code> (see <a href="cli.html">CLI</a>).</p>
+
+<h2 id="encode">Encode &amp; hash<a class="anchor" href="#encode">#</a></h2>
+<p>Under <strong>Utilities</strong> in the sidebar. Five tabs; Home and the command palette list each one by name, and the tool reopens on the tab you used last.</p>
+<ul>
+  <li><strong>URL</strong> — decode or encode percent-encoding. Encoding takes a single value (everything but letters, digits and <code>-_.~</code> is escaped) or, with <strong>Whole URL</strong>, keeps a URL's <code>: / ? # &amp; =</code> and existing <code>%XX</code>. <strong>+ is a space</strong> for HTML form encoding. A URL is also shown as its parts and its query parameters as a table, repeats included; a password in the URL is never shown there.</li>
+  <li><strong>Hex</strong> — hex to text and back. Decoding accepts spaces, colons, <code>0x</code> and <code>\x</code>; bytes that aren't text show as <code>\xNN</code>. Encoding can put a space or colon between bytes, in upper case.</li>
+  <li><strong>Hash</strong> — SHA-256, SHA-384, SHA-512, SHA-1 and MD5 of the exact text (spaces and line breaks count), in hex or base64. MD5 and SHA-1 are marked <em>checksums only</em>. <strong>HMAC</strong> takes a key. Paste a digest into <strong>Expected</strong> to see which one matches.</li>
+  <li><strong>Secrets &amp; UUID</strong> — random secrets by length and character set (symbols leave out quotes, backslash, backtick and space, so a secret pastes into YAML or a shell as is), or random bytes as hex or base64, with their strength in bits; or version 4 UUIDs. Up to 100 at a time.</li>
+  <li><strong>htpasswd</strong> — a bcrypt <code>user:$2y$…</code> line for nginx ingress or Traefik basic auth, with the <code>kubectl</code> command to store it; <strong>Check</strong> tests a password against a line. The dice button suggests a strong password.</li>
+</ul>
+<p>Everything is computed on this machine from the operating system's secure random source where randomness is needed; nothing is stored. On the command line: <code>codec url</code>, <code>hex</code>, <code>hash</code>, <code>secret</code>, <code>uuid</code> and <code>htpasswd</code> (see <a href="cli.html#encode">CLI</a>).</p>
 
 <h2 id="keys">Keyboard<a class="anchor" href="#keys">#</a></h2>
 <div class="table-wrap"><table>

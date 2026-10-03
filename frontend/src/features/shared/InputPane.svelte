@@ -6,10 +6,12 @@
   import { toast } from '../../lib/stores/toast.svelte'
   import Pane from './Pane.svelte'
   import { sizeLabel } from './detect'
-  import type { TransformState } from './transform.svelte'
+
+  // Any session with an input: TransformState, or a tool's own state.
+  type Session = { input: string; clear(): void }
 
   interface Props {
-    session: TransformState
+    session: Session
     placeholder: string
     language?: Language
     onpaste?: () => void
