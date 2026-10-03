@@ -55,7 +55,7 @@
   import OpenFolderDialog from './features/workspace/OpenFolderDialog.svelte'
   import QuickOpen from './features/workspace/QuickOpen.svelte'
   import { openFolder, openSample, workspace } from './features/workspace/workspace.svelte'
-  import { tools, toolById } from './lib/tools'
+  import { tools, toolById, toolEntries } from './lib/tools'
   import { ansibleRoute, argoRoute, ciRoute, cloneRoute, compareRoute, composeRoute, isView, k8sRoute, kustomizeRoute, settingsRoute, newRoute, problemsRoute, queryRoute, router, routeAnsible, routeArgo, routeCI, routeClone, routeCompose, routeFile, routeHelm, routeK8s, routeKustomize, routeTool } from './lib/stores/router.svelte'
   import { layout } from './lib/stores/layout.svelte'
   import { shortcut } from './lib/stores/shortcuts.svelte'
@@ -209,13 +209,13 @@
       icon: RotateCw,
       run: () => workspace.loadTree(),
     },
-    ...tools.map((t) => ({
-      id: `open.${t.id}`,
-      title: `Open ${t.title}`,
+    ...tools.flatMap(toolEntries).map((e) => ({
+      id: `open.${e.key}`,
+      title: `Open ${e.title}`,
       group: 'Tools',
-      icon: t.icon,
-      keywords: t.keywords,
-      run: () => layout.openTool(t.id),
+      icon: e.icon,
+      keywords: e.keywords,
+      run: () => layout.openTool(e.tool, e.tab),
     })),
     { id: 'nav.home', title: 'Go to home', group: 'Navigation', icon: House, run: () => router.go('/') },
     {

@@ -91,23 +91,23 @@ Branch `feature/mab/v2.2.0`. Large logs are dropped or picked as a file and sent
 | T6 | Playbook map: graph | From the execution-order analysis; static/dynamic includes, "assumed", external roles; tests | Done |
 | T7 | Playbook map: UI | Pipeline graph component, click to open; docs | Done |
 | T8 | Run colours on the map | Failed, changed, ok, never ran | Done |
-| — | Release | Full checks passed; CHANGELOG cut as 2.2.0 (the map shipped with the analyzer) | Ready to merge and tag |
+| — | Release | Full checks passed; CHANGELOG cut as 2.2.0 (the map shipped with the analyzer) | Released as v2.2.0 |
 
 ### v2.3.0 — Utilities
 Branch `feature/mab/v2.3.0`. Shared rules in [Utilities](#utilities-applies-to-the-three-items-below).
 
-| # | Task | Main parts |
-|---|---|---|
-| T1 | Utilities setup | Sub-tabs in `lib/tools.ts`, "Utilities" rail heading, palette and Home entries per sub-tab |
-| T2 | [Encode & hash](#utilities-encode--hash): engine + API + CLI | URL, hex, hash/HMAC, secrets & UUID, htpasswd (bcrypt); test vectors |
-| T3 | Encode & hash: UI | Five sub-tabs; docs |
-| T4 | [Time](#utilities-time): engine + API + CLI | Timestamps; cron parse, next runs, describe, build; dialect messages; DST tests |
-| T5 | Time: UI | Timestamp with Now; cron explainer + generator; docs |
-| T6 | Cron hover | CronJob, GitHub and Azure schedules |
-| T7 | [Regex](#utilities-regex): engine + API + CLI | RE2 and regexp2, time limit, replace, explainer; tests |
-| T8 | Regex: UI | Tester and explainer on one screen; docs |
-| T9 | Smart paste | Epoch numbers, URL-encoded text, cron expressions |
-| — | Release | |
+| # | Task | Main parts | Status |
+|---|---|---|---|
+| T1 | Utilities setup | Sub-tabs in `lib/tools.ts`, "Utilities" rail heading, palette and Home entries per sub-tab; placeholders until each tool lands | Done |
+| T2 | [Encode & hash](#utilities-encode--hash): engine + API + CLI | URL, hex, hash/HMAC, secrets & UUID, htpasswd (bcrypt); test vectors | |
+| T3 | Encode & hash: UI | Five sub-tabs; docs | |
+| T4 | [Time](#utilities-time): engine + API + CLI | Timestamps; cron parse, next runs, describe, build; dialect messages; DST tests | |
+| T5 | Time: UI | Timestamp with Now; cron explainer + generator; docs | |
+| T6 | Cron hover | CronJob, GitHub and Azure schedules | |
+| T7 | [Regex](#utilities-regex): engine + API + CLI | RE2 and regexp2, time limit, replace, explainer; tests | |
+| T8 | Regex: UI | Tester and explainer on one screen; docs | |
+| T9 | Smart paste | Epoch numbers, URL-encoded text, cron expressions | |
+| — | Release | | |
 
 ### Later
 The rest of "Next", picked up after 2.3.0 or slotted in when it fits.
