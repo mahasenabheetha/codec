@@ -4,6 +4,7 @@ go 1.26.0
 
 require (
 	github.com/atotto/clipboard v0.1.4
+	github.com/dlclark/regexp2 v1.12.0
 	github.com/fsnotify/fsnotify v1.10.1
 	github.com/goccy/go-yaml v1.19.2
 	github.com/itchyny/gojq v0.12.19

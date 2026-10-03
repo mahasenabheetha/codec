@@ -205,6 +205,12 @@ set       spec.template.spec.containers[0].image=</span></code></pre>
   <tr><td><code>cron &lt;expression&gt;</code></td><td>Plain words, field by field, and the next runs (<code>-n</code>, <code>--zone</code>, UTC by default); <code>@daily</code>-style shortcuts and a <code>CRON_TZ=</code> prefix work; Quartz and Jenkins expressions are named as such. <code>--json</code> on both</td></tr>
 </table></div>
 
+<h2 id="regex">Regex<a class="anchor" href="#regex">#</a></h2>
+<div class="table-wrap"><table>
+  <tr><th>Command</th><th>What it does</th></tr>
+  <tr><td><code>regex &lt;pattern&gt; [file|-]</code></td><td>Each match with its line and groups; exit 2 when nothing matches. <code>--style go|pcre</code> (RE2, or Python / .NET / JavaScript with lookarounds and backreferences, stopped after 2 seconds), <code>-f imsx</code>, <code>--first</code>, <code>--replace '$1'</code> (also <code>${name}</code>, <code>\1</code>, <code>\g&lt;name&gt;</code>), <code>--explain</code>, <code>--json</code></td></tr>
+</table></div>
+
 <h2 id="completion">Shell completion<a class="anchor" href="#completion">#</a></h2>
 <pre><code>codec completion powershell | Out-String | Invoke-Expression   <span class="c"># PowerShell</span>
 source &lt;(codec completion bash)                                <span class="c"># bash; also zsh and fish</span></code></pre>

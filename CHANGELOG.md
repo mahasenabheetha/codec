@@ -16,6 +16,10 @@ All notable changes to codec are documented here. The format follows
   by size) and dates in any zone; `codec cron` explains an expression in
   plain words, field by field, with its next runs across daylight-saving
   changes, and names Quartz and Jenkins expressions.
+- CLI: `codec regex` lists matches with their groups, replaces
+  (`--replace`) or explains a pattern part by part (`--explain`), in Go's
+  RE2 or the Python / .NET / JavaScript style (lookarounds,
+  backreferences; stopped after 2 seconds when it backtracks badly).
 - Encode & hash, under a new Utilities heading: URL (with the parts and
   query as a table), hex, hashes and HMAC with an expected-digest check,
   secrets and UUIDs, and htpasswd lines with a check. Tools can have

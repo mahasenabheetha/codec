@@ -337,3 +337,11 @@ Settled unless the user reopens them. Add new ones at the bottom:
     twice runs at its first occurrence. Quartz (seconds, `?`, `L W #`)
     and Jenkins (`H`) are named, not read. `time/tzdata` is embedded so
     zones work without a system zone database (2026-10-03).
+80. Regex runs in two styles: Go's RE2 and, for Python / .NET /
+    JavaScript patterns, `dlclark/regexp2` (now a direct dependency; it
+    was already indirect). regexp2 backtracks, so a test stops after 2
+    seconds and says so; matches stop at 1000. Group numbers are the
+    engine's own (.NET numbers named groups after unnamed ones). Python's
+    `(?P<name>)`, `(?P=name)`, `\1` and `\g<name>` are accepted. Positions
+    are UTF-16 offsets, as the editor counts. An invalid pattern is an
+    answer (error, hint, explanation), not a failed request (2026-10-03).
