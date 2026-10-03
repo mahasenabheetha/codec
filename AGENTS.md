@@ -8,7 +8,8 @@ lists them).
 ## What codec is
 
 A local, single-binary developer tool: a Go backend with an embedded
-Svelte web UI and a CLI. It is a **read-only YAML workbench** for
+Svelte web UI and a CLI. It is a **local workbench for DevOps
+engineers**: read-only on the YAML of
 Kubernetes, Helm, Kustomize, Argo, GitHub Actions, GitLab CI, Azure
 Pipelines, Compose and Ansible (render, lint, schemas, compare, query,
 lens views, starters), plus everyday tools (base64, JSON, JWT, Ansible

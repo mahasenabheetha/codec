@@ -3,9 +3,11 @@
 </p>
 <h1 align="center">codec</h1>
 <p align="center">
-  A read-only workbench for the YAML a DevOps engineer lives in —<br>
-  Kubernetes, Helm, Kustomize, Argo, CI pipelines, Compose and Ansible.<br>
-  One binary, a local web UI and a CLI, next to your editor.
+  The local workbench for a DevOps engineer's day —<br>
+  read and check the YAML you live in (Kubernetes, Helm, Kustomize, Argo,<br>
+  CI pipelines, Compose, Ansible), make sense of pipeline logs, and handle<br>
+  the tokens, hashes, timestamps, cron schedules and regexes around them.<br>
+  One binary, a local web UI and a CLI, next to your editor. Nothing leaves your machine.
 </p>
 <p align="center">
   <a href="https://github.com/mahasenabheetha/codec/actions/workflows/ci.yml"><img src="https://github.com/mahasenabheetha/codec/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
@@ -31,6 +33,12 @@ Ansible variable is really set, what an Argo step receives. The answers
 usually need a cluster, a pipeline run or a lot of scrolling. codec
 answers them from the files alone, on your machine.
 
+The rest of the day is small jobs around that YAML: why a pipeline's
+Ansible run failed, what a JWT or a base64 Secret value says, when a
+cron schedule really fires, whether a regex matches, a bcrypt line for
+basic auth. They usually send you to a website — with your tokens and
+passwords. codec does them locally, next to the files they belong to.
+
 - **Understand, don't just edit** — see each file the way the tool that
   runs it does: Helm's merged values, GitLab's effective job after
   `extends`, Compose's merged services, Ansible's execution order.
@@ -38,8 +46,10 @@ answers them from the files alone, on your machine.
   never the file. Copy the result, or a patch `git apply` accepts.
 - **Explain every problem** — each finding says why it matters and how to
   fix it, on the exact line.
-- **Private by design** — never writes to your files, no telemetry,
-  listens on `127.0.0.1` only. Works offline.
+- **One place for the small jobs** — logs, encodings, hashes, secrets,
+  timestamps, cron and regex, in the same app and the same CLI.
+- **Private by design** — never writes to your files, nothing you paste
+  is stored, no telemetry, listens on `127.0.0.1` only. Works offline.
 
 ## Features
 
@@ -80,14 +90,11 @@ answers them from the files alone, on your machine.
 <td><b>New files and clones</b><br>Starters with a short form, linted and rendered before you copy them; your own team starters; clone a file under a new name with references renamed and everything else listed.<br><a href="https://mahasenabheetha.github.io/codec/new.html">Starters guide →</a></td>
 <td><img src="docs/images/new.png" alt="New file from a starter"></td>
 </tr>
+<tr>
+<td><img src="docs/images/jwt.png" alt="The JWT tool"></td>
+<td><b>Logs and everyday tools</b><br>Ansible logs, from one failed task to a whole pipeline log with several runs: the failure, its probable cause and where the task is defined. Smart paste, base64, JSON and JWT claims. Under <b>Utilities</b>: URL and hex encoding, hashes and HMAC, random secrets and UUIDs, htpasswd lines, timestamps, cron schedules in plain words with their next runs (also on hover in CronJobs and pipelines), and a regex tester that explains the pattern.<br><a href="https://mahasenabheetha.github.io/codec/tools.html">Tools guide →</a></td>
+</tr>
 </table>
-
-Plus the everyday tools: smart paste, base64, JSON, JWT claims and
-Ansible logs, from one failed task to a whole pipeline log with several
-runs. Under **Utilities**: URL and hex encoding, hashes and HMAC, random
-secrets and UUIDs, htpasswd lines, timestamps, cron schedules in plain
-words with their next runs (also on hover in CronJobs and pipelines),
-and a regex tester that explains the pattern — [tools guide](https://mahasenabheetha.github.io/codec/tools.html).
 
 ## Quick start
 
