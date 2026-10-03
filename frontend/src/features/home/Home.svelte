@@ -9,7 +9,7 @@
   import Button from '../../lib/components/Button.svelte'
   import Kbd from '../../lib/components/Kbd.svelte'
   import { layout } from '../../lib/stores/layout.svelte'
-  import { toolGroups } from '../../lib/tools'
+  import { toolEntries, toolGroups } from '../../lib/tools'
   import { comparison } from '../compare/compare.svelte'
   import { openFolder, openSample, workspace as ws } from '../workspace/workspace.svelte'
 
@@ -122,8 +122,8 @@
             <span class="go"><ArrowRight size={16} strokeWidth={1.75} /></span>
           </button>
         {/if}
-        {#each g.tools as t (t.id)}
-          <button type="button" class="card" onclick={() => layout.openTool(t.id)}>
+        {#each g.tools.flatMap(toolEntries) as t (t.key)}
+          <button type="button" class="card" onclick={() => layout.openTool(t.tool, t.tab)}>
             <span class="icon"><t.icon size={18} strokeWidth={1.75} /></span>
             <span class="text">
               <span class="title">{t.title}</span>

@@ -6,8 +6,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/fs"
+	"log"
 	"net/http"
+	"runtime/debug"
 	"slices"
 	"strings"
 	"time"
@@ -123,6 +126,14 @@ func cancellable[T any](ctx context.Context, fn func() (T, error)) (T, error) {
 	}
 	done := make(chan result, 1) // buffered: fn's goroutine never blocks
 	go func() {
+		// A panic here would end the whole server (net/http only recovers
+		// its own handler goroutines): answer with an error instead.
+		defer func() {
+			if p := recover(); p != nil {
+				log.Printf("panic: %v\n%s", p, debug.Stack())
+				done <- result{err: fmt.Errorf("internal error: %v", p)}
+			}
+		}()
 		v, err := fn()
 		done <- result{v, err}
 	}()
@@ -212,9 +223,11 @@ func (s *Server) argoIndexFor(ctx context.Context, f *provider.File) *argo.Index
 func (s *Server) handleHover(w http.ResponseWriter, r *http.Request) {
 	s.serveYAML(w, r, func(req *yamlRequest, f *provider.File, p provider.Provider) any {
 		at := pos(req, f)
-		var h *provider.Hover
-		if ix := s.argoIndexFor(r.Context(), f); ix != nil {
-			h = argo.HoverIn(f, at, ix) // also in raw Helm templates of Argo files
+		h := cronHover(f, p.ID(), at, time.Now()) // schedules in plain words
+		if h == nil {
+			if ix := s.argoIndexFor(r.Context(), f); ix != nil {
+				h = argo.HoverIn(f, at, ix) // also in raw Helm templates of Argo files
+			}
 		}
 		if opts, ok := s.ciFor(r.Context(), f, p.ID()); ok && h == nil {
 			h = ci.HoverIn(p.ID(), f, at, opts) // includes and templates too

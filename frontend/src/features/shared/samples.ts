@@ -7,6 +7,24 @@ export const samples = {
 
   base64Decode: 'eyJzZXJ2aWNlIjoiYXBpIiwicmVwbGljYXMiOjMsImltYWdlIjoibmdpbng6MS4yNyJ9',
 
+  urlEncode: 'status="5xx" & région=eu/west',
+
+  urlDecode: 'https://grafana.example.com/d/api?var-namespace=shop%20prod&from=now-6h&q=status%3D%225xx%22%20%26%20r%C3%A9gion',
+
+  hexEncode: 'codec ✓',
+
+  hexDecode: '63 6f 64 65 63 20 e2 9c 93',
+
+  hash: 'The quick brown fox jumps over the lazy dog',
+
+  regexPattern: '^(?<time>\\d\\d:\\d\\d:\\d\\d) (?<level>ERROR|WARN) +([A-Z]+-\\d+)',
+
+  regexText: `09:14:02 INFO  started shop-api v1.4.2
+09:14:07 WARN  CART-12 slow response from payments (812 ms)
+09:15:31 ERROR PAY-404 card declined for order 1187
+09:15:32 INFO  retrying order 1187
+09:16:05 ERROR PAY-500 payments unreachable`,
+
   // HS256, claims: sub, name, roles, iss, aud, iat, exp (year 2099).
   jwt: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyLTQyIiwibmFtZSI6IkFkYSBMb3ZlbGFjZSIsInJvbGVzIjpbImRldiIsIm9wcyJdLCJpc3MiOiJodHRwczovL2F1dGguZXhhbXBsZS5jb20iLCJhdWQiOiJjb2RlYy1kZW1vIiwiaWF0IjoxNzkwMzgwODAwLCJleHAiOjQwNzA5MDg4MDB9.c2lnbmF0dXJlLW5vdC12ZXJpZmllZA',
 

@@ -6,6 +6,8 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    - cron: "0 3 * * 1-5" # hover for the next runs (UTC)
 
 permissions:
   contents: read

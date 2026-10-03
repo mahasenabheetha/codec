@@ -7,12 +7,14 @@
     meta?: Snippet
     actions?: Snippet
     children: Snippet
+    /** false: as tall as its content, for one-column tools. */
+    grow?: boolean
   }
 
-  let { title, meta, actions, children }: Props = $props()
+  let { title, meta, actions, children, grow = true }: Props = $props()
 </script>
 
-<section class="pane" aria-label={title}>
+<section class="pane" class:fit={!grow} aria-label={title}>
   <header>
     <h2>{title}</h2>
     {#if meta}<div class="meta">{@render meta()}</div>{/if}
@@ -32,6 +34,9 @@
     border: 1px solid var(--border);
     border-radius: var(--r-lg);
     overflow: hidden;
+  }
+  .pane.fit {
+    flex: none;
   }
   header {
     flex: 0 0 auto;

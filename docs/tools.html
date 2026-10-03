@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Encode, decode and logs · codec docs</title>
-<meta name="description" content="Smart paste, base64, JSON, JWT and whole Ansible log analysis, in the UI and on the command line. Nothing you paste is stored.">
+<title>Everyday tools · codec docs</title>
+<meta name="description" content="Smart paste, base64, JSON, JWT, whole Ansible log analysis, URL, hex, hashes, secrets, htpasswd, timestamps, cron and regular expressions, in the UI and on the command line. Nothing you paste is stored.">
 <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/site.css">
 </head>
@@ -40,7 +40,7 @@
 <li><a href="ansible.html">Ansible</a></li>
 <li><a href="compare.html">Compare and query</a></li>
 <li><a href="new.html">New files and clones</a></li>
-<li><a href="tools.html" aria-current="page">Encode, decode and logs</a></li>
+<li><a href="tools.html" aria-current="page">Everyday tools</a></li>
 <li><a href="settings.html">Settings and your data</a></li>
 </ul>
 <h4>Reference</h4>
@@ -60,8 +60,8 @@
 </nav>
 <main>
 <article class="content">
-<h1>Encode, decode and logs</h1>
-<p class="lead">The small tools codec started with: paste something, get the obvious transformation. They work without an open folder, and nothing you paste is stored or sent anywhere.</p>
+<h1>Everyday tools</h1>
+<p class="lead">The tools for the text you handle all day: smart paste, base64, JSON, JWT and Ansible logs, and under <strong>Utilities</strong> URL and hex encoding, hashes, secrets, htpasswd lines, timestamps, cron schedules and regular expressions. They work without an open folder, and nothing you paste is stored or sent anywhere.</p>
 
 <figure>
   <img src="images/jwt.png" alt="The JWT tool: a token on the left, and on the right its validity, algorithm, claims table with expiry, header and signature" width="1400" height="820">
@@ -69,7 +69,7 @@
 </figure>
 
 <h2 id="smart">Smart paste<a class="anchor" href="#smart">#</a></h2>
-<p>Paste anything. codec detects JSON, base64, a JWT or an Ansible log and does the obvious thing: pretty-prints JSON, decodes base64 (and pretty-prints it if the result is JSON), decodes a token, analyses a log. The status bar says what it detected.</p>
+<p>Paste anything. codec detects JSON, base64, a JWT or an Ansible log and does the obvious thing: pretty-prints JSON, decodes base64 (and pretty-prints it if the result is JSON), decodes a token, analyses a log. An epoch timestamp, URL-encoded text or a cron expression is read too, with a button to open it in Timestamp, URL or Cron. The status bar says what it detected.</p>
 
 <h2 id="base64">Base64<a class="anchor" href="#base64">#</a></h2>
 <ul>
@@ -94,6 +94,37 @@
   <li>for a run, its <strong>PLAY RECAP</strong> as a table, and its warnings.</li>
 </ul>
 <p>Durations come from a timer callback (<code>profile_tasks</code>) when the run used one, otherwise from the CI timestamps. One task with one result — the <code>TASK</code> line, its <code>task path</code> and the result, even copied out of a Packer or Compose log — opens straight in the single-task view, as does a result line on its own. What you paste stays in the box; a file shows as a card instead. <kbd>Alt</kbd> <kbd>C</kbd> copies the outcome and the failures as text. On the command line: <code>codec ansible log</code> (see <a href="cli.html">CLI</a>).</p>
+
+<h2 id="encode">Encode &amp; hash<a class="anchor" href="#encode">#</a></h2>
+<p>Under <strong>Utilities</strong> in the sidebar. Five tabs; Home and the command palette list each one by name, and the tool reopens on the tab you used last.</p>
+<ul>
+  <li><strong>URL</strong> — decode or encode percent-encoding. Encoding takes a single value (everything but letters, digits and <code>-_.~</code> is escaped) or, with <strong>Whole URL</strong>, keeps a URL's <code>: / ? # &amp; =</code> and existing <code>%XX</code>. <strong>+ is a space</strong> for HTML form encoding. A URL is also shown as its parts and its query parameters as a table, repeats included; a password in the URL is never shown there.</li>
+  <li><strong>Hex</strong> — hex to text and back. Decoding accepts spaces, colons, <code>0x</code> and <code>\x</code>; bytes that aren't text show as <code>\xNN</code>. Encoding can put a space or colon between bytes, in upper case.</li>
+  <li><strong>Hash</strong> — SHA-256, SHA-384, SHA-512, SHA-1 and MD5 of the exact text (spaces and line breaks count), in hex or base64. MD5 and SHA-1 are marked <em>checksums only</em>. <strong>HMAC</strong> takes a key. Paste a digest into <strong>Expected</strong> to see which one matches.</li>
+  <li><strong>Secrets &amp; UUID</strong> — random secrets by length and character set (symbols leave out quotes, backslash, backtick and space, so a secret pastes into YAML or a shell as is), or random bytes as hex or base64, with their strength in bits; or version 4 UUIDs. Up to 100 at a time.</li>
+  <li><strong>htpasswd</strong> — a bcrypt <code>user:$2y$…</code> line for nginx ingress or Traefik basic auth, with the <code>kubectl</code> command to store it; <strong>Check</strong> tests a password against a line. The dice button suggests a strong password.</li>
+</ul>
+<p>Everything is computed on this machine from the operating system's secure random source where randomness is needed; nothing is stored. On the command line: <code>codec url</code>, <code>hex</code>, <code>hash</code>, <code>secret</code>, <code>uuid</code> and <code>htpasswd</code> (see <a href="cli.html#encode">CLI</a>).</p>
+
+<h2 id="time">Time<a class="anchor" href="#time">#</a></h2>
+<p>Under <strong>Utilities</strong>, with two tabs. Each tab has its own time zone (type to pick one); Timestamp starts in this machine's zone, Cron in UTC, as GitHub Actions and Azure Pipelines run schedules.</p>
+<ul>
+  <li><strong>Timestamp</strong> — type or paste an epoch number or a date on the line at the top; the answer is below it. The unit of a number is told by its size: up to 11 digits are seconds, then milliseconds, microseconds and nanoseconds. Dates are read in the usual layouts (ISO 8601, HTTP and email dates, access logs); one without a zone is read in the chosen zone. The answer shows Unix seconds and milliseconds, UTC, the chosen zone with its offset, a readable form, how long ago or how soon, the HTTP date and the ISO week, each with a copy button. <strong>Now</strong> fills in the current Unix timestamp.</li>
+  <li><strong>Cron</strong> — type an expression, pick a preset, or build one: every N minutes, hourly, daily, weekly on chosen days, or monthly, in every month or chosen months. Under the expression, one cell per field shows what you typed, the field's name and what it means; click a cell to select that field in the expression. The schedule shows in plain words ("Every 15 minutes, from 02:00 to 06:59, Monday to Friday"), with the build form and the next 10 runs side by side below. A typed expression fills the form when it fits. Standard 5-field cron, <code>@daily</code>-style shortcuts and a <code>CRON_TZ=</code> prefix are read. When both day fields are set (<code>1 12 2 5 5</code>), a day matching either runs, as in Kubernetes — the 2nd of May and every Friday in May — and a note says so. A run that a daylight-saving change skips is named. Quartz (seconds, <code>?</code>, <code>L</code>, <code>W</code>, <code>#</code>) and Jenkins (<code>H</code>) expressions are recognised and named as unsupported.</li>
+</ul>
+<p>On the command line: <code>codec time</code> and <code>codec cron</code> (see <a href="cli.html#time">CLI</a>).</p>
+
+<h2 id="regex">Regex<a class="anchor" href="#regex">#</a></h2>
+<p>Under <strong>Utilities</strong>: a tester and an explainer on one screen. Type a pattern and some test text; matches light up in the text as you type.</p>
+<ul>
+  <li><strong>Style</strong>: <strong>Go (RE2)</strong>, Go's own regular expressions, which run in linear time but have no lookarounds or backreferences; or <strong>Python / .NET / JS</strong>, with lookahead and lookbehind, backreferences, atomic groups and Python's <code>(?P&lt;name&gt;…)</code>. A test in that style stops after 2 seconds if the pattern backtracks badly, and says so. When RE2 refuses a pattern the other style takes, the error says so and <strong>Switch</strong> changes style.</li>
+  <li><strong>Flags</strong> as toggles: <code>i</code> ignore case, <code>m</code> <code>^</code> and <code>$</code> at line breaks (on by default), <code>s</code> <code>.</code> matches line breaks, <code>x</code> ignore whitespace (Python / .NET / JS). <strong>All matches</strong> off finds only the first.</li>
+  <li><strong>Matches</strong>: each match with its line and capture groups, numbered and named; click one to select it in the text, hover a group to light up what it captured in every match. Up to 1000 matches.</li>
+  <li><strong>Explanation</strong>: the pattern part by part in plain words ("One or more times, as few as possible (lazy)", "Group 1, named "year""). Hover a part to find it in the pattern, and a group to see what it matched.</li>
+  <li><strong>Replace</strong>: type a replacement under the pattern (<code>$1</code>, <code>${name}</code>, <code>$0</code>; Python's <code>\1</code> and <code>\g&lt;name&gt;</code> work too; <code>$$</code> is a dollar sign, and a group the pattern doesn't have stays as written) and see the result.</li>
+  <li><strong>Group numbers</strong>: in Go's style groups are numbered in order. The Python / .NET / JS style numbers them as .NET does — named groups after the unnamed ones — so refer to a named group by its name there.</li>
+</ul>
+<p>On the command line: <code>codec regex</code> (see <a href="cli.html#regex">CLI</a>).</p>
 
 <h2 id="keys">Keyboard<a class="anchor" href="#keys">#</a></h2>
 <div class="table-wrap"><table>

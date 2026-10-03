@@ -323,3 +323,25 @@ Settled unless the user reopens them. Add new ones at the bottom:
     matching only: a task's task path (file, or a role's folder), else
     its role prefix, else its play; handlers by name. No playbook
     evaluation; nodes no task reached show "never ran" (2026-10-03).
+78. Encode & hash: `golang.org/x/crypto` (bcrypt) and `golang.org/x/term`
+    (password prompt) become direct dependencies; both were already
+    indirect. htpasswd lines use `$2y$` as Apache writes them. The CLI
+    never takes a password or HMAC key as an argument (prompt, stdin or
+    an environment variable), so they stay out of shell history; hashes
+    are of the exact bytes given (2026-10-03).
+79. Cron follows Vixie cron and Kubernetes (robfig/cron): when both day
+    fields are restricted (neither starts with `*`) a day matching either
+    runs. Runs are listed in a chosen zone, UTC by default (GitHub
+    Actions, Azure Pipelines); a `CRON_TZ=` prefix wins. A wall time in
+    a daylight-saving gap is skipped and reported; one that happens
+    twice runs at its first occurrence. Quartz (seconds, `?`, `L W #`)
+    and Jenkins (`H`) are named, not read. `time/tzdata` is embedded so
+    zones work without a system zone database (2026-10-03).
+80. Regex runs in two styles: Go's RE2 and, for Python / .NET /
+    JavaScript patterns, `dlclark/regexp2` (now a direct dependency; it
+    was already indirect). regexp2 backtracks, so a test stops after 2
+    seconds and says so; matches stop at 1000. Group numbers are the
+    engine's own (.NET numbers named groups after unnamed ones). Python's
+    `(?P<name>)`, `(?P=name)`, `\1` and `\g<name>` are accepted. Positions
+    are UTF-16 offsets, as the editor counts. An invalid pattern is an
+    answer (error, hint, explanation), not a failed request (2026-10-03).

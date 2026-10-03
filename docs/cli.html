@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CLI reference · codec docs</title>
-<meta name="description" content="Every codec command and flag: YAML, lint, diff and query, Helm, Kubernetes, Argo, CI, Compose, Ansible, starters and the encode/decode tools.">
+<meta name="description" content="Every codec command and flag: YAML, lint, diff and query, Helm, Kubernetes, Argo, CI, Compose, Ansible, starters, the encode/decode tools and the Utilities (URL, hex, hash, secrets, htpasswd, time, cron, regex).">
 <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/site.css">
 </head>
@@ -40,7 +40,7 @@
 <li><a href="ansible.html">Ansible</a></li>
 <li><a href="compare.html">Compare and query</a></li>
 <li><a href="new.html">New files and clones</a></li>
-<li><a href="tools.html">Encode, decode and logs</a></li>
+<li><a href="tools.html">Everyday tools</a></li>
 <li><a href="settings.html">Settings and your data</a></li>
 </ul>
 <h4>Reference</h4>
@@ -184,6 +184,31 @@ set       spec.template.spec.containers[0].image=</span></code></pre>
   <tr><td><code>json pretty|min|validate [json]</code></td><td><code>--indent</code> for pretty; validate exits 1 with line and column</td></tr>
   <tr><td><code>jwt decode [token]</code></td><td>Header and claims; the signature is not verified</td></tr>
   <tr><td><code>watch</code></td><td>Transform recognisable clipboard content in place (<code>--interval</code>)</td></tr>
+</table></div>
+
+<h2 id="encode">Encode and hash<a class="anchor" href="#encode">#</a></h2>
+<div class="table-wrap"><table>
+  <tr><th>Command</th><th>What it does</th></tr>
+  <tr><td><code>url encode|decode [text]</code></td><td>Percent-encoding; <code>--whole</code> keeps a URL's structure, <code>--plus</code> treats a space as <code>+</code></td></tr>
+  <tr><td><code>url parse [url]</code></td><td>A URL's parts and its query string as a table (<code>--json</code>); a bare <code>a=1&amp;b=2</code> works too</td></tr>
+  <tr><td><code>hex encode|decode [text]</code></td><td><code>--upper</code>, <code>--sep :</code>; decoding accepts spaces, colons, <code>0x</code> and <code>\x</code></td></tr>
+  <tr><td><code>hash [text]</code></td><td>SHA-256, SHA-384, SHA-512, SHA-1, MD5 of the exact bytes (<code>-a sha256</code> prints only that digest, <code>--base64</code>); <code>--hmac-key-env VAR</code> for HMACs</td></tr>
+  <tr><td><code>secret</code></td><td>Random secrets: <code>--length</code>, <code>--sets lower,upper,digits,symbols</code>, <code>--format hex|base64|base64url</code>, <code>--no-ambiguous</code>, <code>-n</code></td></tr>
+  <tr><td><code>uuid</code></td><td>Random UUIDs (version 4), <code>-n</code> for more than one</td></tr>
+  <tr><td><code>htpasswd &lt;user&gt;</code></td><td>A bcrypt <code>user:hash</code> line for basic auth; the password is asked for or piped in (<code>--cost</code>). <code>--check "&lt;line&gt;"</code> checks one, exit 2 when it doesn't match</td></tr>
+</table></div>
+
+<h2 id="time">Time and cron<a class="anchor" href="#time">#</a></h2>
+<div class="table-wrap"><table>
+  <tr><th>Command</th><th>What it does</th></tr>
+  <tr><td><code>time [epoch|date]</code></td><td>A moment in UTC, in <code>--zone</code>, as epoch seconds and milliseconds and relative to now; nothing means now. Epoch units are told by size (up to 11 digits are seconds, then ms, µs, ns)</td></tr>
+  <tr><td><code>cron &lt;expression&gt;</code></td><td>Plain words, field by field, and the next runs (<code>-n</code>, <code>--zone</code>, UTC by default); <code>@daily</code>-style shortcuts and a <code>CRON_TZ=</code> prefix work; Quartz and Jenkins expressions are named as such. <code>--json</code> on both</td></tr>
+</table></div>
+
+<h2 id="regex">Regex<a class="anchor" href="#regex">#</a></h2>
+<div class="table-wrap"><table>
+  <tr><th>Command</th><th>What it does</th></tr>
+  <tr><td><code>regex &lt;pattern&gt; [file|-]</code></td><td>Each match with its line and groups; exit 2 when nothing matches. <code>--style go|pcre</code> (RE2, or Python / .NET / JavaScript with lookarounds and backreferences, stopped after 2 seconds), <code>-f imsx</code>, <code>--first</code>, <code>--replace '$1'</code> (also <code>${name}</code>, <code>\1</code>, <code>\g&lt;name&gt;</code>), <code>--explain</code>, <code>--json</code></td></tr>
 </table></div>
 
 <h2 id="completion">Shell completion<a class="anchor" href="#completion">#</a></h2>

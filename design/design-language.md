@@ -60,7 +60,7 @@ change to this file and `tokens.css` together.
 ```
 
 - Rail 48/220 px (`Ctrl+B`); groups Workspace · Encode & decode · Logs ·
-  Settings. Explorer and lens panel resize and collapse; sizes persist.
+  Utilities · Settings. Explorer and lens panel resize and collapse; sizes persist.
 - Every view is a tab keyed by its route (`lib/stores/router.svelte.ts`);
   views stay mounted while their tab is open (`active` prop hides them).
 - Lens views (Argo, Pipeline, Compose, Ansible) use `LensView` (header,
@@ -114,6 +114,19 @@ them when it changes, and rename the SVG if browser tabs keep the old one.
   (`$effect(() => active && commands.register([...]))`, or
   `toolCommands` for tools). Shortcuts via `shortcut()`; add them to
   `ShortcutsDialog` and `docs/shortcuts.html`.
+- **Tools.** One page: title and toolbar, input left, output right
+  (`ToolLayout`, `InputPane`, `Pane`) when the input can be a document.
+  When it is a value or a small form (a timestamp, a cron expression,
+  generator options), one column instead (`ToolLayout` `body`,
+  `LineInput`, `Pane grow={false}`): the input on top, answers below,
+  each as tall as its content. A tool with sub-tabs lists them in
+  `lib/tools.ts` (`tabs`), shows them as a `SegmentedControl` first in its
+  toolbar (`ToolTabs`) and renders through `TabbedTool`, which mounts a
+  sub-tab when first shown and keeps it; the last sub-tab is remembered,
+  and Home and the palette list each one by name. Requests go through
+  `Job` / `TextJob` (newest answer wins, debounced while typing). One
+  tool hands input to another with `handoff.send(tool, tab, input)`.
+  Results with several values give each its own copy button.
 - **Persistence.** `persisted()` is for display preferences only. Never
   persist tool input, what-if edits or variables [19].
 - **API.** Components call the backend only through `lib/api/*`.

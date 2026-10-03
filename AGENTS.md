@@ -8,12 +8,14 @@ lists them).
 ## What codec is
 
 A local, single-binary developer tool: a Go backend with an embedded
-Svelte web UI and a CLI. It is a **read-only YAML workbench** for
+Svelte web UI and a CLI. It is a **local workbench for DevOps
+engineers**: read-only on the YAML of
 Kubernetes, Helm, Kustomize, Argo, GitHub Actions, GitLab CI, Azure
 Pipelines, Compose and Ansible (render, lint, schemas, compare, query,
-lens views, starters), plus encode/decode tools (base64, JSON, JWT,
-Ansible logs). It is a companion to VS Code/Cursor, not a replacement.
-Version 2.0 is complete; the user uses it daily, so fixes and small
+lens views, starters), plus everyday tools (base64, JSON, JWT, Ansible
+logs, and Utilities: URL, hex, hashes, secrets, htpasswd, timestamps,
+cron, regex). It is a companion to VS Code/Cursor, not a replacement.
+Releases are 2.x minors; the user uses it daily, so fixes and small
 improvements are the common work. User docs: [docs/](docs/index.html).
 
 ## How to work

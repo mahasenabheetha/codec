@@ -40,7 +40,7 @@
 <li><a href="ansible.html">Ansible</a></li>
 <li><a href="compare.html">Compare and query</a></li>
 <li><a href="new.html">New files and clones</a></li>
-<li><a href="tools.html">Encode, decode and logs</a></li>
+<li><a href="tools.html">Everyday tools</a></li>
 <li><a href="settings.html">Settings and your data</a></li>
 </ul>
 <h4>Reference</h4>
@@ -92,7 +92,7 @@
   <text class="mono" x="466" y="160">helm · kube · argo · ci</text>
   <text class="mono" x="466" y="180">compose · ansible</text>
   <text class="mono" x="466" y="200">query · search · textdiff · scaffold</text>
-  <text class="mono" x="466" y="220">codec (encode/decode)</text>
+  <text class="mono" x="466" y="220">codec · encode · cron · regex</text>
   <text class="sm" x="466" y="248">no files, network, clock or env</text>
 
   <rect class="box" x="210" y="286" width="160" height="44" rx="8"/><text x="226" y="313">workspace</text>
@@ -169,7 +169,7 @@
 <ul>
   <li><strong>Shell</strong> — sidebar (rail), tabs, command palette, status bar.</li>
   <li><strong>Shared components</strong> — buttons, tree, editor wrapper (CodeMirror), graph (dagre layout), dialogs, skeletons.</li>
-  <li><strong>Features</strong> — one folder per view or tool: workspace, editor, helm, lint, compare, kube, argo, ci, compose, ansible, scaffold, and the encode/decode tools.</li>
+  <li><strong>Features</strong> — one folder per view or tool: workspace, editor, helm, lint, compare, kube, argo, ci, compose, ansible, scaffold, the encode/decode tools, and the Utilities (encode, time, regex). Tools with sub-tabs share one frame that keeps each sub-tab as you left it.</li>
   <li><strong>State</strong> — tab state lives in memory; display preferences in local storage; nothing pasted is stored.</li>
 </ul>
 <p>Live updates arrive over Server-Sent Events: a folder was opened, files changed, file types are ready.</p>
@@ -189,6 +189,9 @@ internal/
   ansiblelog/         <span class="c">engine · whole Ansible logs: clean, segment, read runs and results</span>
   scaffold/           <span class="c">engine · starters, clone-with-rename, snippets</span>
   names/  codec/      <span class="c">engine · "did you mean" · base64/JSON/JWT/Ansible-log tools</span>
+  encode/             <span class="c">engine · URL, hex, hashes and HMAC, secrets, UUIDs, htpasswd</span>
+  cron/  timeutil/    <span class="c">engine · cron: parse, describe, next runs, build · timestamps</span>
+  regex/              <span class="c">engine · RE2 and regexp2 styles: run, replace, explain</span>
   workspace/          <span class="c">adapter · read-only folder access, file index, watcher</span>
   config/  schemacache/  sample/   <span class="c">adapters · settings file · schema downloads · the sample repo</span>
   check/              <span class="c">adapter · lint + schemas for editor, workspace, renders and CLI</span>

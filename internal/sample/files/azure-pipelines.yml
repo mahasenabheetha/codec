@@ -3,6 +3,13 @@ trigger:
     include:
       - main
 
+schedules:
+  - cron: "0 3 * * 0"
+    displayName: Weekly build
+    branches:
+      include:
+        - main
+
 parameters:
   - name: environments
     displayName: Deploy to

@@ -12,7 +12,7 @@ export type Mode =
   | 'jwt'
   | 'ansible'
 
-export type Kind = 'json' | 'jwt' | 'base64' | 'ansible' | 'unknown'
+export type Kind = 'json' | 'jwt' | 'base64' | 'ansible' | 'epoch' | 'url' | 'cron' | 'unknown'
 
 export interface TransformRequest {
   input: string
@@ -54,6 +54,8 @@ export interface TransformResponse {
   kind: Kind
   task?: AnsibleTask
   jwt?: JwtParts
+  /** Smart paste: input that belongs to a Utilities tool, and which tab. */
+  utility?: { kind: string; tool: string; tab: string; summary: string }
 }
 
 export function transform(req: TransformRequest): Promise<TransformResponse> {

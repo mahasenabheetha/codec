@@ -9,12 +9,15 @@ export class ApiError extends Error {
   status: number
   line?: number
   column?: number
+  /** The whole error body, for endpoints that say more (a cron dialect). */
+  body?: Record<string, unknown>
 
-  constructor(status: number, message: string, line?: number, column?: number) {
+  constructor(status: number, message: string, line?: number, column?: number, body?: Record<string, unknown>) {
     super(message)
     this.status = status
     this.line = line
     this.column = column
+    this.body = body
   }
 }
 
@@ -57,7 +60,7 @@ export async function request<T>(
   if (!res.ok) {
     if (res.status === 401 && data?.code === 'stale-token') connection.restarted = true
     const msg = data?.error ?? `${res.status} ${res.statusText}`
-    throw new ApiError(res.status, msg, data?.line, data?.column)
+    throw new ApiError(res.status, msg, data?.line, data?.column, data ?? undefined)
   }
   return data as T
 }

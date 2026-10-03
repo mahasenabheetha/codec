@@ -11,7 +11,8 @@ flow charts and performance numbers are in `docs/architecture.html` and
 cmd/codec/            main → cli.Execute()
 frontend/             Svelte 5 + Vite + TS source (Wails-compatible location)
 internal/
-  codec/              ENGINE v1 transforms (base64, JSON, JWT, ansible)
+  codec/              ENGINE v1 transforms (base64, JSON, JWT, ansible); smart
+                      paste's Utilities detection (epoch, URL-encoded, cron)
   yamlkit/            ENGINE YAML core: parse, positions, docs, detect,
                       outline, paths, format, convert, diagnostics,
                       semantic diff, layered merge with origins (CI, Compose)
@@ -45,6 +46,13 @@ internal/
   ansiblelog/         ENGINE whole Ansible logs from pipelines: clean (CI
                       prefixes, colours, learned wrappers), segment into runs and
                       other output, read results; the analysis model
+  encode/             ENGINE Encode & hash tool: URL and hex encoding, digests and
+                      HMAC, random secrets and UUIDs, bcrypt htpasswd lines
+  cron/               ENGINE standard cron: parse (dialects named), plain words,
+                      next runs across DST, build from a form
+  timeutil/           ENGINE timestamps: epoch units by size, dates, zones, relative
+  regex/              ENGINE regex tester: Go RE2 and the Python/.NET/JS style
+                      (dlclark/regexp2, time limit), replace, explain tree
   compose/            ENGINE Compose lens: files merged with the Compose rules and
                       origins, extends/include, ${VAR} from .env + what-if,
                       services graph, ports, volumes, checks
@@ -128,7 +136,7 @@ frontend/src/
   lib/shell/          rail, tab bar, status bar, palette, shortcuts dialog
   lib/stores/         router (hash routes), layout/tabs, commands, shortcuts, toasts, persisted()
   lib/styles/         tokens.css (design tokens), global.css
-  lib/tools.ts        encode/decode tools registry (rail, home, palette)
+  lib/tools.ts        tools registry: rail, home, palette; optional sub-tabs
   features/<name>/    one folder per view or tool; cross-feature pieces in features/shared
 ```
 

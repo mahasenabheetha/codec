@@ -10,6 +10,8 @@ const explorerOpen = persisted('explorerOpen', true)
 // What the sidebar panel beside the rail shows.
 const sidebarView = persisted<'explorer' | 'search'>('sidebarView', 'explorer')
 const explorerWidth = persisted('explorerWidth', 280)
+// The last sub-tab of each tool that has them (Time → Cron).
+const toolTabs = persisted<Record<string, string>>('toolTabs', {})
 
 // Tabs are routes (#/tools/json, #/file/a/b.yaml). Before workspaces,
 // tabs were stored as bare tool ids; upgrade those in place.
@@ -81,8 +83,18 @@ class Layout {
     router.go(route)
   }
 
-  openTool(id: string) {
+  /** Open a tool, on one of its sub-tabs when tab is given. */
+  openTool(id: string, tab?: string) {
+    if (tab) this.setToolTab(id, tab)
     this.open('/tools/' + id)
+  }
+
+  /** The sub-tab a tool last showed, or undefined. */
+  toolTab(id: string): string | undefined {
+    return toolTabs.value[id]
+  }
+  setToolTab(id: string, tab: string) {
+    toolTabs.value = { ...toolTabs.value, [id]: tab }
   }
 
   openFile(path: string) {
