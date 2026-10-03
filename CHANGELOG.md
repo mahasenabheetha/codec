@@ -6,6 +6,15 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- `codec ansible log <file|->` reads a whole pipeline log — CI
+  timestamps, Packer or Compose prefixes, colour codes, shell output,
+  several playbook runs — and prints each run's failures with their
+  reason and defining file, the recap, and other output with errors.
+  Rescued and ignored failures, unreachable hosts and runs cut short
+  are told apart. `--all` lists every task with its duration.
+
 ## [2.1.0] - 2026-10-03
 
 Compare takes pasted text and files picked in the Explorer, Find in

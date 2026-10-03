@@ -21,6 +21,11 @@ const (
 	Failed      Status = "failed"
 	Unreachable Status = "unreachable"
 	Included    Status = "included"
+	// Rescued is a task's status when its failures were caught by a
+	// rescue block; results keep Failed with Rescued set.
+	Rescued Status = "rescued"
+	// Unfinished is the status of the task a cut-short run stopped in.
+	Unfinished Status = "unfinished"
 )
 
 // Result is one host's result line in a task, with its payload.
@@ -44,8 +49,14 @@ type Result struct {
 
 // HostRecap is one PLAY RECAP row.
 type HostRecap struct {
-	Host                                                        string
-	OK, Changed, Unreachable, Failed, Skipped, Rescued, Ignored int
+	Host        string `json:"host"`
+	OK          int    `json:"ok"`
+	Changed     int    `json:"changed"`
+	Unreachable int    `json:"unreachable"`
+	Failed      int    `json:"failed"`
+	Skipped     int    `json:"skipped"`
+	Rescued     int    `json:"rescued"`
+	Ignored     int    `json:"ignored"`
 }
 
 var (

@@ -42,8 +42,8 @@ internal/
                       (roles_path, dependencies), includes, handlers, variable
                       precedence, YAML inventories, log task → definition
   ansiblelog/         ENGINE whole Ansible logs from pipelines: clean (CI
-                      prefixes, colours, learned wrappers), then segment and
-                      read runs (in progress, 2.2.0)
+                      prefixes, colours, learned wrappers), segment into runs and
+                      other output, read results; the analysis model
   compose/            ENGINE Compose lens: files merged with the Compose rules and
                       origins, extends/include, ${VAR} from .env + what-if,
                       services graph, ports, volumes, checks

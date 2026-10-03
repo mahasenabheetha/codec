@@ -1,0 +1,41 @@
+lines=44 runs=1 hosts=[default] tasks=6 ok=6 changed=3 failed=0 unreachable=0 skipped=0 rescued=0 ignored=0 durationMs=95299 other=5 otherErrors=2
+verdict: Ansible succeeded; the output after it mentions errors.
+
+other 1-1 errors=0 warnings=0
+  | Running with gitlab-runner 17.0.0
+
+other 2-6 [prepare_executor] errors=0 warnings=0
+  | Preparing the "docker" executor
+  | 
+
+other 7-12 [step_script] errors=0 warnings=0
+  | Executing "step_script" stage of the job script
+  | $ packer build image.pkr.hcl
+  | ==> azure-arm: Provisioning with Ansible...
+  | 
+
+run 13-38 [step_script] playbook="" json=false complete=true status=changed durationMs=32400 hosts=[default]
+  play "Build image" line=13
+    task "Gathering Facts" role="" line=15 path=:0 durationMs=2200 status=ok counts={OK:1 Changed:0 Failed:0 Unreachable:0 Skipped:0 Ignored:0 Rescued:0 Included:0}
+      ok default lines=16-16
+    task "Install packages" role="base" line=18 path=:0 durationMs=26700 status=changed counts={OK:1 Changed:1 Failed:0 Unreachable:0 Skipped:0 Ignored:0 Rescued:0 Included:0}
+      changed default lines=19-19 item="nginx" format="json"
+      ok default lines=20-20 item="curl" format="json" msg="already installed"
+      other: ==> azure-arm: Ansible still running
+    task "Include hardening" role="base" line=24 path=:0 durationMs=300 status=ok counts={OK:0 Changed:0 Failed:0 Unreachable:0 Skipped:0 Ignored:0 Rescued:0 Included:1}
+      included default lines=25-25 file="/build/roles/base/tasks/hardening.yml"
+    task "Write sshd config" role="base" line=27 path=:0 durationMs=1200 status=changed counts={OK:0 Changed:1 Failed:0 Unreachable:0 Skipped:0 Ignored:0 Rescued:0 Included:0}
+      changed default lines=28-28
+    task "Read secret" role="base" line=30 path=:0 durationMs=400 status=ok counts={OK:1 Changed:0 Failed:0 Unreachable:0 Skipped:0 Ignored:0 Rescued:0 Included:0}
+      ok default lines=31-31 format="json" msg="output hidden by no_log" censored
+    handler "restart sshd" role="base" line=33 path=:0 durationMs=1400 status=changed counts={OK:0 Changed:1 Failed:0 Unreachable:0 Skipped:0 Ignored:0 Rescued:0 Included:0}
+      changed default lines=34-34
+  recap {Host:default OK:6 Changed:3 Unreachable:0 Failed:0 Skipped:0 Rescued:0 Ignored:0}
+
+other 39-42 [step_script] errors=1 warnings=0
+  | ==> azure-arm: Capturing image...
+  | ==> azure-arm: ERROR: quota exceeded for resource group
+  | Build 'azure-arm' errored after 1 minute 34 seconds: quota exceeded
+
+other 43-44 errors=1 warnings=0
+  | ERROR: Job failed: exit code 1

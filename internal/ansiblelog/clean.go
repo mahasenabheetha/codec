@@ -29,6 +29,7 @@ type Line struct {
 	Text string    // without CI prefix, wrapper prefix, colour codes and redraws
 	Time time.Time // from the CI prefix; zero when the log has none
 	Err  bool      // the CI marked it as stderr (GitLab "00E", ##[error])
+	Flag string    // the CI flagged it: "error" or "warning" (##[error], ##[warning])
 	Wrap string    // the wrapper prefix removed from it ("azure-arm"), if any
 	Kind Kind
 }
@@ -40,12 +41,10 @@ var (
 	gitlabPrefix = regexp.MustCompile(`^(\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?Z) \d\d[OE]([ +])`)
 	// Azure DevOps and GitHub Actions: "2026-10-01T20:50:33.1234567Z ";
 	// Jenkins' timestamper and others: "[2026-10-01T20:50:33.123Z] ".
-	isoPrefix = regexp.MustCompile(`^\[?(\d{4}-\d\d-\d\d[T ]\d\d:\d\d:\d\d(?:[.,]\d+)?(?:Z|[+-]\d\d:?\d\d)?)\]? `)
+	isoPrefix = regexp.MustCompile(`^\[?(\d{4}-\d\d-\d\d[T ]\d\d:\d\d:\d\d(?:[.,]\d+)?(?:Z|[+-]\d\d:?\d\d)?)\]?(?: |$)`)
 	// CSI and OSC escape sequences, then any other lone escape.
 	ansi          = regexp.MustCompile(`\x1b\[[0-9;?]*[ -/]*[@-~]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)|\x1b[@-Z\\-_]`)
 	gitlabSection = regexp.MustCompile(`^section_(start|end):\d+:([^\[\s]+)`)
-	// The start of an Ansible header, wherever it sits in a line.
-	headerAnchor = regexp.MustCompile(`(?:PLAY \[|TASK \[|RUNNING HANDLER \[|PLAY RECAP \*)`)
 	// What a wrapper prefix may look like: a short label ending in ":",
 	// "|" or ">" ("    azure-arm: ", "web-1  | ", "host> "), or indentation.
 	wrapperShape = regexp.MustCompile(`^\s*(?:([\w.@/-]{1,40}(?:\s+\w[\w.-]*)?)\s*[:|>])?\s*$`)
@@ -127,9 +126,11 @@ func marker(s string, l *Line) (Kind, string) {
 	}
 	if strings.HasPrefix(s, "##[") {
 		if end := strings.IndexByte(s, ']'); end > 0 {
-			tag := s[3:end]
-			if tag == "error" {
-				l.Err = true
+			switch tag := s[3:end]; tag {
+			case "error":
+				l.Err, l.Flag = true, tag
+			case "warning":
+				l.Flag = tag
 			}
 			return Text, s[end+1:]
 		}
@@ -147,8 +148,8 @@ func unwrap(lines []Line) {
 		if l.Kind != Text {
 			continue
 		}
-		if loc := headerAnchor.FindStringIndex(l.Text); loc != nil && loc[0] > 0 {
-			if p := l.Text[:loc[0]]; strings.TrimSpace(p) != "" && wrapperShape.MatchString(p) {
+		if at := headerIndex(l.Text); at > 0 {
+			if p := l.Text[:at]; strings.TrimSpace(p) != "" && wrapperShape.MatchString(p) {
 				counts[p]++
 			}
 		}
@@ -183,6 +184,18 @@ func unwrap(lines []Line) {
 			}
 		}
 	}
+}
+
+// headerIndex is where the first Ansible header starts in s, or -1.
+// Plain substring searches: this runs on every line of a big log.
+func headerIndex(s string) int {
+	first := -1
+	for _, h := range [...]string{"PLAY [", "TASK [", "RUNNING HANDLER [", "PLAY RECAP *"} {
+		if i := strings.Index(s, h); i >= 0 && (first < 0 || i < first) {
+			first = i
+		}
+	}
+	return first
 }
 
 // label is the name inside a wrapper prefix: "azure-arm" for "    azure-arm: ".

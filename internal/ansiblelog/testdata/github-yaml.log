@@ -1,0 +1,30 @@
+2026-01-05T11:00:00.1234567Z ##[group]Run ansible-playbook site.yml
+2026-01-05T11:00:00.2234567Z ANSIBLE_STDOUT_CALLBACK=yaml ansible-playbook site.yml
+2026-01-05T11:00:00.3234567Z ##[endgroup]
+2026-01-05T11:00:01.0000000Z
+2026-01-05T11:00:01.1000000Z PLAY [all] *********************************************************************
+2026-01-05T11:00:01.2000000Z
+2026-01-05T11:00:01.3000000Z TASK [Wait for the service] ****************************************************
+2026-01-05T11:00:06.0000000Z FAILED - RETRYING: [db-1]: Wait for the service (3 retries left).
+2026-01-05T11:00:11.0000000Z FAILED - RETRYING: [db-1]: Wait for the service (2 retries left).
+2026-01-05T11:00:16.0000000Z ok: [db-1]
+2026-01-05T11:00:16.1000000Z fatal: [db-2]: UNREACHABLE! => changed=false
+2026-01-05T11:00:16.2000000Z   msg: 'Failed to connect to the host via ssh: ssh: connect to host db-2 port 22: Connection timed out'
+2026-01-05T11:00:16.3000000Z   unreachable: true
+2026-01-05T11:00:16.4000000Z
+2026-01-05T11:00:16.5000000Z TASK [Check config] ************************************************************
+2026-01-05T11:00:17.0000000Z fatal: [db-1]: FAILED! => changed=false
+2026-01-05T11:00:17.1000000Z   cmd:
+2026-01-05T11:00:17.2000000Z   - /usr/bin/pg_ctl
+2026-01-05T11:00:17.3000000Z   - status
+2026-01-05T11:00:17.4000000Z   msg: non-zero return code
+2026-01-05T11:00:17.5000000Z   rc: 3
+2026-01-05T11:00:17.6000000Z   stderr: |-
+2026-01-05T11:00:17.7000000Z     pg_ctl: no server running
+2026-01-05T11:00:17.8000000Z     check the data directory
+2026-01-05T11:00:17.9000000Z
+2026-01-05T11:00:18.0000000Z PLAY RECAP *********************************************************************
+2026-01-05T11:00:18.1000000Z db-1                       : ok=1    changed=0    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0
+2026-01-05T11:00:18.2000000Z db-2                       : ok=0    changed=0    unreachable=1    failed=0    skipped=0    rescued=0    ignored=0
+2026-01-05T11:00:18.3000000Z
+2026-01-05T11:00:18.4000000Z ##[error]Process completed with exit code 2.

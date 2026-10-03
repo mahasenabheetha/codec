@@ -1,0 +1,18 @@
+lines=33 runs=1 hosts=[db-1] tasks=2 ok=2 changed=1 failed=0 unreachable=0 skipped=0 rescued=0 ignored=0 durationMs=0 other=2 otherErrors=0
+
+other 1-1 errors=0 warnings=0
+  | db-1       | database system is ready to accept connections
+
+run 2-32 playbook="provision.yml" json=false complete=true status=changed durationMs=0 hosts=[db-1]
+  play "db" line=7
+    task "Create schema" role="" line=9 path=/work/provision.yml:8 durationMs=4250 status=changed counts={OK:0 Changed:1 Failed:0 Unreachable:0 Skipped:0 Ignored:0 Rescued:0 Included:0}
+      changed db-1 lines=15-23 format="json"
+      other: <db-1> ESTABLISH SSH CONNECTION FOR USER: postgres
+      other: <db-1> SSH: EXEC ssh -C -o ControlMaster=auto db-1 '/bin/sh -c '"'"'echo ~postgres && sleep 0'"'"''
+      other: db-1       | LOG:  connection received: host=ansible-1
+    task "Seed data" role="" line=25 path=/work/provision.yml:14 durationMs=0 status=ok counts={OK:1 Changed:0 Failed:0 Unreachable:0 Skipped:0 Ignored:0 Rescued:0 Included:0}
+      ok db-1 lines=28-28 format="json" msg="already seeded"
+  recap {Host:db-1 OK:2 Changed:1 Unreachable:0 Failed:0 Skipped:0 Rescued:0 Ignored:0}
+
+other 33-33 errors=0 warnings=0
+  | ansible-1 exited with code 0

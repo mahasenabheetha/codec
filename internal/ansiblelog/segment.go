@@ -10,6 +10,7 @@ import (
 type Log struct {
 	Lines  []Line
 	Blocks []Block // in order, covering every line exactly once
+	Total  int     // input lines (a joined continuation covers several)
 }
 
 // Block is a stretch of lines: one Ansible run, or other output (CI
@@ -60,7 +61,10 @@ var (
 	playbook = regexp.MustCompile(`^PLAYBOOK: (.+?) \*+\s*$`)
 	note     = regexp.MustCompile(`^(?:\[(?:WARNING|DEPRECATION WARNING)\]|ERROR!)`)
 	// What may sit just before a PLAY and still belong to its run.
-	preamble = regexp.MustCompile(`^(?:PLAYBOOK: |\[(?:WARNING|DEPRECATION WARNING)\]|Using .+ as config file|\s*$)`)
+	// With -v, ansible-playbook first prints its version banner
+	// ("ansible-playbook [core 2.17.0]", "  config file = …") and
+	// "1 plays in site.yml".
+	preamble = regexp.MustCompile(`^(?:PLAYBOOK: |\[(?:WARNING|DEPRECATION WARNING)\]|Using .+ as config file|ansible-playbook \[core |\s{2}[\w ]+ = |\d+ plays? in |\s*$)`)
 	// Keys at the top of the json stdout callback's document.
 	jsonTop = regexp.MustCompile(`^\s*"(?:custom_stats|global_custom_stats|plays|stats)":`)
 )
@@ -70,6 +74,9 @@ var (
 // line inside the task it appears under.
 func Segment(lines []Line) *Log {
 	s := &segmenter{log: &Log{Lines: lines}}
+	if n := len(lines); n > 0 {
+		s.log.Total = lines[n-1].N
+	}
 	for i := 0; i < len(lines); i++ {
 		i = s.line(i)
 	}
@@ -85,7 +92,8 @@ type segmenter struct {
 	run        *Run
 	runFrom    int
 	runWrap    string
-	lastHeader int // the run's last header line; a cut run keeps it
+	runTitle   string // the CI group the run started in
+	lastHeader int    // the run's last header line; a cut run keeps it
 	inRecap    bool
 	other      int    // start of the other output being collected
 	title      string // the open CI group
@@ -97,10 +105,12 @@ func (s *segmenter) line(i int) int {
 	l := s.log.Lines[i]
 	switch l.Kind {
 	case GroupStart:
-		if s.run == nil {
-			s.endOther(i)
-			s.lastTitle = l.Text
+		// A new CI step means the run before it is over.
+		if s.run != nil {
+			s.endRun(i, len(s.run.Recap) > 0)
 		}
+		s.endOther(i)
+		s.lastTitle = l.Text
 		s.title = l.Text
 		return i
 	case GroupEnd:
@@ -178,6 +188,11 @@ func (s *segmenter) startRun(i int, wrap string) {
 	from := i
 	for j := i - 1; j >= s.other; j-- {
 		t := s.log.Lines[j].Text
+		// A CI step holding only the run's preamble belongs to the run.
+		if s.log.Lines[j].Kind == GroupStart {
+			from = j
+			break
+		}
 		if s.log.Lines[j].Kind != Text || !preamble.MatchString(t) {
 			break
 		}
@@ -186,7 +201,7 @@ func (s *segmenter) startRun(i int, wrap string) {
 		}
 	}
 	s.endOther(from)
-	s.run, s.runFrom, s.runWrap, s.inRecap = &Run{}, from, wrap, false
+	s.run, s.runFrom, s.runWrap, s.runTitle, s.inRecap = &Run{}, from, wrap, s.title, false
 	for j := from; j < i; j++ {
 		t := s.log.Lines[j].Text
 		if m := playbook.FindStringSubmatch(t); m != nil {
@@ -215,7 +230,7 @@ func (s *segmenter) endRun(end int, complete bool) {
 	}
 	s.closeTask(end)
 	s.run.Complete = complete
-	s.log.Blocks = append(s.log.Blocks, Block{From: s.runFrom, To: end, Title: s.title, Run: s.run})
+	s.log.Blocks = append(s.log.Blocks, Block{From: s.runFrom, To: end, Title: s.runTitle, Run: s.run})
 	s.run, s.inRecap, s.other = nil, false, end
 	s.lastTitle = s.title
 }
@@ -234,8 +249,8 @@ func (s *segmenter) closeTask(end int) {
 // endOther closes the other output collected before line end.
 func (s *segmenter) endOther(end int) {
 	if end > s.other {
-		// Blank lines between CI steps aren't worth a block of their own.
-		if n := len(s.log.Blocks); n > 0 && s.log.Blocks[n-1].Run == nil && s.blank(s.other, end) {
+		// Blank lines and step ends aren't worth a block of their own.
+		if n := len(s.log.Blocks); n > 0 && s.blank(s.other, end) {
 			s.log.Blocks[n-1].To = end
 		} else {
 			s.log.Blocks = append(s.log.Blocks, Block{From: s.other, To: end, Title: s.lastTitle})
@@ -247,7 +262,7 @@ func (s *segmenter) endOther(end int) {
 
 func (s *segmenter) blank(from, to int) bool {
 	for _, l := range s.log.Lines[from:to] {
-		if l.Kind != Text || strings.TrimSpace(l.Text) != "" {
+		if l.Kind == GroupStart || l.Kind == Text && strings.TrimSpace(l.Text) != "" {
 			return false
 		}
 	}

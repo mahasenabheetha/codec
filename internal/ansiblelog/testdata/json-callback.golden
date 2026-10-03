@@ -1,0 +1,17 @@
+lines=29 runs=1 hosts=[web-1] tasks=2 ok=1 changed=0 failed=1 unreachable=0 skipped=0 rescued=0 ignored=0 durationMs=0 other=2 otherErrors=0
+first failure: block 1 play 0 task 1 result 0
+
+other 1-1 errors=0 warnings=0
+  | $ ANSIBLE_STDOUT_CALLBACK=json ansible-playbook site.yml
+
+run 2-27 playbook="" json=true complete=true status=failed durationMs=0 hosts=[web-1]
+  play "web" line=0
+    task "ping" role="" line=0 path=:0 durationMs=0 status=ok counts={OK:1 Changed:0 Failed:0 Unreachable:0 Skipped:0 Ignored:0 Rescued:0 Included:0}
+      ok web-1 lines=0-0 format="json"
+    task "Copy config" role="app" line=0 path=:0 durationMs=0 status=failed counts={OK:0 Changed:0 Failed:1 Unreachable:0 Skipped:0 Ignored:0 Rescued:0 Included:0}
+      failed web-1 lines=0-0 format="json" msg="Destination /srv/{app} not writable"
+  recap {Host:web-1 OK:1 Changed:0 Unreachable:0 Failed:1 Skipped:0 Rescued:0 Ignored:0}
+
+other 28-29 errors=0 warnings=0
+  | $ echo done
+  | done

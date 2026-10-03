@@ -165,6 +165,7 @@ set       spec.template.spec.containers[0].image=</span></code></pre>
   <tr><td><code>ansible vars &lt;playbook&gt; [name]</code></td><td>Where variables are defined, highest precedence first</td></tr>
   <tr><td><code>ansible task "&lt;name from a log&gt;"</code></td><td>Find a logged task's definition (<code>--path</code> takes the log's "task path")</td></tr>
   <tr><td><code>ansible inventory &lt;file&gt;</code></td><td>Groups and hosts</td></tr>
+  <tr><td><code>ansible log &lt;file|-&gt;</code></td><td>A whole pipeline log: runs, failures with their reason and file, recap, other output with errors (<code>--all</code> every task, <code>--json</code>); exit 2 when the log shows a failure</td></tr>
 </table></div>
 <p>Flags: <code>--root</code> (repository root for roles) · <code>--json</code>.</p>
 
