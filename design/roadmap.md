@@ -87,10 +87,10 @@ Branch `feature/mab/v2.2.0`. Large logs are dropped or picked as a file and sent
 | T2 | Stage 2: segment | Anchors, several runs, "other output", stray lines to their task; tests | Done |
 | T3 | Stage 3: read results | Brace matching → YAML → raw; loops, retries, ignored, rescued, unreachable, `no_log`; `json` callback | Done |
 | T4 | Stage 4: model + API + CLI | Run → plays → tasks → host results, recap, durations; `codec ansible log`; synthetic fixtures; fuzz test | Done |
-| T5 | Analyzer UI | Summary bar, outline, filters, host picker, recap table, other-output blocks, file drop, first failure selected; existing task view as detail; docs | |
-| T6 | [Playbook map](#ansible-playbook-map): graph | From the execution-order analysis; static/dynamic includes, "assumed", external roles; tests | |
-| T7 | Playbook map: UI | Pipeline graph component, click to open; docs | |
-| T8 | Run colours on the map | Failed, changed, ok, never ran | |
+| T5 | Analyzer UI | Summary bar, outline, filters, host picker, recap table, other-output blocks, file drop, first failure selected; existing task view as detail; docs | Done |
+| T6 | [Playbook map](#ansible-playbook-map): graph | From the execution-order analysis; static/dynamic includes, "assumed", external roles; tests | Done |
+| T7 | Playbook map: UI | Pipeline graph component, click to open; docs | Done |
+| T8 | Run colours on the map | Failed, changed, ok, never ran | Done |
 | — | Release | If T6–T8 run long, release the analyzer alone; the map moves to 2.3.0 | |
 
 ### v2.3.0 — Utilities

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Encode, decode and logs · codec docs</title>
-<meta name="description" content="Smart paste, base64, JSON, JWT and Ansible -vv log analysis, in the UI and on the command line. Nothing you paste is stored.">
+<meta name="description" content="Smart paste, base64, JSON, JWT and whole Ansible log analysis, in the UI and on the command line. Nothing you paste is stored.">
 <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/site.css">
 </head>
@@ -86,14 +86,14 @@
 <p>Decodes the header and claims, shows registered claims with their meaning (<code>iss</code> issuer, <code>exp</code> expires…), times as dates with "in 3 hours" or "expired yesterday", and a validity badge. The signature is <strong>not verified</strong> — codec has no keys — and says so.</p>
 
 <h2 id="ansible-log">Ansible log<a class="anchor" href="#ansible-log">#</a></h2>
-<p>Paste the output of a failed <code>ansible-playbook -vv</code> run. codec finds the failed task and shows:</p>
+<p>Paste a whole log from a pipeline, or drop or open a log file (up to 64 MB). CI timestamps (GitLab, GitHub, Azure DevOps), wrapper prefixes (Packer, Compose), colour codes, shell output and several playbook runs in one log are all fine; codec learns wrapper prefixes from the log instead of knowing them in advance. It shows:</p>
 <ul>
-  <li>the status, summary chips and a <strong>probable cause</strong> in plain words;</li>
-  <li>the return code, message and module arguments;</li>
-  <li><code>stdout</code> and <code>stderr</code> with errors highlighted, commands prettified;</li>
-  <li>line filtering and collapsible sections for long logs;</li>
-  <li>with a folder open, <strong>Defined in</strong>: a link to the task's definition in your repository (see <a href="ansible.html#log">Ansible</a>).</li>
+  <li>a <strong>summary</strong>: runs, hosts, tasks, duration, counts from the recap, and a verdict when the outcome isn't Ansible's alone ("Ansible succeeded; the output after it mentions errors", "stopped before its recap");</li>
+  <li>an <strong>outline</strong> of runs, plays and tasks with their status and duration, and the <strong>other output</strong> between them (CI steps, shell commands) as blocks with their error count. Filter by <strong>Failed</strong>, <strong>Changed</strong>, <strong>Skipped</strong> or <strong>All</strong>, pick a host, or search; arrow keys move through it. The first failure is selected when a log opens;</li>
+  <li>for the selected task, each host's result: failures a <code>rescue</code> caught and <code>ignore_errors</code> failures are told apart from real ones, as are unreachable hosts, retries, loop items and <code>no_log</code> output. Each result opens in the single-task view: <strong>probable cause</strong>, key fields, <code>stdout</code>/<code>stderr</code> with errors highlighted, and with a folder open <strong>Defined in</strong> (see <a href="ansible.html#log">Ansible</a>);</li>
+  <li>for a run, its <strong>PLAY RECAP</strong> as a table, and its warnings.</li>
 </ul>
+<p>Durations come from a timer callback (<code>profile_tasks</code>) when the run used one, otherwise from the CI timestamps. Output of one task alone (a result line with no <code>TASK</code> header) opens straight in the single-task view. <kbd>Alt</kbd> <kbd>C</kbd> copies the outcome and the failures as text. On the command line: <code>codec ansible log</code> (see <a href="cli.html">CLI</a>).</p>
 
 <h2 id="keys">Keyboard<a class="anchor" href="#keys">#</a></h2>
 <div class="table-wrap"><table>

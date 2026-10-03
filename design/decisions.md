@@ -319,3 +319,7 @@ Settled unless the user reopens them. Add new ones at the bottom:
     to the server as is (not through an editor box), with a 64 MB
     limit on that endpoint only; pasting stays for smaller logs.
     Nothing is stored (19) (2026-10-03).
+77. The playbook map is coloured by a loaded log run with generic
+    matching only: a task's task path (file, or a role's folder), else
+    its role prefix, else its play; handlers by name. No playbook
+    evaluation; nodes no task reached show "never ran" (2026-10-03).

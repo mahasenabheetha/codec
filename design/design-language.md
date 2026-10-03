@@ -80,7 +80,7 @@ Build once in `frontend/src/lib/components` and reuse:
 | `SplitPane` | Resizable panes (sizes persisted by key) |
 | `TreeView` | File trees and outlines; keyboard pattern, windowed over 300 rows |
 | `CodeView` | Any code or YAML (CodeMirror 6), read-only or editable |
-| `Graph` | Node graphs (dagre layout, pan/zoom, colour groups `g-<group>`) |
+| `Graph` | Node graphs (dagre layout, pan/zoom, colour groups `g-<group>`, dashed edges for run-time links, run status `s-failed/changed/ok/rescued/never`) |
 | `EffectiveLines` | Config with an origin per line (CI, Compose) |
 | `Popover`, `Dialog`, `Tooltip` | Overlays; dialogs trap focus and close on Esc |
 | `ContextMenu` | Right-click menus (also Shift+F10); entries built per open from the event; sentence case, an icon per entry |

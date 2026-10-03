@@ -40,7 +40,8 @@ internal/
                       (templates, ${{ }} evaluator); registers providers
   ansible/            ENGINE Ansible lens: playbooks in execution order, roles
                       (roles_path, dependencies), includes, handlers, variable
-                      precedence, YAML inventories, log task → definition
+                      precedence, YAML inventories, log task → definition,
+                      the playbook map (graph.go)
   ansiblelog/         ENGINE whole Ansible logs from pipelines: clean (CI
                       prefixes, colours, learned wrappers), segment into runs and
                       other output, read results; the analysis model

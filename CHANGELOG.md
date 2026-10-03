@@ -14,6 +14,20 @@ All notable changes to codec are documented here. The format follows
   reason and defining file, the recap, and other output with errors.
   Rescued and ignored failures, unreachable hosts and runs cut short
   are told apart. `--all` lists every task with its duration.
+- Ansible log tool reads whole pipeline logs: paste one or drop a file
+  (up to 64 MB). A summary and verdict, an outline of runs, plays and
+  tasks with the output around them, filters (Failed, Changed, Skipped),
+  a host picker and search, the first failure selected; each host's
+  result in the single-task view, and the recap as a table.
+- Ansible lens: a playbook map of plays, roles, task files and handlers;
+  imports solid, includes dashed, templated include files resolved when
+  their variable has one definition. With a log loaded, the map is
+  coloured by a run: failed, changed, ok, rescued, never ran.
+
+### Fixed
+
+- Ansible "Defined in" no longer matches another role's file with the
+  same name (every role has a tasks/main.yml).
 
 ## [2.1.0] - 2026-10-03
 

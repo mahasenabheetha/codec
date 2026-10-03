@@ -79,6 +79,10 @@
 </ol>
 <p>Each task shows its module, <code>when</code>, loops, tags and the handlers it notifies; select it for its full definition and the file it lives in.</p>
 
+<h2 id="map">Playbook map<a class="anchor" href="#map">#</a></h2>
+<p><strong>Map</strong> (next to <strong>Steps</strong>) draws the playbook's shape: each play, the roles it runs (with their <code>meta</code> dependencies), the task files they import or include, and the handlers that tasks notify. Solid edges are <code>import_*</code>, decided when the playbook is read; dashed edges are <code>include_*</code>, decided while it runs. An include whose file name holds a variable is resolved when the variable has exactly one definition (marked <strong>assumed</strong>); with several, the node lists the candidates, highest precedence first. Roles installed at run time (Galaxy, collections) are marked external. Select a node for where it is written.</p>
+<p>With a log loaded in the <a href="tools.html#ansible-log">Ansible log tool</a>, the map is coloured by a run: failed, changed, ok, rescued, or never ran. The run of this playbook is picked when the log names it (<code>PLAYBOOK:</code>, printed with <code>-v</code>). Tasks are placed by their <code>task path:</code> (with <code>-vv</code>), else by their role, else on their play.</p>
+
 <h2 id="roles">Finding roles<a class="anchor" href="#roles">#</a></h2>
 <p>A role is looked for where Ansible would look, in this order: <code>roles/</code> next to the playbook, <code>roles_path</code> from the nearest <code>ansible.cfg</code>, <code>roles/</code> in folders up to the repository root, then a folder of that name. If it is only found in another repository inside the open folder, it is read from there and marked. A role that isn't found is assumed to be installed at run time (from Galaxy or a collection) and noted, naming the requirements file that lists it if there is one.</p>
 
@@ -90,7 +94,7 @@
 <p>YAML inventories open as a tree of groups (with <code>children</code>) and hosts, with the variables set at each level. Hosts written without settings (<code>web-1.example.com:</code>) are fine — that's how Ansible documents them.</p>
 
 <h2 id="log">From a failed run to the task<a class="anchor" href="#log">#</a></h2>
-<p>The <a href="tools.html#ansible-log">Ansible log tool</a> analyses <code>-vv</code> output. When a folder is open, its <strong>Defined in</strong> link finds the failed task's definition — by the task path in the log (role and file), otherwise by name, matching <code>{{ }}</code> in names against any value.</p>
+<p>The <a href="tools.html#ansible-log">Ansible log tool</a> reads whole pipeline logs. When a folder is open, a task's <strong>Defined in</strong> link finds its definition — by the task path in the log (inside a role, the role's name must match too), otherwise by name, matching <code>{{ }}</code> in names against any value.</p>
 
 <h2 id="editor">In the editor<a class="anchor" href="#editor">#</a></h2>
 <p>Outline in execution order, Jinja expressions tinted, hover and go to definition for variables and <code>when:</code> expressions, roles, handlers (<code>notify</code> → the handler or its <code>listen</code> topic), included files and templates. Problems: roles and included files that can't be found (with "did you mean"), and a <code>notify</code> that no handler of the play is named or listens to.</p>
