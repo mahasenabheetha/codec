@@ -7,6 +7,7 @@ import {
   getIgnore,
   runQuery,
   saveIgnore,
+  type CompareMode,
   type CompareResult,
   type QueryHit,
   type QueryScope,
@@ -14,6 +15,7 @@ import {
 } from '../../lib/api/compare'
 import { layout } from '../../lib/stores/layout.svelte'
 import { compareRoute, queryRoute } from '../../lib/stores/router.svelte'
+import { toasts } from '../../lib/stores/toast.svelte'
 import { openSessions } from '../editor/active.svelte'
 
 /** A side with its what-if buffer filled in, if the file has one. */
@@ -36,9 +38,15 @@ class Compare {
   running = $state(false)
   selected = $state(-1) // index into result.changes
 
+  // How to compare, and what a text diff may overlook.
+  mode = $state<CompareMode>('auto')
+  ignoreSpace = $state(false)
+  ignoreCase = $state(false)
+
   ignore = $state<string[]>([])
   private ignoreLoaded = false
   private inflight: AbortController | null = null
+  private typing: ReturnType<typeof setTimeout> | undefined
 
   ready = $derived(sideReady(this.left) && sideReady(this.right))
   empty = $derived(!sideChosen(this.left) && !sideChosen(this.right))
@@ -54,6 +62,20 @@ class Compare {
     this.run()
   }
 
+  /** Open the Compare tab with an empty paste box on each side. */
+  pasteBoth() {
+    this.clear()
+    this.left = { kind: 'paste', content: '' }
+    this.right = { kind: 'paste', content: '' }
+    layout.open(compareRoute)
+  }
+
+  /** Run after typing in a paste box settles. */
+  runSoon() {
+    clearTimeout(this.typing)
+    this.typing = setTimeout(() => this.run(), 400)
+  }
+
   swap() {
     ;[this.left, this.right] = [this.right, this.left]
     ;[this.leftWhatIf, this.rightWhatIf] = [this.rightWhatIf, this.leftWhatIf]
@@ -62,6 +84,10 @@ class Compare {
 
   /** Empty one side, or both; the ignore patterns stay. */
   clear(which: 'left' | 'right' | 'both' = 'both') {
+    // Pasted text exists nowhere else (decision 19), so offer it back.
+    const before = { left: this.left, right: this.right, leftWhatIf: this.leftWhatIf, rightWhatIf: this.rightWhatIf }
+    const lost = (which !== 'right' && pasted(this.left)) || (which !== 'left' && pasted(this.right))
+    clearTimeout(this.typing)
     this.inflight?.abort()
     this.running = false
     if (which !== 'right') {
@@ -75,6 +101,15 @@ class Compare {
     this.result = null
     this.error = null
     this.selected = -1
+    if (lost) {
+      toasts.show('Cleared', 'neutral', 5000, {
+        label: 'Undo',
+        run: () => {
+          Object.assign(this, before)
+          this.run()
+        },
+      })
+    }
   }
 
   async loadIgnore() {
@@ -100,7 +135,7 @@ class Compare {
     this.inflight = ctrl
     this.running = true
     try {
-      const r = await compare(withBuffer(this.left, this.leftWhatIf), withBuffer(this.right, this.rightWhatIf), this.ignore, {}, ctrl.signal)
+      const r = await compare(withBuffer(this.left, this.leftWhatIf), withBuffer(this.right, this.rightWhatIf), this.ignore, { mode: this.mode, ignoreSpace: this.ignoreSpace, ignoreCase: this.ignoreCase }, ctrl.signal)
       if (ctrl.signal.aborted) return
       this.result = r
       this.error = null
@@ -114,12 +149,17 @@ class Compare {
 }
 
 function sideReady(s: Side): boolean {
+  if (s.kind === 'paste') return pasted(s)
   return s.kind === 'helm' ? s.chart !== undefined : !!s.path
 }
 
-/** A side has something chosen (a Helm side counts even with no charts). */
+function pasted(s: Side): boolean {
+  return s.kind === 'paste' && !!s.content?.trim()
+}
+
+/** A side has something chosen (a Helm or paste side counts even when empty). */
 export function sideChosen(s: Side): boolean {
-  return s.kind === 'helm' || !!s.path
+  return s.kind !== 'file' || !!s.path
 }
 
 export const comparison = new Compare()

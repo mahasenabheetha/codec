@@ -8,8 +8,17 @@ All notable changes to codec are documented here. The format follows
 
 ### Added
 
+- Compare: paste as a third source per side, next to File and Helm render
+  — a live object against the repo file, or two pasted texts with no
+  folder open ("Compare text" on Home and in the palette). Pasted text is
+  never saved.
+- Compare as Auto, Structure or Text. Auto compares by structure only
+  when both sides are YAML/JSON mappings or lists, otherwise line by line;
+  text diffs can ignore whitespace and case.
+- Compare: "Add live object noise" fills in the fields a cluster adds
+  (`managedFields`, `resourceVersion`, `uid`, `status`, …) as ignored paths.
 - Compare: an × on each side clears it, and Clear empties both sides and
-  the result. Ignored paths stay.
+  the result. Ignored paths stay; cleared pasted text can be undone.
 
 ### Changed
 

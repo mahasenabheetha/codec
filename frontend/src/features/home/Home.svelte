@@ -1,5 +1,6 @@
 <script lang="ts">
   import ArrowRight from '@lucide/svelte/icons/arrow-right'
+  import GitCompare from '@lucide/svelte/icons/git-compare'
   import FolderGit from '@lucide/svelte/icons/folder-git-2'
   import FolderOpen from '@lucide/svelte/icons/folder-open'
   import History from '@lucide/svelte/icons/history'
@@ -9,6 +10,7 @@
   import Kbd from '../../lib/components/Kbd.svelte'
   import { layout } from '../../lib/stores/layout.svelte'
   import { toolGroups } from '../../lib/tools'
+  import { comparison } from '../compare/compare.svelte'
   import { openFolder, openSample, workspace as ws } from '../workspace/workspace.svelte'
 
   const groups = toolGroups()
@@ -107,9 +109,19 @@
       </div>
     {/if}
 
-    {#each groups as g (g.group)}
+    {#each groups as g, i (g.group)}
       <h2>{g.group}</h2>
       <div class="grid">
+        {#if i === 0}
+          <button type="button" class="card" onclick={() => comparison.pasteBoth()}>
+            <span class="icon"><GitCompare size={18} strokeWidth={1.75} /></span>
+            <span class="text">
+              <span class="title">Compare text</span>
+              <span class="desc">Paste two YAML, JSON or plain texts and see what differs. No folder needed.</span>
+            </span>
+            <span class="go"><ArrowRight size={16} strokeWidth={1.75} /></span>
+          </button>
+        {/if}
         {#each g.tools as t (t.id)}
           <button type="button" class="card" onclick={() => layout.openTool(t.id)}>
             <span class="icon"><t.icon size={18} strokeWidth={1.75} /></span>

@@ -132,6 +132,14 @@
       },
     },
     {
+      id: 'compare.text',
+      title: 'Compare text',
+      group: 'Tools',
+      icon: GitCompare,
+      keywords: ['diff', 'paste', 'kubectl', 'live', 'json'],
+      run: () => comparison.pasteBoth(),
+    },
+    {
       id: 'query.yaml',
       title: 'Query YAML (jq)…',
       group: 'Workspace',

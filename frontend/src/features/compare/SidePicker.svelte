@@ -13,7 +13,8 @@
   import { workspace } from '../workspace/workspace.svelte'
 
   // One side of a comparison: a workspace file (optionally one of its
-  // documents, optionally with its what-if edits) or a Helm render.
+  // documents, optionally with its what-if edits), a Helm render, or
+  // pasted text (typed into the box below the header).
   interface Props {
     label: string
     side: Side
@@ -38,8 +39,8 @@
     ...Object.keys(chart?.profiles ?? {}).map((p) => ({ value: p, label: p })),
   ])
 
-  function setKind(k: 'file' | 'helm') {
-    side = k === 'helm' ? { kind: 'helm', chart: charts.list[0]?.path, profile: '' } : { kind: 'file' }
+  function setKind(k: Side['kind']) {
+    side = k === 'helm' ? { kind: 'helm', chart: charts.list[0]?.path, profile: '' } : k === 'paste' ? { kind: 'paste', content: '' } : { kind: 'file' }
     onchange()
   }
 
@@ -58,6 +59,7 @@
     options={[
       { value: 'file', label: 'File' },
       { value: 'helm', label: 'Helm render' },
+      { value: 'paste', label: 'Paste' },
     ]}
     value={side.kind}
     onchange={setKind}
@@ -85,6 +87,8 @@
     {#if session?.dirty}
       <Toggle bind:checked={whatIf} label="What-if edits" title="Use this tab's unsaved what-if edits instead of the file on disk" {onchange} />
     {/if}
+  {:else if side.kind === 'paste'}
+    <!-- The paste box sits under the header, in CompareView. -->
   {:else if charts.list.length === 0}
     <span class="muted">No charts in this folder</span>
   {:else}

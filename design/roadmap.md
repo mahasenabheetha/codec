@@ -28,8 +28,6 @@ version, and add a CHANGELOG entry.
 | Check | Owner |
 |---|---|
 | Run codec natively on macOS (arm64) before tagging | user |
-| Confirm no open issues labelled for 2.0 | user |
-| Merge `feature/mab/yaml-tools` and tag `v2.0.0` | user |
 | Make the GHCR package public (first release with an image) | user |
 | Turn on GitHub Pages: Settings → Pages → `main`, `/docs` | user |
 
@@ -69,17 +67,17 @@ Before starting 2.1.0, merge the branch that added these plans.
 ### v2.1.0 — Compare, reload prompt, Find in Files
 Branch `feature/mab/v2.1.0`.
 
-| # | Task | Main parts |
-|---|---|---|
-| T1 | [Compare: clear](#compare-clear) | × per side, Clear next to Swap; ignore patterns kept |
-| T2 | [Paste](#compare-paste-as-a-source): API | `paste` side kind; no folder needed; structure only for mappings/lists; whitespace and case options in `textdiff`; tests |
-| T3 | Paste: UI | Third source with an editor box; "Compare as"; "Live object noise" preset; "Compare text" on Home and in Tools; "Cleared · Undo"; docs |
-| T4 | [Explorer](#compare-pick-files-from-the-explorer): context menu + Ctrl+click | Shared context-menu component; multi-select; keyboard |
-| T5 | Explorer → Compare | Drag and drop onto a side; "Select for compare", "Compare with selected", "Compare selected"; docs |
-| T6 | [Reload prompt](#reload-prompt-after-a-server-restart) | Server marks a stale token; "codec restarted — Reload" banner; docs |
-| T7 | [Find in Files](#find-in-files): engine + API + CLI | `internal/search`, endpoint, result cap; tests; `codec search` |
-| T8 | Find in Files: UI | Search panel in the Explorer's slot, Ctrl+Shift+F, results open at the line; docs |
-| — | Release | If T7–T8 run long, release without them; they move to 2.2.0 |
+| # | Task | Main parts | Status |
+|---|---|---|---|
+| T1 | Compare: clear | × per side, Clear next to Swap; ignore patterns kept | Done |
+| T2 | Compare paste: API | `paste` side kind; no folder needed; structure only for mappings/lists; whitespace and case options in `textdiff`; tests | Done |
+| T3 | Compare paste: UI | Third source with an editor box; "Compare as"; "Live object noise" preset; "Compare text" on Home and in the palette; "Cleared · Undo"; docs | Done |
+| T4 | [Explorer](#compare-pick-files-from-the-explorer): context menu + Ctrl+click | Shared context-menu component; multi-select; keyboard | |
+| T5 | Explorer → Compare | Drag and drop onto a side; "Select for compare", "Compare with selected", "Compare selected"; docs | |
+| T6 | [Reload prompt](#reload-prompt-after-a-server-restart) | Server marks a stale token; "codec restarted — Reload" banner; docs | |
+| T7 | [Find in Files](#find-in-files): engine + API + CLI | `internal/search`, endpoint, result cap; tests; `codec search` | |
+| T8 | Find in Files: UI | Search panel in the Explorer's slot, Ctrl+Shift+F, results open at the line; docs | |
+| — | Release | If T7–T8 run long, release without them; they move to 2.2.0 | |
 
 ### v2.2.0 — Ansible log analyzer, playbook map
 Branch `feature/mab/v2.2.0`.
@@ -123,9 +121,7 @@ The rest of "Next", picked up after 2.3.0 or slotted in when it fits.
 | [Reload prompt after a server restart](#reload-prompt-after-a-server-restart) | S | Today requests fail until the page is reloaded |
 | [Kustomize helmCharts](#kustomize-helmcharts) | M | Helm SDK is already embedded |
 | [Window long lists](#window-long-lists) | S | Problems and Resources cards, like TreeView |
-| [Compare: paste as a source](#compare-paste-as-a-source) | M | Third source per side; works with no folder open |
 | [Compare: pick files from the Explorer](#compare-pick-files-from-the-explorer) | M | Drag and drop, plus a new Explorer context menu |
-| [Compare: clear](#compare-clear) | S | Per-side × and a Clear button |
 | [Find in Files](#find-in-files) | M | Text search across the workspace; read-only, no replace |
 | [Helm environment matrix](#helm-environment-matrix) | M | All profiles of a chart at once: what differs per environment |
 | [Kubernetes resource totals](#kubernetes-resource-totals) | S | Requests and limits × replicas, summed |
@@ -153,6 +149,7 @@ The rest of "Next", picked up after 2.3.0 or slotted in when it fits.
 
 | Version | Items |
 |---|---|
+| 2.1.0 | Compare: clear; Compare: paste as a source |
 | 2.0.0 | Everything in [history.md](history.md) |
 
 ## Items
@@ -189,35 +186,6 @@ The rest of "Next", picked up after 2.3.0 or slotted in when it fits.
 - **Scope:** `frontend/src/features/lint`, `features/kube`, possibly a shared list component.
 - **Done when:** 5,000 findings scroll smoothly; `scripts/perf.sh` notes it.
 
-### Compare: paste as a source
-- **Problem:** Compare only takes workspace files and Helm renders, and
-  needs a folder open. Comparing a live object (`kubectl get -o yaml`),
-  two API responses or two snippets means saving them as files first.
-- **Result:** each side's source is File · Helm render · **Paste**; a
-  Paste side is an editor box. Both sides pasted, or one pasted against
-  a file or render. Comparing two pasted sides works with no folder open,
-  reachable from Home and Tools ("Compare text") as well as the Compare tab.
-  - Compared by structure (as today) only when both sides parse to a
-    mapping or list; YAML and JSON mix freely (JSON is YAML). Anything
-    else — plain text, logs, XML, ini, a lone scalar — gets the text diff,
-    so two paragraphs don't show as one "value changed".
-  - "Compare as: Auto · Structure · Text" (the API's `text` flag already
-    forces a text diff); "Ignore whitespace" and "Ignore case" for text.
-  - A "Live object noise" ignore preset: `metadata.managedFields`,
-    `resourceVersion`, `uid`, `creationTimestamp`, `generation`, `status`.
-- **Scope:** `internal/web/compare_api.go` (a `paste` side kind; no
-  workspace needed when neither side reads one), `internal/textdiff`
-  (whitespace/case options), `features/compare` (SidePicker, paste editor),
-  Home and Tools entries, docs `compare.html`. Out of scope: per-format
-  parsers (XML, ini); saving pasted text.
-- **Done when:** compare_api tests cover paste × paste with no folder,
-  paste × file, the scalar-to-text rule and the forced modes; the sample's
-  Deployment against a pasted live copy with the noise preset shows only
-  real changes; docs updated.
-- **Decisions:** 19 (pasted text is never persisted, so it is gone after
-  a reload — agreed), 44 (semantic diff identity). New: Paste is a third
-  source per side, not a separate screen (agreed 2026-10-02).
-
 ### Compare: pick files from the Explorer
 - **Problem:** a side's file can only be chosen through the quick-open
   search; the Explorer tree can't feed Compare.
@@ -238,17 +206,6 @@ The rest of "Next", picked up after 2.3.0 or slotted in when it fits.
   key, arrows, Esc); docs updated.
 - **Decisions:** agreed 2026-10-02: drag and drop plus a context menu,
   one Explorer tree only, click keeps meaning "open".
-
-### Compare: clear
-- **Problem:** resetting Compare means re-picking both sides by hand.
-- **Result:** an × on each side clears that side; "Clear" next to Swap
-  empties both sides and the result. Saved ignore patterns stay. No
-  confirmation; when a pasted side is cleared, a brief "Cleared · Undo"
-  toast brings it back (memory only, decision 19).
-- **Scope:** `features/compare` (CompareView, SidePicker, compare.svelte.ts).
-- **Done when:** both buttons reset the view; Undo
-  restores pasted text; docs `compare.html` updated.
-- **Decisions:** none new.
 
 ### Find in Files
 - **Problem:** text can only be found inside one open file (Ctrl+F).

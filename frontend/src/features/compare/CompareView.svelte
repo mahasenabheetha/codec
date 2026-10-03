@@ -3,6 +3,7 @@
   import CircleCheck from '@lucide/svelte/icons/circle-check'
   import EyeOff from '@lucide/svelte/icons/eye-off'
   import FilterX from '@lucide/svelte/icons/filter-x'
+  import ClipboardPaste from '@lucide/svelte/icons/clipboard-paste'
   import GitCompare from '@lucide/svelte/icons/git-compare'
   import RefreshCw from '@lucide/svelte/icons/refresh-cw'
   import Button from '../../lib/components/Button.svelte'
@@ -10,15 +11,18 @@
   import EmptyState from '../../lib/components/EmptyState.svelte'
   import IconButton from '../../lib/components/IconButton.svelte'
   import Popover from '../../lib/components/Popover.svelte'
-  import type { Change } from '../../lib/api/compare'
+  import SegmentedControl from '../../lib/components/SegmentedControl.svelte'
+  import Toggle from '../../lib/components/Toggle.svelte'
+  import type { Change, Side } from '../../lib/api/compare'
   import { copyText } from '../../lib/utils/clipboard'
   import { comparison as cmp } from './compare.svelte'
   import { changeMarks, reveal } from './marks'
   import SidePicker from './SidePicker.svelte'
 
-  // Two files (or renders) compared by meaning: the change list by path
-  // on the left, both sides with their changed lines marked on the
-  // right. Clicking a change scrolls both sides to it.
+  // Two files, renders or pasted texts compared by meaning: the change
+  // list by path on the left, both sides with their changed lines marked
+  // on the right. Clicking a change scrolls both sides to it. Paste
+  // sides get an editor box under the header.
   interface Props {
     active: boolean
   }
@@ -65,6 +69,34 @@
   }
 
   const symbols = { added: '+', removed: '−', changed: '~', reordered: '↕' }
+
+  const pasting = $derived(cmp.left.kind === 'paste' || cmp.right.kind === 'paste')
+  // Compare as soon as typing in a paste box settles.
+  $effect(() => {
+    void [cmp.left.content, cmp.right.content]
+    if (pasting) cmp.runSoon()
+  })
+
+  // Fields the API server fills in on objects read from a cluster
+  // (kubectl get -o yaml); never part of what you wrote.
+  const liveNoise = [
+    'metadata.managedFields',
+    'metadata.resourceVersion',
+    'metadata.uid',
+    'metadata.creationTimestamp',
+    'metadata.generation',
+    'metadata.annotations.kubectl.kubernetes.io/last-applied-configuration',
+    'status',
+  ]
+  function addLiveNoise() {
+    const lines = ignoreText.split('\n').map((l) => l.trim()).filter(Boolean)
+    ignoreText = [...lines, ...liveNoise.filter((p) => !lines.includes(p))].join('\n')
+  }
+
+  function sideNote(sd: Side) {
+    if (sd.kind === 'helm') return 'Helm render (chosen above)'
+    return sd.path ? `${sd.path} (chosen above)` : 'Choose a file or render above'
+  }
 </script>
 
 <div class="compare" class:inactive={!active}>
@@ -74,6 +106,16 @@
     <SidePicker label="Right" bind:side={cmp.right} bind:whatIf={cmp.rightWhatIf} onchange={() => cmp.run()} onclear={() => cmp.clear('right')} />
     <Button size="sm" variant="ghost" onclick={() => cmp.clear()} disabled={cmp.empty}>Clear</Button>
     <div class="spacer"></div>
+    <SegmentedControl
+      label="Compare as"
+      options={[
+        { value: 'auto', label: 'Auto' },
+        { value: 'structure', label: 'Structure' },
+        { value: 'text', label: 'Text' },
+      ]}
+      bind:value={cmp.mode}
+      onchange={() => cmp.run()}
+    />
     <Popover side="bottom" align="end">
       {#snippet trigger(props)}
         <button {...props} type="button" class="ignore-btn">
@@ -83,15 +125,39 @@
       <div class="ignore">
         <label for="ignore-list">One pattern per line; <code>*</code> matches anything.</label>
         <textarea id="ignore-list" bind:value={ignoreText} rows="6" spellcheck="false" placeholder={'metadata.labels.helm.sh/chart\nspec.template.spec.containers[*].image'}></textarea>
-        <Button size="sm" variant="primary" onclick={() => cmp.setIgnore(ignoreText.split('\n'))}>Save</Button>
+        <div class="ignore-actions">
+          <Button size="sm" variant="primary" onclick={() => cmp.setIgnore(ignoreText.split('\n'))}>Save</Button>
+          <Button size="sm" variant="ghost" title="Fields a cluster adds to live objects: managedFields, resourceVersion, uid, status…" onclick={addLiveNoise}>Add live object noise</Button>
+        </div>
         <p>Saved in your settings; also used by <code>codec yaml diff</code>.</p>
       </div>
     </Popover>
     <IconButton icon={RefreshCw} label="Compare again" size="sm" onclick={() => cmp.run()} />
   </header>
 
+  {#if pasting}
+    <div class="inputs">
+      {#each [['Left', 'left'], ['Right', 'right']] as const as [label, key] (key)}
+        <div class="input">
+          {#if cmp[key].kind === 'paste'}
+            <div class="pane-title">{label} · pasted</div>
+            <CodeView bind:value={cmp[key].content!} label="{label} pasted text" language="yaml" placeholder="Paste YAML, JSON or any text…" />
+          {:else}
+            <p class="side-note">{label}: {sideNote(cmp[key])}</p>
+          {/if}
+        </div>
+      {/each}
+    </div>
+  {/if}
+
   {#if !cmp.ready}
-    <EmptyState icon={GitCompare} title="Compare two YAML files" description="Pick a file or a Helm render for each side. Key order and list order don't count; list items pair up by name." />
+    {#if pasting}
+      <p class="muted pad">Paste text on {cmp.left.kind === 'paste' && cmp.right.kind === 'paste' ? 'both sides' : 'the paste side'} to compare.</p>
+    {:else}
+      <EmptyState icon={GitCompare} title="Compare YAML or text" description="Pick a file, a Helm render or pasted text for each side. Key order and list order don't count; list items pair up by name.">
+        <Button icon={ClipboardPaste} onclick={() => cmp.pasteBoth()}>Paste two texts</Button>
+      </EmptyState>
+    {/if}
   {:else if cmp.error}
     <p class="error">{cmp.error}</p>
   {:else if !result}
@@ -106,12 +172,16 @@
         <span class="add">{counts.added} added</span> · <span class="del">{counts.removed} removed</span> ·
         <span class="chg">{counts.changed} changed</span>
       {/if}
+      {#if result.mode === 'text'}
+        <Toggle bind:checked={cmp.ignoreSpace} label="Ignore whitespace" title="Indentation, runs of spaces and line endings don't count" onchange={() => cmp.run()} />
+        <Toggle bind:checked={cmp.ignoreCase} label="Ignore case" onchange={() => cmp.run()} />
+      {/if}
       <span class="titles"><b>{result.left.title}</b> → <b>{result.right.title}</b></span>
     </div>
 
     {#if result.mode === 'text'}
       <div class="code solo">
-        <CodeView value={result.diff || 'The texts are identical.'} label="Text diff" readonly />
+        <CodeView value={result.diff || (cmp.ignoreSpace || cmp.ignoreCase ? 'No differences, apart from what is ignored.' : 'The texts are identical.')} label="Text diff" readonly />
         {#if result.diff}<Button size="sm" variant="ghost" onclick={() => copyText(result!.diff!, 'Diff')}>Copy diff</Button>{/if}
       </div>
     {:else}
@@ -196,6 +266,39 @@
     gap: var(--s-2);
     width: 340px;
     font-size: var(--fs-sm);
+  }
+  .ignore-actions {
+    display: flex;
+    gap: var(--s-2);
+  }
+  .inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    height: 34vh;
+    min-height: 120px;
+    max-height: 70vh;
+    resize: vertical;
+    overflow: hidden;
+    border-bottom: 1px solid var(--border);
+  }
+  .input {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+  }
+  .input + .input {
+    border-left: 1px solid var(--border);
+  }
+  .input > :global(:not(.pane-title)) {
+    flex: 1;
+    min-height: 0;
+  }
+  .side-note {
+    margin: 0;
+    padding: var(--s-4);
+    font-size: var(--fs-sm);
+    color: var(--fg-2);
   }
   .ignore p,
   .ignore label {

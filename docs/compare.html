@@ -76,7 +76,7 @@
   <li><strong>Documents pair up</strong> by kind, namespace and name, so a multi-document file can be compared with another regardless of document order. Two single-document files always pair.</li>
   <li><strong>Changes are listed by path</strong> (<code>spec.template.spec.containers[name=app].image</code>), as added, removed or changed with old and new values.</li>
 </ul>
-<p>If a side doesn't parse as YAML, codec falls back to a plain text diff.</p>
+<p>Both sides are compared by structure when each is a YAML or JSON mapping or list (JSON is YAML, so they mix). Anything else — plain text, logs, a lone value — or a side with syntax errors gets a line-by-line text diff. <strong>Compare as</strong> overrides this: <em>Structure</em> or <em>Text</em>. A text diff can <strong>ignore whitespace</strong> (indentation, runs of spaces, line endings) and <strong>ignore case</strong>.</p>
 
 <h3 id="sides">What you can compare<a class="anchor" href="#sides">#</a></h3>
 <div class="table-wrap"><table>
@@ -84,15 +84,16 @@
   <tr><td>A file</td><td><code>values.yaml</code> vs <code>values-prod.yaml</code>; one document of a multi-document file vs another.</td></tr>
   <tr><td>What-if edits vs disk</td><td>"Compare what-if edits with disk" on a file with edits — the semantic view of your change.</td></tr>
   <tr><td>A Helm render</td><td>The same chart with two profiles — what actually changes between dev and prod.</td></tr>
+  <tr><td>Pasted text</td><td>A live object (<code>kubectl get deploy api -o yaml</code>) against the file in the repo, or two API responses. Pick <strong>Paste</strong> for a side and paste into the box that opens. Two pasted sides need no folder: <strong>Compare text</strong> on Home or in the palette starts there.</td></tr>
 </table></div>
-<p>The <strong>×</strong> next to a side clears it; <strong>Clear</strong> empties both sides and the result. Ignored paths stay.</p>
+<p>The <strong>×</strong> next to a side clears it; <strong>Clear</strong> empties both sides and the result. Ignored paths stay. Pasted text is never saved — it is gone after a reload — so clearing it offers <strong>Undo</strong> for a few seconds.</p>
 
 <h3 id="ignore">Ignoring noise<a class="anchor" href="#ignore">#</a></h3>
 <p>Some differences are always noise: chart version labels, checksum annotations, generated names. Add their paths to <strong>Ignored paths</strong> (from the Compare view, from a change in the list, or in <a href="settings.html">Settings</a>). A pattern matches the whole path; <code>*</code> stands for any characters, dots included:</p>
 <pre><code>metadata.labels.helm.sh/chart
 metadata.annotations.checksum/*
 spec.template.spec.containers[*].image</code></pre>
-<p>Patterns are saved in your settings and used by the CLI too.</p>
+<p>Patterns are saved in your settings and used by the CLI too. <strong>Add live object noise</strong> fills in the fields a cluster adds to objects it returns (<code>metadata.managedFields</code>, <code>resourceVersion</code>, <code>uid</code>, <code>creationTimestamp</code>, <code>generation</code>, the last-applied annotation, <code>status</code>); save to use them.</p>
 
 <h2 id="query">Query<a class="anchor" href="#query">#</a></h2>
 <figure>
