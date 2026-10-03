@@ -75,6 +75,7 @@ Branch `feature/mab/v2.1.0`.
 | T6 | Reload prompt | Server marks a stale token; "codec restarted — Reload" banner; docs | Done |
 | T7 | Find in Files: engine + API + CLI | `internal/search`, endpoint, result cap; tests; `codec search` | Done |
 | T8 | Find in Files: UI | Search panel in the Explorer's slot, Ctrl+Shift+F, results open at the line; docs | Done |
+| T9 | Compare: side-by-side text diff | Changed characters marked, folded context, Unified toggle; each picker heads its column (feedback on T3) | Done |
 | — | Release | Full checks passed; CHANGELOG cut as 2.1.0 | Ready to merge and tag |
 
 ### v2.2.0 — Ansible log analyzer, playbook map

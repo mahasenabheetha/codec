@@ -25,6 +25,11 @@ restart offers a reload.
 - Compare as Auto, Structure or Text. Auto compares by structure only
   when both sides are YAML/JSON mappings or lists, otherwise line by line;
   text diffs can ignore whitespace and case.
+- Compare: text diffs show side by side, each changed line beside its
+  replacement with the changed characters marked, unchanged runs folded,
+  and where the first difference is ("character 48"). Unified view and
+  "Copy as patch" stay one click away. Each side's picker now heads its
+  own column.
 - Compare: "Add live object noise" fills in the fields a cluster adds
   (`managedFields`, `resourceVersion`, `uid`, `status`, …) as ignored paths.
 - Explorer: a right-click menu (also Shift+F10) with Open, "Select for

@@ -176,15 +176,7 @@ func UnifiedWith(path, old, new string, context int, o Options) string {
 	if !o.IgnoreSpace && !o.IgnoreCase {
 		return Unified(path, old, new, context)
 	}
-	norm := func(s string) string {
-		if o.IgnoreSpace {
-			s = strings.Join(strings.Fields(s), " ")
-		}
-		if o.IgnoreCase {
-			s = strings.ToLower(s)
-		}
-		return s
-	}
+	norm := o.normalize
 	return format(path, LinesFunc(SplitLines(old), SplitLines(new), func(x, y string) bool { return norm(x) == norm(y) }), context)
 }
 

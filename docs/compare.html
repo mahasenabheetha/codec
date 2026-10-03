@@ -77,6 +77,7 @@
   <li><strong>Changes are listed by path</strong> (<code>spec.template.spec.containers[name=app].image</code>), as added, removed or changed with old and new values.</li>
 </ul>
 <p>Both sides are compared by structure when each is a YAML or JSON mapping or list (JSON is YAML, so they mix). Anything else — plain text, logs, a lone value — or a side with syntax errors gets a line-by-line text diff. <strong>Compare as</strong> overrides this: <em>Structure</em> or <em>Text</em>. A text diff can <strong>ignore whitespace</strong> (indentation, runs of spaces, line endings) and <strong>ignore case</strong>.</p>
+<p>A text diff shows <strong>side by side</strong>: each changed line beside the line that replaced it, with the changed characters marked, so two near-identical strings (a digest, a token) show exactly where they differ. The bar above names the first difference, e.g. <em>character 48</em>. Unchanged runs fold into a bar you can click open. <strong>Unified</strong> shows the same diff as a patch; the copy button copies it as a patch either way.</p>
 
 <h3 id="sides">What you can compare<a class="anchor" href="#sides">#</a></h3>
 <div class="table-wrap"><table>

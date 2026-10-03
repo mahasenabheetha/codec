@@ -5,12 +5,15 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/mahasenabheetha/codec/v2/internal/textdiff"
 )
 
 type compareView struct {
-	Mode    string `json:"mode"`
-	Note    string `json:"note"`
-	Diff    string `json:"diff"`
+	Mode    string         `json:"mode"`
+	Note    string         `json:"note"`
+	Diff    string         `json:"diff"`
+	Rows    []textdiff.Row `json:"rows"`
 	Changes []struct {
 		Kind string `json:"kind"`
 		Path string `json:"path"`
@@ -51,8 +54,11 @@ func TestComparePaste(t *testing.T) {
 	if v.Mode != "text" || !strings.Contains(v.Diff, "+Second  line") {
 		t.Errorf("scalar → text: %+v", v)
 	}
+	if r := v.Rows; len(r) != 2 || r[1].Kind != "change" || len(r[1].Right.Spans) == 0 {
+		t.Errorf("side-by-side rows: %+v", r)
+	}
 	v = compare(`{"left":` + paste("first line\nsecond line\n") + `,"right":` + paste("first line\nSecond  line\n") + `,"ignoreSpace":true,"ignoreCase":true}`)
-	if v.Mode != "text" || v.Diff != "" {
+	if v.Mode != "text" || v.Diff != "" || v.Rows == nil || len(v.Rows) != 0 {
 		t.Errorf("ignore space and case: %+v", v)
 	}
 

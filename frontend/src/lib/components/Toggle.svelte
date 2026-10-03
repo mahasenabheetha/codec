@@ -23,7 +23,9 @@
 
 <style>
   .toggle {
+    flex: none;
     display: inline-flex;
+    white-space: nowrap;
     align-items: center;
     gap: var(--s-2);
     height: var(--control-h);

@@ -28,7 +28,24 @@ export interface CompareResult {
   left: { title: string; text: string }
   right: { title: string; text: string }
   diff?: string // text mode: unified diff
+  rows?: DiffRow[] // text mode: side by side, unchanged runs folded
+  rowsTruncated?: boolean
   note?: string
+}
+
+/** One line of a side-by-side text diff. A gap folds `count` unchanged
+ *  lines starting at left.line / right.line. */
+export interface DiffRow {
+  kind: 'equal' | 'change' | 'delete' | 'insert' | 'gap'
+  left?: DiffCell
+  right?: DiffCell
+  count?: number
+}
+
+export interface DiffCell {
+  line: number // 1-based
+  text: string
+  spans?: [number, number][] // changed parts, UTF-16 offsets
 }
 
 export type CompareMode = 'auto' | 'structure' | 'text'

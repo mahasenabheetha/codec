@@ -41,7 +41,7 @@ anchor/alias `#4fd1c5` · tag `#e5b449` · punctuation `--fg-2` · `---`
 `--accent`. Expressions get a tinted background: template-time (Helm,
 Jinja) `#f7c873` on 8%; run time (Argo, GitHub, Azure) `#ff9ecf` on 8%;
 run-time-only values in rendered output: dashed underline. Diff lines:
-`--diff-add-bg`, `--diff-del-bg`, `--diff-chg-bg`. File-type logos use
+`--diff-add-bg`, `--diff-del-bg`, `--diff-chg-bg`; changed characters inside a line `--diff-add-strong`, `--diff-del-strong`. File-type logos use
 `--brand-*` (lightened for contrast).
 
 Never hard-code a colour, size or font in a component. A new token is a

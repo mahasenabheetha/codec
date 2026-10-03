@@ -42,6 +42,8 @@ class Compare {
   mode = $state<CompareMode>('auto')
   ignoreSpace = $state(false)
   ignoreCase = $state(false)
+  // How a text diff is shown.
+  textView = $state<'split' | 'unified'>('split')
 
   ignore = $state<string[]>([])
   private ignoreLoaded = false

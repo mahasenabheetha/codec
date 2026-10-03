@@ -13,11 +13,11 @@
   import Popover from '../../lib/components/Popover.svelte'
   import SegmentedControl from '../../lib/components/SegmentedControl.svelte'
   import Toggle from '../../lib/components/Toggle.svelte'
-  import type { Change, Side } from '../../lib/api/compare'
-  import { copyText } from '../../lib/utils/clipboard'
+  import type { Change, CompareMode, Side } from '../../lib/api/compare'
   import { comparison as cmp } from './compare.svelte'
   import { changeMarks, reveal } from './marks'
   import SidePicker from './SidePicker.svelte'
+  import TextDiff from './TextDiff.svelte'
 
   // Two files, renders or pasted texts compared by meaning: the change
   // list by path on the left, both sides with their changed lines marked
@@ -88,6 +88,11 @@
     'metadata.annotations.kubectl.kubernetes.io/last-applied-configuration',
     'status',
   ]
+  function switchMode(m: CompareMode) {
+    cmp.mode = m
+    cmp.run()
+  }
+
   function addLiveNoise() {
     const lines = ignoreText.split('\n').map((l) => l.trim()).filter(Boolean)
     ignoreText = [...lines, ...liveNoise.filter((p) => !lines.includes(p))].join('\n')
@@ -101,17 +106,13 @@
 
 <div class="compare" class:inactive={!active}>
   <header>
-    <SidePicker label="Left" bind:side={cmp.left} bind:whatIf={cmp.leftWhatIf} onchange={() => cmp.run()} onclear={() => cmp.clear('left')} />
-    <IconButton icon={ArrowLeftRight} label="Swap sides" size="sm" onclick={() => cmp.swap()} />
-    <SidePicker label="Right" bind:side={cmp.right} bind:whatIf={cmp.rightWhatIf} onchange={() => cmp.run()} onclear={() => cmp.clear('right')} />
-    <Button size="sm" variant="ghost" onclick={() => cmp.clear()} disabled={cmp.empty}>Clear</Button>
-    <div class="spacer"></div>
+    <span class="tool-label">Compare as</span>
     <SegmentedControl
       label="Compare as"
       options={[
-        { value: 'auto', label: 'Auto' },
-        { value: 'structure', label: 'Structure' },
-        { value: 'text', label: 'Text' },
+        { value: 'auto', label: 'Auto', title: 'Structure when both sides are YAML or JSON maps or lists, text otherwise' },
+        { value: 'structure', label: 'Structure', title: 'Compare the data: key order, formatting and comments don\x27t count; list items pair up by name' },
+        { value: 'text', label: 'Text', title: 'Compare line by line and character by character, like git diff' },
       ]}
       bind:value={cmp.mode}
       onchange={() => cmp.run()}
@@ -132,8 +133,18 @@
         <p>Saved in your settings; also used by <code>codec yaml diff</code>.</p>
       </div>
     </Popover>
+    <div class="spacer"></div>
+    <Button size="sm" variant="ghost" onclick={() => cmp.clear()} disabled={cmp.empty}>Clear</Button>
     <IconButton icon={RefreshCw} label="Compare again" size="sm" onclick={() => cmp.run()} />
   </header>
+
+  <!-- Each side's picker heads its own column, above its paste box and
+       its half of a side-by-side diff. -->
+  <div class="sides">
+    <SidePicker label="Left" bind:side={cmp.left} bind:whatIf={cmp.leftWhatIf} onchange={() => cmp.run()} onclear={() => cmp.clear('left')} />
+    <SidePicker label="Right" bind:side={cmp.right} bind:whatIf={cmp.rightWhatIf} onchange={() => cmp.run()} onclear={() => cmp.clear('right')} />
+    <span class="swap"><IconButton icon={ArrowLeftRight} label="Swap sides" size="sm" onclick={() => cmp.swap()} /></span>
+  </div>
 
   {#if pasting}
     <div class="inputs">
@@ -165,25 +176,26 @@
   {:else}
     <div class="summary">
       {#if result.mode === 'text'}
-        <span class="note">{result.note ?? 'Compared as text.'}</span>
+        <span class:note={!!result.note}>{result.note ?? 'Compared as text.'}</span>
+        {#if cmp.mode !== 'structure'}<button type="button" class="link" onclick={() => switchMode('structure')}>Compare as structure</button>{/if}
       {:else if changes.length === 0}
         <span class="same"><CircleCheck size={14} strokeWidth={1.75} /> No differences{cmp.ignore.length ? ' (outside ignored paths)' : ''}.</span>
       {:else}
         <span class="add">{counts.added} added</span> · <span class="del">{counts.removed} removed</span> ·
         <span class="chg">{counts.changed} changed</span>
       {/if}
+      {#if result.mode === 'semantic'}<button type="button" class="link" onclick={() => switchMode('text')}>Compare as text</button>{/if}
       {#if result.mode === 'text'}
         <Toggle bind:checked={cmp.ignoreSpace} label="Ignore whitespace" title="Indentation, runs of spaces and line endings don't count" onchange={() => cmp.run()} />
         <Toggle bind:checked={cmp.ignoreCase} label="Ignore case" onchange={() => cmp.run()} />
       {/if}
-      <span class="titles"><b>{result.left.title}</b> → <b>{result.right.title}</b></span>
+      {#if result.left.title !== 'Pasted' || result.right.title !== 'Pasted'}
+        <span class="titles"><b>{result.left.title}</b> → <b>{result.right.title}</b></span>
+      {/if}
     </div>
 
     {#if result.mode === 'text'}
-      <div class="code solo">
-        <CodeView value={result.diff || (cmp.ignoreSpace || cmp.ignoreCase ? 'No differences, apart from what is ignored.' : 'The texts are identical.')} label="Text diff" readonly />
-        {#if result.diff}<Button size="sm" variant="ghost" onclick={() => copyText(result!.diff!, 'Diff')}>Copy diff</Button>{/if}
-      </div>
+      <TextDiff {result} />
     {:else}
       <div class="body">
         <nav class="changes" aria-label="Changes">
@@ -243,6 +255,33 @@
   }
   .spacer {
     flex: 1;
+  }
+  .tool-label {
+    font-size: var(--fs-sm);
+    color: var(--fg-2);
+  }
+  .sides {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-bottom: 1px solid var(--border);
+  }
+  .sides > :global(.side) {
+    padding: var(--s-2) var(--s-6) var(--s-2) var(--s-4);
+    border-radius: 0;
+    outline-offset: -4px;
+  }
+  .sides > :global(.side + .side) {
+    border-left: 1px solid var(--border);
+  }
+  /* Swap sits on the line between the columns. */
+  .swap {
+    position: absolute;
+    top: var(--s-2);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg-1);
+    border-radius: var(--r-sm);
   }
   .ignore-btn {
     display: inline-flex;
@@ -324,14 +363,18 @@
   }
   .summary {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: var(--s-2);
+    gap: 0 var(--s-2);
     padding: var(--s-2) var(--s-4);
     font-size: var(--fs-sm);
     color: var(--fg-2);
     border-bottom: 1px solid var(--border);
   }
   .titles {
+    flex: 1 0 auto;
+    max-width: 100%;
+    text-align: right;
     margin-left: auto;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -459,10 +502,6 @@
     min-height: 0;
     border-right: 1px solid var(--border);
   }
-  .code.solo {
-    flex: 1;
-    border: none;
-  }
   .code > :global(:not(.pane-title)) {
     flex: 1;
     min-height: 0;
@@ -488,6 +527,18 @@
   .note {
     padding: 0;
     color: var(--warn);
+  }
+  .link {
+    flex: none;
+    padding: 0;
+    white-space: nowrap;
+    font: inherit;
+    color: var(--accent);
+    background: none;
+    border: none;
+  }
+  .link:hover {
+    text-decoration: underline;
   }
   .error {
     color: var(--err);

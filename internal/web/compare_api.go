@@ -142,7 +142,7 @@ func writeCompare(w http.ResponseWriter, left, right sideText, req compareReques
 		if mode != "structure" && !fl.HasErrors() && !fr.HasErrors() && (!structured(fl) || !structured(fr)) {
 			out["mode"], out["changes"] = "text", []yamlkit.Change{}
 			out["note"] = "A side isn't a YAML or JSON mapping or list, so it is compared as text."
-			out["diff"] = textDiff(left, right, req)
+			textDiff(out, left, right, req)
 			writeJSON(w, http.StatusOK, out)
 			return
 		}
@@ -162,12 +162,25 @@ func writeCompare(w http.ResponseWriter, left, right sideText, req compareReques
 		}
 	}
 	out["mode"], out["changes"] = "text", []yamlkit.Change{}
-	out["diff"] = textDiff(left, right, req)
+	textDiff(out, left, right, req)
 	writeJSON(w, http.StatusOK, out)
 }
 
-func textDiff(left, right sideText, req compareRequest) string {
-	return textdiff.UnifiedWith("file", left.Text, right.Text, 3, textdiff.Options{IgnoreSpace: req.IgnoreSpace, IgnoreCase: req.IgnoreCase})
+// maxRows caps the side-by-side rows; the unified diff is always whole.
+const maxRows = 5000
+
+// textDiff adds the unified diff and the side-by-side rows to out.
+func textDiff(out map[string]any, left, right sideText, req compareRequest) {
+	o := textdiff.Options{IgnoreSpace: req.IgnoreSpace, IgnoreCase: req.IgnoreCase}
+	out["diff"] = textdiff.UnifiedWith("file", left.Text, right.Text, 3, o)
+	rows := textdiff.SideBySide(left.Text, right.Text, 3, o)
+	if len(rows) > maxRows {
+		rows, out["rowsTruncated"] = rows[:maxRows], true
+	}
+	if rows == nil {
+		rows = []textdiff.Row{}
+	}
+	out["rows"] = rows
 }
 
 // GET /api/v2/compare/ignore and POST {patterns}: the saved noise filter.
