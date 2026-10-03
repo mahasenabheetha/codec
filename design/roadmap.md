@@ -33,6 +33,24 @@ version, and add a CHANGELOG entry.
 | Make the GHCR package public (first release with an image) | user |
 | Turn on GitHub Pages: Settings → Pages → `main`, `/docs` | user |
 
+## Releases
+
+Planned order (agreed 2026-10-03). Semantic Versioning: new features
+are minor releases (2.x.0); patch releases (2.x.1) are bug fixes only.
+Each item gets its own short branch from `main` (decision 72) and its
+CHANGELOG line under "Unreleased"; a version is tagged when its items
+are merged, following [releases.md](releases.md). After a release, copy
+the new binary to the local launcher folder.
+
+| Version | Items, in build order | Notes |
+|---|---|---|
+| 2.1.0 | [Compare: clear](#compare-clear) → [Compare: paste as a source](#compare-paste-as-a-source) → [Compare: pick files from the Explorer](#compare-pick-files-from-the-explorer), [Reload prompt after a server restart](#reload-prompt-after-a-server-restart), then [Find in Files](#find-in-files) | Find in Files is last: if it runs long, 2.1.0 ships without it and it moves to the next release |
+| 2.2.0 | [Ansible log analyzer: whole runs](#ansible-log-analyzer-whole-runs) → [Ansible playbook map](#ansible-playbook-map) | The map's run colours need the analyzer; if the map runs long, release the analyzer as 2.2.0 and the map next |
+| 2.3.0 | [Utilities: Encode & hash](#utilities-encode--hash) → [Utilities: Time](#utilities-time) → [Utilities: Regex](#utilities-regex) | Encode & hash first: it sets up the Utilities heading and sub-tabs |
+| later | The rest of "Next" | Picked up after 2.3.0, or slotted in when it fits |
+
+Before starting 2.1.0, merge the branch that added these plans.
+
 ## Next
 
 | Item | Size | Notes |
