@@ -20,6 +20,9 @@ Things to try:
 - **CI:** `.github/workflows/ci.yml` (a matrix and a reusable
   workflow), `.gitlab-ci.yml` (includes and extends) and
   `azure-pipelines.yml` (templates and parameters).
+- **Schedules:** hover the cron schedule in `k8s/base/cleanup.yaml`,
+  `argo/nightly.yaml`, `.github/workflows/ci.yml` or
+  `azure-pipelines.yml` to read it in plain words with its next runs.
 - **Compose and Ansible:** `compose.yaml` with its override file and
   `.env`; `ansible/site.yml` with a role and an inventory.
 - **Compare:** compare `charts/shop/values.yaml` with

@@ -103,7 +103,7 @@ Branch `feature/mab/v2.3.0`. Shared rules in [Utilities](#utilities-applies-to-t
 | T3 | Encode & hash: UI | Five sub-tabs; docs | Done |
 | T4 | [Time](#utilities-time): engine + API + CLI | Timestamps; cron parse, next runs, describe, build; dialect messages; DST tests; `internal/cron`, `internal/timeutil`, `POST /api/v2/time/{kind}`, decision 79 | Done |
 | T5 | Time: UI | Timestamp with Now; cron explainer + generator; docs | Done |
-| T6 | Cron hover | CronJob, GitHub and Azure schedules | |
+| T6 | Cron hover | CronJob, GitHub and Azure schedules | Done (Argo CronWorkflow too; sample has one of each) |
 | T7 | [Regex](#utilities-regex): engine + API + CLI | RE2 and regexp2, time limit, replace, explainer; tests | |
 | T8 | Regex: UI | Tester and explainer on one screen; docs | |
 | T9 | Smart paste | Epoch numbers, URL-encoded text, cron expressions | |

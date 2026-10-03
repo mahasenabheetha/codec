@@ -6,6 +6,7 @@ labels:
 resources:
   - deployment.yaml
   - service.yaml
+  - cleanup.yaml
 configMapGenerator:
   - name: shop-config
     literals:

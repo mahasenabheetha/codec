@@ -24,6 +24,9 @@ All notable changes to codec are documented here. The format follows
   any zone, relative time, Now) and Cron (plain words, field by field,
   next runs, presets and a form that builds the expression and fills
   from it).
+- Hover a cron schedule in a Kubernetes CronJob, an Argo CronWorkflow,
+  a GitHub workflow or an Azure pipeline to read it in plain words, with
+  the zone it runs in and the next runs. The sample has one of each.
 
 ## [2.2.0] - 2026-10-03
 
