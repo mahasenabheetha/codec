@@ -101,9 +101,15 @@ func byPath(logPath string, files []string, load Loader) (Match, bool) {
 		line, _ = strconv.Atoi(m[1])
 		p = strings.TrimSuffix(p, m[0])
 	}
+	// Inside a role ("…/roles/app/tasks/main.yml") the role's name must
+	// be shared too: every role has a tasks/main.yml.
+	need := 1
+	if segs := strings.Split(p, "/"); slices.Contains(segs, "roles") {
+		need = len(segs) - 1 - slices.Index(segs, "roles")
+	}
 	best, bestN := "", 0
 	for _, f := range files {
-		if n := sharedTail(p, f); n > bestN {
+		if n := sharedTail(p, f); n >= need && n > bestN {
 			best, bestN = f, n
 		}
 	}

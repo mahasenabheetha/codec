@@ -569,7 +569,10 @@ func (a *analyzer) role(name, from string, at *Source, dir string, dynamic bool)
 	if !r.Found {
 		t.Missing = !r.External
 		if r.External {
-			t.Detail = "from a collection"
+			t.Detail = "installed when the playbook runs"
+			if strings.Count(name, ".") >= 2 {
+				t.Detail = "from a collection"
+			}
 		}
 		return t
 	}
@@ -648,6 +651,7 @@ func (a *analyzer) findRole(name, dir string, at *Source) *Role {
 			hint := "It may be installed when the playbook runs (ansible-galaxy, or copied in by CI). codec searched roles/ next to the playbook, roles_path in ansible.cfg, and roles/ in the folders above."
 			if req := a.listedIn(name); req != "" {
 				hint = "Listed in " + req + ", so it is installed when the playbook runs."
+				r.External = true
 			}
 			a.problem(yamlkit.SeverityInfo, "ansible-role-missing", at, "Role "+name+" isn't in the folder", hint)
 		}

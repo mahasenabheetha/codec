@@ -87,7 +87,29 @@ export interface AnsibleInventory {
   problems: AnsibleProblem[]
 }
 
-export type AnsibleAnalysis = { kind: 'playbook'; playbook: AnsiblePlaybook } | { kind: 'inventory'; inventory: AnsibleInventory }
+/** A playbook drawn as a diagram (internal/ansible/graph.go). */
+export interface PlaybookGraph {
+  nodes: PlaybookNode[]
+  edges: { from: string; to: string; kind: 'role' | 'dependency' | 'import' | 'include' | 'notify'; dynamic?: boolean }[]
+}
+
+export interface PlaybookNode {
+  id: string
+  kind: 'play' | 'role' | 'tasks' | 'handler'
+  label: string
+  sub?: string
+  file?: string
+  line?: number
+  role?: string
+  play?: string
+  tasks?: number
+  external?: boolean
+  missing?: boolean
+  assumed?: boolean
+  candidates?: string[]
+}
+
+export type AnsibleAnalysis = { kind: 'playbook'; playbook: AnsiblePlaybook; graph: PlaybookGraph } | { kind: 'inventory'; inventory: AnsibleInventory }
 
 export interface TaskMatch {
   file: string
