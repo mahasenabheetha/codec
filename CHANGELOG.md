@@ -35,6 +35,8 @@ All notable changes to codec are documented here. The format follows
   groups per match, a replace preview, and an explanation of the pattern
   part by part; hovering a part finds it in the pattern and a group
   lights up what it captured. Go (RE2) or Python / .NET / JS style.
+- Smart paste reads epoch timestamps, URL-encoded text and cron
+  expressions, and opens them in Timestamp, URL or Cron with one click.
 
 ## [2.2.0] - 2026-10-03
 

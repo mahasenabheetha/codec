@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/mahasenabheetha/codec/v2/internal/codec"
 	"github.com/mahasenabheetha/codec/v2/internal/version"
@@ -28,10 +29,11 @@ type transformRequest struct {
 // and JWT carry structured forms of the same result, so the frontend
 // can render rich views without re-parsing anything itself.
 type transformResponse struct {
-	Output string            `json:"output"`
-	Kind   string            `json:"kind"`
-	Task   *codec.ParsedTask `json:"task,omitempty"`
-	JWT    *jwtView          `json:"jwt,omitempty"`
+	Output  string            `json:"output"`
+	Kind    string            `json:"kind"`
+	Task    *codec.ParsedTask `json:"task,omitempty"`
+	JWT     *jwtView          `json:"jwt,omitempty"`
+	Utility *codec.Utility    `json:"utility,omitempty"` // smart paste: input for a Utilities tool
 }
 
 // jwtView is the wire form of codec.JWT. The engine type has no JSON
@@ -55,6 +57,15 @@ func handleTransform(w http.ResponseWriter, r *http.Request) {
 	mode := codec.Mode(req.Mode)
 	if mode == "" {
 		mode = codec.ModeAuto
+	}
+
+	// Smart paste: epoch numbers, URL-encoded text and cron expressions
+	// go to the Utilities tools (checked first: an epoch is valid JSON).
+	if mode == codec.ModeAuto {
+		if u, ok := codec.DetectUtility(req.Input, time.Now()); ok {
+			writeJSON(w, http.StatusOK, transformResponse{Output: u.Summary, Kind: u.Kind, Utility: u})
+			return
+		}
 	}
 
 	opts := codec.Options{Indent: req.Indent}

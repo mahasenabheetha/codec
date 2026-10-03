@@ -45,7 +45,7 @@ export const tools: ToolDef[] = [
     id: 'smart',
     title: 'Smart paste',
     group: 'Encode & decode',
-    description: 'Paste anything — codec detects JSON, base64, JWTs or Ansible logs and does the obvious thing.',
+    description: 'Paste anything — codec detects JSON, base64, JWTs, Ansible logs, timestamps, URL-encoded text or cron and does the obvious thing.',
     icon: Sparkles,
     keywords: ['auto', 'detect', 'paste'],
     load: () => import('../features/smart/SmartPaste.svelte'),

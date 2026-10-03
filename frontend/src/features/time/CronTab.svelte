@@ -10,6 +10,7 @@
   import SegmentedControl from '../../lib/components/SegmentedControl.svelte'
   import Select from '../../lib/components/Select.svelte'
   import { buildCron, cron, type CronForm, type CronResult } from '../../lib/api/time'
+  import { handoff } from '../../lib/stores/handoff.svelte'
   import type { ToolDef } from '../../lib/tools'
   import { copyText } from '../../lib/utils/clipboard'
   import ToolLayout from '../shared/ToolLayout.svelte'
@@ -40,6 +41,11 @@
   $effect(() => {
     const c = call()
     untrack(() => job.schedule(c, 150))
+  })
+  // An expression handed over by smart paste.
+  $effect(() => {
+    const v = handoff.take('time', 'cron')
+    if (v !== null) untrack(() => (expr = v))
   })
   // A schedule that fits the form fills it in.
   $effect(() => {

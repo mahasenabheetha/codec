@@ -9,6 +9,7 @@
   import EmptyState from '../../lib/components/EmptyState.svelte'
   import IconButton from '../../lib/components/IconButton.svelte'
   import { timestamp, type Stamp } from '../../lib/api/time'
+  import { handoff } from '../../lib/stores/handoff.svelte'
   import type { ToolDef } from '../../lib/tools'
   import { copyText } from '../../lib/utils/clipboard'
   import ToolLayout from '../shared/ToolLayout.svelte'
@@ -34,6 +35,12 @@
   $effect(() => {
     const c = call()
     untrack(() => job.schedule(c))
+  })
+
+  // Input handed over by smart paste.
+  $effect(() => {
+    const v = handoff.take('time', 'timestamp')
+    if (v !== null) untrack(() => (job.input = v))
   })
 
   // "Relative" goes stale; refresh it while the tab is in view.

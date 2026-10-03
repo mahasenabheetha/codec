@@ -5,6 +5,7 @@
   import SegmentedControl from '../../lib/components/SegmentedControl.svelte'
   import Toggle from '../../lib/components/Toggle.svelte'
   import { urlDecode, urlEncode, urlParse, type URLParts } from '../../lib/api/encode'
+  import { handoff } from '../../lib/stores/handoff.svelte'
   import type { ToolDef } from '../../lib/tools'
   import { copyText } from '../../lib/utils/clipboard'
   import ToolLayout from '../shared/ToolLayout.svelte'
@@ -33,6 +34,16 @@
   $effect(() => {
     const c = call()
     untrack(() => job.schedule(c))
+  })
+
+  // Text handed over by smart paste is encoded: decode it.
+  $effect(() => {
+    const v = handoff.take('encode', 'url')
+    if (v !== null)
+      untrack(() => {
+        mode = 'decode'
+        job.input = v
+      })
   })
 
   // The readable side, taken apart when it is a URL (or, decoded, a

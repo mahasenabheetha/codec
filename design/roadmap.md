@@ -106,7 +106,7 @@ Branch `feature/mab/v2.3.0`. Shared rules in [Utilities](#utilities-applies-to-t
 | T6 | Cron hover | CronJob, GitHub and Azure schedules | Done (Argo CronWorkflow too; sample has one of each) |
 | T7 | [Regex](#utilities-regex): engine + API + CLI | RE2 and regexp2, time limit, replace, explainer; tests; `internal/regex`, `POST /api/v2/regex`, decision 80 | Done |
 | T8 | Regex: UI | Tester and explainer on one screen; docs | Done |
-| T9 | Smart paste | Epoch numbers, URL-encoded text, cron expressions | |
+| T9 | Smart paste | Epoch numbers, URL-encoded text, cron expressions | Done (`codec.DetectUtility`; the clipboard watcher and `codec auto` are unchanged) |
 | — | Release | | |
 
 ### Later
