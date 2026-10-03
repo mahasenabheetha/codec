@@ -49,6 +49,9 @@ version, and add a CHANGELOG entry.
 | [Kubernetes resource totals](#kubernetes-resource-totals) | S | Requests and limits × replicas, summed |
 | [RBAC view](#rbac-view) | M | Who can do what; flags wildcards and cluster-admin |
 | [NetworkPolicy view](#networkpolicy-view) | M | Which pods can talk to which |
+| [Utilities: Time](#utilities-time) | M | Timestamp and Cron (explainer + generator) in one sidebar entry |
+| [Utilities: Encode & hash](#utilities-encode--hash) | S | URL, hex, hash/HMAC, secrets & UUID, htpasswd |
+| [Utilities: Regex](#utilities-regex) | M | Tester and explainer; Go (RE2) and Python/.NET/JS styles |
 
 ## Later
 
@@ -248,3 +251,88 @@ version, and add a CHANGELOG entry.
 - **Done when:** kube tests cover podSelector, namespaceSelector, ipBlock,
   ports and default deny; the sample has a policy to show.
 - **Decisions:** none new.
+
+### Utilities (applies to the three items below)
+- A new rail heading **Utilities** with three entries — Time, Encode &
+  hash, Regex — each with sub-tabs (`SegmentedControl`, as in Compare).
+  The last sub-tab is remembered (a UI preference, decision 19).
+- Each sub-tab is in the command palette and on Home by its own name
+  ("Cron" opens Time on the Cron tab). `lib/tools.ts` gains optional
+  sub-tabs per tool so the rail, Home and palette stay generated from it.
+- Same layout as the Base64 and JWT tools: input, options, output, copy.
+  Base64, JSON and JWT stay where they are.
+- Logic is Go, as for the existing tools (decision 18): a package in
+  `internal/` per area, exposed through the API and as CLI commands.
+  Input and output are never persisted (decision 19).
+- Smart paste learns to recognise epoch numbers, URL-encoded text and
+  cron expressions and opens the right sub-tab.
+
+### Utilities: Time
+- **Problem:** epoch timestamps and cron schedules are read by hand or
+  in a browser tab elsewhere.
+- **Result:** rail entry **Time** with two sub-tabs.
+  - **Timestamp:** epoch seconds or milliseconds (detected) to local,
+    UTC, ISO 8601 and relative time; a date back to epoch; a **Now**
+    button with the current Unix timestamp.
+  - **Cron:** explainer and generator in one: an expression shows plain
+    words ("Every 15 minutes, 02:00–06:59, Monday to Friday") and the
+    next 10 runs; a form (every N minutes, hourly at, daily at, weekdays,
+    day of month) builds the expression live, and a pasted expression
+    fills the form where it can. Standard 5 fields plus `@daily`-style
+    shortcuts, with a time-zone choice (UTC for GitHub/Azure; a CronJob's
+    `timeZone`). Quartz (6–7 fields, `?`) and Jenkins `H` are recognised
+    and named as unsupported.
+  - Hover on a schedule in the editor (CronJob `schedule`, GitHub
+    `on.schedule.cron`, Azure `schedules.cron`) shows the explanation and
+    next runs.
+- **Scope:** `internal/timeutil` (or similar) and `internal/cron`
+  (parser, next runs, describe, build), `internal/web`, CLI
+  `codec time` / `codec cron`, `features/time`, the providers' hover;
+  docs `tools.html`, `cli.html`.
+- **Done when:** cron tests cover ranges, steps, lists, names (`MON`),
+  shortcuts, day-of-month vs day-of-week, DST changes and the dialect
+  messages; timestamp tests cover s/ms detection and time zones; hover
+  works on the sample's CronJob and workflow; docs updated.
+- **Decisions:** agreed 2026-10-03: standard 5 fields + shortcuts,
+  explainer and generator as one tool, hover tips in the editor.
+
+### Utilities: Encode & hash
+- **Problem:** small encode/hash jobs need other tools or websites,
+  which is risky with secrets.
+- **Result:** rail entry **Encode & hash** with sub-tabs:
+  - **URL:** encode/decode a value or a whole URL; a query string as a
+    table.
+  - **Hex:** hex ↔ text.
+  - **Hash:** MD5 (marked "checksums only"), SHA-1, SHA-256, SHA-384,
+    SHA-512 of text, and HMAC with a key.
+  - **Secrets & UUID:** UUID v4; random secrets by length and character
+    set, as text, hex or base64.
+  - **htpasswd:** bcrypt `user:hash` lines for ingress basic auth.
+- **Scope:** `internal/codec` (or a sibling package), `internal/web`,
+  CLI commands (`codec url`, `codec hash`, …), `features/encode`; docs
+  `tools.html`, `cli.html`. Out of scope: generic encrypt/decrypt (no
+  interoperable format — agreed); Ansible Vault belongs to the Ansible work.
+- **Done when:** tests use published test vectors for each hash and
+  HMAC; bcrypt output verifies; docs updated.
+- **Decisions:** agreed 2026-10-03: no generic encryption tool; bcrypt
+  via `golang.org/x/crypto` (new dependency).
+
+### Utilities: Regex
+- **Problem:** regexes from Ansible, pipelines and tooling are tested by
+  trial and error.
+- **Result:** rail entry **Regex**, one screen: the pattern, flags as
+  toggles, test lines with matches highlighted live, capture groups in a
+  table, a replace preview (`$1`, `${name}`), and an explainer tree that
+  describes each part in plain words; hovering a part highlights it in
+  the pattern and the matches.
+  - Two styles: **Go (RE2)** with the standard library, and
+    **Python / .NET / JavaScript** with `dlclark/regexp2` (lookarounds,
+    backreferences, `(?<name>)` and `(?P<name>)`). Each test has a time
+    limit, so a pattern that backtracks badly stops with a message.
+- **Scope:** `internal/regex` (run, explain: `regexp/syntax` for RE2,
+  a small parser for the extra features), `internal/web`, CLI
+  `codec regex`, `features/regex`; docs `tools.html`, `cli.html`.
+- **Done when:** tests cover both styles, named groups, flags, replace,
+  the time limit and the explainer for each construct; docs updated.
+- **Decisions:** agreed 2026-10-03: logic in Go with two styles, tester
+  and explainer as one tool; `dlclark/regexp2` (new dependency).
