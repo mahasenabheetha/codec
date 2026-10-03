@@ -41,7 +41,7 @@ anchor/alias `#4fd1c5` · tag `#e5b449` · punctuation `--fg-2` · `---`
 `--accent`. Expressions get a tinted background: template-time (Helm,
 Jinja) `#f7c873` on 8%; run time (Argo, GitHub, Azure) `#ff9ecf` on 8%;
 run-time-only values in rendered output: dashed underline. Diff lines:
-`--diff-add-bg`, `--diff-del-bg`, `--diff-chg-bg`. File-type logos use
+`--diff-add-bg`, `--diff-del-bg`, `--diff-chg-bg`; changed characters inside a line `--diff-add-strong`, `--diff-del-strong`. File-type logos use
 `--brand-*` (lightened for contrast).
 
 Never hard-code a colour, size or font in a component. A new token is a
@@ -83,10 +83,11 @@ Build once in `frontend/src/lib/components` and reuse:
 | `Graph` | Node graphs (dagre layout, pan/zoom, colour groups `g-<group>`) |
 | `EffectiveLines` | Config with an origin per line (CI, Compose) |
 | `Popover`, `Dialog`, `Tooltip` | Overlays; dialogs trap focus and close on Esc |
+| `ContextMenu` | Right-click menus (also Shift+F10); entries built per open from the event; sentence case, an icon per entry |
 | `Badge`, `Kbd` | File type with logo; key combos |
 | `EmptyState` | Nothing to show yet: icon, one sentence, the action that fills it |
 | `Skeleton` | Loading placeholders in the content's shape |
-| `Toaster` / `toast()` | Brief confirmations and non-blocking errors |
+| `Toaster` / `toast()` | Brief confirmations and non-blocking errors; an optional action ("Cleared · Undo") for undoable clears |
 
 Shell pieces live in `lib/shell` (Rail, TabBar, StatusBar,
 CommandPalette, ShortcutsDialog). New tools register in `lib/tools.ts`

@@ -74,7 +74,7 @@ answers them from the files alone, on your machine.
 </tr>
 <tr>
 <td><img src="docs/images/compare.png" alt="Semantic compare"></td>
-<td><b>Compare and query</b><br>Diff by meaning — key and list order ignored, containers paired by name — including dev vs prod renders. Run jq over the whole repo and jump to each result.<br><a href="https://mahasenabheetha.github.io/codec/compare.html">Compare guide →</a></td>
+<td><b>Compare, query and search</b><br>Diff by meaning — key and list order ignored, containers paired by name — including dev vs prod renders, or pasted text such as a live object. Run jq over the whole repo, or Find in Files for plain text, and jump to each result.<br><a href="https://mahasenabheetha.github.io/codec/compare.html">Compare guide →</a></td>
 </tr>
 <tr>
 <td><b>New files and clones</b><br>Starters with a short form, linted and rendered before you copy them; your own team starters; clone a file under a new name with references renamed and everything else listed.<br><a href="https://mahasenabheetha.github.io/codec/new.html">Starters guide →</a></td>
@@ -140,6 +140,7 @@ codec ci job .gitlab-ci.yml deploy-prod                 # effective config, orig
 codec argo resolve argo/ -p environment=prod            # every step and its inputs
 codec yaml diff dev.yaml prod.yaml                      # by meaning
 codec yaml query '.spec.template.spec.containers[].image' .
+codec search -w replicas charts/                        # text in every listed file
 ```
 
 All commands: [CLI reference](https://mahasenabheetha.github.io/codec/cli.html).

@@ -7,6 +7,8 @@ import { router, fileRoute, helmRoute } from './router.svelte'
 
 const railCollapsed = persisted('railCollapsed', false)
 const explorerOpen = persisted('explorerOpen', true)
+// What the sidebar panel beside the rail shows.
+const sidebarView = persisted<'explorer' | 'search'>('sidebarView', 'explorer')
 const explorerWidth = persisted('explorerWidth', 280)
 
 // Tabs are routes (#/tools/json, #/file/a/b.yaml). Before workspaces,
@@ -42,8 +44,23 @@ class Layout {
   set explorerOpen(v: boolean) {
     explorerOpen.value = v
   }
+  get sidebarView() {
+    return sidebarView.value
+  }
+  /** Show the Explorer; hide the panel if it is already showing. */
   toggleExplorer() {
-    explorerOpen.value = !explorerOpen.value
+    explorerOpen.value = !(explorerOpen.value && sidebarView.value === 'explorer')
+    sidebarView.value = 'explorer'
+  }
+  /** Show Find in Files in the panel (the search box takes focus). */
+  showSearch() {
+    explorerOpen.value = true
+    sidebarView.value = 'search'
+  }
+  /** Show Find in Files; hide the panel if it is already showing. */
+  toggleSearch() {
+    if (explorerOpen.value && sidebarView.value === 'search') explorerOpen.value = false
+    else this.showSearch()
   }
 
   get explorerWidth() {

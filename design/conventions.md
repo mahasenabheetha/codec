@@ -51,9 +51,10 @@
 
 ## Git
 
-- Never commit to `main`. Work on a short-lived branch
-  (`feature/mab/<topic>`, `fix/<topic>`), then open a pull request; CI
-  must be green; the user merges. (v2 was built on the integration
+- Never commit to `main`. Planned work goes on one branch per release,
+  `feature/mab/vX.Y.Z` (see roadmap.md "Releases"); fixes to a released
+  version on `fix/<topic>`. Open a pull request; CI must be green; the
+  user merges [73]. (v2 was built on the integration
   branch `feature/mab/yaml-tools` until it merged [16, 72].)
 - One logical change per commit, message in the imperative
   ("Fix the Resources view when…"), body saying why.

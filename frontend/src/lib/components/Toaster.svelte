@@ -14,6 +14,21 @@
     <div class="toast {t.tone}">
       <Icon size={15} strokeWidth={2} />
       <span>{t.message}</span>
+      {#if t.action}
+        {@const action = t.action}
+        <button
+          type="button"
+          class="action"
+          onpointerenter={() => toasts.hold(t.id)}
+          onpointerleave={() => toasts.resume(t.id)}
+          onfocus={() => toasts.hold(t.id)}
+          onblur={() => toasts.resume(t.id)}
+          onclick={() => {
+            toasts.dismiss(t.id)
+            action.run()
+          }}>{action.label}</button
+        >
+      {/if}
     </div>
   {/each}
 </div>
@@ -41,6 +56,20 @@
     border-radius: var(--r-md);
     box-shadow: var(--shadow-pop);
     animation: toast-in 160ms var(--ease);
+  }
+  .action {
+    margin-left: var(--s-2);
+    padding: 0 var(--s-1);
+    font-size: var(--fs-md);
+    font-weight: var(--fw-semibold);
+    color: var(--accent);
+    background: none;
+    border: none;
+    border-radius: var(--r-sm);
+    pointer-events: auto;
+  }
+  .action:hover {
+    text-decoration: underline;
   }
   .ok :global(svg) {
     color: var(--ok);

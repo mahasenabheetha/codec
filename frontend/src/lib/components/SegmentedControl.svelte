@@ -6,6 +6,7 @@
     value: T
     label: string
     icon?: Component
+    title?: string
   }
 
   interface Props {
@@ -46,6 +47,7 @@
       aria-checked={checked}
       tabindex={checked ? 0 : -1}
       class:checked
+      title={opt.title}
       onclick={() => select(opt.value)}
     >
       {#if opt.icon}<opt.icon size={14} strokeWidth={1.75} />{/if}

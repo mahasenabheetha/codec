@@ -56,6 +56,8 @@
   --diff-add-bg: rgb(63 185 113 / 0.12);
   --diff-del-bg: rgb(240 107 117 / 0.12);
   --diff-chg-bg: rgb(229 180 73 / 0.11);
+  --diff-add-strong: rgb(63 185 113 / 0.4); /* changed characters */
+  --diff-del-strong: rgb(240 107 117 / 0.4);
 
   /* Brand colours for file-type logos, lightened where the official
      colour is too dark on --bg-1 (Helm navy, Terraform purple). */

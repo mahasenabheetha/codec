@@ -13,6 +13,7 @@
   import { lookOf } from '../../features/workspace/filetypes'
   import { workspace } from '../../features/workspace/workspace.svelte'
   import { getVersion, type VersionInfo } from '../api/version'
+  import { connection } from '../stores/connection.svelte'
   import { layout } from '../stores/layout.svelte'
   import { compareRoute, settingsRoute, newRoute, problemsRoute, queryRoute, router, routeAnsible, routeArgo, routeCI, routeClone, routeCompose, routeHelm, routeK8s, routeKustomize } from '../stores/router.svelte'
   import { toolById } from '../tools'
@@ -113,7 +114,7 @@
   </div>
 
   <div class="right">
-    {#if workspace.disconnected}
+    {#if workspace.disconnected && !connection.restarted}
       <button type="button" class="warn-btn" onclick={() => location.reload()} title="codec was restarted or stopped">
         <Unplug size={12} strokeWidth={2} /> Disconnected — reload
       </button>

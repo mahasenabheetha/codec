@@ -146,6 +146,7 @@ func (s *Server) routes() http.Handler {
 	mux.HandleFunc("GET /api/v2/settings", s.handleSettings)
 	mux.HandleFunc("POST /api/v2/settings/forget", s.handleSettingsForget)
 	mux.HandleFunc("POST /api/v2/compare", s.handleCompare)
+	mux.HandleFunc("POST /api/v2/search", s.handleSearch)
 	mux.HandleFunc("GET /api/v2/compare/ignore", s.handleDiffIgnore)
 	mux.HandleFunc("POST /api/v2/compare/ignore", s.handleDiffIgnore)
 	mux.HandleFunc("POST /api/v2/query", s.handleQuery)
@@ -249,6 +250,7 @@ type errorResponse struct {
 	Error  string `json:"error"`
 	Line   int    `json:"line,omitempty"`
 	Column int    `json:"column,omitempty"`
+	Code   string `json:"code,omitempty"` // machine-readable, e.g. "stale-token"
 }
 
 func writeError(w http.ResponseWriter, status int, msg string) {

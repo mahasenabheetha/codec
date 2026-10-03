@@ -6,6 +6,42 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-10-03
+
+Compare takes pasted text and files picked in the Explorer, Find in
+Files searches the text of every file, and a page left open across a
+restart offers a reload.
+
+### Added
+
+- Find in Files (Ctrl+Shift+F, or Search in the sidebar): text across
+  every listed file as you type, with match case, whole word, regex and
+  include/exclude globs; results grouped by file open at the match.
+  `codec search <text> [folder]` does the same on the command line.
+- Compare: paste as a third source per side, next to File and Helm render
+  — a live object against the repo file, or two pasted texts with no
+  folder open ("Compare text" on Home and in the palette). Pasted text is
+  never saved.
+- Compare as Auto, Structure or Text. Auto compares by structure only
+  when both sides are YAML/JSON mappings or lists, otherwise line by line;
+  text diffs can ignore whitespace and case.
+- Compare: text diffs show side by side, each changed line beside its
+  replacement with the changed characters marked, unchanged runs folded,
+  and where the first difference is ("character 48"). Unified view and
+  "Copy as patch" stay one click away. Each side's picker now heads its
+  own column.
+- Compare: "Add live object noise" fills in the fields a cluster adds
+  (`managedFields`, `resourceVersion`, `uid`, `status`, …) as ignored paths.
+- Explorer: a right-click menu (also Shift+F10) with Open, "Select for
+  compare", "Compare with …" and, for two Ctrl+clicked files, "Compare
+  selected". Files can be dragged onto a side of the Compare view.
+- A "codec restarted — Reload" banner when the page outlives the server
+  run that served it, instead of failing requests.
+- Compare: an × on each side clears it, and Clear empties both sides and
+  the result. Ignored paths stay; cleared pasted text can be undone.
+
+## [2.0.1] - 2026-09-28
+
 ### Changed
 
 - New app icon for codec 2 (a YAML key with nested key: value rows), with a
@@ -370,7 +406,9 @@ First tagged release: codec as it stood before the 2.0 work began.
 - Release pipeline: pushing a `v*` tag publishes binaries for Linux,
   Windows and macOS (amd64/arm64) to GitHub Releases via GoReleaser.
 
-[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v2.1.0...HEAD
+[2.1.0]: https://github.com/mahasenabheetha/codec/compare/v2.0.1...v2.1.0
+[2.0.1]: https://github.com/mahasenabheetha/codec/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/mahasenabheetha/codec/compare/v2.0.0-alpha.1...v2.0.0
 [2.0.0-alpha.1]: https://github.com/mahasenabheetha/codec/compare/v1.0.0...v2.0.0-alpha.1
 [1.0.0]: https://github.com/mahasenabheetha/codec/releases/tag/v1.0.0

@@ -163,6 +163,32 @@ func Unified(path, old, new string, context int) string {
 	return format(path, Lines(SplitLines(old), SplitLines(new)), context)
 }
 
+// Options loosen which lines count as the same.
+type Options struct {
+	IgnoreSpace bool // runs of spaces and tabs, indentation, line endings
+	IgnoreCase  bool
+}
+
+// UnifiedWith is Unified with looser line equality. Lines that match
+// only loosely show as context, taken from old. With no options set it
+// is Unified.
+func UnifiedWith(path, old, new string, context int, o Options) string {
+	if !o.IgnoreSpace && !o.IgnoreCase {
+		return Unified(path, old, new, context)
+	}
+	// Myers compares lines many times; normalize each distinct one once.
+	seen := map[string]string{}
+	norm := func(s string) string {
+		n, ok := seen[s]
+		if !ok {
+			n = o.normalize(s)
+			seen[s] = n
+		}
+		return n
+	}
+	return format(path, LinesFunc(SplitLines(old), SplitLines(new), func(x, y string) bool { return norm(x) == norm(y) }), context)
+}
+
 // format writes edits as a unified diff.
 func format(path string, edits []Edit, context int) string {
 

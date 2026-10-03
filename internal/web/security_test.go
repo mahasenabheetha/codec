@@ -68,6 +68,14 @@ func TestGuard(t *testing.T) {
 			}
 		})
 	}
+
+	// Only a wrong token (a page from before a restart) is "stale".
+	for token, want := range map[string]bool{"nope": true, "": false} {
+		rec := call(s, "GET", "/api/v2/workspace", "127.0.0.1:8765", token, "", "")
+		if got := strings.Contains(rec.Body.String(), `"code":"stale-token"`); got != want {
+			t.Errorf("token %q: stale-token = %v, want %v (%s)", token, got, want, rec.Body)
+		}
+	}
 }
 
 func TestWorkspaceAPI(t *testing.T) {

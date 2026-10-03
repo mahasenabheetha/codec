@@ -11,6 +11,7 @@
         ['Mod+P', 'Go to file'],
         ['Mod+O', 'Open folder'],
         ['Mod+Shift+E', 'Toggle explorer'],
+        ['Mod+Shift+F', 'Find in files'],
         ['Mod+B', 'Toggle sidebar'],
         ['Mod+,', 'Settings'],
         ['?', 'Show keyboard shortcuts'],
@@ -23,6 +24,14 @@
         ['Alt+C', 'Copy output'],
         ['Alt+S', 'Use output as input'],
         ['Escape', 'Clear input and output'],
+      ],
+    },
+    {
+      title: 'In the explorer',
+      items: [
+        ['Ctrl+Space', 'Select a file (also Mod+click)'],
+        ['Shift+F10', 'File menu: open, compare'],
+        ['Escape', 'Clear the selection'],
       ],
     },
     {

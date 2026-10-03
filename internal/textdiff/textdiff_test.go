@@ -167,3 +167,17 @@ func TestPatchKeepsFileEndings(t *testing.T) {
 func gitApply(patch string) *exec.Cmd {
 	return exec.Command("git", "-c", "core.autocrlf=false", "apply", patch)
 }
+
+func TestUnifiedWithOptions(t *testing.T) {
+	old := "Hello  world\n\tindented\nsame\n"
+	new := "hello world\nindented\r\nsame\n"
+	if got := UnifiedWith("f", old, new, 1, Options{}); got != Unified("f", old, new, 1) {
+		t.Errorf("no options should match Unified:\n%s", got)
+	}
+	if got := UnifiedWith("f", old, new, 1, Options{IgnoreSpace: true}); !strings.Contains(got, "-Hello  world") || strings.Contains(got, "+indented") {
+		t.Errorf("IgnoreSpace: want only the case change, got:\n%s", got)
+	}
+	if got := UnifiedWith("f", old, new, 1, Options{IgnoreSpace: true, IgnoreCase: true}); got != "" {
+		t.Errorf("both options: want no diff, got:\n%s", got)
+	}
+}

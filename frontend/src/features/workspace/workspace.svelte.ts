@@ -2,7 +2,7 @@
 // status bar: the open folder, its file list, and live change events.
 
 import { SvelteMap, SvelteSet } from 'svelte/reactivity'
-import { ApiError, eventStream } from '../../lib/api/client'
+import { ApiError, eventStream, request } from '../../lib/api/client'
 import {
   getTree,
   getWorkspace,
@@ -164,9 +164,16 @@ class Workspace {
       this.disconnected = false
     })
     es.addEventListener('error', () => {
-      // EventSource retries by itself; CLOSED means it gave up (e.g. a
-      // restarted server rejects the old token).
-      if (es.readyState === EventSource.CLOSED) this.disconnected = true
+      // EventSource retries by itself; CLOSED means it gave up, usually
+      // because a restarted server rejects the old token. Any request
+      // confirms that (and raises the reload banner); if the server
+      // answers fine, the close was a hiccup, so connect again.
+      if (es.readyState !== EventSource.CLOSED) return
+      this.disconnected = true
+      request('GET', '/api/v2/workspace').then(
+        () => setTimeout(() => this.events === es && this.connect(), 3000),
+        () => {},
+      )
     })
     es.addEventListener('workspace', (e) => {
       this.info = JSON.parse((e as MessageEvent).data)

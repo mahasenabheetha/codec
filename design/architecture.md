@@ -20,7 +20,11 @@ internal/
   provider/           ENGINE provider interface + registry
   helm/               ENGINE Helm 4 SDK render + values provenance (from
                       in-memory files; the SDK is the only big dependency)
-  textdiff/           ENGINE Myers diff, git-applicable patches
+  textdiff/           ENGINE Myers diff, git-applicable patches, loose
+                      (whitespace/case) text diffs, side-by-side rows
+                      with changed characters
+  search/             ENGINE Find in Files: phrase/regex, globs, capped,
+                      deterministic; the caller supplies files and reads
   lint/               ENGINE style rules, Kubernetes checks, API deprecations
   schema/             ENGINE schema choice per doc, JSON Schema validation,
                       schema-driven completion and hover

@@ -4,10 +4,10 @@ import type { Range } from './yaml'
 /** Something to compare or query: a workspace file (its what-if buffer
  *  when content is set) or a chart rendered with a saved profile. */
 export interface Side {
-  kind: 'file' | 'helm'
+  kind: 'file' | 'helm' | 'paste'
   path?: string
-  content?: string
-  doc?: number // file: only this document (0-based)
+  content?: string // file: what-if buffer; paste: the text (never stored)
+  doc?: number // file, paste: only this document (0-based)
   chart?: string
   profile?: string // "" = the chart's defaults
 }
@@ -28,11 +28,36 @@ export interface CompareResult {
   left: { title: string; text: string }
   right: { title: string; text: string }
   diff?: string // text mode: unified diff
+  rows?: DiffRow[] // text mode: side by side, unchanged runs folded
+  rowsTruncated?: boolean
   note?: string
 }
 
-export const compare = (left: Side, right: Side, ignore: string[], signal?: AbortSignal) =>
-  request<CompareResult>('POST', '/api/v2/compare', { left, right, ignore }, signal)
+/** One line of a side-by-side text diff. A gap folds `count` unchanged
+ *  lines starting at left.line / right.line. */
+export interface DiffRow {
+  kind: 'equal' | 'change' | 'delete' | 'insert' | 'gap'
+  left?: DiffCell
+  right?: DiffCell
+  count?: number
+}
+
+export interface DiffCell {
+  line: number // 1-based
+  text: string
+  spans?: [number, number][] // changed parts, UTF-16 offsets
+}
+
+export type CompareMode = 'auto' | 'structure' | 'text'
+
+export interface CompareOptions {
+  mode?: CompareMode
+  ignoreSpace?: boolean // text diffs only
+  ignoreCase?: boolean
+}
+
+export const compare = (left: Side, right: Side, ignore: string[], opts: CompareOptions = {}, signal?: AbortSignal) =>
+  request<CompareResult>('POST', '/api/v2/compare', { left, right, ignore, ...opts }, signal)
 
 export const getIgnore = () => request<{ patterns: string[] }>('GET', '/api/v2/compare/ignore').then((r) => r.patterns)
 

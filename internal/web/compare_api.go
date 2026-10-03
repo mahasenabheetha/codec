@@ -18,12 +18,13 @@ import (
 )
 
 // side is one thing to compare or query: a workspace file (its what-if
-// buffer when content is set), or a chart rendered with a profile.
+// buffer when content is set), a chart rendered with a profile, or
+// pasted text (never stored, decision 19).
 type side struct {
-	Kind    string  `json:"kind"` // "file" (default) or "helm"
+	Kind    string  `json:"kind"` // "file" (default), "helm" or "paste"
 	Path    string  `json:"path"`
-	Content *string `json:"content"` // file: what-if buffer; nil = disk
-	Doc     *int    `json:"doc"`     // file: only this document (0-based)
+	Content *string `json:"content"` // file: what-if buffer, nil = disk; paste: the text
+	Doc     *int    `json:"doc"`     // file, paste: only this document (0-based)
 	Chart   string  `json:"chart"`   // helm
 	Profile string  `json:"profile"` // helm: saved profile, "" = defaults
 }
@@ -48,12 +49,18 @@ func (s *Server) load(ctx context.Context, ws *workspace.Workspace, sd side) (si
 		}
 		title := "Helm " + res.Chart.Name + " · " + orText(sd.Profile, "defaults")
 		return sideText{Title: title, Text: res.Manifest}, nil
-	case "", "file":
+	case "", "file", "paste":
 		text := ""
 		title := sd.Path
-		if sd.Content != nil {
+		switch {
+		case sd.Kind == "paste":
+			title = "Pasted"
+			if sd.Content != nil {
+				text = *sd.Content
+			}
+		case sd.Content != nil:
 			text, title = *sd.Content, sd.Path+" (what-if)"
-		} else {
+		default:
 			c, err := ws.Read(sd.Path)
 			if err != nil {
 				return sideText{}, readError(err)
@@ -74,19 +81,26 @@ func (s *Server) load(ctx context.Context, ws *workspace.Workspace, sd side) (si
 	return sideText{}, &httpError{http.StatusBadRequest, "unknown kind " + sd.Kind}
 }
 
-// POST /api/v2/compare {left, right, ignore[]}: a semantic diff, or a
-// text diff when either side doesn't parse.
+// compareRequest is the body of POST /api/v2/compare.
+type compareRequest struct {
+	Left, Right side
+	Ignore      []string `json:"ignore"`
+	Mode        string   `json:"mode"` // "auto" (default), "structure" or "text"
+	Text        bool     `json:"text"` // older clients: same as mode "text"
+	IgnoreSpace bool     `json:"ignoreSpace"`
+	IgnoreCase  bool     `json:"ignoreCase"`
+}
+
+// POST /api/v2/compare: a semantic diff, or a text diff when a side
+// doesn't parse or (in auto mode) isn't a mapping or list. Two pasted
+// sides need no open folder.
 func (s *Server) handleCompare(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		Left, Right side
-		Ignore      []string `json:"ignore"`
-		Text        bool     `json:"text"` // force a text diff
-	}
+	var req compareRequest
 	if !decode(w, r, &req) {
 		return
 	}
 	ws := s.current()
-	if ws == nil {
+	if ws == nil && (req.Left.Kind != "paste" || req.Right.Kind != "paste") {
 		writeError(w, http.StatusConflict, "no folder is open")
 		return
 	}
@@ -94,17 +108,45 @@ func (s *Server) handleCompare(w http.ResponseWriter, r *http.Request) {
 	if he == nil {
 		var right sideText
 		if right, he = s.load(r.Context(), ws, req.Right); he == nil {
-			s.writeCompare(w, left, right, req.Ignore, req.Text)
+			writeCompare(w, left, right, req)
 			return
 		}
 	}
 	writeError(w, he.status, he.msg)
 }
 
-func (s *Server) writeCompare(w http.ResponseWriter, left, right sideText, ignore []string, text bool) {
+// structured reports whether every document in f is a mapping or a
+// list: text, logs and lone scalars compare better line by line.
+func structured(f *yamlkit.File) bool {
+	n := 0
+	for _, d := range f.Docs {
+		if d.Root == nil {
+			continue
+		}
+		if d.Root.Kind != yamlkit.KindMap && d.Root.Kind != yamlkit.KindSeq {
+			return false
+		}
+		n++
+	}
+	return n > 0
+}
+
+func writeCompare(w http.ResponseWriter, left, right sideText, req compareRequest) {
 	out := map[string]any{"left": left, "right": right}
-	if !text {
-		changes, err := yamlkit.Diff(yamlkit.Parse([]byte(left.Text)), yamlkit.Parse([]byte(right.Text)), yamlkit.DiffOptions{Ignore: ignore})
+	mode := req.Mode
+	if req.Text {
+		mode = "text"
+	}
+	if mode != "text" {
+		fl, fr := yamlkit.Parse([]byte(left.Text)), yamlkit.Parse([]byte(right.Text))
+		if mode != "structure" && !fl.HasErrors() && !fr.HasErrors() && (!structured(fl) || !structured(fr)) {
+			out["mode"], out["changes"] = "text", []yamlkit.Change{}
+			out["note"] = "A side isn't a YAML or JSON mapping or list, so it is compared as text."
+			textDiff(out, left, right, req)
+			writeJSON(w, http.StatusOK, out)
+			return
+		}
+		changes, err := yamlkit.Diff(fl, fr, yamlkit.DiffOptions{Ignore: req.Ignore})
 		if err == nil {
 			if changes == nil {
 				changes = []yamlkit.Change{}
@@ -120,8 +162,25 @@ func (s *Server) writeCompare(w http.ResponseWriter, left, right sideText, ignor
 		}
 	}
 	out["mode"], out["changes"] = "text", []yamlkit.Change{}
-	out["diff"] = textdiff.Unified("file", left.Text, right.Text, 3)
+	textDiff(out, left, right, req)
 	writeJSON(w, http.StatusOK, out)
+}
+
+// maxRows caps the side-by-side rows; the unified diff is always whole.
+const maxRows = 5000
+
+// textDiff adds the unified diff and the side-by-side rows to out.
+func textDiff(out map[string]any, left, right sideText, req compareRequest) {
+	o := textdiff.Options{IgnoreSpace: req.IgnoreSpace, IgnoreCase: req.IgnoreCase}
+	out["diff"] = textdiff.UnifiedWith("file", left.Text, right.Text, 3, o)
+	rows := textdiff.SideBySide(left.Text, right.Text, 3, o)
+	if len(rows) > maxRows {
+		rows, out["rowsTruncated"] = rows[:maxRows], true
+	}
+	if rows == nil {
+		rows = []textdiff.Row{}
+	}
+	out["rows"] = rows
 }
 
 // GET /api/v2/compare/ignore and POST {patterns}: the saved noise filter.
