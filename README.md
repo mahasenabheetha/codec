@@ -83,7 +83,11 @@ answers them from the files alone, on your machine.
 </table>
 
 Plus the everyday tools: smart paste, base64, JSON, JWT claims and
-Ansible logs, from one failed task to a whole pipeline log with several runs — [tools guide](https://mahasenabheetha.github.io/codec/tools.html).
+Ansible logs, from one failed task to a whole pipeline log with several
+runs. Under **Utilities**: URL and hex encoding, hashes and HMAC, random
+secrets and UUIDs, htpasswd lines, timestamps, cron schedules in plain
+words with their next runs (also on hover in CronJobs and pipelines),
+and a regex tester that explains the pattern — [tools guide](https://mahasenabheetha.github.io/codec/tools.html).
 
 ## Quick start
 
@@ -141,6 +145,8 @@ codec argo resolve argo/ -p environment=prod            # every step and its inp
 codec yaml diff dev.yaml prod.yaml                      # by meaning
 codec yaml query '.spec.template.spec.containers[].image' .
 codec search -w replicas charts/                        # text in every listed file
+codec cron '*/15 2-6 * * 1-5' --zone Europe/Stockholm  # plain words, next runs
+codec regex --explain '^v(\d+)\.(\d+)$'                 # a pattern part by part
 ```
 
 All commands: [CLI reference](https://mahasenabheetha.github.io/codec/cli.html).
@@ -151,7 +157,7 @@ All commands: [CLI reference](https://mahasenabheetha.github.io/codec/cli.html).
 flowchart LR
   B[Browser<br/>web UI] -->|127.0.0.1 + token| S[HTTP server]
   T[Terminal / CI] --> C[CLI]
-  S --> E[Engine<br/>YAML, Helm, Kubernetes,<br/>Argo, CI, Compose, Ansible,<br/>lint, schemas]
+  S --> E[Engine<br/>YAML, Helm, Kubernetes,<br/>Argo, CI, Compose, Ansible,<br/>lint, schemas, utilities]
   C --> E
   S --> W[workspace<br/>read-only]
   S --> P[config]

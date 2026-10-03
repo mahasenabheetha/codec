@@ -55,7 +55,7 @@ func Cards(objs []Object, g Graph) []Card {
 			id += fmt.Sprintf("@%s#%d", o.Source.File, o.Source.Doc)
 		}
 		seen[o.ID()] = true
-		c := Card{ID: id,Kind: o.Kind, Name: o.Name, Namespace: o.Namespace, Source: o.Source, Facts: []Fact{}}
+		c := Card{ID: id, Kind: o.Kind, Name: o.Name, Namespace: o.Namespace, Source: o.Source, Facts: []Fact{}}
 		add := func(label, value string) {
 			if value != "" {
 				c.Facts = append(c.Facts, Fact{label, value})

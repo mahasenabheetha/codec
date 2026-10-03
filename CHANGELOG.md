@@ -6,37 +6,50 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-10-03
+
+Utilities: a new sidebar heading with Encode & hash, Time and Regex, for
+the small jobs that used to send you to a website — with secrets and
+passwords never leaving your machine. Cron schedules also explain
+themselves on hover in CronJobs and pipelines.
+
 ### Added
 
-- CLI: `codec url`, `hex`, `hash`, `secret`, `uuid` and `htpasswd` for
-  percent-encoding, hex, digests and HMACs, random secrets, UUIDs and
-  bcrypt basic-auth lines. Passwords and HMAC keys are never taken as
-  arguments.
-- CLI: `codec time` reads epoch numbers (seconds to nanoseconds, told
-  by size) and dates in any zone; `codec cron` explains an expression in
-  plain words, field by field, with its next runs across daylight-saving
-  changes, and names Quartz and Jenkins expressions.
-- CLI: `codec regex` lists matches with their groups, replaces
-  (`--replace`) or explains a pattern part by part (`--explain`), in Go's
-  RE2 or the Python / .NET / JavaScript style (lookarounds,
-  backreferences; stopped after 2 seconds when it backtracks badly).
-- Encode & hash, under a new Utilities heading: URL (with the parts and
-  query as a table), hex, hashes and HMAC with an expected-digest check,
-  secrets and UUIDs, and htpasswd lines with a check. Tools can have
-  sub-tabs; Home and the palette list each one.
-- Time, under Utilities: Timestamp (epoch units told by size, dates,
-  any zone, relative time, Now) and Cron (plain words, field by field,
-  next runs, presets and a form that builds the expression and fills
-  from it).
+- Encode & hash: URL encode and decode, with a URL's parts and query
+  as a table; hex; SHA-256, SHA-384, SHA-512, SHA-1 and MD5 digests and
+  HMACs, with a check against an expected digest; random secrets by
+  length and character set, and UUIDs; bcrypt htpasswd lines for basic
+  auth, and a check of a password against one.
+- Time: Timestamp reads epoch numbers (seconds to nanoseconds, told by
+  size) and dates in any zone, with relative time and Now; Cron explains
+  an expression in plain words, field by field, with its next runs
+  across daylight-saving changes, builds one from a form or a preset,
+  and names Quartz and Jenkins expressions as unsupported.
+- Regex: matches highlighted as you type, capture groups per match, a
+  replace preview, and an explanation of the pattern part by part;
+  hovering a part finds it in the pattern and a group lights up what it
+  captured. Go (RE2) or Python / .NET / JS style, the latter stopped
+  after 2 seconds when a pattern backtracks badly.
 - Hover a cron schedule in a Kubernetes CronJob, an Argo CronWorkflow,
   a GitHub workflow or an Azure pipeline to read it in plain words, with
   the zone it runs in and the next runs. The sample has one of each.
-- Regex, under Utilities: matches highlighted as you type, capture
-  groups per match, a replace preview, and an explanation of the pattern
-  part by part; hovering a part finds it in the pattern and a group
-  lights up what it captured. Go (RE2) or Python / .NET / JS style.
 - Smart paste reads epoch timestamps, URL-encoded text and cron
   expressions, and opens them in Timestamp, URL or Cron with one click.
+- Tools can have sub-tabs: Home and the command palette list each one
+  by name ("Open Cron"), and a tool reopens on the one you used last.
+- CLI: `codec url`, `hex`, `hash`, `secret`, `uuid`, `htpasswd`, `time`,
+  `cron` and `regex`. Passwords and HMAC keys are never taken as
+  arguments, so they stay out of shell history.
+
+### Changed
+
+- The docs page "Encode, decode and logs" is now "Everyday tools".
+
+### Fixed
+
+- An internal error while computing an editor request (hover,
+  definitions, analysis) or reading an Ansible log is reported as an
+  error instead of stopping `codec serve`.
 
 ## [2.2.0] - 2026-10-03
 
@@ -474,7 +487,8 @@ First tagged release: codec as it stood before the 2.0 work began.
 - Release pipeline: pushing a `v*` tag publishes binaries for Linux,
   Windows and macOS (amd64/arm64) to GitHub Releases via GoReleaser.
 
-[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v2.2.0...HEAD
+[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v2.3.0...HEAD
+[2.3.0]: https://github.com/mahasenabheetha/codec/compare/v2.2.0...v2.3.0
 [2.2.0]: https://github.com/mahasenabheetha/codec/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/mahasenabheetha/codec/compare/v2.0.1...v2.1.0
 [2.0.1]: https://github.com/mahasenabheetha/codec/compare/v2.0.0...v2.0.1

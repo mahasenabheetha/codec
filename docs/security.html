@@ -40,7 +40,7 @@
 <li><a href="ansible.html">Ansible</a></li>
 <li><a href="compare.html">Compare and query</a></li>
 <li><a href="new.html">New files and clones</a></li>
-<li><a href="tools.html">Encode, decode and logs</a></li>
+<li><a href="tools.html">Everyday tools</a></li>
 <li><a href="settings.html">Settings and your data</a></li>
 </ul>
 <h4>Reference</h4>
@@ -67,7 +67,7 @@
 <ul>
   <li><strong>It never writes to the folders it opens.</strong> Files are opened for reading only. What-if edits live in the browser tab. Generated files are text to copy or a zip your browser saves.</li>
   <li><strong>Nothing leaves your machine.</strong> No telemetry, no analytics, no accounts. The UI loads no third-party resources. The only outbound requests are downloads of public JSON schemas, which you can turn off (offline mode).</li>
-  <li><strong>Nothing you paste is stored.</strong> The encode/decode tools keep input in memory only.</li>
+  <li><strong>Nothing you paste is stored.</strong> The tools keep input, passwords and keys in memory only; only display choices (a remembered tab or time zone) are saved.</li>
   <li><strong>No config files in your repositories.</strong> Settings live in your user profile.</li>
 </ul>
 
@@ -91,6 +91,7 @@
   <li>GitHub <code>secrets.*</code> references are shown by name only.</li>
   <li>Compose variables come from <code>.env</code> and what-if values, not from your shell's environment — so a secret in your environment never appears in the view.</li>
   <li>The JWT tool decodes tokens locally and never verifies signatures against remote keys.</li>
+  <li>Secrets and UUIDs come from the operating system's secure random source, and htpasswd lines are hashed with bcrypt, all on your machine. On the command line, passwords and HMAC keys are never taken as arguments, so they stay out of your shell history.</li>
 </ul>
 
 <h2 id="report">Reporting a vulnerability<a class="anchor" href="#report">#</a></h2>

@@ -53,6 +53,11 @@ contributor or AI agent; follow it step by step. Background:
 | Starters, clone, snippets | `internal/scaffold` |
 | jq query | `internal/query` |
 | Find in Files matches, globs, result cap | `internal/search` |
+| Base64, JSON, JWT, smart paste detection | `internal/codec` |
+| URL, hex, hashes, secrets, UUIDs, htpasswd | `internal/encode` |
+| Cron parse, plain words, next runs, builder | `internal/cron` (schedule hover: `internal/web/cron_hover.go`) |
+| Timestamps, zones, relative time | `internal/timeutil` |
+| Regex matches, replace, explanation | `internal/regex` |
 | Files missing, reading, watching, classification | `internal/workspace` |
 | Settings file | `internal/config` |
 | API shape, request handling, security | `internal/web` (`<feature>_api.go`, `security.go`) |
