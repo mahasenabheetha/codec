@@ -6,6 +6,12 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-10-03
+
+The Ansible log tool reads whole pipeline logs, from one failed task to
+several playbook runs among other output, and the Ansible lens draws a
+playbook map that a loaded log colours by what ran.
+
 ### Added
 
 - `codec ansible log <file|->` reads a whole pipeline log — CI
@@ -25,6 +31,11 @@ All notable changes to codec are documented here. The format follows
   imports solid, includes dashed, templated include files resolved when
   their variable has one definition. With a log loaded, the map is
   coloured by a run: failed, changed, ok, rescued, never ran.
+
+### Changed
+
+- Roles listed in a requirements file show as external (installed when
+  the playbook runs) instead of not found.
 
 ### Fixed
 
@@ -431,7 +442,8 @@ First tagged release: codec as it stood before the 2.0 work began.
 - Release pipeline: pushing a `v*` tag publishes binaries for Linux,
   Windows and macOS (amd64/arm64) to GitHub Releases via GoReleaser.
 
-[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v2.1.0...HEAD
+[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v2.2.0...HEAD
+[2.2.0]: https://github.com/mahasenabheetha/codec/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/mahasenabheetha/codec/compare/v2.0.1...v2.1.0
 [2.0.1]: https://github.com/mahasenabheetha/codec/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/mahasenabheetha/codec/compare/v2.0.0-alpha.1...v2.0.0

@@ -69,7 +69,7 @@ answers them from the files alone, on your machine.
 <td><b>CI pipelines</b><br>GitHub Actions, GitLab CI and Azure Pipelines in execution order, every matrix combination, and each job's effective configuration with the origin of every line.<br><a href="https://mahasenabheetha.github.io/codec/ci.html">CI guide →</a></td>
 </tr>
 <tr>
-<td><b>Compose and Ansible</b><br>Compose files merged like <code>docker compose config</code>, variables from <code>.env</code>, services as a graph. Playbooks in the order Ansible runs them, roles in place, variables ranked by precedence.<br><a href="https://mahasenabheetha.github.io/codec/compose.html">Compose</a> · <a href="https://mahasenabheetha.github.io/codec/ansible.html">Ansible</a></td>
+<td><b>Compose and Ansible</b><br>Compose files merged like <code>docker compose config</code>, variables from <code>.env</code>, services as a graph. Playbooks in the order Ansible runs them, roles in place, variables ranked by precedence, and a playbook map coloured by a run from a log.<br><a href="https://mahasenabheetha.github.io/codec/compose.html">Compose</a> · <a href="https://mahasenabheetha.github.io/codec/ansible.html">Ansible</a></td>
 <td><img src="docs/images/compose.png" alt="Compose view"></td>
 </tr>
 <tr>
@@ -83,7 +83,7 @@ answers them from the files alone, on your machine.
 </table>
 
 Plus the everyday tools: smart paste, base64, JSON, JWT claims and
-Ansible `-vv` failure analysis — [tools guide](https://mahasenabheetha.github.io/codec/tools.html).
+Ansible logs, from one failed task to a whole pipeline log with several runs — [tools guide](https://mahasenabheetha.github.io/codec/tools.html).
 
 ## Quick start
 

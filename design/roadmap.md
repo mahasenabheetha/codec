@@ -76,22 +76,22 @@ Branch `feature/mab/v2.1.0`.
 | T7 | Find in Files: engine + API + CLI | `internal/search`, endpoint, result cap; tests; `codec search` | Done |
 | T8 | Find in Files: UI | Search panel in the Explorer's slot, Ctrl+Shift+F, results open at the line; docs | Done |
 | T9 | Compare: side-by-side text diff | Changed characters marked, folded context, Unified toggle; each picker heads its column (feedback on T3) | Done |
-| — | Release | Full checks passed; CHANGELOG cut as 2.1.0 | Ready to merge and tag |
+| — | Release | Full checks passed; CHANGELOG cut as 2.1.0 | Released as v2.1.0 |
 
 ### v2.2.0 — Ansible log analyzer, playbook map
 Branch `feature/mab/v2.2.0`. Large logs are dropped or picked as a file and sent as is, up to 64 MB (decision 76).
 
 | # | Task | Main parts | Status |
 |---|---|---|---|
-| T1 | [Analyzer](#ansible-log-analyzer-whole-runs) stage 1: clean | ANSI, `\r`, CI timestamps/markers, learned wrapper prefixes; tests | Done |
+| T1 | Analyzer stage 1: clean | ANSI, `\r`, CI timestamps/markers, learned wrapper prefixes; tests | Done |
 | T2 | Stage 2: segment | Anchors, several runs, "other output", stray lines to their task; tests | Done |
 | T3 | Stage 3: read results | Brace matching → YAML → raw; loops, retries, ignored, rescued, unreachable, `no_log`; `json` callback | Done |
 | T4 | Stage 4: model + API + CLI | Run → plays → tasks → host results, recap, durations; `codec ansible log`; synthetic fixtures; fuzz test | Done |
 | T5 | Analyzer UI | Summary bar, outline, filters, host picker, recap table, other-output blocks, file drop, first failure selected; existing task view as detail; docs | Done |
-| T6 | [Playbook map](#ansible-playbook-map): graph | From the execution-order analysis; static/dynamic includes, "assumed", external roles; tests | Done |
+| T6 | Playbook map: graph | From the execution-order analysis; static/dynamic includes, "assumed", external roles; tests | Done |
 | T7 | Playbook map: UI | Pipeline graph component, click to open; docs | Done |
 | T8 | Run colours on the map | Failed, changed, ok, never ran | Done |
-| — | Release | If T6–T8 run long, release the analyzer alone; the map moves to 2.3.0 | |
+| — | Release | Full checks passed; CHANGELOG cut as 2.2.0 (the map shipped with the analyzer) | Ready to merge and tag |
 
 ### v2.3.0 — Utilities
 Branch `feature/mab/v2.3.0`. Shared rules in [Utilities](#utilities-applies-to-the-three-items-below).
@@ -126,8 +126,6 @@ The rest of "Next", picked up after 2.3.0 or slotted in when it fits.
 | [Utilities: Time](#utilities-time) | M | Timestamp and Cron (explainer + generator) in one sidebar entry |
 | [Utilities: Encode & hash](#utilities-encode--hash) | S | URL, hex, hash/HMAC, secrets & UUID, htpasswd |
 | [Utilities: Regex](#utilities-regex) | M | Tester and explainer; Go (RE2) and Python/.NET/JS styles |
-| [Ansible log analyzer: whole runs](#ansible-log-analyzer-whole-runs) | L | Whole pipeline logs: runs, plays, tasks, hosts; resilient to mixed output |
-| [Ansible playbook map](#ansible-playbook-map) | M | Diagram of plays, roles, includes, handlers; coloured by a loaded run |
 
 ## Later
 
@@ -145,6 +143,7 @@ The rest of "Next", picked up after 2.3.0 or slotted in when it fits.
 
 | Version | Items |
 |---|---|
+| 2.2.0 | Ansible log analyzer: whole pipeline logs (UI and `codec ansible log`); Ansible playbook map coloured by a run |
 | 2.1.0 | Compare: clear; Compare: paste as a source; Compare: pick files from the Explorer; Reload prompt after a server restart; Find in Files |
 | 2.0.0 | Everything in [history.md](history.md) |
 
@@ -316,85 +315,3 @@ The rest of "Next", picked up after 2.3.0 or slotted in when it fits.
   the time limit and the explainer for each construct; docs updated.
 - **Decisions:** agreed 2026-10-03: logic in Go with two styles, tester
   and explainer as one tool; `dlclark/regexp2` (new dependency).
-
-### Ansible log analyzer: whole runs
-- **Problem:** the log tool reads one task block (the first result line
-  and its JSON). Whole logs from pipelines — CI timestamps, wrapper
-  prefixes, bash and other tools' output, several playbook runs — are
-  not understood, and stray text can break the parse.
-- **Result:** paste or drop a whole log (tens of MB; never persisted).
-  - Summary bar: runs, hosts, failed/changed counts, duration (when the
-    log has timestamps), and the "other output" blocks.
-  - Left: an outline Run → Play → Task with per-host status and counts,
-    filters (Failed · Changed · Skipped · All), a host picker and search;
-    the first failure is selected on open; windowed for long logs.
-  - Right: today's single-task view as the detail of the selected task
-    and host (cause, fields, command/stdout/stderr, "Defined in").
-  - PLAY RECAP as a table per host.
-  - Text outside Ansible runs is kept as collapsed "other output" blocks
-    (line count, error/warning count, existing line colouring), so a
-    failure outside Ansible is visible ("Ansible succeeded; the step
-    failed after it").
-- **How (four stages, each degrading instead of failing):**
-  1. Clean: strip ANSI and `\r` redraws; strip CI line prefixes
-     (Azure DevOps / GitHub / GitLab timestamps, `##[group]`,
-     `section_start:`), keeping timestamps for durations; learn wrapper
-     prefixes (Packer `azure-arm:`, Compose `web  | `) from the prefix
-     seen before an Ansible anchor, instead of hard-coding them.
-  2. Segment: only Ansible's own anchors decide what is Ansible —
-     `PLAY [`, `TASK [`, `RUNNING HANDLER [`, `PLAY RECAP`, result lines
-     (`ok/changed/skipping/failed/fatal: [host]`), `included:`,
-     `...ignoring`, `[WARNING]:`, `[DEPRECATION WARNING]:`, `ERROR!`. A run
-     starts at the first PLAY and ends after its recap; several runs per
-     log. Unrecognised lines inside a task (`-vvv` SSH debug, interleaved
-     output) attach to the task as "other lines".
-  3. Read results: find the end of a JSON payload by brace matching that
-     respects strings; else try YAML (`yaml` stdout callback); else keep
-     the raw text. Loops (`item=`), retries, ignored, rescued, unreachable,
-     `no_log`. The `json` stdout callback (one document) is read exactly.
-  4. Model: Run → Plays → Tasks → host results (status, items, retries,
-     payload, other lines) + recap + durations.
-- **Scope:** a new log package beside `internal/codec/ansible.go` (the
-  single-task parser stays for the detail view and Smart paste),
-  `internal/web` (transform or a new endpoint), CLI
-  (`codec ansible log <file>`: summary and failures), `features/ansible`;
-  docs `ansible.html`, `tools.html`, `cli.html`. Out of scope:
-  interpreting non-Ansible output beyond line colouring; guessing
-  without an anchor; special handling for `strategy: free` (results
-  attach to the latest task header; odd cases get a note); mini tools
-  (idempotency check, timeline, grid, Vault).
-- **Done when:** a fixture set of synthetic logs passes — default
-  output, `-v` to `-vvv`, `yaml` and `json` callbacks, Packer and Compose
-  prefixes, Azure/GitHub/GitLab timestamps, interleaved bash, two
-  playbooks, `ERROR!` before a run, unreachable, loops, retries,
-  `include_tasks`, handlers, rescue, ignore_errors; a fuzz test shows the
-  parser never panics and never drops lines; a 50 MB log stays
-  responsive; docs updated.
-- **Decisions:** 18 (structured data from the API), 19 (never
-  persisted). Agreed 2026-10-03: four stages; "other output" kept and
-  collapsed; no interpretation of non-Ansible output; generic formats,
-  not tailored to one pipeline.
-
-### Ansible playbook map
-- **Problem:** the Ansible view lists the execution order; the shape
-  of a playbook — which roles and files it pulls in, and how — is hard
-  to see.
-- **Result:** a diagram per playbook (layout like the CI pipeline graph):
-  play → roles (with `meta` dependencies) → included task files →
-  nested includes, and handlers off the tasks that notify them. Static
-  `import_*` edges are solid; dynamic `include_*` edges are dashed,
-  resolved and marked "assumed" when the variable has exactly one
-  definition, otherwise listing the candidates. External roles
-  (Galaxy, collections) are marked. Clicking a node opens its file.
-  - With a run loaded in the log analyzer, nodes are coloured by that
-    run: failed, changed, ok, never ran (agreed).
-- **Scope:** `internal/ansible` (graph from the existing execution-order
-  analysis), `internal/web`, `features/ansible` (reuse the pipeline
-  graph component); docs `ansible.html`. Out of scope: run replay on
-  the execution list; Jinja evaluation.
-- **Done when:** the sample's `site.yml` map shows roles, includes and
-  handlers; ansible tests cover static vs dynamic includes, the
-  single-definition resolution and external roles; colours match a
-  sample log; docs updated.
-- **Decisions:** agreed 2026-10-03: V2 only for visuals, with run
-  colours; no Jinja evaluator.
