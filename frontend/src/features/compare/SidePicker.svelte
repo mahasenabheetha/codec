@@ -5,6 +5,7 @@
   import SegmentedControl from '../../lib/components/SegmentedControl.svelte'
   import Select from '../../lib/components/Select.svelte'
   import Toggle from '../../lib/components/Toggle.svelte'
+  import { TREE_DRAG_TYPE } from '../../lib/components/TreeView.svelte'
   import type { Side } from '../../lib/api/compare'
   import { openSessions } from '../editor/active.svelte'
   import { sideChosen } from './compare.svelte'
@@ -44,6 +45,26 @@
     onchange()
   }
 
+  // A file dragged from the Explorer can be dropped anywhere on the side.
+  let dropping = $state(false)
+  const fromTree = (e: DragEvent) => !!e.dataTransfer?.types.includes(TREE_DRAG_TYPE)
+
+  function ondragover(e: DragEvent) {
+    if (!fromTree(e)) return
+    e.preventDefault()
+    e.dataTransfer!.dropEffect = 'copy'
+    dropping = true
+  }
+
+  function ondrop(e: DragEvent) {
+    dropping = false
+    const path = e.dataTransfer?.getData(TREE_DRAG_TYPE)
+    if (!path || !workspace.byPath.has(path)) return
+    e.preventDefault()
+    side = { kind: 'file', path }
+    onchange()
+  }
+
   function choose() {
     workspace.pickFile(`${label}: choose a file to compare`, (path) => {
       side = { kind: 'file', path }
@@ -52,7 +73,7 @@
   }
 </script>
 
-<div class="side">
+<div class="side" class:dropping role="group" aria-label="{label} side" {ondragover} ondragleave={() => (dropping = false)} {ondrop}>
   <span class="label">{label}</span>
   <SegmentedControl
     label="{label} source"
@@ -70,7 +91,7 @@
         <FileIcon file={workspace.byPath.get(side.path) ?? { lang: 'yaml' }} />
         <span class="name">{side.path.split('/').pop()}</span>
       {:else}
-        <FileSearch size={14} strokeWidth={1.75} /> <span class="muted">Choose a file…</span>
+        <FileSearch size={14} strokeWidth={1.75} /> <span class="muted">Choose or drop a file…</span>
       {/if}
     </button>
     {#if docs.length > 1}
@@ -123,6 +144,14 @@
     gap: var(--s-2);
     min-width: 0;
     flex-wrap: wrap;
+    border-radius: var(--r-md);
+    outline: 1px dashed transparent;
+    outline-offset: 3px;
+    transition: outline-color var(--dur) var(--ease);
+  }
+  .side.dropping {
+    outline-color: var(--accent);
+    background: var(--accent-soft);
   }
   .label {
     font-size: var(--fs-xs);

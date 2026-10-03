@@ -6,6 +6,9 @@
     expanded: boolean
     data: D
   }
+
+  /** Drag data type of a dragged row; drop targets look for it. */
+  export const TREE_DRAG_TYPE = 'application/x-codec-tree'
 </script>
 
 <script lang="ts" generics="T">
@@ -19,6 +22,8 @@
   // view, so opening and scrolling them stays instant.
   //   ↑/↓ move · → expand / first child · ← collapse / parent
   //   Enter/Space open or toggle · Home/End
+  // With `selection`, Ctrl/⌘+click or Ctrl+Space adds a selectable row to
+  // it (a plain click still opens), and Esc empties it.
 
   interface Props {
     rows: Row<T>[]
@@ -31,9 +36,25 @@
     /** Clicking a parent row toggles it (file tree). When false, every
      *  click opens and only the chevron toggles (outline). */
     toggleOnClick?: boolean
+    /** Multi-selection, owned by the caller. */
+    selection?: Set<string>
+    selectable?: (data: T) => boolean
+    /** Text to carry when a row is dragged; null = not draggable. */
+    dragText?: (data: T) => string | null
   }
 
-  let { rows, label, active = null, row, ontoggle, onopen, toggleOnClick = true }: Props = $props()
+  let {
+    rows,
+    label,
+    active = null,
+    row,
+    ontoggle,
+    onopen,
+    toggleOnClick = true,
+    selection,
+    selectable = () => false,
+    dragText = () => null,
+  }: Props = $props()
 
   let focused = $state<string | null>(null)
   let list = $state<HTMLDivElement>()
@@ -116,10 +137,18 @@
   // takes Tab focus and hands it on.
   const cursorShown = $derived(shown.some((r) => r.id === cursor))
 
-  function activate(r: Row<T>) {
+  function activate(r: Row<T>, add = false) {
     focused = r.id
+    if (add && selection && selectable(r.data)) {
+      if (selection.has(r.id)) selection.delete(r.id)
+      else selection.add(r.id)
+      return
+    }
     if (r.expandable && toggleOnClick) ontoggle(r.id)
-    else onopen(r.data)
+    else {
+      selection?.clear()
+      onopen(r.data)
+    }
   }
 
   function onkeydown(e: KeyboardEvent) {
@@ -157,7 +186,11 @@
         break
       case 'Enter':
       case ' ':
-        activate(r)
+        activate(r, e.key === ' ' && (e.ctrlKey || e.metaKey))
+        break
+      case 'Escape':
+        if (!selection?.size) return
+        selection.clear()
         break
       default:
         return
@@ -171,6 +204,7 @@
   class="tree"
   role="tree"
   aria-label={label}
+  aria-multiselectable={selection ? true : undefined}
   bind:this={list}
   {onkeydown}
   tabindex={cursorShown ? -1 : 0}
@@ -178,17 +212,26 @@
 >
   {#if first > 0}<div class="spacer" style:height="{first * ROW}px" aria-hidden="true"></div>{/if}
   {#each shown as r (r.id)}
+    {@const drag = dragText(r.data)}
     <div
       class="row"
       class:active={r.id === active}
+      class:selected={selection?.has(r.id)}
       role="treeitem"
       aria-level={r.depth + 1}
       aria-expanded={r.expandable ? r.expanded : undefined}
-      aria-selected={r.id === active}
+      aria-selected={selection ? selection.has(r.id) : r.id === active}
       tabindex={r.id === cursor ? 0 : -1}
       data-id={r.id}
       style="--depth: {r.depth}"
-      onclick={() => activate(r)}
+      draggable={drag !== null}
+      ondragstart={(e) => {
+        if (drag === null || !e.dataTransfer) return
+        e.dataTransfer.setData(TREE_DRAG_TYPE, drag)
+        e.dataTransfer.setData('text/plain', drag)
+        e.dataTransfer.effectAllowed = 'copy'
+      }}
+      onclick={(e) => activate(r, e.ctrlKey || e.metaKey)}
       onfocus={() => (focused = r.id)}
       onkeydown={() => {}}
     >
@@ -251,6 +294,10 @@
   .row.active {
     color: var(--fg-0);
     background: var(--bg-3);
+  }
+  .row.selected {
+    color: var(--fg-0);
+    background: var(--accent-soft);
   }
   .row:focus-visible {
     outline: 1px solid var(--accent);

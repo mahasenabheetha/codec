@@ -17,6 +17,9 @@ All notable changes to codec are documented here. The format follows
   text diffs can ignore whitespace and case.
 - Compare: "Add live object noise" fills in the fields a cluster adds
   (`managedFields`, `resourceVersion`, `uid`, `status`, …) as ignored paths.
+- Explorer: a right-click menu (also Shift+F10) with Open, "Select for
+  compare", "Compare with …" and, for two Ctrl+clicked files, "Compare
+  selected". Files can be dragged onto a side of the Compare view.
 - Compare: an × on each side clears it, and Clear empties both sides and
   the result. Ignored paths stay; cleared pasted text can be undone.
 

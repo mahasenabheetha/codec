@@ -72,8 +72,8 @@ Branch `feature/mab/v2.1.0`.
 | T1 | Compare: clear | × per side, Clear next to Swap; ignore patterns kept | Done |
 | T2 | Compare paste: API | `paste` side kind; no folder needed; structure only for mappings/lists; whitespace and case options in `textdiff`; tests | Done |
 | T3 | Compare paste: UI | Third source with an editor box; "Compare as"; "Live object noise" preset; "Compare text" on Home and in the palette; "Cleared · Undo"; docs | Done |
-| T4 | [Explorer](#compare-pick-files-from-the-explorer): context menu + Ctrl+click | Shared context-menu component; multi-select; keyboard | |
-| T5 | Explorer → Compare | Drag and drop onto a side; "Select for compare", "Compare with selected", "Compare selected"; docs | |
+| T4 | Explorer: context menu + Ctrl+click | Shared context-menu component; multi-select; keyboard | Done |
+| T5 | Explorer → Compare | Drag and drop onto a side; "Select for compare", "Compare with selected", "Compare selected"; docs | Done |
 | T6 | [Reload prompt](#reload-prompt-after-a-server-restart) | Server marks a stale token; "codec restarted — Reload" banner; docs | |
 | T7 | [Find in Files](#find-in-files): engine + API + CLI | `internal/search`, endpoint, result cap; tests; `codec search` | |
 | T8 | Find in Files: UI | Search panel in the Explorer's slot, Ctrl+Shift+F, results open at the line; docs | |
@@ -121,7 +121,6 @@ The rest of "Next", picked up after 2.3.0 or slotted in when it fits.
 | [Reload prompt after a server restart](#reload-prompt-after-a-server-restart) | S | Today requests fail until the page is reloaded |
 | [Kustomize helmCharts](#kustomize-helmcharts) | M | Helm SDK is already embedded |
 | [Window long lists](#window-long-lists) | S | Problems and Resources cards, like TreeView |
-| [Compare: pick files from the Explorer](#compare-pick-files-from-the-explorer) | M | Drag and drop, plus a new Explorer context menu |
 | [Find in Files](#find-in-files) | M | Text search across the workspace; read-only, no replace |
 | [Helm environment matrix](#helm-environment-matrix) | M | All profiles of a chart at once: what differs per environment |
 | [Kubernetes resource totals](#kubernetes-resource-totals) | S | Requests and limits × replicas, summed |
@@ -149,7 +148,7 @@ The rest of "Next", picked up after 2.3.0 or slotted in when it fits.
 
 | Version | Items |
 |---|---|
-| 2.1.0 | Compare: clear; Compare: paste as a source |
+| 2.1.0 | Compare: clear; Compare: paste as a source; Compare: pick files from the Explorer |
 | 2.0.0 | Everything in [history.md](history.md) |
 
 ## Items
@@ -185,27 +184,6 @@ The rest of "Next", picked up after 2.3.0 or slotted in when it fits.
 - **Result:** only visible rows are in the DOM, like TreeView (decision 70).
 - **Scope:** `frontend/src/features/lint`, `features/kube`, possibly a shared list component.
 - **Done when:** 5,000 findings scroll smoothly; `scripts/perf.sh` notes it.
-
-### Compare: pick files from the Explorer
-- **Problem:** a side's file can only be chosen through the quick-open
-  search; the Explorer tree can't feed Compare.
-- **Result:** drag a file from the Explorer onto the Left or Right side;
-  the side shows "Choose a file… or drop one here". A new Explorer
-  context menu (right-click) has "Select for compare", "Compare with
-  selected", and with two files Ctrl+clicked, "Compare selected". The
-  search stays. No second tree inside Compare, and a plain click in the
-  Explorer still opens the file.
-- **Scope:** `features/workspace` (Explorer/TreeView: context menu,
-  drag source, Ctrl+click selection), `features/compare/SidePicker.svelte`
-  (drop target), a shared context-menu component in `lib/components`,
-  docs `compare.html` and `workspace.html`, `shortcuts.html`. Out of
-  scope: other menu entries (copy path, reveal, lint this file) — the
-  menu is built so they can be added later.
-- **Done when:** dragging and each menu entry open the right comparison on
-  the sample; the menu works with the keyboard (Shift+F10 / context-menu
-  key, arrows, Esc); docs updated.
-- **Decisions:** agreed 2026-10-02: drag and drop plus a context menu,
-  one Explorer tree only, click keeps meaning "open".
 
 ### Find in Files
 - **Problem:** text can only be found inside one open file (Ctrl+F).

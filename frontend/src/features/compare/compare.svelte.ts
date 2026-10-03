@@ -62,6 +62,15 @@ class Compare {
     this.run()
   }
 
+  // The file chosen with "Select for compare" in the Explorer; "Compare
+  // with selected" pairs another file with it.
+  picked = $state<string | null>(null)
+
+  /** Open the Compare tab on two workspace files. */
+  openFiles(left: string, right: string) {
+    this.open({ kind: 'file', path: left }, { kind: 'file', path: right })
+  }
+
   /** Open the Compare tab with an empty paste box on each side. */
   pasteBoth() {
     this.clear()

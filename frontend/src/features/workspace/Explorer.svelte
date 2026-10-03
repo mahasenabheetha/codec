@@ -1,6 +1,9 @@
 <script lang="ts">
   import { SvelteSet } from 'svelte/reactivity'
   import ChevronsDownUp from '@lucide/svelte/icons/chevrons-down-up'
+  import FileText from '@lucide/svelte/icons/file-text'
+  import GitCompare from '@lucide/svelte/icons/git-compare'
+  import SquareDashedMousePointer from '@lucide/svelte/icons/square-dashed-mouse-pointer'
   import Folder from '@lucide/svelte/icons/folder'
   import FolderOpen from '@lucide/svelte/icons/folder-open'
   import FolderSearch from '@lucide/svelte/icons/folder-search'
@@ -9,12 +12,15 @@
   import RotateCw from '@lucide/svelte/icons/rotate-cw'
   import Search from '@lucide/svelte/icons/search'
   import Button from '../../lib/components/Button.svelte'
+  import ContextMenu, { type MenuEntry } from '../../lib/components/ContextMenu.svelte'
   import EmptyState from '../../lib/components/EmptyState.svelte'
   import IconButton from '../../lib/components/IconButton.svelte'
   import Popover from '../../lib/components/Popover.svelte'
   import TreeView, { type Row } from '../../lib/components/TreeView.svelte'
   import { layout } from '../../lib/stores/layout.svelte'
   import { router } from '../../lib/stores/router.svelte'
+  import { toast } from '../../lib/stores/toast.svelte'
+  import { comparison } from '../compare/compare.svelte'
   import FileIcon from './FileIcon.svelte'
   import { kindOf, lookOf } from './filetypes'
   import { buildTree, flatten, type TreeNode } from './tree'
@@ -47,6 +53,39 @@
   function toggle(path: string) {
     if (ws.expanded.has(path)) ws.expanded.delete(path)
     else ws.expanded.add(path)
+  }
+
+  // Files Ctrl/⌘+clicked, for "Compare selected". A new folder starts empty.
+  const selection = new SvelteSet<string>()
+  $effect(() => {
+    void ws.info?.root
+    selection.clear()
+  })
+
+  const base = (path: string) => path.split('/').pop() ?? path
+
+  /** The context menu for the file row under the pointer. */
+  function menuFor(e: MouseEvent): MenuEntry[] {
+    const path = (e.target as HTMLElement).closest<HTMLElement>('[data-id]')?.dataset.id
+    if (!path || !ws.byPath.has(path)) return []
+    const out: MenuEntry[] = [{ label: 'Open', icon: FileText, run: () => layout.openFile(path) }, 'separator']
+    if (selection.size === 2 && selection.has(path)) {
+      const [a, b] = [...selection]
+      out.push({ label: `Compare selected (${base(a)} ↔ ${base(b)})`, icon: GitCompare, run: () => comparison.openFiles(a, b) })
+    }
+    const picked = comparison.picked
+    if (picked && picked !== path && ws.byPath.has(picked)) {
+      out.push({ label: `Compare with ${base(picked)}`, icon: GitCompare, run: () => comparison.openFiles(picked, path) })
+    }
+    out.push({
+      label: 'Select for compare',
+      icon: SquareDashedMousePointer,
+      run: () => {
+        comparison.picked = path
+        toast(`${base(path)} selected — right-click another file to compare`)
+      },
+    })
+    return out
   }
 
   function toggleKind(kind: string) {
@@ -121,12 +160,16 @@
     {:else if rows.length === 0}
       <p class="hint">{filtering ? 'No files of the selected types.' : 'No files here (after .gitignore).'}</p>
     {:else}
+      <ContextMenu label="File actions" items={menuFor}>
       <TreeView
         {rows}
         label="Files in {ws.info.name}"
         active={router.filePath}
         ontoggle={toggle}
         onopen={(node) => layout.openFile(node.path)}
+        {selection}
+        selectable={(node) => !!node.file}
+        dragText={(node) => (node.file ? node.path : null)}
       >
         {#snippet row(node)}
           {#if node.file}
@@ -138,6 +181,7 @@
           {/if}
         {/snippet}
       </TreeView>
+      </ContextMenu>
       {#if ws.truncated}
         <p class="hint">Showing the first 50,000 files.</p>
       {/if}
