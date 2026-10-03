@@ -13,6 +13,7 @@ import (
 	"context"
 	"errors"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -45,9 +46,10 @@ type Match struct {
 	Line  int    `json:"line"` // 1-based
 	Text  string `json:"text"` // the line, maybe cut to a window
 	Spans []Span `json:"spans"`
-	// Col is the first hit's column in the full line (1-based, UTF-16),
-	// for opening the file at it.
-	Col int `json:"col"`
+	// Col and EndCol (exclusive) place the first hit in the full line,
+	// 1-based UTF-16 columns, for opening the file with it selected.
+	Col    int `json:"col"`
+	EndCol int `json:"endCol"`
 }
 
 // Span is one hit within Match.Text, in UTF-16 code units.
@@ -131,13 +133,15 @@ func (s *Searcher) Wants(path string) bool {
 }
 
 // globRegexp turns a glob into a regexp over slash paths: "**" spans
-// folders, "*" and "?" stay inside one. A glob without a slash matches
-// a name at any depth ("*.yaml", "tests"); any glob also matches
-// everything under a folder it names ("charts/shop").
+// folders, "*" and "?" stay inside one, "[a-z]" is a class ("[!…]"
+// negates). A glob without a slash matches a name at any depth
+// ("*.yaml", "tests"), unless it starts with one ("/charts"); any glob
+// also matches everything under a folder it names ("charts/shop").
 func globRegexp(g string) *regexp.Regexp {
+	rooted := strings.HasPrefix(g, "/")
 	g = strings.Trim(g, "/")
 	var b strings.Builder
-	if !strings.Contains(g, "/") {
+	if !rooted && !strings.Contains(g, "/") {
 		b.WriteString(`(?:^|.*/)`)
 	} else {
 		b.WriteString(`^`)
@@ -156,6 +160,14 @@ func globRegexp(g string) *regexp.Regexp {
 			b.WriteString(`[^/]*`)
 		case c == '?':
 			b.WriteString(`[^/]`)
+		case c == '[' && strings.IndexByte(g[i+1:], ']') > 0:
+			end := i + 1 + strings.IndexByte(g[i+1:], ']')
+			class := g[i+1 : end]
+			if class[0] == '!' {
+				class = "^" + class[1:]
+			}
+			b.WriteString("[" + strings.NewReplacer(`\`, `\\`, "[", `\[`).Replace(class) + "]")
+			i = end
 		default:
 			b.WriteString(regexp.QuoteMeta(string(c)))
 		}
@@ -178,8 +190,9 @@ func (s *Searcher) File(path string, data []byte, limit int) []Match {
 			rest = nil
 		}
 		line = bytes.TrimSuffix(line, []byte("\r"))
-		hits := s.re.FindAllIndex(line, -1)
-		if hits == nil {
+		// Empty hits (a regex like "^" or "x*") mark nothing to show.
+		hits := slices.DeleteFunc(s.re.FindAllIndex(line, -1), func(h []int) bool { return h[0] == h[1] })
+		if len(hits) == 0 {
 			continue
 		}
 		out = append(out, matchOf(path, n, string(line), hits))
@@ -201,9 +214,9 @@ func matchOf(path string, n int, line string, hits [][]int) Match {
 			to--
 		}
 	}
-	m := Match{Path: path, Line: n, Text: line[from:to], Col: u16(line[:hits[0][0]]) + 1}
+	m := Match{Path: path, Line: n, Text: line[from:to], Spans: []Span{}, Col: u16(line[:hits[0][0]]) + 1, EndCol: u16(line[:hits[0][1]]) + 1}
 	for _, h := range hits {
-		if h[0] >= to || h[1] <= from || h[0] == h[1] {
+		if h[0] >= to || h[1] <= from {
 			continue
 		}
 		start, end := max(h[0], from), min(h[1], to)
@@ -247,6 +260,7 @@ func (s *Searcher) Run(ctx context.Context, paths []string, read func(string) ([
 	// file before the cut has been searched and the result is the same
 	// on every run.
 	found := make([][]Match, len(picked))
+	done := make([]bool, len(picked)) // read, or skipped as unreadable
 	var next, total, searched atomic.Int64
 	var wg sync.WaitGroup
 	for range min(8, len(picked)) {
@@ -257,12 +271,13 @@ func (s *Searcher) Run(ctx context.Context, paths []string, read func(string) ([
 					return
 				}
 				data, err := read(picked[i])
-				if err != nil || bytes.IndexByte(data[:min(len(data), 8000)], 0) >= 0 {
-					continue
+				if err == nil && bytes.IndexByte(data[:min(len(data), 8000)], 0) < 0 {
+					searched.Add(1)
+					// One extra line tells a full file from a cut one.
+					found[i] = s.File(picked[i], data, s.limit+1)
+					total.Add(int64(len(found[i])))
 				}
-				searched.Add(1)
-				found[i] = s.File(picked[i], data, s.limit)
-				total.Add(int64(len(found[i])))
+				done[i] = true
 			}
 		})
 	}
@@ -279,7 +294,10 @@ func (s *Searcher) Run(ctx context.Context, paths []string, read func(string) ([
 		res.Matches = append(res.Matches, ms...)
 		res.Files++
 		if len(res.Matches) >= s.limit {
-			res.Truncated = res.Truncated || i < len(found)-1 || int(next.Load()) < len(picked)
+			// Cut if a later file had matches or was never searched.
+			for j := i + 1; j < len(found) && !res.Truncated; j++ {
+				res.Truncated = len(found[j]) > 0 || !done[j]
+			}
 			break
 		}
 	}

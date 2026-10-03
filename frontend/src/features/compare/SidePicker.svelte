@@ -22,9 +22,11 @@
     whatIf: boolean
     onchange: () => void
     onclear: () => void
+    // Put a different source on this side (pasted text can be undone).
+    replace: (next: Side) => void
   }
 
-  let { label, side = $bindable(), whatIf = $bindable(), onchange, onclear }: Props = $props()
+  let { label, side = $bindable(), whatIf = $bindable(), onchange, onclear, replace }: Props = $props()
 
   const filled = $derived(sideChosen(side))
 
@@ -41,7 +43,7 @@
   ])
 
   function setKind(k: Side['kind']) {
-    side = k === 'helm' ? { kind: 'helm', chart: charts.list[0]?.path, profile: '' } : k === 'paste' ? { kind: 'paste', content: '' } : { kind: 'file' }
+    replace(k === 'helm' ? { kind: 'helm', chart: charts.list[0]?.path, profile: '' } : k === 'paste' ? { kind: 'paste', content: '' } : { kind: 'file' })
     onchange()
   }
 
@@ -61,7 +63,7 @@
     const path = e.dataTransfer?.getData(TREE_DRAG_TYPE)
     if (!path || !workspace.byPath.has(path)) return
     e.preventDefault()
-    side = { kind: 'file', path }
+    replace({ kind: 'file', path })
     onchange()
   }
 

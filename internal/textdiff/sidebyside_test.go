@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 	"unicode/utf16"
 )
 
@@ -40,7 +41,8 @@ func TestInline(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			l, r := inline(tt.a, tt.b, tt.o)
+			budget := inlineBudget
+			l, r := inline(tt.a, tt.b, tt.o, &budget)
 			if got := marked(&Cell{Text: tt.a, Spans: l}); got != tt.wantA {
 				t.Errorf("left  %s\nwant  %s", got, tt.wantA)
 			}
@@ -93,5 +95,23 @@ func TestSideBySide(t *testing.T) {
 	}
 	if rows := SideBySide("A  b\n", "a b\n", 3, Options{IgnoreSpace: true, IgnoreCase: true}); rows != nil {
 		t.Errorf("loose match: %v", rows)
+	}
+}
+
+// Two large, wholly different texts must stay cheap: the character
+// diff budget runs out and the rest is marked whole.
+func TestSideBySideBudget(t *testing.T) {
+	var a, b strings.Builder
+	for k := range 5000 {
+		fmt.Fprintf(&a, "%d %s\n", k, strings.Repeat("abcdefghij", 25))
+		fmt.Fprintf(&b, "%d %s\n", k, strings.Repeat("jihgfedcba", 25))
+	}
+	start := time.Now()
+	rows := SideBySide(a.String(), b.String(), 3, Options{})
+	if len(rows) != 5000 || rows[4999].Kind != "change" || len(rows[4999].Left.Spans) == 0 {
+		t.Fatalf("rows = %d", len(rows))
+	}
+	if d := time.Since(start); d > 2*time.Second {
+		t.Errorf("took %v", d)
 	}
 }

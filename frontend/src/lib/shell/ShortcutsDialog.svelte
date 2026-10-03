@@ -29,7 +29,7 @@
     {
       title: 'In the explorer',
       items: [
-        ['Mod+Space', 'Select a file (also Mod+click)'],
+        ['Ctrl+Space', 'Select a file (also Mod+click)'],
         ['Shift+F10', 'File menu: open, compare'],
         ['Escape', 'Clear the selection'],
       ],

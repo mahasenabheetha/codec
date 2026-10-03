@@ -166,10 +166,14 @@ class Workspace {
     es.addEventListener('error', () => {
       // EventSource retries by itself; CLOSED means it gave up, usually
       // because a restarted server rejects the old token. Any request
-      // confirms that (and raises the reload banner).
+      // confirms that (and raises the reload banner); if the server
+      // answers fine, the close was a hiccup, so connect again.
       if (es.readyState !== EventSource.CLOSED) return
       this.disconnected = true
-      request('GET', '/api/v2/workspace').catch(() => {})
+      request('GET', '/api/v2/workspace').then(
+        () => setTimeout(() => this.events === es && this.connect(), 3000),
+        () => {},
+      )
     })
     es.addEventListener('workspace', (e) => {
       this.info = JSON.parse((e as MessageEvent).data)

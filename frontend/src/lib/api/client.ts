@@ -81,6 +81,7 @@ export async function requestBlob(path: string, body: unknown): Promise<Blob> {
   }
   if (!res.ok) {
     const data = await res.json().catch(() => null)
+    if (res.status === 401 && data?.code === 'stale-token') connection.restarted = true
     throw new ApiError(res.status, data?.error ?? `${res.status} ${res.statusText}`)
   }
   return res.blob()

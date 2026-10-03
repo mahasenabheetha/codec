@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tick } from 'svelte'
   import ChevronsUpDown from '@lucide/svelte/icons/chevrons-up-down'
   import Copy from '@lucide/svelte/icons/copy'
   import CodeView from '../../lib/components/CodeView.svelte'
@@ -18,12 +19,16 @@
   let { result }: Props = $props()
 
   const rows = $derived(result.rows ?? [])
-  // Gaps opened by the user, by row index; a new result folds them again.
+  // Gaps opened by the user, by row index. CompareView keys this
+  // component on the result, so a new result starts folded.
   let opened = $state(new Set<number>())
-  $effect(() => {
-    void result
-    opened = new Set()
-  })
+  let list = $state<HTMLElement>()
+
+  async function unfoldAt(i: number) {
+    opened = new Set(opened).add(i)
+    await tick()
+    list?.querySelector<HTMLElement>(`[data-from="${i}"]`)?.focus()
+  }
 
   const lines = $derived({ left: result.left.text.split(/\r?\n/), right: result.right.text.split(/\r?\n/) })
 
@@ -48,11 +53,15 @@
     ].filter((p) => p.n > 0)
   })
   // Where the first difference starts, for near-identical strings.
+  const multiline = $derived([result.left.text, result.right.text].some((t) => /\n./.test(t)))
   const first = $derived.by(() => {
-    const r = rows.find((x) => x.kind === 'change' && x.left?.spans?.length)
+    const r = rows.find((x) => x.kind !== 'equal' && x.kind !== 'gap')
     if (!r) return ''
-    const at = `character ${r.left!.spans![0][0] + 1}`
-    return lines.left.length > 2 ? `line ${r.left!.line}, ${at}` : at
+    const line = `line ${(r.left ?? r.right)!.line}`
+    const starts = [r.left?.spans?.[0]?.[0], r.right?.spans?.[0]?.[0]].filter((n) => n !== undefined)
+    if (r.kind !== 'change' || !starts.length) return multiline ? line : ''
+    const at = `character ${Math.min(...starts) + 1}`
+    return multiline ? `${line}, ${at}` : at
   })
 
   // Wide enough for the biggest line number on either side.
@@ -76,7 +85,7 @@
 
 {#snippet cell(c: DiffCell | undefined, side: 'left' | 'right', kind: DiffRow['kind'])}
   {#if c}
-    <span class="ln">{c.line}</span>
+    <span class="ln">{#if kind !== 'equal'}<span class="sr-only">{side === 'left' ? 'old' : 'new'} </span>{/if}{c.line}</span>
     <span class="text {side}" class:tint={kind !== 'equal'}>{#each pieces(c) as p, i (i)}{#if p.hit}<mark>{p.text}</mark>{:else}{p.text}{/if}{/each}</span>
   {:else}
     <span class="ln"></span>
@@ -84,8 +93,9 @@
   {/if}
 {/snippet}
 
-{#snippet line(r: DiffRow)}
-  <div class="row {r.kind}">
+{#snippet line(r: DiffRow, from?: number)}
+  <div class="row {r.kind}" data-from={from} tabindex={from === undefined ? undefined : -1}>
+    {#if r.kind !== 'equal'}<span class="sr-only">{r.kind === 'change' ? 'Changed:' : r.kind === 'delete' ? 'Removed:' : 'Added:'}</span>{/if}
     {@render cell(r.left, 'left', r.kind)}
     {@render cell(r.right, 'right', r.kind)}
   </div>
@@ -119,14 +129,14 @@
   {#if cmp.textView === 'unified' && result.diff}
     <div class="unified"><CodeView value={result.diff} label="Text diff" readonly /></div>
   {:else if rows.length}
-    <div class="rows" role="region" aria-label="Side-by-side diff" style:--ln={lnWidth}>
+    <div class="rows" bind:this={list} role="region" aria-label="Side-by-side diff" style:--ln={lnWidth}>
       {#each rows as r, i (i)}
         {#if r.kind !== 'gap'}
           {@render line(r)}
         {:else if opened.has(i)}
-          {#each unfold(r) as u (u.left!.line)}{@render line(u)}{/each}
+          {#each unfold(r) as u, k (u.left!.line)}{@render line(u, k === 0 ? i : undefined)}{/each}
         {:else}
-          <button type="button" class="gap" onclick={() => (opened = new Set(opened).add(i))}>
+          <button type="button" class="gap" onclick={() => unfoldAt(i)}>
             <ChevronsUpDown size={12} strokeWidth={1.75} /> {plural(r.count ?? 0, r.count === 1 ? 'unchanged line' : 'unchanged lines')}
           </button>
         {/if}
@@ -188,6 +198,7 @@
     line-height: 1.6;
   }
   .row {
+    position: relative;
     display: grid;
     grid-template-columns: var(--ln) 1fr var(--ln) 1fr;
   }
@@ -247,6 +258,10 @@
   .gap:hover {
     color: var(--fg-0);
     background: var(--bg-3);
+  }
+  .row:focus-visible {
+    outline: 1px solid var(--accent);
+    outline-offset: -1px;
   }
   .gap:focus-visible {
     outline: 1px solid var(--accent);

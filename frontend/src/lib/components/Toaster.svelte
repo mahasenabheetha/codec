@@ -19,6 +19,10 @@
         <button
           type="button"
           class="action"
+          onpointerenter={() => toasts.hold(t.id)}
+          onpointerleave={() => toasts.resume(t.id)}
+          onfocus={() => toasts.hold(t.id)}
+          onblur={() => toasts.resume(t.id)}
           onclick={() => {
             toasts.dismiss(t.id)
             action.run()

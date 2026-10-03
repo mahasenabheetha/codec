@@ -21,6 +21,8 @@ class Search {
   running = $state(false)
   collapsed = $state(new Set<string>())
   focusTick = $state(0) // bumped to focus the search box
+  focusedTick = 0 // the last bump the panel acted on
+  root: string | undefined // the folder the results belong to
 
   private inflight: AbortController | null = null
   private timer: ReturnType<typeof setTimeout> | undefined

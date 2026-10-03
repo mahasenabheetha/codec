@@ -27,14 +27,28 @@ type Cell struct {
 // as one change. It keeps a minified line from costing megabytes.
 const maxInline = 300
 
+// inlineBudget bounds the character diffs of one call, counted as the
+// product of each pair's differing middles (a rough Myers cost). Once
+// spent, changed middles are marked whole, so two large, wholly
+// different pastes stay fast.
+const inlineBudget = 4 << 20
+
 // SideBySide pairs the lines of old and new, keeping context unchanged
 // lines around each change and folding the rest into gaps. Changed
 // pairs carry the changed characters as UTF-16 spans, ready for JS
 // string slicing. Line endings never count. Nil when the texts match.
 func SideBySide(old, new string, context int, o Options) []Row {
 	a, b := SplitLines(old), SplitLines(new)
-	norm := o.normalize
-	edits := LinesFunc(a, b, func(x, y string) bool { return norm(trimEOL(x)) == norm(trimEOL(y)) })
+	// Compare normalized keys, computed once per line.
+	key := func(lines []string) []string {
+		out := make([]string, len(lines))
+		for k, l := range lines {
+			out[k] = o.normalize(trimEOL(l))
+		}
+		return out
+	}
+	edits := Lines(key(a), key(b))
+	budget := inlineBudget
 
 	var rows []Row
 	var dels, ins []*Cell
@@ -52,7 +66,7 @@ func SideBySide(old, new string, context int, o Options) []Row {
 				r.Kind = "delete"
 			}
 			if r.Kind == "change" {
-				r.Left.Spans, r.Right.Spans = inline(r.Left.Text, r.Right.Text, o)
+				r.Left.Spans, r.Right.Spans = inline(r.Left.Text, r.Right.Text, o, &budget)
 			}
 			rows = append(rows, r)
 		}
@@ -134,7 +148,7 @@ type seg struct {
 // Tiny equal runs between changes are merged into them, so a reworded
 // part reads as one block rather than scattered letters; a line that
 // is mostly different is marked whole.
-func inline(x, y string, o Options) (left, right [][2]int) {
+func inline(x, y string, o Options, budget *int) (left, right [][2]int) {
 	ra, rb := []rune(x), []rune(y)
 	same := func(p, q rune) bool { return p == q || o.IgnoreCase && unicode.ToLower(p) == unicode.ToLower(q) }
 	pre := 0
@@ -148,9 +162,10 @@ func inline(x, y string, o Options) (left, right [][2]int) {
 	ma, mb := ra[pre:len(ra)-suf], rb[pre:len(rb)-suf]
 
 	var segs []seg
-	if len(ma) > maxInline || len(mb) > maxInline {
+	if cost := (len(ma) + 1) * (len(mb) + 1); len(ma) > maxInline || len(mb) > maxInline || cost > *budget {
 		segs = []seg{{a: len(ma), b: len(mb)}}
 	} else {
+		*budget -= cost
 		segs = runeDiff(ma, mb, same)
 	}
 	segs = merge(segs)

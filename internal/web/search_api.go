@@ -16,6 +16,8 @@ func (s *Server) handleSearch(w http.ResponseWriter, r *http.Request) {
 	if !decode(w, r, &req) {
 		return
 	}
+	// The response is held and sent at once, so it stays small.
+	req.Limit = min(max(req.Limit, 0), search.DefaultLimit)
 	ws := s.current()
 	if ws == nil {
 		writeError(w, http.StatusConflict, "no folder is open")

@@ -221,6 +221,7 @@
       aria-level={r.depth + 1}
       aria-expanded={r.expandable ? r.expanded : undefined}
       aria-selected={selection ? selection.has(r.id) : r.id === active}
+      aria-current={selection && r.id === active ? 'true' : undefined}
       tabindex={r.id === cursor ? 0 : -1}
       data-id={r.id}
       style="--depth: {r.depth}"

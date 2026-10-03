@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from 'svelte'
   import ArrowLeftRight from '@lucide/svelte/icons/arrow-left-right'
   import CircleCheck from '@lucide/svelte/icons/circle-check'
   import EyeOff from '@lucide/svelte/icons/eye-off'
@@ -71,10 +72,12 @@
   const symbols = { added: '+', removed: '−', changed: '~', reordered: '↕' }
 
   const pasting = $derived(cmp.left.kind === 'paste' || cmp.right.kind === 'paste')
-  // Compare as soon as typing in a paste box settles.
+  // Compare as soon as typing in a paste box settles. Only the pasted
+  // text counts: picking a source already runs the comparison.
+  const pastedText = $derived(JSON.stringify([cmp.left, cmp.right].map((sd) => (sd.kind === 'paste' ? sd.content : null))))
   $effect(() => {
-    void [cmp.left.content, cmp.right.content]
-    if (pasting) cmp.runSoon()
+    void pastedText
+    untrack(() => pasting && cmp.runSoon())
   })
 
   // Fields the API server fills in on objects read from a cluster
@@ -141,8 +144,8 @@
   <!-- Each side's picker heads its own column, above its paste box and
        its half of a side-by-side diff. -->
   <div class="sides">
-    <SidePicker label="Left" bind:side={cmp.left} bind:whatIf={cmp.leftWhatIf} onchange={() => cmp.run()} onclear={() => cmp.clear('left')} />
-    <SidePicker label="Right" bind:side={cmp.right} bind:whatIf={cmp.rightWhatIf} onchange={() => cmp.run()} onclear={() => cmp.clear('right')} />
+    <SidePicker label="Left" bind:side={cmp.left} bind:whatIf={cmp.leftWhatIf} onchange={() => cmp.run()} onclear={() => cmp.clear('left')} replace={(s) => cmp.setSide('left', s)} />
+    <SidePicker label="Right" bind:side={cmp.right} bind:whatIf={cmp.rightWhatIf} onchange={() => cmp.run()} onclear={() => cmp.clear('right')} replace={(s) => cmp.setSide('right', s)} />
     <span class="swap"><IconButton icon={ArrowLeftRight} label="Swap sides" size="sm" onclick={() => cmp.swap()} /></span>
   </div>
 
@@ -195,7 +198,7 @@
     </div>
 
     {#if result.mode === 'text'}
-      <TextDiff {result} />
+      {#key result}<TextDiff {result} />{/key}
     {:else}
       <div class="body">
         <nav class="changes" aria-label="Changes">

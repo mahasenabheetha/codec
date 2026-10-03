@@ -208,9 +208,13 @@ func (w *Workspace) ReadText(p string) ([]byte, error) {
 	if err := validPath(p); err != nil {
 		return nil, err
 	}
-	data, _, err := w.readFile(p)
+	var data []byte
+	err := retry(func() (err error) { // see Read
+		data, _, err = w.readFile(p)
+		return w.wrapErr(p, err)
+	})
 	if err != nil {
-		return nil, w.wrapErr(p, err)
+		return nil, err
 	}
 	return bytes.TrimPrefix(data, bom), nil
 }

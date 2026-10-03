@@ -22,18 +22,20 @@
   // every listed file, grouped by file. Clicking a line opens the file
   // with the hit selected. Read-only: there is no replace (decision 3).
 
+  // Focus the box when asked (Ctrl+Shift+F), not on every mount.
   let input = $state<HTMLInputElement>()
   $effect(() => {
-    void f.focusTick
-    input?.focus()
-    input?.select()
+    if (!input || f.focusTick === f.focusedTick) return
+    f.focusedTick = f.focusTick
+    input.focus()
+    input.select()
   })
 
-  // A new folder starts with a clean slate.
-  let root = ws.info?.root
+  // A new folder starts with a clean slate, even if it was opened
+  // while the Explorer was showing.
   $effect(() => {
-    if (ws.info?.root !== root) {
-      root = ws.info?.root
+    if (ws.info?.root !== f.root) {
+      f.root = ws.info?.root
       f.reset()
     }
   })
@@ -41,9 +43,8 @@
   const r = $derived(f.result)
 
   function open(m: SearchMatch) {
-    const hit = m.spans[0]
     layout.openFile(m.path)
-    editorNav.request(m.path, m.line, m.col, hit ? m.col + hit.end - hit.start : undefined)
+    editorNav.request(m.path, m.line, m.col, m.endCol)
   }
 
   /** The line, without its indentation, split into plain and
@@ -112,7 +113,7 @@
         type="text"
         placeholder="Files, e.g. charts/**, *.yaml, !**/tests/**"
         aria-label="Files to include; start with ! to exclude"
-        title="Comma-separated globs. ** spans folders; a bare name matches at any depth; ! excludes."
+        title="Comma-separated globs. ** spans folders; a bare name matches at any depth, /name only at the top; [ab] is a class; ! excludes."
         spellcheck="false"
         oninput={() => f.schedule()}
         {onkeydown}

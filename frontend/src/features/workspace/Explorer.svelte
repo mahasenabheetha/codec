@@ -69,8 +69,8 @@
     const path = (e.target as HTMLElement).closest<HTMLElement>('[data-id]')?.dataset.id
     if (!path || !ws.byPath.has(path)) return []
     const out: MenuEntry[] = [{ label: 'Open', icon: FileText, run: () => layout.openFile(path) }, 'separator']
-    if (selection.size === 2 && selection.has(path)) {
-      const [a, b] = [...selection]
+    const [a, b] = [...selection]
+    if (selection.size === 2 && selection.has(path) && ws.byPath.has(a) && ws.byPath.has(b)) {
       out.push({ label: `Compare selected (${base(a)} ↔ ${base(b)})`, icon: GitCompare, run: () => comparison.openFiles(a, b) })
     }
     const picked = comparison.picked

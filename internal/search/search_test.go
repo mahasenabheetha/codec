@@ -66,6 +66,10 @@ func TestOptions(t *testing.T) {
 		{"include and exclude", Options{Query: "shop", Globs: []string{"charts/**", "!**/tests/**"}},
 			"charts/other/templates/shop-ui.tpl:1 charts/shop/values.yaml:1"},
 		{"name glob at any depth", Options{Query: "shop", Globs: []string{"*.sh"}}, "scripts/run.sh:1"},
+		{"rooted glob", Options{Query: "shop", Globs: []string{"/charts"}}, "charts/other/templates/shop-ui.tpl:1 charts/shop/tests/test.yaml:1 charts/shop/values.yaml:1"},
+		{"rooted name doesn't match deeper", Options{Query: "shop", Globs: []string{"/tests"}}, ""},
+		{"character class", Options{Query: "shop", Globs: []string{"*.[ms][dh]"}}, "README.md:1 README.md:2 docs/naïve.md:1 scripts/run.sh:1"},
+		{"empty regex hits are no hits", Options{Query: "^|zzz", Regex: true}, ""},
 		{"folder name excludes its contents", Options{Query: "shop", Globs: []string{"!tests", "!charts/other", "*.yaml"}},
 			"charts/shop/values.yaml:1 k8s/deploy.yaml:1 k8s/deploy.yaml:2"},
 	}
@@ -82,7 +86,7 @@ func TestSpansAndColumns(t *testing.T) {
 	r := run(t, Options{Query: "shop", Globs: []string{"docs/**"}})
 	m := r.Matches[0]
 	// "naïve 😀 " is 9 UTF-16 units: ï is one, the emoji two.
-	if m.Col != 10 || len(m.Spans) != 1 || m.Spans[0] != (Span{9, 13}) {
+	if m.Col != 10 || m.EndCol != 14 || len(m.Spans) != 1 || m.Spans[0] != (Span{9, 13}) {
 		t.Errorf("match = %+v", m)
 	}
 	r = run(t, Options{Query: "1.2", Globs: []string{"k8s/**"}})
@@ -107,6 +111,12 @@ func TestLimit(t *testing.T) {
 	r := run(t, Options{Query: "shop", Limit: 3})
 	if len(r.Matches) != 3 || !r.Truncated || where(r) != "README.md:1 README.md:2 charts/other/templates/shop-ui.tpl:1" {
 		t.Errorf("limited = %s truncated=%v", where(r), r.Truncated)
+	}
+	if r := run(t, Options{Query: "shop", Globs: []string{"k8s/**"}, Limit: 1}); len(r.Matches) != 1 || !r.Truncated {
+		t.Errorf("one file over the limit = %s truncated=%v", where(r), r.Truncated)
+	}
+	if r := run(t, Options{Query: "image", Globs: []string{"charts/shop/values.yaml", "k8s/**"}, Limit: 2}); r.Truncated {
+		t.Errorf("exactly the limit, nothing after = %s truncated=%v", where(r), r.Truncated)
 	}
 	if r := run(t, Options{Query: "replicas"}); r.Truncated || r.Files != 1 {
 		t.Errorf("unlimited = %+v", r)

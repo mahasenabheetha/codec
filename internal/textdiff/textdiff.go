@@ -176,7 +176,16 @@ func UnifiedWith(path, old, new string, context int, o Options) string {
 	if !o.IgnoreSpace && !o.IgnoreCase {
 		return Unified(path, old, new, context)
 	}
-	norm := o.normalize
+	// Myers compares lines many times; normalize each distinct one once.
+	seen := map[string]string{}
+	norm := func(s string) string {
+		n, ok := seen[s]
+		if !ok {
+			n = o.normalize(s)
+			seen[s] = n
+		}
+		return n
+	}
 	return format(path, LinesFunc(SplitLines(old), SplitLines(new), func(x, y string) bool { return norm(x) == norm(y) }), context)
 }
 
