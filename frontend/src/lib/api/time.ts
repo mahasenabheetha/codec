@@ -34,6 +34,7 @@ export interface CronForm {
   time?: string
   days?: number[]
   day?: number
+  months?: number[] // 1 to 12; none is every month
 }
 
 export interface CronResult {
@@ -43,6 +44,7 @@ export interface CronResult {
   zone: string
   runs: string[] // RFC 3339, in the zone
   skipped: { wall: string }[]
+  notes?: string[] // e.g. both day fields set: either runs
   form?: CronForm
 }
 

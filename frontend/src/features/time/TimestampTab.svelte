@@ -3,7 +3,6 @@
   import CalendarClock from '@lucide/svelte/icons/calendar-clock'
   import Copy from '@lucide/svelte/icons/copy'
   import TimerReset from '@lucide/svelte/icons/timer-reset'
-  import type CodeView from '../../lib/components/CodeView.svelte'
   import Badge from '../../lib/components/Badge.svelte'
   import Button from '../../lib/components/Button.svelte'
   import EmptyState from '../../lib/components/EmptyState.svelte'
@@ -14,7 +13,7 @@
   import { copyText } from '../../lib/utils/clipboard'
   import ToolLayout from '../shared/ToolLayout.svelte'
   import ToolTabs from '../shared/ToolTabs.svelte'
-  import InputPane from '../shared/InputPane.svelte'
+  import LineInput from '../shared/LineInput.svelte'
   import Pane from '../shared/Pane.svelte'
   import ErrorBanner from '../shared/ErrorBanner.svelte'
   import { TextJob } from '../shared/job.svelte'
@@ -25,7 +24,7 @@
   let { tool, active }: { tool: ToolDef; active: boolean } = $props()
 
   const job = new TextJob<Stamp>()
-  let editor = $state<CodeView>()
+  let field = $state<HTMLInputElement>()
 
   const call = () => {
     const input = job.input.trim()
@@ -80,7 +79,7 @@
   const copy = () => copyText(job.result ? String(job.result.unix) : '', 'Unix seconds')
   function clear() {
     job.clear()
-    editor?.focus()
+    field?.focus()
   }
 
   toolShortcuts(() => active, { run, copy, clear })
@@ -101,17 +100,11 @@
   {#snippet actions()}
     <Button icon={TimerReset} onclick={now} title="The current Unix timestamp">Now</Button>
   {/snippet}
-  {#snippet input()}
-    <InputPane
-      session={job}
-      bind:editor
-      onclear={clear}
-      placeholder="An epoch number (seconds, ms, µs or ns — told by its size) or a date, e.g. 2026-02-03T14:05:09Z. A date without a zone is read in the zone above."
-      onpaste={run}
-    />
-  {/snippet}
-  {#snippet output()}
-    <Pane title="Time">
+  {#snippet body()}
+    <LineInput bind:value={job.input} bind:field label="Timestamp or date" invalid={!!job.error} onclear={clear} placeholder="1770120309, 1770120309123 or 2026-02-03T14:05:09Z">
+      <p class="hint">An epoch number in seconds, milliseconds, microseconds or nanoseconds (told by its size), or a date. A date without a zone is read in the zone above.</p>
+    </LineInput>
+    <Pane title="Time" grow={false}>
       {#snippet meta()}
         {#if job.result}<Badge tone="accent">{units[job.result.kind]}</Badge>{/if}
       {/snippet}
@@ -138,6 +131,10 @@
 </ToolLayout>
 
 <style>
+  .hint {
+    font-size: var(--fs-sm);
+    color: var(--fg-2);
+  }
   .divider {
     width: 1px;
     height: 20px;
@@ -152,7 +149,7 @@
   }
   .row {
     display: grid;
-    grid-template-columns: minmax(120px, 34%) 1fr auto;
+    grid-template-columns: minmax(140px, 220px) 1fr auto;
     align-items: center;
     gap: var(--s-3);
     padding: var(--s-2) 0;

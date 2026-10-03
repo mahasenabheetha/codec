@@ -22,8 +22,9 @@ themselves on hover in CronJobs and pipelines.
   auth, and a check of a password against one.
 - Time: Timestamp reads epoch numbers (seconds to nanoseconds, told by
   size) and dates in any zone, with relative time and Now; Cron explains
-  an expression in plain words, field by field, with its next runs
-  across daylight-saving changes, builds one from a form or a preset,
+  an expression in plain words, one cell per field, with its next runs
+  across daylight-saving changes, builds one from a form or a preset
+  (any months), notes when both day fields are set (either one runs),
   and names Quartz and Jenkins expressions as unsupported.
 - Regex: matches highlighted as you type, capture groups per match, a
   replace preview, and an explanation of the pattern part by part;

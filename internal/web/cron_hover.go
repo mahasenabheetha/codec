@@ -104,6 +104,7 @@ func cronHover(f *provider.File, tool string, at yamlkit.Pos, now time.Time) *pr
 	for _, sk := range skipped {
 		h.Rows = append(h.Rows, provider.HoverRow{Label: "Skipped", Value: sk.Wall + ": the clocks jump over it"})
 	}
+	s.notes = append(sched.Notes(), s.notes...)
 	for _, note := range s.notes {
 		h.Rows = append(h.Rows, provider.HoverRow{Label: "Note", Value: note})
 	}

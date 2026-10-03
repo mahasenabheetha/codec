@@ -112,6 +112,9 @@ as such. Quote the expression so the shell leaves * alone.`,
 		for _, sk := range skipped {
 			fmt.Fprintf(&b, "  skipped %s: the clocks jump over it (daylight saving)\n", sk.Wall)
 		}
+		for _, n := range s.Notes() {
+			fmt.Fprintf(&b, "\nNote: %s\n", n)
+		}
 		return emit(strings.TrimRight(b.String(), "\n"))
 	},
 }

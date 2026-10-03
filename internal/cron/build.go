@@ -14,15 +14,31 @@ type Form struct {
 	// Kind: "minutes" (every N minutes), "hourly" (every N hours at a
 	// minute), "daily", "weekly" (on chosen days) or "monthly" (on a day).
 	Kind   string `json:"kind"`
-	Every  int    `json:"every,omitempty"` // minutes, hourly; 1 when 0
-	Minute int    `json:"minute"`          // hourly
-	Time   string `json:"time,omitempty"`  // "HH:MM": daily, weekly, monthly
-	Days   []int  `json:"days,omitempty"`  // weekly: 0 (Sunday) to 6
-	Day    int    `json:"day,omitempty"`   // monthly: 1 to 31
+	Every  int    `json:"every,omitempty"`  // minutes, hourly; 1 when 0
+	Minute int    `json:"minute"`           // hourly
+	Time   string `json:"time,omitempty"`   // "HH:MM": daily, weekly, monthly
+	Days   []int  `json:"days,omitempty"`   // weekly: 0 (Sunday) to 6
+	Day    int    `json:"day,omitempty"`    // monthly: 1 to 31
+	Months []int  `json:"months,omitempty"` // 1 to 12; empty is every month
 }
 
 // Build turns a form into an expression.
 func Build(f Form) (string, error) {
+	expr, err := build(f)
+	if err != nil || len(f.Months) == 0 {
+		return expr, err
+	}
+	for _, m := range f.Months {
+		if m < 1 || m > 12 {
+			return "", fmt.Errorf("month %d: months are 1 to 12", m)
+		}
+	}
+	fields := strings.Fields(expr)
+	fields[3] = days(f.Months) // compact: 1-3, 1,7
+	return strings.Join(fields, " "), nil
+}
+
+func build(f Form) (string, error) {
 	every := max(f.Every, 1)
 	clock := func() (int, int, error) {
 		h, m, ok := strings.Cut(f.Time, ":")
@@ -78,7 +94,7 @@ func Build(f Form) (string, error) {
 	return "", fmt.Errorf("unknown kind %q (minutes, hourly, daily, weekly, monthly)", f.Kind)
 }
 
-// days writes weekdays compactly: "1-5", "1,3,5", "0,6".
+// days writes a list compactly: "1-5", "1,3,5", "0,6".
 func days(ds []int) string {
 	ds = slices.Clone(ds)
 	slices.Sort(ds)
@@ -92,12 +108,18 @@ func days(ds []int) string {
 // FormOf fills a form from a schedule when one of the form's kinds
 // says the same thing; ok is false otherwise.
 func FormOf(s *Schedule) (Form, bool) {
+	form, ok := formOf(s)
+	if ok && len(s.Fields[3].Values) < 12 {
+		form.Months = s.Fields[3].Values
+	}
+	return form, ok
+}
+
+func formOf(s *Schedule) (Form, bool) {
 	f := s.Fields
 	ms, hs := shapeOf(f[0].Values, fieldBounds[0]), shapeOf(f[1].Values, fieldBounds[1])
-	ds, mos, ws := shapeOf(f[2].Values, fieldBounds[2]), shapeOf(f[3].Values, fieldBounds[3]), shapeOf(f[4].Values, fieldBounds[4])
-	if !mos.all {
-		return Form{}, false
-	}
+	// Any months fit: the form has a month choice (FormOf fills it).
+	ds, ws := shapeOf(f[2].Values, fieldBounds[2]), shapeOf(f[4].Values, fieldBounds[4])
 	clock := fmt.Sprintf("%02d:%02d", hs.from, ms.from)
 	fixed := ms.single && hs.single
 	switch {

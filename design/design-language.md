@@ -115,7 +115,11 @@ them when it changes, and rename the SVG if browser tabs keep the old one.
   `toolCommands` for tools). Shortcuts via `shortcut()`; add them to
   `ShortcutsDialog` and `docs/shortcuts.html`.
 - **Tools.** One page: title and toolbar, input left, output right
-  (`ToolLayout`, `InputPane`, `Pane`). A tool with sub-tabs lists them in
+  (`ToolLayout`, `InputPane`, `Pane`) when the input can be a document.
+  When it is a value or a small form (a timestamp, a cron expression,
+  generator options), one column instead (`ToolLayout` `body`,
+  `LineInput`, `Pane grow={false}`): the input on top, answers below,
+  each as tall as its content. A tool with sub-tabs lists them in
   `lib/tools.ts` (`tabs`), shows them as a `SegmentedControl` first in its
   toolbar (`ToolTabs`) and renders through `TabbedTool`, which mounts a
   sub-tab when first shown and keeps it; the last sub-tab is remembered,

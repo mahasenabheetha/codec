@@ -275,3 +275,12 @@ func hourPhrase(vals []int, sh shape) string {
 	}
 	return "during hours " + join(ints(vals))
 }
+
+// Notes are things about a schedule that people often get wrong.
+func (s *Schedule) Notes() []string {
+	var out []string
+	if dom, dow := s.Fields[2], s.Fields[4]; !dom.Star && !dow.Star {
+		out = append(out, fmt.Sprintf("Both day fields are set, so it runs on either: %s or %s, not only when both match. For one of them only, set the other to *.", dom.Meaning(), dow.Meaning()))
+	}
+	return out
+}

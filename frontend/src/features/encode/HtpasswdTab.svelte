@@ -102,8 +102,8 @@
       {making ? 'Make line' : 'Check'}
     </Button>
   {/snippet}
-  {#snippet input()}
-    <Pane title={making ? 'Credentials' : 'Line to check'}>
+  {#snippet body()}
+    <Pane title={making ? 'Credentials' : 'Line to check'} grow={false}>
       <div class="form">
         {#if making}
           <label class="field">
@@ -143,9 +143,7 @@
         <p class="hint">Hashed on this machine; nothing is stored. bcrypt uses at most 72 bytes of a password.</p>
       </div>
     </Pane>
-  {/snippet}
-  {#snippet output()}
-    <Pane title={making ? 'htpasswd line' : 'Result'}>
+    <Pane title={making ? 'htpasswd line' : 'Result'} grow={false}>
       {#snippet actions()}
         {#if making}
           <IconButton icon={Copy} label="Copy line" shortcut="Alt+C" size="sm" disabled={!result} onclick={() => copyText(result, 'Line')} />
@@ -187,14 +185,19 @@
     height: 20px;
     background: var(--border);
   }
+  /* Full width in one column: the fields sit in a row and wrap. */
   .form {
-    flex: 1;
-    min-height: 0;
-    overflow: auto;
     padding: var(--s-4);
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
+    align-items: flex-start;
     gap: var(--s-4);
+  }
+  .form > .field {
+    flex: 1 1 220px;
+  }
+  .form > .hint {
+    flex-basis: 100%;
   }
   .field {
     display: flex;

@@ -266,3 +266,27 @@ func TestReviewCases(t *testing.T) {
 		t.Error("day 8 accepted")
 	}
 }
+
+func TestNotesAndMonths(t *testing.T) {
+	s, _ := Parse("1 12 2 5 5")
+	if n := s.Notes(); len(n) != 1 || !strings.Contains(n[0], "day 2 or Friday") {
+		t.Errorf("notes: %v", n)
+	}
+	if s, _ := Parse("0 9 * * 1-5"); len(s.Notes()) != 0 {
+		t.Errorf("notes for weekdays: %v", s.Notes())
+	}
+	got, err := Build(Form{Kind: "monthly", Time: "12:01", Day: 2, Months: []int{5}})
+	if err != nil || got != "1 12 2 5 *" {
+		t.Errorf("monthly in May: %q %v", got, err)
+	}
+	s, _ = Parse(got)
+	if f, ok := FormOf(s); !ok || f.Kind != "monthly" || !slices.Equal(f.Months, []int{5}) {
+		t.Errorf("back: %+v %v", f, ok)
+	}
+	if got, _ := Build(Form{Kind: "daily", Time: "06:00", Months: []int{6, 7, 8}}); got != "0 6 * 6-8 *" {
+		t.Errorf("summer: %q", got)
+	}
+	if _, err := Build(Form{Kind: "daily", Time: "06:00", Months: []int{13}}); err == nil {
+		t.Error("month 13 accepted")
+	}
+}

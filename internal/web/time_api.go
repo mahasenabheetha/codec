@@ -87,6 +87,7 @@ func (s *Server) handleTime(w http.ResponseWriter, r *http.Request) {
 			"zone":        loc.String(),
 			"runs":        runs,
 			"skipped":     skipped,
+			"notes":       orNone(sched.Notes()),
 		}
 		if f, ok := cron.FormOf(sched); ok {
 			resp["form"] = f
@@ -106,4 +107,11 @@ func (s *Server) handleTime(w http.ResponseWriter, r *http.Request) {
 	default:
 		writeError(w, http.StatusBadRequest, "unknown job "+kind)
 	}
+}
+
+func orNone(s []string) []string {
+	if s == nil {
+		return []string{}
+	}
+	return s
 }

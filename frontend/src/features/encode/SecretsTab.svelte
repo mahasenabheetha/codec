@@ -77,8 +77,8 @@
   {#snippet actions()}
     <Button variant="primary" icon={RefreshCw} onclick={generate} title={formatShortcut('Mod+Enter')}>Generate</Button>
   {/snippet}
-  {#snippet input()}
-    <Pane title="Options">
+  {#snippet body()}
+    <Pane title="Options" grow={false}>
       <div class="form">
         <div class="row">
           <span class="label">Kind</span>
@@ -136,9 +136,7 @@
         </p>
       </div>
     </Pane>
-  {/snippet}
-  {#snippet output()}
-    <Pane title={kind === 'uuid' ? 'UUIDs' : 'Secrets'}>
+    <Pane title={kind === 'uuid' ? 'UUIDs' : 'Secrets'} grow={false}>
       {#snippet meta()}
         {#if bits !== undefined}
           {@const s = strength(bits)}
@@ -168,18 +166,20 @@
 </ToolLayout>
 
 <style>
+  /* Full width in one column: the options flow in a row and wrap. */
   .form {
-    flex: 1;
-    min-height: 0;
-    overflow: auto;
     padding: var(--s-4);
     display: flex;
-    flex-direction: column;
-    gap: var(--s-3);
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: var(--s-4) var(--s-6);
+  }
+  .form .hint {
+    flex-basis: 100%;
   }
   .row {
     display: grid;
-    grid-template-columns: 96px 1fr;
+    grid-template-columns: auto auto;
     align-items: center;
     gap: var(--s-3);
   }
