@@ -47,6 +47,9 @@ internal/
                       other output, read results; the analysis model
   encode/             ENGINE Encode & hash tool: URL and hex encoding, digests and
                       HMAC, random secrets and UUIDs, bcrypt htpasswd lines
+  cron/               ENGINE standard cron: parse (dialects named), plain words,
+                      next runs across DST, build from a form
+  timeutil/           ENGINE timestamps: epoch units by size, dates, zones, relative
   compose/            ENGINE Compose lens: files merged with the Compose rules and
                       origins, extends/include, ${VAR} from .env + what-if,
                       services graph, ports, volumes, checks

@@ -12,6 +12,10 @@ All notable changes to codec are documented here. The format follows
   percent-encoding, hex, digests and HMACs, random secrets, UUIDs and
   bcrypt basic-auth lines. Passwords and HMAC keys are never taken as
   arguments.
+- CLI: `codec time` reads epoch numbers (seconds to nanoseconds, told
+  by size) and dates in any zone; `codec cron` explains an expression in
+  plain words, field by field, with its next runs across daylight-saving
+  changes, and names Quartz and Jenkins expressions.
 - Encode & hash, under a new Utilities heading: URL (with the parts and
   query as a table), hex, hashes and HMAC with an expected-digest check,
   secrets and UUIDs, and htpasswd lines with a check. Tools can have

@@ -329,3 +329,11 @@ Settled unless the user reopens them. Add new ones at the bottom:
     never takes a password or HMAC key as an argument (prompt, stdin or
     an environment variable), so they stay out of shell history; hashes
     are of the exact bytes given (2026-10-03).
+79. Cron follows Vixie cron and Kubernetes (robfig/cron): when both day
+    fields are restricted (neither starts with `*`) a day matching either
+    runs. Runs are listed in a chosen zone, UTC by default (GitHub
+    Actions, Azure Pipelines); a `CRON_TZ=` prefix wins. A wall time in
+    a daylight-saving gap is skipped and reported; one that happens
+    twice runs at its first occurrence. Quartz (seconds, `?`, `L W #`)
+    and Jenkins (`H`) are named, not read. `time/tzdata` is embedded so
+    zones work without a system zone database (2026-10-03).

@@ -198,6 +198,13 @@ set       spec.template.spec.containers[0].image=</span></code></pre>
   <tr><td><code>htpasswd &lt;user&gt;</code></td><td>A bcrypt <code>user:hash</code> line for basic auth; the password is asked for or piped in (<code>--cost</code>). <code>--check "&lt;line&gt;"</code> checks one, exit 2 when it doesn't match</td></tr>
 </table></div>
 
+<h2 id="time">Time and cron<a class="anchor" href="#time">#</a></h2>
+<div class="table-wrap"><table>
+  <tr><th>Command</th><th>What it does</th></tr>
+  <tr><td><code>time [epoch|date]</code></td><td>A moment in UTC, in <code>--zone</code>, as epoch seconds and milliseconds and relative to now; nothing means now. Epoch units are told by size (up to 11 digits are seconds, then ms, µs, ns)</td></tr>
+  <tr><td><code>cron &lt;expression&gt;</code></td><td>Plain words, field by field, and the next runs (<code>-n</code>, <code>--zone</code>, UTC by default); <code>@daily</code>-style shortcuts and a <code>CRON_TZ=</code> prefix work; Quartz and Jenkins expressions are named as such. <code>--json</code> on both</td></tr>
+</table></div>
+
 <h2 id="completion">Shell completion<a class="anchor" href="#completion">#</a></h2>
 <pre><code>codec completion powershell | Out-String | Invoke-Expression   <span class="c"># PowerShell</span>
 source &lt;(codec completion bash)                                <span class="c"># bash; also zsh and fish</span></code></pre>
