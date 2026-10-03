@@ -129,7 +129,7 @@
       />
       <div class="flags" role="group" aria-label="Flags">
         {#each flagInfo as [f, info] (f)}
-          <button type="button" class="flag" aria-pressed={flags[f]} title={info} disabled={f === 'x' && style === 'go'} onclick={() => (flags[f] = !flags[f])}>{f}</button>
+          <button type="button" class="flag" aria-pressed={flags[f]} aria-label="{f}: {info}" title={info} disabled={f === 'x' && style === 'go'} onclick={() => (flags[f] = !flags[f])}>{f}</button>
         {/each}
       </div>
       <Toggle label="All matches" bind:checked={all} title="Off: only the first match" />

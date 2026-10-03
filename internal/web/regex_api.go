@@ -7,6 +7,9 @@ import (
 	"github.com/mahasenabheetha/codec/v2/internal/regex"
 )
 
+// maxRegexText bounds the test text: positions take 8 bytes per byte of it.
+const maxRegexText = 4 << 20
+
 type regexRequest struct {
 	regex.Options
 	Text    string  `json:"text"`
@@ -32,13 +35,18 @@ func (s *Server) handleRegex(w http.ResponseWriter, r *http.Request) {
 		}
 		writeJSON(w, http.StatusOK, resp)
 	}
+	if len(req.Text) > maxRegexText {
+		fail(&regex.Error{Message: "the test text is over 4 MB; test on a part of it"})
+		return
+	}
 	res, err := regex.Run(req.Options, req.Text)
 	if err != nil {
 		fail(err)
 		return
 	}
 	resp["result"] = res
-	if req.Replace != nil {
+	// A pattern that ran out of time would only run out again.
+	if req.Replace != nil && !res.TimedOut {
 		out, err := regex.Replace(req.Options, req.Text, *req.Replace)
 		if err != nil {
 			fail(err)

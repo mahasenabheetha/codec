@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 	"unicode/utf16"
@@ -237,14 +238,20 @@ var ErrTimeout = errors.New("the pattern took longer than 2 seconds; it probably
 
 // Replace replaces matches (only the first unless o.All) with template:
 // $1, ${1}, ${name} and $0 everywhere; Python's \1 and \g<name> and
-// JavaScript's $<name> are accepted too. $$ is a dollar sign.
+// JavaScript's $<name> are accepted too. $$ is a dollar sign and \\ a
+// backslash. A reference to a group the pattern doesn't have stays as
+// it is written, in both styles.
 func Replace(o Options, text, template string) (string, error) {
 	c, err := compile(o)
 	if err != nil {
 		return "", err
 	}
-	t := normalizeTemplate(template)
 	if c.re2 != nil {
+		names := map[string]bool{}
+		for _, n := range c.re2.SubexpNames() {
+			names[n] = n != ""
+		}
+		t := normalizeTemplate(template, c.re2.NumSubexp(), names)
 		if o.All {
 			return c.re2.ReplaceAllString(text, t), nil
 		}
@@ -254,64 +261,149 @@ func Replace(o Options, text, template string) (string, error) {
 		}
 		return text[:loc[0]] + string(c.re2.ExpandString(nil, t, text, loc)) + text[loc[1]:], nil
 	}
+	// regexp2's time limit is per match; a replace runs many. Find the
+	// matches once against one deadline first, so a pattern that
+	// backtracks badly stops after about 2 seconds in all.
+	deadline := time.Now().Add(Timeout)
+	m, err := c.re.FindStringMatch(text)
+	for ; m != nil && err == nil && o.All; m, err = c.re.FindNextMatch(m) {
+		if time.Now().After(deadline) {
+			return "", ErrTimeout
+		}
+	}
+	if isTimeout(err) {
+		return "", ErrTimeout
+	}
+	names := map[string]bool{}
+	for _, n := range c.re.GetGroupNames() {
+		names[n] = true
+	}
 	count := -1
 	if !o.All {
 		count = 1
 	}
-	out, err := c.re.Replace(text, t, -1, count)
+	out, err := c.re.Replace(text, normalizeTemplate(template, len(c.re.GetGroupNumbers())-1, names), -1, count)
 	if isTimeout(err) {
 		return "", ErrTimeout
 	}
 	return out, err
 }
 
-var (
-	pyGroup   = regexp.MustCompile(`\\(\d{1,2})`)
-	pyNamed   = regexp.MustCompile(`\\g<(\w+)>`)
-	jsNamed   = regexp.MustCompile(`\$<(\w+)>`)
-	bareDigit = regexp.MustCompile(`\$(\d+)`)
-)
-
-func normalizeTemplate(t string) string {
-	t = pyNamed.ReplaceAllString(t, `$${$1}`)
-	t = jsNamed.ReplaceAllString(t, `$${$1}`)
-	t = pyGroup.ReplaceAllString(t, `$${$1}`)
-	// "$1x" means group 1 then "x" to people; Go would read a group "1x".
-	return bareDigit.ReplaceAllString(t, `$${$1}`)
+// normalizeTemplate rewrites a replacement in any of the accepted
+// spellings to ${…} references, which both engines read the same way.
+// groups is the number of capture groups and names their names.
+func normalizeTemplate(t string, groups int, names map[string]bool) string {
+	var b strings.Builder
+	exists := func(ref string) bool {
+		if n, err := strconv.Atoi(ref); err == nil {
+			return n >= 0 && n <= groups
+		}
+		return names[ref]
+	}
+	// ref writes a reference, or the text as written when there is no
+	// such group (a lone $ doubled, so it stays a dollar sign).
+	ref := func(name, raw string) {
+		if exists(name) {
+			b.WriteString("${" + name + "}")
+		} else {
+			b.WriteString(strings.ReplaceAll(raw, "$", "$$"))
+		}
+	}
+	word := func(i int) int { // end of a run of word characters from i
+		for i < len(t) && (t[i] == '_' || t[i] >= '0' && t[i] <= '9' || t[i] >= 'a' && t[i] <= 'z' || t[i] >= 'A' && t[i] <= 'Z') {
+			i++
+		}
+		return i
+	}
+	digits := func(i, most int) int {
+		j := i
+		for j < len(t) && j-i < most && t[j] >= '0' && t[j] <= '9' {
+			j++
+		}
+		return j
+	}
+	for i := 0; i < len(t); {
+		rest := t[i:]
+		switch {
+		case strings.HasPrefix(rest, "$$"):
+			b.WriteString("$$")
+			i += 2
+		case strings.HasPrefix(rest, `\\`):
+			b.WriteByte('\\')
+			i += 2
+		case strings.HasPrefix(rest, "${") || strings.HasPrefix(rest, "$<") || strings.HasPrefix(rest, `\g<`):
+			open := strings.IndexAny(rest, "{<")
+			end := strings.IndexByte(rest, map[byte]byte{'{': '}', '<': '>'}[rest[open]])
+			if end < 0 {
+				b.WriteString(strings.ReplaceAll(rest, "$", "$$"))
+				return b.String()
+			}
+			ref(rest[open+1:end], rest[:end+1])
+			i += end + 1
+		case rest[0] == '$' && len(rest) > 1 && rest[1] >= '0' && rest[1] <= '9':
+			// "$12": group 12 if there is one, else group 1 and a "2".
+			j := digits(i+1, 9)
+			for j > i+2 && !exists(t[i+1:j]) {
+				j--
+			}
+			ref(t[i+1:j], t[i:j])
+			i = j
+		case rest[0] == '$' && word(i+1) > i+1:
+			j := word(i + 1)
+			ref(t[i+1:j], t[i:j])
+			i = j
+		case rest[0] == '\\' && len(rest) > 1 && rest[1] >= '1' && rest[1] <= '9':
+			j := digits(i+1, 2)
+			for j > i+2 && !exists(t[i+1:j]) {
+				j--
+			}
+			ref(t[i+1:j], t[i:j])
+			i = j
+		case rest[0] == '$':
+			b.WriteString("$$")
+			i++
+		default:
+			b.WriteByte(t[i])
+			i++
+		}
+	}
+	return b.String()
 }
 
 // positions converts byte and rune offsets of a text to UTF-16 offsets
-// and lines.
+// and lines. int32 keeps the tables small: texts are a few MB at most.
 type positions struct {
-	text  string
-	bytes []int // byte offset → UTF-16 offset (len+1)
-	runes []int // rune index → byte offset (len+1)
-	lines []int // byte offsets where lines start
+	bytes []int32 // byte offset → UTF-16 offset (len+1)
+	runes []int32 // rune index → byte offset (len+1)
+	lines []int   // byte offsets where lines start
 }
 
 func newPositions(text string) *positions {
-	p := &positions{text: text, bytes: make([]int, len(text)+1), lines: []int{0}}
-	u := 0
-	for i, r := range text {
-		p.runes = append(p.runes, i)
-		n := utf8.RuneLen(r)
+	p := &positions{bytes: make([]int32, len(text)+1), lines: []int{0}}
+	u := int32(0)
+	for i := 0; i < len(text); {
+		// An invalid byte is one rune (U+FFFD) one byte wide, as regexp2
+		// sees it, though utf8.RuneLen(U+FFFD) is 3.
+		r, n := utf8.DecodeRuneInString(text[i:])
+		p.runes = append(p.runes, int32(i))
 		for k := range n {
 			p.bytes[i+k] = u
 		}
-		u += len(utf16.Encode([]rune{r}))
+		u += int32(utf16.RuneLen(r))
 		if r == '\n' {
 			p.lines = append(p.lines, i+1)
 		}
+		i += n
 	}
 	p.bytes[len(text)] = u
-	p.runes = append(p.runes, len(text))
+	p.runes = append(p.runes, int32(len(text)))
 	return p
 }
 
-func (p *positions) byteU16(b int) int { return p.bytes[b] }
-func (p *positions) runeU16(r int) int { return p.bytes[p.runes[min(r, len(p.runes)-1)]] }
+func (p *positions) byteU16(b int) int { return int(p.bytes[b]) }
+func (p *positions) runeU16(r int) int { return int(p.bytes[p.runes[min(r, len(p.runes)-1)]]) }
 func (p *positions) lineOfRune(r int) int {
-	return p.line(p.runes[min(r, len(p.runes)-1)])
+	return p.line(int(p.runes[min(r, len(p.runes)-1)]))
 }
 func (p *positions) line(b int) int {
 	lo, hi := 0, len(p.lines)

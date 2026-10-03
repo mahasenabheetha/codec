@@ -13,6 +13,7 @@
   import SegmentedControl from '../../lib/components/SegmentedControl.svelte'
   import Select from '../../lib/components/Select.svelte'
   import { htpasswd, htpasswdCheck, secrets } from '../../lib/api/encode'
+  import { toast } from '../../lib/stores/toast.svelte'
   import type { ToolDef } from '../../lib/tools'
   import { copyText } from '../../lib/utils/clipboard'
   import { formatShortcut } from '../../lib/utils/platform'
@@ -47,10 +48,17 @@
   }
   // A strong password to start from: 20 letters and digits, no look-alikes.
   async function suggest() {
-    const r = await secrets({ length: 20, format: 'text', lower: true, upper: true, digits: true, symbols: false, noAmbiguous: true }, 1)
-    password = r.secrets[0].value
-    show = true
+    try {
+      const r = await secrets({ length: 20, format: 'text', lower: true, upper: true, digits: true, symbols: false, noAmbiguous: true }, 1)
+      password = r.secrets[0].value
+      show = true
+    } catch (e) {
+      toast(e instanceof Error ? e.message : String(e), 'err')
+    }
   }
+  // Enter in a field runs, as a form would; there is no <form>, so the
+  // browser doesn't offer to save this password for the page.
+  const onEnter = (e: KeyboardEvent) => e.key === 'Enter' && (e.preventDefault(), run())
   function clear() {
     user = password = line = ''
     made.reset()
@@ -96,22 +104,22 @@
   {/snippet}
   {#snippet input()}
     <Pane title={making ? 'Credentials' : 'Line to check'}>
-      <form class="form" onsubmit={(e) => (e.preventDefault(), run())} autocomplete="off">
+      <div class="form">
         {#if making}
           <label class="field">
             <span>User</span>
-            <input bind:value={user} placeholder="admin" spellcheck="false" autocomplete="off" />
+            <input bind:value={user} placeholder="admin" spellcheck="false" autocomplete="off" onkeydown={onEnter} />
           </label>
         {:else}
           <label class="field">
             <span>Line</span>
-            <input bind:value={line} placeholder="admin:$2y$10$…" spellcheck="false" autocomplete="off" />
+            <input bind:value={line} placeholder="admin:$2y$10$…" spellcheck="false" autocomplete="off" onkeydown={onEnter} />
           </label>
         {/if}
         <div class="field">
           <label for="ht-password">Password</label>
           <div class="with-buttons">
-            <input id="ht-password" type={show ? 'text' : 'password'} bind:value={password} spellcheck="false" autocomplete="new-password" />
+            <input id="ht-password" type={show ? 'text' : 'password'} bind:value={password} spellcheck="false" autocomplete="off" data-1p-ignore data-lpignore="true" data-bwignore onkeydown={onEnter} />
             <IconButton icon={show ? EyeOff : Eye} label={show ? 'Hide password' : 'Show password'} size="sm" onclick={() => (show = !show)} />
             {#if making}<IconButton icon={Dices} label="Suggest a strong password" size="sm" onclick={suggest} />{/if}
           </div>
@@ -132,9 +140,8 @@
             <small>Each step doubles the time. Ingress controllers check the hash on every request.</small>
           </div>
         {/if}
-        <button type="submit" hidden aria-hidden="true" tabindex="-1"></button>
         <p class="hint">Hashed on this machine; nothing is stored. bcrypt uses at most 72 bytes of a password.</p>
-      </form>
+      </div>
     </Pane>
   {/snippet}
   {#snippet output()}

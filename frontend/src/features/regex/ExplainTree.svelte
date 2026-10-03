@@ -2,7 +2,7 @@
   import type { RegexNode } from '../../lib/api/regex'
   import ExplainTree from './ExplainTree.svelte'
 
-  // The explanation, part by part. Hovering (or focusing) a part reports
+  // The explanation, part by part. Hovering a part reports
   // it, so the pattern and the matches can light it up.
   interface Props {
     nodes: RegexNode[]
@@ -14,19 +14,12 @@
   let { nodes, hovered, onhover, depth = 0 }: Props = $props()
 </script>
 
-<ul class="tree" class:root={depth === 0} role={depth === 0 ? 'tree' : 'group'}>
+<ul class="tree" class:root={depth === 0}>
   {#each nodes as n, i (i + ':' + n.start)}
-    <li role="treeitem" aria-selected={hovered === n}>
-      <div
-        class="row k-{n.kind}"
-        class:on={hovered === n}
-        tabindex="0"
-        role="button"
-        onmouseenter={() => onhover(n)}
-        onmouseleave={() => onhover(null)}
-        onfocus={() => onhover(n)}
-        onblur={() => onhover(null)}
-      >
+    <li>
+      <!-- Hover is a pointer aid only: every part's words are in the list. -->
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
+      <div class="row k-{n.kind}" class:on={hovered === n} onmouseenter={() => onhover(n)} onmouseleave={() => onhover(null)}>
         <code>{n.text}</code>
         <span class="desc">{n.desc}</span>
       </div>

@@ -62,6 +62,11 @@ func Build(f Form) (string, error) {
 			if len(f.Days) == 0 {
 				return "", errors.New("choose at least one day")
 			}
+			for _, d := range f.Days {
+				if d < 0 || d > 6 {
+					return "", fmt.Errorf("day %d: days are 0 (Sunday) to 6 (Saturday)", d)
+				}
+			}
 			return fmt.Sprintf("%d %d * * %s", m, h, days(f.Days)), nil
 		default:
 			if f.Day < 1 || f.Day > 31 {

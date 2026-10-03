@@ -19,6 +19,9 @@ type shape struct {
 }
 
 func shapeOf(vals []int, b bounds) shape {
+	if len(vals) == 0 {
+		return shape{} // Parse never makes one; don't panic if something else does
+	}
 	sh := shape{from: vals[0], to: vals[len(vals)-1]}
 	switch {
 	case len(vals) == b.max-b.min+1:
@@ -34,7 +37,11 @@ func shapeOf(vals []int, b bounds) shape {
 			}
 		}
 		sh.step = step
-		sh.toEnd = step > 0 && sh.to+step > b.max
+		// "Every 45 minutes" only when the gaps are even: 0,45 is 45 then
+		// 15 minutes apart, so it reads as a list. (Days and months name
+		// their values anyway.)
+		clock := b.name == "minute" || b.name == "hour"
+		sh.toEnd = step > 0 && sh.to+step > b.max && (!clock || sh.from != b.min || (b.max-b.min+1)%step == 0)
 	}
 	return sh
 }

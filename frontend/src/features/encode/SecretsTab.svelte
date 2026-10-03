@@ -161,7 +161,7 @@
           {/each}
         </ul>
       {:else if !job.error}
-        <EmptyState icon={Dices} title={kind === 'secret' && noSet ? 'Choose at least one character set' : 'Generating…'} />
+        <EmptyState icon={Dices} title={kind === 'secret' && noSet ? 'Choose at least one character set' : job.busy ? 'Generating…' : 'Press Generate for new values'} />
       {/if}
     </Pane>
   {/snippet}

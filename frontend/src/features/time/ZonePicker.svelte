@@ -1,21 +1,28 @@
 <script lang="ts">
   import Globe from '@lucide/svelte/icons/globe'
-  import { browserZone, validZone, zoneNames } from './zone.svelte'
+  import { browserZone, canonicalZone, zoneNames } from './zone.svelte'
 
   // A time-zone field: type to filter the browser's zone list. Only a
-  // real zone is taken; while typing, the last good one stays in use.
+  // known zone is taken, in its canonical spelling ("utc" → "UTC");
+  // while typing, the last good one stays in use.
   let { value = $bindable(), label = 'Time zone' }: { value: string; label?: string } = $props()
 
   let text = $state(value)
-  const ok = $derived(validZone(text.trim()))
-  const listId = `zones-${Math.random().toString(36).slice(2, 8)}`
+  const ok = $derived(canonicalZone(text) !== null)
+  const uid = $props.id()
+  const listId = `zones-${uid}`
 
   $effect(() => {
     text = value // follow changes from outside (another tab)
   })
   function commit() {
-    const z = text.trim()
-    if (validZone(z)) value = z
+    const z = canonicalZone(text)
+    if (z) value = z
+  }
+  function onkeydown(e: KeyboardEvent) {
+    if (e.key !== 'Escape') return
+    e.preventDefault() // the tool's Escape would clear its input
+    text = value
   }
 </script>
 
@@ -29,7 +36,7 @@
     autocomplete="off"
     oninput={commit}
     onblur={() => (text = value)}
-    onkeydown={(e) => e.key === 'Escape' && (text = value)}
+    {onkeydown}
   />
   <datalist id={listId}>
     {#each zoneNames as z (z)}

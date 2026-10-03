@@ -42,15 +42,8 @@ export interface CronResult {
   fields: CronField[]
   zone: string
   runs: string[] // RFC 3339, in the zone
-  skipped: { wall: string; at: string }[]
+  skipped: { wall: string }[]
   form?: CronForm
-}
-
-/** Body of a 422 for an expression of another dialect. */
-export interface CronError {
-  error: string
-  dialect?: string
-  field?: string
 }
 
 export const timestamp = (input: string, zone: string) => post<Stamp>('timestamp', { input, zone })

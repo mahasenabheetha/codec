@@ -200,3 +200,32 @@ func TestHtpasswd(t *testing.T) {
 		t.Error("cost 31 accepted")
 	}
 }
+
+// Findings from the 2.3.0 review.
+func TestReviewCases(t *testing.T) {
+	// A parse error never shows the password.
+	if _, err := ParseURL("https://admin:hunter2@example.com/%zz"); err == nil || strings.Contains(err.Error(), "hunter2") {
+		t.Errorf("password in error: %v", err)
+	}
+	// Without a scheme: host and path, not a query key.
+	if p, err := ParseURL("www.example.com/search?q=go"); err != nil || p.Host != "www.example.com" || p.Path != "/search" || p.Query[0] != (Param{"q", "go"}) {
+		t.Errorf("no scheme: %+v %v", p, err)
+	}
+	if p, _ := ParseURL("db:5432/shop?sslmode=require"); p.Host != "db" || p.Port != "5432" {
+		t.Errorf("host:port: %+v", p)
+	}
+	if p, _ := ParseURL("mailto:ops@example.com?subject=hi"); p.Scheme != "mailto" || p.Path != "ops@example.com" || p.Query[0].Value != "hi" {
+		t.Errorf("mailto: %+v", p)
+	}
+	if p, _ := ParseURL("a.b=1&c=2"); len(p.Query) != 2 || p.Host != "" {
+		t.Errorf("bare query with a dot: %+v", p)
+	}
+	// Error positions count characters, not bytes.
+	if _, err := URLDecode("é%zz", false); err == nil || !strings.Contains(err.Error(), "character 2") {
+		t.Errorf("position: %v", err)
+	}
+	// A pasted hash with a huge cost is refused before bcrypt runs.
+	if _, err := HtpasswdCheck("u:$2y$31$abcdefghijklmnopqrstuuOK3PQ1i5f6t1mdbGhY1H1vuBnPJ5tW2", "x"); err == nil || !strings.Contains(err.Error(), "cost 31") {
+		t.Errorf("cost 31: %v", err)
+	}
+}

@@ -57,6 +57,13 @@ func HtpasswdCheck(line, password string) (bool, error) {
 	default:
 		return false, errors.New("not a bcrypt hash ($2y$…)")
 	}
+	// The cost is in the hash, and bcrypt allows up to 31: about two days
+	// of CPU for one check. Refuse what codec wouldn't make.
+	if cost, err := bcrypt.Cost([]byte(hash)); err != nil {
+		return false, fmt.Errorf("unreadable bcrypt hash: %w", err)
+	} else if cost > MaxCost {
+		return false, fmt.Errorf("this hash has cost %d; codec checks hashes up to cost %d (each step doubles the time)", cost, MaxCost)
+	}
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
 		return false, nil

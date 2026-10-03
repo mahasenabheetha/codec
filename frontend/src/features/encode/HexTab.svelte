@@ -28,9 +28,12 @@
   const encoding = $derived(mode === 'encode')
   const separators = { none: '', space: ' ', colon: ':' }
   const call = () => {
+    // Read every option here, not in the closure, so the effect tracks them.
     const input = job.input
+    const u = upper
+    const s = separators[sep]
     if (!input) return null
-    return encoding ? () => hexEncode(input, upper, separators[sep]) : () => hexDecode(input)
+    return encoding ? () => hexEncode(input, u, s) : () => hexDecode(input)
   }
   $effect(() => {
     const c = call()

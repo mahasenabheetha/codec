@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"log"
 	"net/http"
+	"runtime/debug"
 	"unsafe"
 
 	"github.com/mahasenabheetha/codec/v2/internal/ansiblelog"
@@ -52,11 +54,22 @@ func (s *Server) handleAnsibleLog(w http.ResponseWriter, r *http.Request) {
 	}
 	done := make(chan *ansiblelog.Analysis, 1)
 	go func() {
+		// A panic would end the server: report it as an error instead.
+		defer func() {
+			if p := recover(); p != nil {
+				log.Printf("panic: %v\n%s", p, debug.Stack())
+				done <- nil
+			}
+		}()
 		// body is never written again, so the text can share its bytes.
 		done <- ansiblelog.Analyze(unsafe.String(&body[0], len(body)))
 	}()
 	select {
 	case a := <-done:
+		if a == nil {
+			writeError(w, http.StatusInternalServerError, "the log could not be read (internal error)")
+			return
+		}
 		writeJSON(w, http.StatusOK, a)
 	case <-r.Context().Done():
 		held = false

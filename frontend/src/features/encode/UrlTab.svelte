@@ -27,9 +27,12 @@
 
   const encoding = $derived(mode === 'encode')
   const call = () => {
+    // Read every option here, not in the closure, so the effect tracks them.
     const input = job.input
+    const w = whole
+    const p = plus
     if (!input) return null
-    return encoding ? () => urlEncode(input, whole, plus) : () => urlDecode(input, plus)
+    return encoding ? () => urlEncode(input, w, p) : () => urlDecode(input, p)
   }
   $effect(() => {
     const c = call()

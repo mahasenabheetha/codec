@@ -49,6 +49,14 @@ func (p *parser) node(kind string, from int, desc string, children ...*Node) *No
 }
 
 func (p *parser) more() bool { return p.i < len(p.src) }
+
+// skip steps over a closing character when there is one: an unfinished
+// pattern ("(?<", "k<x") ends without it.
+func (p *parser) skip() {
+	if p.more() {
+		p.i++
+	}
+}
 func (p *parser) peek(k int) rune {
 	if p.i+k < len(p.src) {
 		return p.src[p.i+k]
@@ -90,12 +98,27 @@ func (p *parser) alternation(depth int) []*Node {
 // become one literal.
 func (p *parser) sequence(depth int) []*Node {
 	var out []*Node
+	// A run of literals is joined once, when it ends: joining on every
+	// character would be quadratic on a long literal.
+	runFrom, runTo := -1, -1
+	endRun := func() {
+		if runFrom < 0 {
+			return
+		}
+		last := out[len(out)-1]
+		last.Text = string(p.src[runFrom:runTo])
+		last.End = p.u16[runTo]
+		last.Desc = fmt.Sprintf("The text %q", literalValue(last.Text))
+		runFrom = -1
+	}
+	defer endRun()
 	for p.more() {
 		c := p.peek(0)
 		if c == '|' || (c == ')' && depth > 0) {
 			break
 		}
 		if c == ')' { // unbalanced
+			endRun()
 			from := p.i
 			p.i++
 			out = append(out, p.node("error", from, "A ) without a matching ("))
@@ -108,14 +131,31 @@ func (p *parser) sequence(depth int) []*Node {
 		atom = p.quantified(atom)
 		// Join literal characters into one literal ("abc"), unless the
 		// next one is quantified (ab+ is a, then b repeated).
-		if last := len(out) - 1; atom.Kind == "literal" && last >= 0 && out[last].Kind == "literal" {
-			out[last].End, out[last].Text = atom.End, out[last].Text+atom.Text
-			out[last].Desc = fmt.Sprintf("The text %q", literalValue(out[last].Text))
+		if atom.Kind == "literal" && len(out) > 0 && out[len(out)-1].Kind == "literal" {
+			if runFrom < 0 {
+				runFrom = p.runeAt(out[len(out)-1].Start)
+			}
+			runTo = p.i
 			continue
 		}
+		endRun()
 		out = append(out, atom)
 	}
 	return out
+}
+
+// runeAt is the rune index of a UTF-16 offset in the pattern.
+func (p *parser) runeAt(u int) int {
+	lo, hi := 0, len(p.u16)-1
+	for lo < hi {
+		mid := (lo + hi) / 2
+		if p.u16[mid] < u {
+			lo = mid + 1
+		} else {
+			hi = mid
+		}
+	}
+	return lo
 }
 
 func literalValue(t string) string {
@@ -235,16 +275,11 @@ func (p *parser) quantified(atom *Node) *Node {
 	default:
 		return atom
 	}
+	// No possessive repeats (a++): neither RE2 nor regexp2 (.NET) has them.
 	mode := "as many as possible"
-	switch p.peek(0) {
-	case '?':
+	if p.peek(0) == '?' {
 		p.i++
 		mode = "as few as possible (lazy)"
-	case '+':
-		if p.style == PCRE {
-			p.i++
-			mode = "as many as possible, never giving any back (possessive)"
-		}
 	}
 	q := &Node{Kind: "quantifier", Start: atom.Start, End: p.u16[p.i], Text: atom.Text + string(p.src[from:p.i]), Desc: capitalize(desc) + ", " + mode, Children: []*Node{atom}}
 	return q
@@ -305,7 +340,7 @@ func (p *parser) groupNode(depth int) *Node {
 				p.i++
 			}
 			name = string(p.src[s:p.i])
-			p.i++
+			p.skip() // the closing character, if there is one
 			capture = true
 		case strings.HasPrefix(rest, "?P="):
 			p.i += 3
@@ -314,13 +349,13 @@ func (p *parser) groupNode(depth int) *Node {
 				p.i++
 			}
 			name := string(p.src[s:p.i])
-			p.i++
+			p.skip()
 			return p.node("backref", from, fmt.Sprintf("The same text group %q matched", name))
 		case strings.HasPrefix(rest, "?#"):
 			for p.more() && p.peek(0) != ')' {
 				p.i++
 			}
-			p.i++
+			p.skip()
 			return p.node("comment", from, "A comment")
 		default:
 			// Inline flags: (?i) for the rest, (?i:…) for a group.
@@ -334,7 +369,7 @@ func (p *parser) groupNode(depth int) *Node {
 				p.i++
 				return p.node("flags", from, "From here on: "+flagWords(fl))
 			}
-			p.i++
+			p.skip()
 			desc = "Group (not captured) with " + flagWords(fl)
 		}
 	} else {
@@ -383,6 +418,11 @@ func groupNumbers(src []rune, style string) map[int]int {
 	inClass := false
 	for i := 0; i < len(src); i++ {
 		switch c := src[i]; {
+		case c == '\\' && i+1 < len(src) && src[i+1] == 'Q' && style != PCRE:
+			// \Q…\E is literal text: parentheses in it open no group.
+			for i += 2; i < len(src) && !(src[i] == '\\' && i+1 < len(src) && src[i+1] == 'E'); i++ {
+			}
+			i++
 		case c == '\\':
 			i++
 		case inClass:
@@ -391,6 +431,13 @@ func groupNumbers(src []rune, style string) map[int]int {
 			}
 		case c == '[':
 			inClass = true
+			// A ] first in a class ([]a], [^]a]) is a literal, not its end.
+			if i+1 < len(src) && src[i+1] == '^' {
+				i++
+			}
+			if i+1 < len(src) && src[i+1] == ']' {
+				i++
+			}
 		case c == '(':
 			rest := string(src[i+1 : min(i+5, len(src))])
 			switch {
@@ -441,7 +488,7 @@ func (p *parser) class() *Node {
 			for p.more() && !(p.peek(0) == ']' && p.peek(-1) == ':') {
 				p.i++
 			}
-			p.i++
+			p.skip()
 			item = "POSIX class " + string(p.src[s:p.i])
 		} else {
 			item = quoteChar(p.src[p.i])
@@ -520,19 +567,21 @@ func (p *parser) escape(inClass bool) *Node {
 		}
 		return p.node("backref", from, "The same text group "+string(p.src[from+1:p.i])+" matched")
 	case c == 'k' && (p.peek(0) == '<' || p.peek(0) == '{' || p.peek(0) == '\''):
-		s := p.i + 1
-		for p.more() && !strings.ContainsRune(">}'", p.peek(0)) {
+		closer := map[rune]rune{'<': '>', '{': '}', '\'': '\''}[p.peek(0)]
+		p.i++ // the opener; for \k'name' it is also the closer
+		s := p.i
+		for p.more() && p.peek(0) != closer {
 			p.i++
 		}
 		name := string(p.src[s:p.i])
-		p.i++
+		p.skip()
 		return p.node("backref", from, fmt.Sprintf("The same text group %q matched", name))
 	case c == 'x':
 		if p.peek(0) == '{' {
 			for p.more() && p.peek(0) != '}' {
 				p.i++
 			}
-			p.i++
+			p.skip()
 		} else {
 			p.i = min(p.i+2, len(p.src))
 		}
@@ -548,7 +597,7 @@ func (p *parser) escape(inClass bool) *Node {
 				p.i++
 			}
 			name = string(p.src[s:p.i])
-			p.i++
+			p.skip()
 		} else if p.more() {
 			name = string(p.peek(0))
 			p.i++
@@ -564,7 +613,7 @@ func (p *parser) escape(inClass bool) *Node {
 		}
 		lit := string(p.src[s:p.i])
 		p.i = min(p.i+2, len(p.src))
-		return p.node("literal", from, fmt.Sprintf("The text %q, taken literally", lit))
+		return p.node("quote", from, fmt.Sprintf("The text %q, taken literally", lit)) // not joined with literals around it
 	}
 	if inClass {
 		return p.node("literal", from, quoteChar(c))

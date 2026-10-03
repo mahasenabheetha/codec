@@ -83,3 +83,34 @@ func TestRelative(t *testing.T) {
 		}
 	}
 }
+
+// Findings from the 2.3.0 review.
+func TestReviewCases(t *testing.T) {
+	now := time.Date(2026, 2, 3, 12, 0, 0, 0, time.UTC)
+	for in, want := range map[string]string{
+		"1700000000.123456789":          "2023-11-14T22:13:20.123456789Z", // no float rounding
+		"1700000000123.456":             "2023-11-14T22:13:20.123456Z",    // milliseconds with a fraction
+		"-0.5":                          "1969-12-31T23:59:59.5Z",
+		"Tue Feb  3 09:05:09 EST 2026":  "2026-02-03T14:05:09Z", // EST is -05:00, not UTC
+		"Tue, 03 Feb 2026 01:05:09 PST": "2026-02-03T09:05:09Z",
+	} {
+		s, err := Parse(in, time.UTC, now)
+		if err != nil || s.UTC != want {
+			t.Errorf("%q: %+v %v, want %s", in, s, err, want)
+		}
+	}
+	if _, err := Parse("Tue Feb  3 09:05:09 XYZ 2026", time.UTC, now); err == nil {
+		t.Error("an unknown abbreviation read as UTC")
+	}
+	// CET in its own zone keeps working.
+	sthlm, _ := Zone("Europe/Stockholm")
+	if s, err := Parse("Tue Feb  3 13:05:09 CET 2026", sthlm, now); err != nil || s.Unix != 1770120309 {
+		t.Errorf("CET: %+v %v", s, err)
+	}
+	if got := Relative(time.Date(5138, 1, 1, 0, 0, 0, 0, time.UTC), now); got != "in 3112 years" {
+		t.Errorf("far future: %q", got)
+	}
+	if got := Relative(time.Date(1700, 1, 1, 0, 0, 0, 0, time.UTC), now); got != "326 years ago" {
+		t.Errorf("far past: %q", got)
+	}
+}

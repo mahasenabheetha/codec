@@ -5,9 +5,13 @@
 package encode
 
 import (
+	"cmp"
+	"errors"
 	"fmt"
 	"net/url"
+	"regexp"
 	"strings"
+	"unicode/utf8"
 )
 
 const upperHex = "0123456789ABCDEF"
@@ -54,7 +58,7 @@ func URLDecode(s string, plus bool) (string, error) {
 		switch c := s[i]; {
 		case c == '%':
 			if i+2 >= len(s) || !ishex(s[i+1]) || !ishex(s[i+2]) {
-				return "", fmt.Errorf("invalid escape %q at character %d", s[i:min(i+3, len(s))], i+1)
+				return "", fmt.Errorf("invalid escape %q at character %d", s[i:min(i+3, len(s))], utf8.RuneCountInString(s[:i])+1)
 			}
 			b.WriteByte(unhex(s[i+1])<<4 | unhex(s[i+2]))
 			i += 2
@@ -86,21 +90,30 @@ type Param struct {
 }
 
 // ParseURL takes s apart. The password in a URL's user info is never
-// returned; only the user name is.
+// returned, not even in an error; only the user name is. A URL without
+// a scheme ("www.example.com/search?q=go") is read as host and path.
 func ParseURL(s string) (*URLParts, error) {
 	s = strings.TrimSpace(s)
-	if !strings.Contains(s, "://") && !strings.HasPrefix(s, "/") && (strings.Contains(s, "=") || strings.HasPrefix(s, "?")) {
+	if strings.HasPrefix(s, "?") || isBareQuery(s) {
 		q, err := ParseQuery(strings.TrimPrefix(s, "?"))
 		if err != nil {
 			return nil, err
 		}
 		return &URLParts{Query: q}, nil
 	}
+	if !strings.Contains(s, "://") && hostFirst.MatchString(s) {
+		s = "//" + s
+	}
 	u, err := url.Parse(s)
 	if err != nil {
+		// url.Error repeats the whole URL, password and all.
+		var ue *url.Error
+		if errors.As(err, &ue) {
+			err = ue.Err
+		}
 		return nil, fmt.Errorf("not a URL: %w", err)
 	}
-	p := &URLParts{Scheme: u.Scheme, Host: u.Hostname(), Port: u.Port(), Path: u.Path, Fragment: u.Fragment}
+	p := &URLParts{Scheme: u.Scheme, Host: u.Hostname(), Port: u.Port(), Path: cmp.Or(u.Path, u.Opaque), Fragment: u.Fragment}
 	if u.User != nil {
 		p.User = u.User.Username()
 	}
@@ -144,4 +157,15 @@ func unhex(c byte) byte {
 		return c - 'A' + 10
 	}
 	return c - 'a' + 10
+}
+
+// hostFirst matches text that starts with a host name ("example.com",
+// "db:5432") rather than a scheme or a path.
+var hostFirst = regexp.MustCompile(`^(?:[\w-]+(?:\.[\w-]+)+(?::\d+)?|[\w.-]+:\d+)(?:[/?#]|$)`)
+
+// isBareQuery reports a query string without the URL: "a=1&b=2", with
+// nothing URL-like (/ : ?) before its first "=".
+func isBareQuery(s string) bool {
+	i := strings.IndexByte(s, '=')
+	return i > 0 && !strings.ContainsAny(s[:i], "/:?#")
 }

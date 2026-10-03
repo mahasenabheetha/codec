@@ -67,3 +67,12 @@ func TestCronHover(t *testing.T) {
 		t.Errorf("Argo: %v", r)
 	}
 }
+
+// A panic in work run off the handler goroutine is an error, not the
+// end of the server.
+func TestCancellableRecovers(t *testing.T) {
+	_, err := cancellable(t.Context(), func() (int, error) { panic("boom") })
+	if err == nil || !strings.Contains(err.Error(), "boom") {
+		t.Errorf("err = %v", err)
+	}
+}

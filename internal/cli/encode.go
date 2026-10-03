@@ -225,8 +225,8 @@ secret pastes into YAML, JSON and a shell as is.`,
 				return fmt.Errorf("unknown set %q (lower, upper, digits, symbols)", s)
 			}
 		}
-		lines := make([]string, 0, genCount)
-		for range max(genCount, 1) {
+		lines := make([]string, 0, min(max(genCount, 1), 10000))
+		for range min(max(genCount, 1), 10000) {
 			s, err := encode.NewSecret(o)
 			if err != nil {
 				return err
@@ -242,7 +242,7 @@ var uuidCmd = &cobra.Command{
 	Short: "Generate random (version 4) UUIDs",
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		lines := make([]string, max(genCount, 1))
+		lines := make([]string, min(max(genCount, 1), 10000))
 		for i := range lines {
 			lines[i] = encode.UUID()
 		}
@@ -308,6 +308,11 @@ func exactInput(args []string) (string, error) {
 func readPassword(confirm bool) (string, error) {
 	fd := int(os.Stdin.Fd())
 	if !term.IsTerminal(fd) {
+		// Git Bash (mintty) gives programs a pipe, not a console, so typing
+		// would show the password: say so, unless a file is piped in.
+		if fi, err := os.Stdin.Stat(); err == nil && !fi.Mode().IsRegular() && os.Getenv("MSYSTEM") != "" {
+			fmt.Fprintln(os.Stderr, "Reading the password from stdin; typed here it would show. In Git Bash run: winpty codec htpasswd …")
+		}
 		line, err := bufio.NewReader(os.Stdin).ReadString('\n')
 		if err != nil && !errors.Is(err, io.EOF) {
 			return "", fmt.Errorf("read stdin: %w", err)

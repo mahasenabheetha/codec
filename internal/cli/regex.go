@@ -97,6 +97,9 @@ Exit status: 0 matched, 1 error, 2 no match.`,
 			}
 		}
 		if len(res.Matches) == 0 {
+			if res.TimedOut {
+				return exitCode(1) // not "no match": we don't know
+			}
 			return exitCode(2)
 		}
 		return nil

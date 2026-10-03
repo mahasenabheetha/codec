@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 	"time"
+	"unicode/utf16"
 )
 
 func TestRunBothStyles(t *testing.T) {
@@ -174,8 +175,8 @@ func TestExplain(t *testing.T) {
 		{`(?i)abc`, Go, "", "From here on: ignore case"},
 		{`a{2,}`, Go, "", "2 or more times"},
 		{`a{2,5}`, Go, "", "2 to 5 times"},
-		{`a++`, PCRE, "", "possessive"},
-		{`(?<n>x)(y)`, PCRE, "", `Group 2, named "n"`}, // .NET numbering
+		{`a++`, PCRE, "", "A repeat with nothing before it to repeat"}, // no possessive repeats in regexp2
+		{`(?<n>x)(y)`, PCRE, "", `Group 2, named "n"`},                 // .NET numbering
 		{`\p{L}`, Go, "", "Unicode class L"},
 		{`(ab`, Go, "", "A ( without a matching )"},
 		{`[ab`, Go, "", "A [ without a matching ]"},
@@ -189,4 +190,70 @@ func TestExplain(t *testing.T) {
 	if g := ns[1]; g.Start != 2 || g.End != 5 {
 		t.Errorf("group at %d-%d", g.Start, g.End)
 	}
+}
+
+// Findings from the 2.3.0 review.
+func TestReviewCases(t *testing.T) {
+	// Unfinished patterns, as typed one key at a time, explain without a panic.
+	for _, p := range []string{`(?`, `(?<`, `(?<n`, `(?P<`, `(?P=x`, `(?#x`, `a(?i`, `[[:`, `\k<x`, `\x{12`, `\p{L`, `\`, `[`, `(`, `a{2,`, `\Q`} {
+		Explain(p, PCRE, "")
+		Explain(p, Go, "")
+	}
+	// A long literal explains in linear time.
+	start := time.Now()
+	if ns := Explain(strings.Repeat("a", 100_000), Go, ""); len(ns) != 1 || len(ns[0].Text) != 100_000 || time.Since(start) > time.Second {
+		t.Errorf("long literal: %d nodes in %v", len(ns), time.Since(start))
+	}
+	// \Q…\E stays one part, and parentheses in it or a ] first in a class open no group.
+	if ns := Explain(`a\Qb.c\E(x)`, Go, ""); len(ns) != 3 || ns[1].Kind != "quote" || ns[2].Group != 1 {
+		t.Errorf(`\Q: %+v`, ns)
+	}
+	if ns := Explain(`[](](a)`, Go, ""); ns[len(ns)-1].Group != 1 {
+		t.Errorf("leading ] in a class: %+v", ns[len(ns)-1])
+	}
+	// Text ending in an invalid UTF-8 byte.
+	for _, style := range []string{Go, PCRE} {
+		if r, err := Run(Options{Pattern: `b`, Style: style, All: true}, "a\xffb\xff"); err != nil || len(r.Matches) != 1 || r.Matches[0].Start != 2 {
+			t.Errorf("%s invalid utf-8: %+v %v", style, r, err)
+		}
+	}
+	// Templates: $$ and \ are literal, and a group the pattern doesn't
+	// have stays as written, the same in both styles.
+	for _, style := range []string{Go, PCRE} {
+		o := Options{Pattern: `(?<n>b)`, Style: style, All: true}
+		for tmpl, want := range map[string]string{`$$1`: "a$1c", `$$<n>`: "a$<n>c", `\\1`: `a\1c`, `$USD`: "a$USDc", `$9`: "a$9c", `[${n}$1]`: "a[bb]c", `$`: "a$c"} {
+			if got, err := Replace(o, "abc", tmpl); err != nil || got != want {
+				t.Errorf("%s %q: %q %v, want %q", style, tmpl, got, err, want)
+			}
+		}
+	}
+	// A replace that backtracks badly on many segments stops near the limit.
+	start = time.Now()
+	_, err := Replace(Options{Pattern: `(a+)+b|c`, Style: PCRE, All: true}, strings.Repeat(strings.Repeat("a", 22)+"c", 8), "x")
+	if !errors.Is(err, ErrTimeout) || time.Since(start) > Timeout+3*time.Second {
+		t.Errorf("replace limit: %v after %v", err, time.Since(start))
+	}
+}
+
+// FuzzExplain: any pattern explains without a panic, with parts inside
+// the pattern.
+func FuzzExplain(f *testing.F) {
+	for _, s := range []string{`^(?P<y>\d{4})-v\.[0-9a-f]+?(?:rc|beta)?\b$`, `(?<!x)y\k<w>`, `[^\s,][]a]`, `a\Qb(c\E`, `(?i:a|b)*`, `x{2,5}?`, "😀(a)"} {
+		f.Add(s)
+	}
+	f.Fuzz(func(t *testing.T, p string) {
+		limit := len(utf16.Encode([]rune(p)))
+		var walk func(ns []*Node)
+		walk = func(ns []*Node) {
+			for _, n := range ns {
+				if n.Start < 0 || n.End > limit || n.Start > n.End {
+					t.Fatalf("%q: part %d-%d of %d", p, n.Start, n.End, limit)
+				}
+				walk(n.Children)
+			}
+		}
+		for _, style := range []string{Go, PCRE} {
+			walk(Explain(p, style, "imsx"))
+		}
+	})
 }

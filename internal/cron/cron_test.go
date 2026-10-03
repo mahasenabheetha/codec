@@ -219,3 +219,50 @@ func TestBuild(t *testing.T) {
 		t.Error("two minutes don't fit a form")
 	}
 }
+
+// Findings from the 2.3.0 review.
+func TestReviewCases(t *testing.T) {
+	for _, c := range []struct {
+		expr string
+		want []int
+	}{
+		{"0 0 * * 7/2", []int{0, 2, 4, 6}}, // was a panic: no values
+		{"0 0 * * 2-7/2", []int{2, 4, 6}},  // the step never reaches 7
+		{"0 0 * * 6-7/2", []int{6}},
+		{"0 0 * * 5-7", []int{0, 5, 6}},
+		{"0 0 * * 7-7", []int{0}},
+	} {
+		s, err := Parse(c.expr)
+		if err != nil || !slices.Equal(s.Fields[4].Values, c.want) {
+			t.Errorf("%q: %v %v, want %v", c.expr, s, err, c.want)
+			continue
+		}
+		s.Describe() // no panic
+	}
+	if _, err := Parse("CRON_TZ=Local 0 9 * * *"); err == nil {
+		t.Error("CRON_TZ=Local accepted: it would mean whichever machine reads it")
+	}
+	// Uneven steps read as lists, not "every N".
+	for expr, want := range map[string]string{
+		"0,45 * * * *": "At minutes 0 and 45, every hour",
+		"*/45 * * * *": "At minutes 0 and 45, every hour",
+		"0 */5 * * *":  "At 00:00, 05:00, 10:00, 15:00 and 20:00, every day",
+		"0 0 */2 * *":  "At 00:00, on every 2nd day of the month",
+	} {
+		s, _ := Parse(expr)
+		if got := s.Describe(); got != want {
+			t.Errorf("%q: %q, want %q", expr, got, want)
+		}
+	}
+	// Lord Howe's clocks go back 30 minutes: 01:30-01:59 happens twice,
+	// and runs once, the first time.
+	lh, _ := time.LoadLocation("Australia/Lord_Howe")
+	s, _ := Parse("45 1 * * *")
+	runs, _ := s.Next(time.Date(2026, 4, 4, 12, 0, 0, 0, lh), 1, lh)
+	if _, off := runs[0].Zone(); off != 11*3600 {
+		t.Errorf("Lord Howe: %v (offset %d)", runs[0], off)
+	}
+	if _, err := Build(Form{Kind: "weekly", Time: "09:00", Days: []int{8}}); err == nil {
+		t.Error("day 8 accepted")
+	}
+}

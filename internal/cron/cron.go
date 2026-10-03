@@ -75,7 +75,8 @@ func Parse(expr string) (*Schedule, error) {
 	for _, p := range []string{"CRON_TZ=", "TZ="} {
 		if r, ok := strings.CutPrefix(rest, p); ok {
 			zone, after, _ := strings.Cut(r, " ")
-			if _, err := time.LoadLocation(zone); err != nil {
+			// "Local" (and "") would mean whichever machine reads it.
+			if _, err := time.LoadLocation(zone); err != nil || zone == "" || zone == "Local" {
 				return nil, &Error{Msg: fmt.Sprintf("unknown time zone %q in %s", zone, p[:len(p)-1])}
 			}
 			s.Zone, rest = zone, strings.TrimSpace(after)
@@ -173,16 +174,6 @@ func parseField(text string, b bounds) (Field, error) {
 			if hi, err = value(z, b); err != nil {
 				return fail("%v", err)
 			}
-			if b.max == 6 && lo == 7 && hi == 7 {
-				seen[0] = true
-				continue
-			}
-			if b.max == 6 && hi == 7 {
-				hi = 6 // "5-7": Friday to Sunday
-				if lo <= 6 {
-					seen[0] = true
-				}
-			}
 			if lo > hi {
 				return fail("range %s goes backwards; cron ranges don't wrap around", rng)
 			}
@@ -191,11 +182,16 @@ func parseField(text string, b bounds) (Field, error) {
 			if err != nil {
 				return fail("%v", err)
 			}
+			if b.max == 6 && v == 7 && hasStep {
+				v = 0 // "7/2" starts on Sunday: 0, 2, 4, 6
+			}
 			lo = v
 			if !hasStep {
 				hi = v // "5" is just 5; "5/15" is 5, 20, 35, 50
 			}
 		}
+		// Day of week counts 0-7 here, so a step over "2-7/2" lands on 2, 4
+		// and 6 and only a 7 actually reached means Sunday.
 		for v := lo; v <= hi; v += step {
 			seen[v] = true
 		}
@@ -207,6 +203,9 @@ func parseField(text string, b bounds) (Field, error) {
 		if seen[v] {
 			f.Values = append(f.Values, v)
 		}
+	}
+	if len(f.Values) == 0 {
+		return fail("%q selects no %s", text, b.name)
 	}
 	return f, nil
 }
@@ -256,8 +255,7 @@ const horizon = 12 * 366
 // Skipped is a run that falls in a daylight-saving gap (the clock jumps
 // over it), so it doesn't happen that day.
 type Skipped struct {
-	Wall string    `json:"wall"` // "2026-03-29 02:30"
-	At   time.Time `json:"at"`   // the moment after the gap
+	Wall string `json:"wall"` // "2026-03-29 02:30", in the schedule's zone
 }
 
 // Next lists the next n runs after from, in loc, with the runs a
@@ -275,13 +273,17 @@ func (s *Schedule) Next(from time.Time, n int, loc *time.Location) ([]time.Time,
 					t := time.Date(day.Year(), day.Month(), day.Day(), h, m, 0, 0, loc)
 					if t.Hour() != h || t.Minute() != m {
 						if t.After(from) && len(runs) < n {
-							skipped = append(skipped, Skipped{Wall: fmt.Sprintf("%s %02d:%02d", day.Format("2006-01-02"), h, m), At: t})
+							skipped = append(skipped, Skipped{Wall: fmt.Sprintf("%s %02d:%02d", day.Format("2006-01-02"), h, m)})
 						}
 						continue
 					}
-					// A wall time that happens twice runs at its first occurrence.
-					if e := t.Add(-time.Hour); e.Hour() == h && e.Minute() == m && e.Day() == t.Day() {
-						t = e
+					// A wall time that happens twice runs at its first occurrence;
+					// clocks go back by an hour, or 30 minutes (Lord Howe).
+					for _, back := range []time.Duration{time.Hour, 30 * time.Minute} {
+						if e := t.Add(-back); e.Hour() == h && e.Minute() == m && e.Day() == t.Day() {
+							t = e
+							break
+						}
 					}
 					if !t.After(from) || (len(runs) > 0 && !t.After(runs[len(runs)-1])) {
 						continue

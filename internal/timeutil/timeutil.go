@@ -52,21 +52,23 @@ func Parse(input string, loc *time.Location, now time.Time) (*Stamp, error) {
 	if t, kind, ok := epoch(s); ok {
 		return Describe(t, kind, loc, now), nil
 	}
-	if t, ok := date(s, loc); ok {
-		return Describe(t, "date", loc, now), nil
+	t, err := date(s, loc)
+	if err != nil {
+		return nil, err
 	}
-	return nil, fmt.Errorf("%q is neither an epoch number nor a date this tool reads (try 2026-02-03T14:05:09Z)", s)
+	return Describe(t, "date", loc, now), nil
 }
 
-// epoch reads an integer by its size: up to 11 digits are seconds (until
-// the year 5138), then milliseconds, microseconds and nanoseconds. A
-// decimal is seconds with a fraction.
+// epoch reads a number by the size of its whole part: up to 11 digits
+// are seconds (until the year 5138), then milliseconds, microseconds and
+// nanoseconds. A fraction is of that unit, read as digits so no
+// precision is lost ("1700000000.123456789").
 func epoch(s string) (time.Time, string, bool) {
-	if f, err := strconv.ParseFloat(s, 64); err == nil && strings.Contains(s, ".") && !strings.ContainsAny(s, "eE") {
-		sec, frac := math.Modf(f)
-		return time.Unix(int64(sec), int64(math.Round(frac*1e9))).UTC(), "seconds", true
+	whole, frac, hasFrac := strings.Cut(s, ".")
+	if hasFrac && (frac == "" || strings.Trim(frac, "0123456789") != "") {
+		return time.Time{}, "", false
 	}
-	n, err := strconv.ParseInt(s, 10, 64)
+	n, err := strconv.ParseInt(whole, 10, 64)
 	if err != nil {
 		return time.Time{}, "", false
 	}
@@ -74,15 +76,27 @@ func epoch(s string) (time.Time, string, bool) {
 	if a < 0 {
 		a = -a
 	}
-	switch {
-	case a < 1e11:
-		return time.Unix(n, 0).UTC(), "seconds", true
-	case a < 1e14:
-		return time.UnixMilli(n).UTC(), "milliseconds", true
-	case a < 1e17:
-		return time.UnixMicro(n).UTC(), "microseconds", true
+	units := []struct {
+		name   string
+		below  int64
+		perSec int64
+		digits int // fraction digits that still count
+	}{{"seconds", 1e11, 1, 9}, {"milliseconds", 1e14, 1e3, 6}, {"microseconds", 1e17, 1e6, 3}, {"nanoseconds", math.MaxInt64, 1e9, 0}}
+	for _, u := range units {
+		if a >= u.below && u.below != math.MaxInt64 {
+			continue
+		}
+		var ns int64 // the fraction, in nanoseconds
+		if f := (frac + "000000000")[:u.digits]; u.digits > 0 && hasFrac {
+			ns, _ = strconv.ParseInt(f, 10, 64) // digits of one unit are its nanoseconds
+			if strings.HasPrefix(whole, "-") {
+				ns = -ns
+			}
+		}
+		perNs := int64(1e9) / u.perSec
+		return time.Unix(n/u.perSec, (n%u.perSec)*perNs+ns).UTC(), u.name, true
 	}
-	return time.Unix(0, n).UTC(), "nanoseconds", true
+	return time.Time{}, "", false
 }
 
 var zoned = []string{
@@ -111,24 +125,45 @@ var local = []string{
 	"Jan 2, 2006",
 }
 
-func date(s string, loc *time.Location) (time.Time, bool) {
+// abbreviations are the zone names dates commonly carry. Go knows only
+// the chosen zone's own; any other would silently read as UTC.
+var abbreviations = map[string]float64{
+	"EST": -5, "EDT": -4, "CST": -6, "CDT": -5, "MST": -7, "MDT": -6, "PST": -8, "PDT": -7,
+	"AKST": -9, "AKDT": -8, "HST": -10, "WET": 0, "WEST": 1, "BST": 1, "CET": 1, "CEST": 2,
+	"EET": 2, "EEST": 3, "MSK": 3, "JST": 9, "KST": 9, "AWST": 8, "ACST": 9.5, "AEST": 10,
+	"AEDT": 11, "NZST": 12, "NZDT": 13,
+}
+
+func date(s string, loc *time.Location) (time.Time, error) {
 	tries := []string{s}
 	if i := strings.LastIndexByte(s, ','); i > 0 && i+1 < len(s) && s[i-1] >= '0' && s[i-1] <= '9' && s[i+1] >= '0' && s[i+1] <= '9' {
 		tries = append(tries, s[:i]+"."+s[i+1:]) // "15:04:05,123": ISO allows a comma
 	}
 	for _, try := range tries {
 		for _, l := range zoned {
-			if t, err := time.Parse(l, try); err == nil {
-				return t, true
+			t, err := time.ParseInLocation(l, try, loc)
+			if err != nil {
+				continue
 			}
+			// An abbreviation the zone doesn't use gets a made-up zone at
+			// offset 0: use its real offset, or say it is unknown.
+			if name, off := t.Zone(); off == 0 && t.Location() != loc && t.Location() != time.UTC && name != "UTC" && name != "GMT" && name != "Z" {
+				h, ok := abbreviations[name]
+				if !ok {
+					return time.Time{}, fmt.Errorf("unknown time zone abbreviation %q: write the offset instead, such as -05:00", name)
+				}
+				z := time.FixedZone(name, int(h*3600))
+				t = time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), z)
+			}
+			return t, nil
 		}
 		for _, l := range local {
 			if t, err := time.ParseInLocation(l, try, loc); err == nil {
-				return t, true
+				return t, nil
 			}
 		}
 	}
-	return time.Time{}, false
+	return time.Time{}, fmt.Errorf("%q is neither an epoch number nor a date this tool reads (try 2026-02-03T14:05:09Z)", s)
 }
 
 // Describe shows t in every form, in loc, relative to now.
@@ -156,6 +191,13 @@ const http1123 = "Mon, 02 Jan 2006 15:04:05 GMT"
 // Relative says how far t is from now in at most two units: "in 3 days
 // 4 hours", "2 minutes ago", "just now".
 func Relative(t, now time.Time) string {
+	// A Duration ends at about 292 years; count years beyond that.
+	if y := t.Year() - now.Year(); y > 250 || y < -250 {
+		if y > 0 {
+			return "in " + plural(int64(y), "year")
+		}
+		return plural(int64(-y), "year") + " ago"
+	}
 	d := t.Sub(now)
 	future := d > 0
 	if d < 0 {

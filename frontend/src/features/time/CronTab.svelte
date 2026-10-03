@@ -47,13 +47,16 @@
     const v = handoff.take('time', 'cron')
     if (v !== null) untrack(() => (expr = v))
   })
-  // A schedule that fits the form fills it in.
+  // A schedule that fits the form fills it in, unless the form just wrote
+  // it (the user may still be typing in a field).
+  let built = ''
+  let buildSeq = 0
   $effect(() => {
     const r = job.result
     if (!r) return
     untrack(() => {
       fits = !!r.form
-      if (!r.form) return
+      if (!r.form || expr.trim() === built) return
       const g = r.form
       f.kind = g.kind
       if (g.kind === 'minutes') f.minutes = String(g.every ?? 1)
@@ -67,7 +70,20 @@
     })
   })
 
+  // "Next run in 3 minutes" goes stale, and so does the first run: refresh.
+  $effect(() => {
+    if (!active || !job.result) return
+    const id = setInterval(() => job.run(call()), 30_000)
+    return () => clearInterval(id)
+  })
+
+  const inRange = (n: unknown, lo: number, hi: number) => n !== null && n !== '' && Number.isInteger(Number(n)) && Number(n) >= lo && Number(n) <= hi
+
   async function build() {
+    // A number field being retyped is empty or out of range for a moment:
+    // wait for it rather than writing a clamped value.
+    if (f.kind === 'hourly' && !inRange(f.minute, 0, 59)) return
+    if (f.kind === 'monthly' && !inRange(f.day, 1, 31)) return
     const form: CronForm = { kind: f.kind, minute: clamp(f.minute, 0, 59) }
     if (f.kind === 'minutes') form.every = Number(f.minutes)
     if (f.kind === 'hourly') form.every = Number(f.hours)
@@ -75,8 +91,11 @@
     if (f.kind === 'weekly') form.days = f.days
     if (f.kind === 'monthly') form.day = clamp(f.day, 1, 31)
     if (f.kind === 'weekly' && !f.days.length) return
+    const seq = ++buildSeq
     try {
-      expr = (await buildCron(form)).expr
+      const e = (await buildCron(form)).expr
+      if (seq !== buildSeq) return // a newer choice is on its way
+      built = expr = e
     } catch {
       /* the form only offers valid choices */
     }
@@ -84,6 +103,8 @@
   function clamp(n: number, lo: number, hi: number) {
     return Math.min(hi, Math.max(lo, Math.round(Number(n) || 0)))
   }
+  // The usual steps, plus the one a typed expression uses (*/7).
+  const steps = (base: string[], current: string) => (base.includes(current) ? base : [...base, current].sort((a, b) => Number(a) - Number(b)))
   function toggleDay(d: number) {
     f.days = f.days.includes(d) ? f.days.filter((x) => x !== d) : [...f.days, d].sort()
     build()
@@ -175,11 +196,11 @@
           <div class="line">
             {#if f.kind === 'minutes'}
               <span>Every</span>
-              <Select label="Minutes" bind:value={f.minutes} onchange={build} items={['1', '2', '5', '10', '15', '20', '30'].map((v) => ({ value: v, label: v }))} />
+              <Select label="Minutes" bind:value={f.minutes} onchange={build} items={steps(['1', '2', '5', '10', '15', '20', '30'], f.minutes).map((v) => ({ value: v, label: v }))} />
               <span>minutes</span>
             {:else if f.kind === 'hourly'}
               <span>Every</span>
-              <Select label="Hours" bind:value={f.hours} onchange={build} items={['1', '2', '3', '4', '6', '8', '12'].map((v) => ({ value: v, label: v === '1' ? 'hour' : v + ' hours' }))} />
+              <Select label="Hours" bind:value={f.hours} onchange={build} items={steps(['1', '2', '3', '4', '6', '8', '12'], f.hours).map((v) => ({ value: v, label: v === '1' ? 'hour' : v + ' hours' }))} />
               <span>at minute</span>
               <input class="num" type="number" min="0" max="59" bind:value={f.minute} oninput={build} aria-label="Minute" />
             {:else}
