@@ -74,7 +74,7 @@ Branch `feature/mab/v2.1.0`.
 | T3 | Compare paste: UI | Third source with an editor box; "Compare as"; "Live object noise" preset; "Compare text" on Home and in the palette; "Cleared · Undo"; docs | Done |
 | T4 | Explorer: context menu + Ctrl+click | Shared context-menu component; multi-select; keyboard | Done |
 | T5 | Explorer → Compare | Drag and drop onto a side; "Select for compare", "Compare with selected", "Compare selected"; docs | Done |
-| T6 | [Reload prompt](#reload-prompt-after-a-server-restart) | Server marks a stale token; "codec restarted — Reload" banner; docs | |
+| T6 | Reload prompt | Server marks a stale token; "codec restarted — Reload" banner; docs | Done |
 | T7 | [Find in Files](#find-in-files): engine + API + CLI | `internal/search`, endpoint, result cap; tests; `codec search` | |
 | T8 | Find in Files: UI | Search panel in the Explorer's slot, Ctrl+Shift+F, results open at the line; docs | |
 | — | Release | If T7–T8 run long, release without them; they move to 2.2.0 | |
@@ -118,7 +118,6 @@ The rest of "Next", picked up after 2.3.0 or slotted in when it fits.
 | Item | Size | Notes |
 |---|---|---|
 | [Expand matrix jobs in the pipeline graph](#expand-matrix-jobs-in-the-pipeline-graph) | S | A matrix job calling a reusable workflow shows as one node |
-| [Reload prompt after a server restart](#reload-prompt-after-a-server-restart) | S | Today requests fail until the page is reloaded |
 | [Kustomize helmCharts](#kustomize-helmcharts) | M | Helm SDK is already embedded |
 | [Window long lists](#window-long-lists) | S | Problems and Resources cards, like TreeView |
 | [Find in Files](#find-in-files) | M | Text search across the workspace; read-only, no replace |
@@ -148,7 +147,7 @@ The rest of "Next", picked up after 2.3.0 or slotted in when it fits.
 
 | Version | Items |
 |---|---|
-| 2.1.0 | Compare: clear; Compare: paste as a source; Compare: pick files from the Explorer |
+| 2.1.0 | Compare: clear; Compare: paste as a source; Compare: pick files from the Explorer; Reload prompt after a server restart |
 | 2.0.0 | Everything in [history.md](history.md) |
 
 ## Items
@@ -160,14 +159,6 @@ The rest of "Next", picked up after 2.3.0 or slotted in when it fits.
   on click), consistent with plain matrix jobs.
 - **Scope:** `internal/ci` graph building, the Pipeline view.
 - **Done when:** the sample's `ci.yml` shows three `test` runs; ci tests cover it.
-
-### Reload prompt after a server restart
-- **Problem:** each `codec serve` run has a new token, so a page left
-  open fails with "can't reach the server" until reloaded.
-- **Result:** the UI detects the token mismatch (401 with a known body)
-  and shows "codec restarted — Reload".
-- **Scope:** `internal/web` (distinguish token mismatch), `frontend/src/lib/api/client.ts`, shell.
-- **Done when:** restarting codec shows the prompt; reload restores tabs.
 
 ### Kustomize helmCharts
 - **Problem:** kustomizations using `helmCharts` can't be built; codec

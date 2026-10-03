@@ -20,6 +20,8 @@ All notable changes to codec are documented here. The format follows
 - Explorer: a right-click menu (also Shift+F10) with Open, "Select for
   compare", "Compare with …" and, for two Ctrl+clicked files, "Compare
   selected". Files can be dragged onto a side of the Compare view.
+- A "codec restarted — Reload" banner when the page outlives the server
+  run that served it, instead of failing requests.
 - Compare: an × on each side clears it, and Clear empties both sides and
   the result. Ignored paths stay; cleared pasted text can be undone.
 

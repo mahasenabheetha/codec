@@ -30,6 +30,7 @@
   import CommandPalette from './lib/shell/CommandPalette.svelte'
   import ShortcutsDialog from './lib/shell/ShortcutsDialog.svelte'
   import Toaster from './lib/components/Toaster.svelte'
+  import RestartBanner from './lib/shell/RestartBanner.svelte'
   import Home from './features/home/Home.svelte'
   import Explorer from './features/workspace/Explorer.svelte'
   import FileView from './features/workspace/FileView.svelte'
@@ -364,6 +365,7 @@
       </div>
     {/if}
     <div class="main">
+      <RestartBanner />
       <TabBar />
       <main class="content">
         {#if showHome}<Home />{/if}

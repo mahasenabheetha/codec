@@ -249,6 +249,7 @@ type errorResponse struct {
 	Error  string `json:"error"`
 	Line   int    `json:"line,omitempty"`
 	Column int    `json:"column,omitempty"`
+	Code   string `json:"code,omitempty"` // machine-readable, e.g. "stale-token"
 }
 
 func writeError(w http.ResponseWriter, status int, msg string) {

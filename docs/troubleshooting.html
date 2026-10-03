@@ -70,8 +70,8 @@
 <p>Gatekeeper blocks unsigned downloads. Remove the quarantine flag: <code>xattr -d com.apple.quarantine codec</code>.</p>
 <h3 id="port">"port 8765 is already in use"<a class="anchor" href="#port">#</a></h3>
 <p>Another codec (or something else) is using the port. Stop it, or start on another port: <code>codec serve --port 8766</code>.</p>
-<h3 id="reload">The page says it can't reach the server<a class="anchor" href="#reload">#</a></h3>
-<p>Each run of <code>codec serve</code> uses a new security token. After restarting codec, <strong>reload the page</strong> so it picks up the new one. Your tabs and layout come back.</p>
+<h3 id="reload">"codec restarted" or "can't reach the server"<a class="anchor" href="#reload">#</a></h3>
+<p>Each run of <code>codec serve</code> uses a new security token, so a page opened before a restart can't talk to the new run. codec notices and shows a <strong>codec restarted — Reload</strong> banner; reload and your tabs and layout come back. "Can't reach the server" means codec isn't running: start it again.</p>
 
 <h2 id="files">Files and folders<a class="anchor" href="#files">#</a></h2>
 <h3 id="missing">A file isn't in the explorer<a class="anchor" href="#missing">#</a></h3>

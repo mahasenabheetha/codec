@@ -50,7 +50,13 @@ func (s *Server) guard(next http.Handler) http.Handler {
 			}
 		}
 		if strings.HasPrefix(r.URL.Path, "/api/v2/") && !s.validToken(r) {
-			writeError(w, http.StatusUnauthorized, "missing or invalid token; reload the page")
+			// A token that is present but wrong is almost always a page
+			// opened before codec restarted: the UI offers a reload.
+			resp := errorResponse{Error: "missing or invalid token; reload the page"}
+			if requestToken(r) != "" {
+				resp = errorResponse{Error: "codec was restarted; reload the page", Code: "stale-token"}
+			}
+			writeJSON(w, http.StatusUnauthorized, resp)
 			return
 		}
 		next.ServeHTTP(w, r)
@@ -87,10 +93,16 @@ func (s *Server) allowedOrigin(origin string) bool {
 // validToken checks X-Codec-Token. EventSource can't set headers, so
 // the event stream alone may pass it as ?token= instead.
 func (s *Server) validToken(r *http.Request) bool {
+	// Constant-time, so response timing can't leak the token byte by byte.
+	return subtle.ConstantTimeCompare([]byte(requestToken(r)), []byte(s.token)) == 1
+}
+
+// requestToken is the token a request carries: the header, or the query
+// string for the event stream (EventSource can't set headers).
+func requestToken(r *http.Request) string {
 	tok := r.Header.Get("X-Codec-Token")
 	if tok == "" && r.URL.Path == "/api/v2/events" {
 		tok = r.URL.Query().Get("token")
 	}
-	// Constant-time, so response timing can't leak the token byte by byte.
-	return subtle.ConstantTimeCompare([]byte(tok), []byte(s.token)) == 1
+	return tok
 }

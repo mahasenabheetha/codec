@@ -2,6 +2,8 @@
 // through request(), so auth headers, error shapes and (in v3) the swap
 // from HTTP to Wails bindings happen here and nowhere else.
 
+import { connection } from '../stores/connection.svelte'
+
 /** Error returned by the API: message plus optional source position. */
 export class ApiError extends Error {
   status: number
@@ -53,6 +55,7 @@ export async function request<T>(
   // Cancelled while the body was still arriving: don't hand back null.
   if (signal?.aborted) throw new DOMException('Aborted', 'AbortError')
   if (!res.ok) {
+    if (res.status === 401 && data?.code === 'stale-token') connection.restarted = true
     const msg = data?.error ?? `${res.status} ${res.statusText}`
     throw new ApiError(res.status, msg, data?.line, data?.column)
   }
