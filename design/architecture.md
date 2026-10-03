@@ -41,6 +41,9 @@ internal/
   ansible/            ENGINE Ansible lens: playbooks in execution order, roles
                       (roles_path, dependencies), includes, handlers, variable
                       precedence, YAML inventories, log task → definition
+  ansiblelog/         ENGINE whole Ansible logs from pipelines: clean (CI
+                      prefixes, colours, learned wrappers), then segment and
+                      read runs (in progress, 2.2.0)
   compose/            ENGINE Compose lens: files merged with the Compose rules and
                       origins, extends/include, ${VAR} from .env + what-if,
                       services graph, ports, volumes, checks
