@@ -1,10 +1,13 @@
 <script lang="ts">
   import FileSearch from '@lucide/svelte/icons/file-search'
+  import X from '@lucide/svelte/icons/x'
+  import IconButton from '../../lib/components/IconButton.svelte'
   import SegmentedControl from '../../lib/components/SegmentedControl.svelte'
   import Select from '../../lib/components/Select.svelte'
   import Toggle from '../../lib/components/Toggle.svelte'
   import type { Side } from '../../lib/api/compare'
   import { openSessions } from '../editor/active.svelte'
+  import { sideChosen } from './compare.svelte'
   import { charts } from '../helm/helm.svelte'
   import FileIcon from '../workspace/FileIcon.svelte'
   import { workspace } from '../workspace/workspace.svelte'
@@ -16,9 +19,12 @@
     side: Side
     whatIf: boolean
     onchange: () => void
+    onclear: () => void
   }
 
-  let { label, side = $bindable(), whatIf = $bindable(), onchange }: Props = $props()
+  let { label, side = $bindable(), whatIf = $bindable(), onchange, onclear }: Props = $props()
+
+  const filled = $derived(sideChosen(side))
 
   const session = $derived(side.kind === 'file' && side.path ? openSessions.get(side.path) : undefined)
   const docs = $derived(session?.analysis?.docs ?? [])
@@ -100,6 +106,9 @@
         onchange()
       }}
     />
+  {/if}
+  {#if filled}
+    <IconButton icon={X} label="Clear {label.toLowerCase()} side" size="sm" onclick={onclear} />
   {/if}
 </div>
 

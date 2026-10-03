@@ -6,6 +6,11 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Compare: an × on each side clears it, and Clear empties both sides and
+  the result. Ignored paths stay.
+
 ### Changed
 
 - New app icon for codec 2 (a YAML key with nested key: value rows), with a

@@ -40,6 +40,7 @@ class Compare {
   private inflight: AbortController | null = null
 
   ready = $derived(sideReady(this.left) && sideReady(this.right))
+  empty = $derived(!sideChosen(this.left) && !sideChosen(this.right))
 
   /** Open the Compare tab with these sides. */
   open(left: Side, right: Side, whatIf: { left?: boolean; right?: boolean } = {}) {
@@ -56,6 +57,23 @@ class Compare {
     ;[this.left, this.right] = [this.right, this.left]
     ;[this.leftWhatIf, this.rightWhatIf] = [this.rightWhatIf, this.leftWhatIf]
     this.run()
+  }
+
+  /** Empty one side, or both; the ignore patterns stay. */
+  clear(which: 'left' | 'right' | 'both' = 'both') {
+    this.inflight?.abort()
+    this.running = false
+    if (which !== 'right') {
+      this.left = { kind: 'file' }
+      this.leftWhatIf = false
+    }
+    if (which !== 'left') {
+      this.right = { kind: 'file' }
+      this.rightWhatIf = true
+    }
+    this.result = null
+    this.error = null
+    this.selected = -1
   }
 
   async loadIgnore() {
@@ -96,6 +114,11 @@ class Compare {
 
 function sideReady(s: Side): boolean {
   return s.kind === 'helm' ? s.chart !== undefined : !!s.path
+}
+
+/** A side has something chosen (a Helm side counts even with no charts). */
+export function sideChosen(s: Side): boolean {
+  return s.kind === 'helm' || !!s.path
 }
 
 export const comparison = new Compare()

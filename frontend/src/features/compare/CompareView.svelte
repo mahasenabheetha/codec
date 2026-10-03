@@ -69,9 +69,10 @@
 
 <div class="compare" class:inactive={!active}>
   <header>
-    <SidePicker label="Left" bind:side={cmp.left} bind:whatIf={cmp.leftWhatIf} onchange={() => cmp.run()} />
+    <SidePicker label="Left" bind:side={cmp.left} bind:whatIf={cmp.leftWhatIf} onchange={() => cmp.run()} onclear={() => cmp.clear('left')} />
     <IconButton icon={ArrowLeftRight} label="Swap sides" size="sm" onclick={() => cmp.swap()} />
-    <SidePicker label="Right" bind:side={cmp.right} bind:whatIf={cmp.rightWhatIf} onchange={() => cmp.run()} />
+    <SidePicker label="Right" bind:side={cmp.right} bind:whatIf={cmp.rightWhatIf} onchange={() => cmp.run()} onclear={() => cmp.clear('right')} />
+    <Button size="sm" variant="ghost" onclick={() => cmp.clear()} disabled={cmp.empty}>Clear</Button>
     <div class="spacer"></div>
     <Popover side="bottom" align="end">
       {#snippet trigger(props)}

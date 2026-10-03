@@ -85,6 +85,7 @@
   <tr><td>What-if edits vs disk</td><td>"Compare what-if edits with disk" on a file with edits — the semantic view of your change.</td></tr>
   <tr><td>A Helm render</td><td>The same chart with two profiles — what actually changes between dev and prod.</td></tr>
 </table></div>
+<p>The <strong>×</strong> next to a side clears it; <strong>Clear</strong> empties both sides and the result. Ignored paths stay.</p>
 
 <h3 id="ignore">Ignoring noise<a class="anchor" href="#ignore">#</a></h3>
 <p>Some differences are always noise: chart version labels, checksum annotations, generated names. Add their paths to <strong>Ignored paths</strong> (from the Compare view, from a change in the list, or in <a href="settings.html">Settings</a>). A pattern matches the whole path; <code>*</code> stands for any characters, dots included:</p>
