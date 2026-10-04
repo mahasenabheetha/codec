@@ -1,3 +1,5 @@
+//go:build windows
+
 // Command codec-desktop is codec in its own window. It serves the same
 // handlers and UI as `codec serve` on a loopback port and points a
 // Wails window at it, so every feature behaves as in the browser.

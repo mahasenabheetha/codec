@@ -52,3 +52,53 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # The Windows desktop app: portable exe and per-user installer, added
+  # to the release GoReleaser created above (scripts/desktop.sh).
+  desktop:
+    needs: release
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: NSIS
+        run: |
+          if ! command -v makensis >/dev/null && [[ ! -x "/c/Program Files (x86)/NSIS/makensis.exe" ]]; then
+            choco install nsis -y --no-progress
+          fi
+
+      - name: Build
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: |
+          export MAKENSIS="$(command -v makensis || echo "/c/Program Files (x86)/NSIS/makensis.exe")"
+          scripts/desktop.sh
+
+      # Code signing (SignPath, see design/roadmap.md "Code signing") goes
+      # here once the project is approved; until then the files are
+      # unsigned and Windows shows "unknown publisher" on first run.
+
+      - name: Upload to the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          v="${TAG#v}"
+          cd dist/desktop
+          mv codec-desktop.exe "codec-desktop_${v}_windows_amd64.exe"
+          mv codec-setup.exe "codec-desktop_${v}_windows_amd64_setup.exe"
+          sha256sum codec-desktop_* > "codec-desktop_${v}_checksums.txt"
+          gh release upload "$TAG" codec-desktop_* --clobber
