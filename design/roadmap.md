@@ -120,7 +120,7 @@ token set, a setting and a contrast pass.
 | T1 | Light palette | Light values for surfaces, borders, text, accent, status, syntax, diff, expression tints, graph groups and logos; every text pair ≥ 4.5:1; `design-language.md` gains the light column | Done |
 | T2 | Theme switching | `[data-theme="light"]` in `tokens.css`, `color-scheme` per theme; a script in `index.html` sets the theme before first paint (no flash) | Done |
 | T3 | Setting | System / Dark / Light in Settings and the palette, persisted as a display preference; System follows the OS live | Done |
-| T4 | Pass over every view | Editor, compare, graphs, lens views, tools, dialogs and toasts in both themes; `CloneView` fallback colours to tokens; docs (`docs/design.html`, settings) | |
+| T4 | Pass over every view | Editor, compare, graphs, lens views, tools, dialogs and toasts in both themes; `CloneView` fallback colours to tokens; docs (`docs/design.html`, settings) | Done |
 | — | Release | Full checks; CHANGELOG cut as 2.4.0 | |
 
 ### v3.0.0 — Desktop app
