@@ -8,14 +8,12 @@
 // that handler buffers each response until it ends, so the live file
 // events (Server-Sent Events) could never arrive (decision 83).
 //
-// Usage: codec-desktop [folder | file]
+// Usage: codec-desktop [folder | file] [--hidden]
 package main
 
 import (
 	"context"
 	"errors"
-	"fmt"
-	"log"
 	"net"
 	"os"
 	"path/filepath"
@@ -44,32 +42,73 @@ const (
 	defaultHeight = 900
 )
 
-var (
-	eventStarted = events.Common.ApplicationStarted
-	eventClosing = events.Common.WindowClosing
-)
+var eventClosing = events.Common.WindowClosing
 
 func main() {
+	openLog()
 	if err := run(); err != nil {
-		log.Fatal(err)
+		fatal(err)
 	}
 }
 
 // desktop joins the window and the server: it is the server's view of
-// the window (web.Desktop) and handles later launches.
+// the window (web.Desktop) and handles later launches. Its fields are
+// set before the app runs and the server starts, so the callbacks that
+// read them (on other goroutines) always find them.
 type desktop struct {
 	app      *application.App
 	win      *application.WebviewWindow
 	cfg      *config.Store
+	saver    *windowSaver
 	server   atomic.Pointer[web.Server] // set once the server exists
 	quitting atomic.Bool                // Quit from the tray: let the window close
 }
 
 func (d *desktop) SetTheme(dark bool) { setFrameTheme(d.win, dark) }
 
+func (d *desktop) PickFolder(title, start string) (string, error) {
+	dlg := d.app.Dialog.OpenFile().
+		CanChooseDirectories(true).
+		CanChooseFiles(false).
+		SetTitle(title).
+		AttachToWindow(d.win)
+	// Wails refuses a start folder that doesn't exist (the open folder
+	// may have been deleted): start at the nearest one that does.
+	if dir := existingDir(start); dir != "" {
+		dlg.SetDirectory(dir)
+	}
+	path, err := dlg.PromptForSingleSelection()
+	if err != nil && err.Error() == "cancelled by user" {
+		// Wails' cancel error lives in an internal package; only its
+		// text can be compared.
+		return "", nil
+	}
+	return path, err
+}
+
+// existingDir is dir, or its nearest parent that exists; "" if none.
+func existingDir(dir string) string {
+	for dir != "" {
+		if info, err := os.Stat(dir); err == nil && info.IsDir() {
+			return dir
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			return ""
+		}
+		dir = parent
+	}
+	return ""
+}
+
+// Settings reports the desktop choices. A failed start-at-login check
+// is logged and shown as off, so the rest of the section still works.
 func (d *desktop) Settings() (web.DesktopSettings, error) {
 	login, err := d.app.Autostart.IsEnabled()
-	return web.DesktopSettings{StartAtLogin: login, KeepInTray: !d.cfg.Get().Desktop.QuitOnClose}, err
+	if err != nil {
+		logf("start at login: %v", err)
+	}
+	return web.DesktopSettings{StartAtLogin: login, KeepInTray: !d.cfg.Get().Desktop.QuitOnClose}, nil
 }
 
 func (d *desktop) SetSettings(st web.DesktopSettings) error {
@@ -86,24 +125,6 @@ func (d *desktop) SetSettings(st web.DesktopSettings) error {
 	return d.app.Autostart.Disable()
 }
 
-func (d *desktop) PickFolder(title, start string) (string, error) {
-	dlg := d.app.Dialog.OpenFile().
-		CanChooseDirectories(true).
-		CanChooseFiles(false).
-		SetTitle(title).
-		AttachToWindow(d.win)
-	if start != "" {
-		dlg.SetDirectory(start)
-	}
-	path, err := dlg.PromptForSingleSelection()
-	if err != nil && err.Error() == "cancelled by user" {
-		// Wails' cancel error lives in an internal package; only its
-		// text can be compared.
-		return "", nil
-	}
-	return path, err
-}
-
 func run() error {
 	ctx, stop := context.WithCancel(context.Background())
 	defer stop()
@@ -117,7 +138,7 @@ func run() error {
 		Name:        "codec",
 		Description: "The local workbench for a DevOps engineer's day",
 		Icon:        icon,
-		OnShutdown:  stop,
+		Logger:      wailsLogger(),
 		SingleInstance: &application.SingleInstanceOptions{
 			UniqueID:               "io.github.mahasenabheetha.codec",
 			OnSecondInstanceLaunch: func(data application.SecondInstanceData) { d.secondLaunch(data) },
@@ -132,20 +153,19 @@ func run() error {
 
 	cfg, err := config.Open()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "warning:", err)
+		logf("settings: %v", err)
 	}
 	if cfg == nil {
 		cfg = config.Memory()
 	}
 	d.cfg = cfg
 	s := web.New(web.Options{Config: cfg, Desktop: d})
-	d.server.Store(s)
 
 	wd, _ := os.Getwd()
 	req, hasReq := requestFor(os.Args[1:], wd)
 	if hasReq {
 		if err := s.OpenWorkspace(req.Root); err != nil {
-			fmt.Fprintln(os.Stderr, "warning:", err)
+			logf("open %s: %v", req.Root, err)
 			req = openRequest{}
 		}
 	}
@@ -154,22 +174,32 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	served := make(chan error, 1)
-	go func() { served <- s.Serve(ctx, ln) }()
 
-	d.win = app.Window.NewWithOptions(application.WebviewWindowOptions{
+	opts := application.WebviewWindowOptions{
 		Title:            "codec " + version.Get().Version,
-		Width:            defaultWidth,
-		Height:           defaultHeight,
 		MinWidth:         minWidth,
 		MinHeight:        minHeight,
 		URL:              "http://" + ln.Addr().String() + "/" + req.route(),
 		BackgroundColour: application.NewRGB(0x0b, 0x0d, 0x12), // --bg-0, no white flash
 		Hidden:           hidden,
-	})
-	rememberWindow(app, d.win, hidden)
+	}
+	st, ok := loadState()
+	placeWindow(&opts, st, ok, hidden)
+	d.win = app.Window.NewWithOptions(opts)
+	d.saver = &windowSaver{win: d.win, st: st}
 	d.keepInTray()
 	d.setupTray()
+	// Quitting (tray menu, or the last window closing): save the window
+	// first; shutdown tasks run before Wails closes it.
+	app.OnShutdown(func() {
+		d.saver.save()
+		stop()
+	})
+
+	// Serve only now: the server calls into d.win.
+	d.server.Store(s)
+	served := make(chan error, 1)
+	go func() { served <- s.Serve(ctx, ln) }()
 
 	runErr := app.Run()
 	stop()
@@ -191,7 +221,7 @@ func (d *desktop) secondLaunch(data application.SecondInstanceData) {
 		// scripts only once its own frontend library says it is ready,
 		// and codec's page doesn't load it.
 		if err := d.server.Load().OpenPath(req.Root, req.File); err != nil {
-			fmt.Fprintln(os.Stderr, "warning:", err)
+			logf("open %s: %v", req.Root, err)
 		}
 	}
 	d.showWindow()
@@ -215,6 +245,6 @@ func listen() (net.Listener, error) {
 	if err == nil {
 		return ln, nil
 	}
-	fmt.Fprintf(os.Stderr, "warning: port %d is taken, using a free one: %v\n", port, err)
+	logf("port %d is taken, using a free one: %v", port, err)
 	return net.Listen("tcp", "127.0.0.1:0")
 }

@@ -3,6 +3,7 @@ package web
 import (
 	"io/fs"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -47,7 +48,7 @@ const desktopMeta = `<meta name="codec-desktop" content="1">`
 func (s *Server) OpenPath(dir, file string) error {
 	if file != "" {
 		if rel, ok := s.inWorkspace(filepath.Join(dir, filepath.FromSlash(file))); ok {
-			s.hub.publish("open-file", map[string]string{"path": rel})
+			s.hub.publishOrHold("open-file", map[string]string{"path": rel})
 			return nil
 		}
 	}
@@ -55,13 +56,15 @@ func (s *Server) OpenPath(dir, file string) error {
 		return err
 	}
 	if file != "" {
-		s.hub.publish("open-file", map[string]string{"path": file})
+		s.hub.publishOrHold("open-file", map[string]string{"path": storedCase(dir, file)})
 	}
 	return nil
 }
 
 // inWorkspace returns path relative to the open workspace, '/'-
-// separated, when it lies inside it.
+// separated and in the case stored on disk, when it lies inside it. It
+// compares both as given and with links resolved, so a folder opened
+// through a junction or a mapped drive still matches its real path.
 func (s *Server) inWorkspace(path string) (string, bool) {
 	s.mu.Lock()
 	ws := s.ws
@@ -69,11 +72,57 @@ func (s *Server) inWorkspace(path string) (string, bool) {
 	if ws == nil {
 		return "", false
 	}
-	rel, err := filepath.Rel(ws.Root(), path)
+	paths := []string{path}
+	if real, err := filepath.EvalSymlinks(path); err == nil && real != path {
+		paths = append(paths, real)
+	}
+	for _, root := range []string{ws.Root(), ws.RealRoot()} {
+		for _, p := range paths {
+			if rel, ok := relInside(root, p); ok {
+				return storedCase(ws.Root(), rel), true
+			}
+		}
+	}
+	return "", false
+}
+
+// relInside is path relative to root when it lies inside it.
+func relInside(root, path string) (string, bool) {
+	rel, err := filepath.Rel(root, path)
 	if err != nil || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) || filepath.IsAbs(rel) {
 		return "", false
 	}
-	return filepath.ToSlash(rel), true
+	return rel, true
+}
+
+// storedCase spells rel ('/' or OS separators) as the folder entries
+// under root do, '/'-separated. Windows and macOS ignore case, so a path
+// typed as K8S/Base/app.yaml must become the tree's k8s/base/app.yaml,
+// or the tab wouldn't match the tree. Parts it can't find stay as given.
+func storedCase(root, rel string) string {
+	parts := strings.Split(filepath.ToSlash(rel), "/")
+	dir := root
+	for i, part := range parts {
+		entries, err := os.ReadDir(dir)
+		if err != nil {
+			break
+		}
+		match := ""
+		for _, e := range entries {
+			if e.Name() == part {
+				match = part // an exact match wins
+				break
+			}
+			if match == "" && strings.EqualFold(e.Name(), part) {
+				match = e.Name()
+			}
+		}
+		if match != "" {
+			parts[i] = match
+		}
+		dir = filepath.Join(dir, parts[i])
+	}
+	return strings.Join(parts, "/")
 }
 
 func (s *Server) desktopRoutes(mux *http.ServeMux) {

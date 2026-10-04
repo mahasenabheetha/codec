@@ -3,8 +3,6 @@
 package main
 
 import (
-	"fmt"
-	"os"
 	"path/filepath"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -45,7 +43,7 @@ func (d *desktop) fillTrayMenu(menu *application.Menu) {
 		for _, dir := range recent[:min(len(recent), trayRecent)] {
 			menu.Add(filepath.Base(dir)).OnClick(func(*application.Context) {
 				if err := d.server.Load().OpenPath(dir, ""); err != nil {
-					fmt.Fprintln(os.Stderr, "warning:", err)
+					logf("open %s: %v", dir, err)
 				}
 				d.showWindow()
 			})
@@ -56,14 +54,21 @@ func (d *desktop) fillTrayMenu(menu *application.Menu) {
 	menu.Update()
 }
 
-// keepInTray hides the window instead of closing it, unless the user
-// chose to quit on close or is quitting from the tray.
+// keepInTray hides the window instead of closing it. With "Keep running
+// in the tray" off, closing quits through app.Quit instead of letting
+// the last window's close end the process: only Quit removes the tray
+// icon and runs the shutdown tasks (saving the window).
 func (d *desktop) keepInTray() {
 	d.win.RegisterHook(eventClosing, func(e *application.WindowEvent) {
-		if d.quitting.Load() || d.cfg.Get().Desktop.QuitOnClose {
-			return
+		if d.quitting.Load() {
+			return // already quitting: let Wails close the window
 		}
 		e.Cancel()
+		if d.cfg.Get().Desktop.QuitOnClose {
+			go d.quit()
+			return
+		}
+		d.saver.save()
 		d.win.Hide()
 	})
 }

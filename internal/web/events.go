@@ -18,6 +18,7 @@ type event struct {
 type hub struct {
 	mu   sync.Mutex
 	subs map[chan event]struct{}
+	held *event // see publishOrHold
 }
 
 func newHub() *hub { return &hub{subs: map[chan event]struct{}{}} }
@@ -28,6 +29,10 @@ func (h *hub) subscribe() (<-chan event, func()) {
 	ch := make(chan event, 32)
 	h.mu.Lock()
 	h.subs[ch] = struct{}{}
+	if h.held != nil {
+		ch <- *h.held
+		h.held = nil
+	}
 	h.mu.Unlock()
 	return ch, func() {
 		h.mu.Lock()
@@ -48,6 +53,20 @@ func (h *hub) publish(name string, data any) {
 		default:
 		}
 	}
+}
+
+// publishOrHold is publish for a request that must not be lost: with no
+// tab listening (the page is still loading, or reconnecting), the last
+// such event is kept for the next subscriber.
+func (h *hub) publishOrHold(name string, data any) {
+	h.mu.Lock()
+	if len(h.subs) == 0 {
+		h.held = &event{name, data}
+		h.mu.Unlock()
+		return
+	}
+	h.mu.Unlock()
+	h.publish(name, data)
 }
 
 // heartbeat keeps idle connections open through proxies and lets the
