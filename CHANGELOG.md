@@ -17,6 +17,10 @@ All notable changes to codec are documented here. The format follows
   A tray icon opens the window, a recent folder, or quits; closing the
   window keeps codec in the tray. Settings → Desktop: Start at login
   (in the tray, per user, no admin) and Keep running in the tray.
+- Windows installer (`codec-setup.exe`): installs for the current user
+  without admin rights, with a Start menu entry, an optional desktop
+  shortcut and codec in Explorer's "Open with" for `.yaml` and `.yml`;
+  uninstall from Apps. A portable `codec-desktop.exe` as well.
 
 ### Changed
 

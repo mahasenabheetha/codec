@@ -20,3 +20,4 @@
 /codec-dev.exe
 /codec-desktop
 /codec-desktop.exe
+/cmd/codec-desktop/*.syso
