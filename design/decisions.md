@@ -360,3 +360,13 @@ Settled unless the user reopens them. Add new ones at the bottom:
     HKCU entries only), plus a portable exe; this amends "no installer"
     in 12. Windows signing through the SignPath Foundation once approved,
     unsigned until then (2026-10-03).
+83. The desktop window loads codec from a loopback server it starts
+    itself (`127.0.0.1:8769`, the same handlers and token as
+    `codec serve`), not through Wails' asset handler: on Windows that
+    handler buffers each response until it ends, so Server-Sent Events
+    never arrive. The port is fixed so the window's origin, and the
+    display preferences in its local storage, survive restarts; when it
+    is taken a free port is used for that run. Wails' JS runtime is
+    injected into the page and refuses file drags at the page root
+    unless a drop zone stops the event first, as the log drop zone does
+    (2026-10-04).

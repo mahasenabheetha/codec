@@ -80,6 +80,10 @@
   function ondragover(e: DragEvent) {
     if (!hasFile(e)) return
     e.preventDefault()
+    // Keep the drag here: the desktop window's runtime listens at the
+    // page root and would otherwise refuse the drop.
+    e.stopPropagation()
+    e.dataTransfer!.dropEffect = 'copy'
     dropping = true
   }
   function ondrop(e: DragEvent) {
