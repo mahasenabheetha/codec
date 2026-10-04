@@ -4,7 +4,7 @@ How codec looks and behaves, for anyone (person or agent) changing the
 UI. The user-facing version is `docs/design.html`. Tokens live in
 `frontend/src/lib/styles/tokens.css`; components use tokens only.
 
-Dark only [8]. Calm, dense, precise — a professional dev tool, closer to
+Dark by default, with a light theme [81]. Calm, dense, precise — a professional dev tool, closer to
 Linear or VS Code than to a marketing site.
 
 ## Principles
@@ -43,6 +43,23 @@ Jinja) `#f7c873` on 8%; run time (Argo, GitHub, Azure) `#ff9ecf` on 8%;
 run-time-only values in rendered output: dashed underline. Diff lines:
 `--diff-add-bg`, `--diff-del-bg`, `--diff-chg-bg`; changed characters inside a line `--diff-add-strong`, `--diff-del-strong`. File-type logos use
 `--brand-*` (lightened for contrast).
+
+Light theme (`:root[data-theme='light']` in `tokens.css`) redefines the
+colours only; space, type, layout and motion are shared:
+
+| Group | Light values |
+|---|---|
+| Surfaces | `--bg-0 #f2f3f6` · `--bg-1 #f8f9fb` · `--bg-2 #ffffff` · `--bg-3 #eaecf1` · `--bg-4 #dfe2e9` |
+| Borders | `--border #d9dce3` · `--border-strong #c3c8d2` |
+| Text | `--fg-0 #1b1f27` · `--fg-1 #485062` · `--fg-2 #5f6778` |
+| Accent | `--accent #2b5cd6` (hover darker) · `--accent-fg #ffffff` |
+| Status | `--ok #16702f` · `--warn #8a5d00` · `--err #c62a35` · `--info #0a68cf`; `-soft` at 12% |
+| Syntax | key `#0550ae` · string `#1f6f2b` · number `#a64d00` · bool/null `#7c3fd1` · comment `#626b7a` · anchor `#0b7268` · tag `#8a5d00` · template `#875400` · run time `#b0246f` |
+| Logos | official colours where they reach 3:1 on `--bg-1`; Helm `#3346c9` and Argo `#d9592b` adjusted |
+
+Both themes meet the same rules: text ≥ 4.5:1 on `--bg-0`…`--bg-3` and
+on its own `-soft` background, logos ≥ 3:1. A new colour token gets a
+value in both blocks.
 
 Never hard-code a colour, size or font in a component. A new token is a
 change to this file and `tokens.css` together.

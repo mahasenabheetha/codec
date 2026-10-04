@@ -134,3 +134,79 @@
   --z-dialog: 60;
   --z-toast: 70;
 }
+
+/*
+ * Light theme: colours only; space, type and layout are shared. Every
+ * text colour is at least 4.5:1 on --bg-0 to --bg-3 and on its own
+ * -soft background; logos at least 3:1 on --bg-1.
+ */
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --bg-0: #f2f3f6; /* app background, rail */
+  --bg-1: #f8f9fb; /* panels */
+  --bg-2: #ffffff; /* editor, cards */
+  --bg-3: #eaecf1; /* hover, inputs */
+  --bg-4: #dfe2e9; /* pressed, selected-on-hover */
+
+  --border: #d9dce3;
+  --border-strong: #c3c8d2;
+
+  --fg-0: #1b1f27;
+  --fg-1: #485062;
+  --fg-2: #5f6778; /* 4.8:1 on bg-3 */
+
+  --accent: #2b5cd6;
+  --accent-hover: #2350bd;
+  --accent-soft: rgb(43 92 214 / 0.12);
+  --accent-fg: #ffffff;
+
+  --ok: #16702f;
+  --ok-soft: rgb(22 112 47 / 0.12);
+  --warn: #8a5d00;
+  --warn-soft: rgb(138 93 0 / 0.12);
+  --err: #c62a35;
+  --err-soft: rgb(198 42 53 / 0.12);
+  --err-border: rgb(198 42 53 / 0.35);
+  --info: #0a68cf;
+  --info-soft: rgb(10 104 207 / 0.12);
+
+  --syn-key: #0550ae;
+  --syn-string: #1f6f2b;
+  --syn-number: #a64d00;
+  --syn-bool: #7c3fd1;
+  --syn-comment: #626b7a; /* 5.4:1 on bg-2 */
+  --syn-anchor: #0b7268;
+  --syn-tag: #8a5d00;
+  --syn-expr-tpl: #875400;
+  --syn-expr-tpl-bg: rgb(214 150 0 / 0.12);
+  --syn-expr-rt: #b0246f;
+  --syn-expr-rt-bg: rgb(200 40 130 / 0.08);
+
+  --diff-add-bg: rgb(22 112 47 / 0.1);
+  --diff-del-bg: rgb(198 42 53 / 0.09);
+  --diff-chg-bg: rgb(160 110 0 / 0.1);
+  --diff-add-strong: rgb(22 112 47 / 0.25);
+  --diff-del-strong: rgb(198 42 53 / 0.22);
+
+  /* Official colours where they read on white; Helm and Argo adjusted. */
+  --brand-kubernetes: #326ce5;
+  --brand-helm: #3346c9;
+  --brand-argo: #d9592b;
+  --brand-github: #1f6feb;
+  --brand-gitlab: #d9481a;
+  --brand-azure: #0072c6;
+  --brand-ansible: #d12f2c;
+  --brand-docker: #1d63ed;
+  --brand-terraform: #7b42bc;
+
+  --editor-active-line: rgb(20 30 60 / 0.035);
+  --editor-selection: rgb(43 92 214 / 0.14);
+  --editor-selection-focused: rgb(43 92 214 / 0.22);
+  --editor-selection-match: rgb(43 92 214 / 0.1);
+  --editor-search-match: rgb(214 150 0 / 0.25);
+  --editor-search-match-current: rgb(214 150 0 / 0.5);
+
+  --shadow-pop: 0 8px 28px rgb(20 28 45 / 0.14), 0 0 0 1px var(--border-strong);
+  --overlay: rgb(20 28 45 / 0.35);
+}
