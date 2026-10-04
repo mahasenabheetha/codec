@@ -47,9 +47,32 @@ func TestOpenPath(t *testing.T) {
 	}
 }
 
-type fakeDesktop struct{ dark []bool }
+type fakeDesktop struct {
+	dark   []bool
+	picked string // what the folder dialog returns
+	asked  [2]string
+}
 
 func (f *fakeDesktop) SetTheme(dark bool) { f.dark = append(f.dark, dark) }
+
+func (f *fakeDesktop) PickFolder(title, start string) (string, error) {
+	f.asked = [2]string{title, start}
+	return f.picked, nil
+}
+
+func TestDesktopPickFolder(t *testing.T) {
+	fake := &fakeDesktop{picked: `C:\repos\app`}
+	opts := testOptions(false)
+	opts.Desktop = fake
+	s := New(opts)
+	rec := call(s, "POST", "/api/v2/desktop/pick-folder", "127.0.0.1:8769", s.Token(), "", `{"title":"Open folder","start":"C:\\repos"}`)
+	if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), `"path":"C:\\repos\\app"`) {
+		t.Fatalf("status %d, body %s", rec.Code, rec.Body)
+	}
+	if fake.asked != [2]string{"Open folder", `C:\repos`} {
+		t.Errorf("dialog asked with %q", fake.asked)
+	}
+}
 
 func TestDesktopTheme(t *testing.T) {
 	const host = "127.0.0.1:8769"

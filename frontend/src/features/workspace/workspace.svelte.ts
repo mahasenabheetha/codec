@@ -16,6 +16,7 @@ import { layout } from '../../lib/stores/layout.svelte'
 import { persisted } from '../../lib/stores/persist.svelte'
 import { routeFile } from '../../lib/stores/router.svelte'
 import { toast } from '../../lib/stores/toast.svelte'
+import { pickFolder } from '../../lib/platform'
 import { ancestors } from './tree'
 
 // The folder the persisted file tabs and expanded folders belong to.
@@ -88,6 +89,23 @@ class Workspace {
     }
     this.rootChanged()
     if (this.info.open) await this.loadTree()
+  }
+
+  /** Ask for a folder to open: the system dialog in the desktop app,
+   *  codec's folder browser in a browser (or if the dialog fails). */
+  async chooseFolder() {
+    const picked = pickFolder('Open folder', this.info?.root ?? '')
+    if (!picked) {
+      this.dialogOpen = true
+      return
+    }
+    try {
+      const path = await picked
+      if (path) await this.open(path)
+    } catch (e) {
+      toast(e instanceof Error ? e.message : String(e), 'err')
+      this.dialogOpen = true
+    }
   }
 
   async open(path: string) {

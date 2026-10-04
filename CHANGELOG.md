@@ -12,7 +12,8 @@ All notable changes to codec are documented here. The format follows
   the same features as the browser UI. One instance: launching it again
   brings the window forward, and a folder or file given to it opens
   there (a file inside the open folder keeps that folder). The window
-  comes back where it was, and its title bar follows the theme.
+  comes back where it was, and its title bar follows the theme. Open
+  folder uses the system folder dialog, starting in the open folder.
 
 ### Changed
 

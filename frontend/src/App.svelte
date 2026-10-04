@@ -96,7 +96,7 @@
   shortcut('Mod+K', () => (layout.paletteOpen = !layout.paletteOpen))
   shortcut('Mod+B', () => layout.toggleRail())
   shortcut('Mod+P', () => (workspace.quickOpen = true))
-  shortcut('Mod+O', () => (workspace.dialogOpen = true))
+  shortcut('Mod+O', () => workspace.chooseFolder())
   shortcut('Mod+Shift+E', () => layout.toggleExplorer())
   shortcut('Mod+Shift+F', findInFiles)
   shortcut('?', () => (layout.shortcutsOpen = true))
@@ -110,7 +110,7 @@
       icon: FolderOpen,
       shortcut: 'Mod+O',
       keywords: ['repo', 'workspace', 'directory'],
-      run: () => (workspace.dialogOpen = true),
+      run: () => workspace.chooseFolder(),
     },
     {
       id: 'workspace.goto',

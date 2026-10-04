@@ -55,11 +55,30 @@ func main() {
 // desktop joins the window and the server: it is the server's view of
 // the window (web.Desktop) and handles later launches.
 type desktop struct {
+	app    *application.App
 	win    *application.WebviewWindow
 	server atomic.Pointer[web.Server] // set once the server exists
 }
 
 func (d *desktop) SetTheme(dark bool) { setFrameTheme(d.win, dark) }
+
+func (d *desktop) PickFolder(title, start string) (string, error) {
+	dlg := d.app.Dialog.OpenFile().
+		CanChooseDirectories(true).
+		CanChooseFiles(false).
+		SetTitle(title).
+		AttachToWindow(d.win)
+	if start != "" {
+		dlg.SetDirectory(start)
+	}
+	path, err := dlg.PromptForSingleSelection()
+	if err != nil && err.Error() == "cancelled by user" {
+		// Wails' cancel error lives in an internal package; only its
+		// text can be compared.
+		return "", nil
+	}
+	return path, err
+}
 
 func run() error {
 	ctx, stop := context.WithCancel(context.Background())
@@ -82,6 +101,7 @@ func run() error {
 			WebviewUserDataPath: webviewDataDir(),
 		},
 	})
+	d.app = app
 
 	cfg, err := config.Open()
 	if err != nil {

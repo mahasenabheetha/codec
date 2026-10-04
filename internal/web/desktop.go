@@ -14,6 +14,9 @@ type Desktop interface {
 	// SetTheme matches the window frame (title bar, native menus) to
 	// the page's theme.
 	SetTheme(dark bool)
+	// PickFolder shows the system folder dialog, starting in start
+	// when set; "" means cancelled.
+	PickFolder(title, start string) (string, error)
 }
 
 // desktopMeta tells the page it runs in the desktop window
@@ -61,6 +64,25 @@ func (s *Server) desktopRoutes(mux *http.ServeMux) {
 		return
 	}
 	mux.HandleFunc("POST /api/v2/desktop/theme", s.handleDesktopTheme)
+	mux.HandleFunc("POST /api/v2/desktop/pick-folder", s.handlePickFolder)
+}
+
+// handlePickFolder answers once the dialog closes, which can take as
+// long as the user likes (the server has no write timeout).
+func (s *Server) handlePickFolder(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Title string `json:"title"`
+		Start string `json:"start"`
+	}
+	if !decode(w, r, &req) {
+		return
+	}
+	path, err := s.opts.Desktop.PickFolder(req.Title, req.Start)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "folder dialog: "+err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]string{"path": path})
 }
 
 func (s *Server) handleDesktopTheme(w http.ResponseWriter, r *http.Request) {

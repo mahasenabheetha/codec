@@ -87,7 +87,7 @@
   {#if !ws.info?.open}
     <div class="empty-wrap">
       <EmptyState icon={TextSearch} title="No folder open" description="Find in Files searches the text of every file in the open folder.">
-        <Button variant="primary" size="sm" icon={FolderOpen} onclick={() => (ws.dialogOpen = true)}>Open folder</Button>
+        <Button variant="primary" size="sm" icon={FolderOpen} onclick={() => ws.chooseFolder()}>Open folder</Button>
       </EmptyState>
     </div>
   {:else}

@@ -6,3 +6,8 @@ import { request } from './client'
 export function setWindowTheme(theme: 'dark' | 'light'): Promise<void> {
   return request('POST', '/api/v2/desktop/theme', { theme })
 }
+
+/** The system folder dialog; resolves to '' when cancelled. */
+export async function pickFolder(title: string, start: string): Promise<string> {
+  return (await request<{ path: string }>('POST', '/api/v2/desktop/pick-folder', { title, start })).path
+}

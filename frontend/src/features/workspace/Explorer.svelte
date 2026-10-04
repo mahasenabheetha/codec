@@ -128,7 +128,7 @@
         <IconButton icon={ChevronsDownUp} label="Collapse folders" size="sm" onclick={() => ws.expanded.clear()} />
         <IconButton icon={RotateCw} label="Refresh" size="sm" onclick={() => ws.loadTree()} />
       {/if}
-      <IconButton icon={FolderOpen} label="Open folder…" shortcut="Mod+O" size="sm" onclick={() => (ws.dialogOpen = true)} />
+      <IconButton icon={FolderOpen} label="Open folder…" shortcut="Mod+O" size="sm" onclick={() => ws.chooseFolder()} />
     </div>
   </header>
 
@@ -136,7 +136,7 @@
     {#if !ws.info?.open}
       <div class="empty-wrap">
         <EmptyState icon={FolderSearch} title="No folder open" description="Open a repository to browse its YAML. codec only reads it.">
-          <Button variant="primary" size="sm" icon={FolderOpen} onclick={() => (ws.dialogOpen = true)}>Open folder</Button>
+          <Button variant="primary" size="sm" icon={FolderOpen} onclick={() => ws.chooseFolder()}>Open folder</Button>
           <Button size="sm" icon={FlaskConical} onclick={openSample}>Try the sample</Button>
         </EmptyState>
       </div>
