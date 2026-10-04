@@ -30,6 +30,7 @@ version, and add a CHANGELOG entry.
 | Run codec natively on macOS (arm64) before tagging | user |
 | Make the GHCR package public (first release with an image) | user |
 | Turn on GitHub Pages: Settings → Pages → `main`, `/docs` | user |
+| Apply to SignPath Foundation for Windows code signing (before 3.0.0 T6; see [Code signing](#code-signing)) | user |
 
 ## Releases
 
@@ -107,7 +108,69 @@ Branch `feature/mab/v2.3.0`. Decisions 78–80; the design notes are in this fil
 | T7 | [Regex](#utilities-regex): engine + API + CLI | RE2 and regexp2, time limit, replace, explainer; tests; `internal/regex`, `POST /api/v2/regex`, decision 80 | Done |
 | T8 | Regex: UI | Tester and explainer on one screen; docs | Done |
 | T9 | Smart paste | Epoch numbers, URL-encoded text, cron expressions | Done (`codec.DetectUtility`; the clipboard watcher and `codec auto` are unchanged) |
-| — | Release | Three parallel reviews (engines, API and CLI, frontend), fixes with regression tests and a fuzz test; full checks passed; CHANGELOG cut as 2.3.0 | Ready to merge and tag |
+| — | Release | Three parallel reviews (engines, API and CLI, frontend), fixes with regression tests and a fuzz test; full checks passed; CHANGELOG cut as 2.3.0 | Released as v2.3.0 |
+
+### v2.4.0 — Light theme
+Agreed 2026-10-03 (decision 81). Every colour is already a token in
+`tokens.css` (no hard-coded colours in components), so this is a second
+token set, a setting and a contrast pass.
+
+| # | Task | Main parts | Status |
+|---|---|---|---|
+| T1 | Light palette | Light values for surfaces, borders, text, accent, status, syntax, diff, expression tints, graph groups and logos; every text pair ≥ 4.5:1; `design-language.md` gains the light column | Done |
+| T2 | Theme switching | `[data-theme="light"]` in `tokens.css`, `color-scheme` per theme; a script in `index.html` sets the theme before first paint (no flash) | Done |
+| T3 | Setting | System / Dark / Light in Settings and the palette, persisted as a display preference; System follows the OS live | Done |
+| T4 | Pass over every view | Editor, compare, graphs, lens views, tools, dialogs and toasts in both themes; `CloneView` fallback colours to tokens; docs (`docs/design.html`, settings) | Done |
+| — | Release | Full checks passed; CHANGELOG cut as 2.4.0 | Ready to merge and tag |
+
+### v3.0.0 — Desktop app
+Agreed 2026-10-03 (decision 82). Wails v3 (system tray needs it), one
+repo, Windows first; macOS when a Mac is available. The desktop app is a
+second entry point to the same server and UI, never a second copy of a
+feature: features go in `internal/` and `frontend/` as before, and
+desktop-only extras sit behind `frontend/src/lib/platform.ts` with a
+browser fallback, so the web UI (`codec serve`) keeps working unchanged.
+
+```
+cmd/codec/            CLI + codec serve (unchanged)
+cmd/codec-desktop/    window, tray, menus; mounts the same server
+frontend/             same app; lib/platform.ts for desktop extras
+desktop/              Wails config, icons, installer
+```
+
+| # | Task | Main parts | Status |
+|---|---|---|---|
+| T1 | Spike | `cmd/codec-desktop` loads the current app: the server's handler mounted in Wails (no port, no token) or, if SSE streaming fails there, a loopback server with the token; check live file events, clipboard, persisted settings, drag and drop, file drop for logs; confirm Wails v3 status | |
+| T2 | Window | Single instance (second launch focuses the window and passes its file), window size and position remembered, native menus mapped to palette commands, title bar follows the theme | |
+| T3 | Native dialogs | Open folder / file through `lib/platform.ts`; the web keeps its folder browser | |
+| T4 | Tray and auto-start | Tray menu (open, recent folders, quit); closing the window keeps codec in the tray; "Start at login" setting (per-user Run key) | |
+| T5 | Installer | Per-user NSIS (`RequestExecutionLevel user`) into `%LOCALAPPDATA%\Programs\codec`: Start menu entry, uninstall entry in HKCU, "Open with codec" for `.yaml`/`.yml` in HKCU; no admin; a portable exe as well | |
+| T6 | Release build and signing | Desktop build in the release workflow next to the CLI; version and product metadata on the exe; signing step through [SignPath](#code-signing) (off until approved) | |
+| T7 | Docs | Install, desktop features, uninstall; README and docs site; `architecture.md` | |
+| — | Release | Full checks; CHANGELOG cut as 3.0.0 | |
+
+Later, with a Mac: build on a macOS runner (cgo, Xcode), Apple Developer
+ID signing and notarization, macOS menu bar, Dock and window-close
+behaviour.
+
+#### Code signing
+Unsigned builds show SmartScreen's "unknown publisher" warning. codec is
+MIT-licensed and public, so it can apply to the SignPath Foundation for
+free Windows signing. Their conditions, and what codec needs:
+
+| Condition | codec |
+|---|---|
+| OSI licence, no proprietary components | MIT; dependencies are open source; WebView2 counts as a system library |
+| Existing releases, functionality described on the download page | Releases since v2.0.0; README and docs site |
+| Binaries built from source by CI, verifiably | Release workflow on GitHub Actions with SignPath's action |
+| MFA on GitHub and SignPath for every team member | User to turn on |
+| Roles: authors, reviewers, approvers; manual approval per release | The user holds all three |
+| Code signing policy page on the homepage, with attribution and a privacy statement | A `docs/` page: "Free code signing provided by SignPath.io, certificate by SignPath Foundation"; codec sends no data anywhere |
+| Product name and version metadata on signed binaries | Set by the Windows build (T6) |
+| Uninstaller; no undisclosed data collection or system changes | Installer has one; nothing collected |
+
+The certificate names SignPath Foundation as the publisher, not the
+author. SignPath signs Windows only; macOS needs Apple's program.
 
 ### Later
 The rest of "Next", picked up when it fits.
@@ -131,7 +194,6 @@ The rest of "Next", picked up when it fits.
 | Schema-driven form for any kind | Phase 13 stretch; uses the schema cache |
 | `codec lsp` | Provider concepts already mirror LSP |
 | User-defined lint rules (CEL) | Per-user rules in settings, never in repos |
-| v3 desktop app (Wails) | The frontend talks to the backend only through `lib/api`; swap the transport |
 | Optional AI assist | Must stay opt-in and local-first |
 | Several folders open at once | e.g. an app and an infra repository; search and compare across them |
 | References across folders | e.g. an Argo Application pointing at a chart in another local folder; needs the item above |
@@ -140,6 +202,7 @@ The rest of "Next", picked up when it fits.
 
 | Version | Items |
 |---|---|
+| 2.4.0 | Light theme: System, Dark and Light in Settings and the palette |
 | 2.3.0 | Utilities: Encode & hash (URL, hex, hash/HMAC, secrets & UUID, htpasswd), Time (timestamps, cron explainer and builder, schedule hover), Regex (tester and explainer); smart paste for their input |
 | 2.2.0 | Ansible log analyzer: whole pipeline logs (UI and `codec ansible log`); Ansible playbook map coloured by a run |
 | 2.1.0 | Compare: clear; Compare: paste as a source; Compare: pick files from the Explorer; Reload prompt after a server restart; Find in Files |

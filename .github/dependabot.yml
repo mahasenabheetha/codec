@@ -1,0 +1,52 @@
+# Dependency update PRs. Security alerts and security updates are
+# turned on separately: Settings → Code security.
+version: 2
+updates:
+  # Go modules (go.mod at the repo root)
+  - package-ecosystem: gomod
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps(go)"
+    groups:
+      go-security:
+        applies-to: security-updates
+        patterns: ["*"]
+      go-minor-patch:
+        update-types: [minor, patch]
+
+  # Frontend (frontend/package.json)
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps(ui)"
+    cooldown:
+      default-days: 7
+    groups:
+      ui-security:
+        applies-to: security-updates
+        patterns: ["*"]
+      svelte:
+        patterns: ["svelte", "@sveltejs/*", "svelte-check", "vite", "@vitejs/*"]
+      codemirror:
+        patterns: ["@codemirror/*", "@lezer/*"]
+      ui-minor-patch:
+        update-types: [minor, patch]
+
+  # Actions used in ci.yml and release.yml
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "deps(ci)"
+    groups:
+      actions:
+        patterns: ["*"]

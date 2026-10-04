@@ -5,7 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Read-only YAML workbench and developer tools. Everything runs on your machine." />
     <meta name="theme-color" content="#0b0d12" />
-    <meta name="color-scheme" content="dark" />
+    <meta name="color-scheme" content="dark light" />
+    <script>
+      // Apply the saved theme before the first paint (no flash); the
+      // theme store (lib/stores/theme.svelte.ts) takes over once loaded.
+      try {
+        var p = JSON.parse(localStorage.getItem('codec:theme') || '"dark"')
+        if (p === 'system') p = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
+        document.documentElement.dataset.theme = p === 'light' ? 'light' : 'dark'
+      } catch (e) {
+        document.documentElement.dataset.theme = 'dark'
+      }
+    </script>
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />

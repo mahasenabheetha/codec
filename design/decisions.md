@@ -19,6 +19,7 @@ Settled unless the user reopens them. Add new ones at the bottom:
 7. Editor: CodeMirror 6; language intelligence (diagnostics, hover,
    completion, outline) served by the Go engine, LSP-shaped (2026-09-26).
 8. **Dark theme only.** Colors still defined as CSS tokens (2026-09-26).
+   Replaced by 81.
 9. Helm: embed the Helm 4 Go SDK (no helm install needed). Verify the
    SDK's API at phase 05 start; fall back to Helm 3 SDK only if v4 is
    unsuitable (2026-09-26).
@@ -28,7 +29,7 @@ Settled unless the user reopens them. Add new ones at the bottom:
     re-indents with comments intact (already an indirect dependency).
     Evaluated side by side at phase 02 start (2026-09-26).
 11. Delivery: web UI via `codec serve` for all of v2; Docker image
-    (ghcr.io) as secondary distribution; Wails desktop app is v3
+    (ghcr.io) as secondary distribution; Wails desktop app is v3 (see 82)
     (2026-09-26).
 12. Platforms: Windows (no admin rights) and macOS (Apple Silicon) are
     first-class; Linux supported. No installer; single binary
@@ -345,3 +346,17 @@ Settled unless the user reopens them. Add new ones at the bottom:
     `(?P<name>)`, `(?P=name)`, `\1` and `\g<name>` are accepted. Positions
     are UTF-16 offsets, as the editor counts. An invalid pattern is an
     answer (error, hint, explanation), not a failed request (2026-10-03).
+81. Light theme in 2.4.0, replacing "dark only" (8): a second token set
+    under `[data-theme="light"]`, chosen as System / Dark / Light and
+    persisted as a display preference; System follows the OS. Same
+    contrast rules as dark (2026-10-03).
+82. Desktop app in 3.0.0 with Wails v3 (v2 has no system tray), in this
+    repo as `cmd/codec-desktop`: it serves the same handlers and the same
+    frontend, so every feature reaches the web UI and the desktop app
+    from one change; desktop-only extras go through
+    `frontend/src/lib/platform.ts` with a browser fallback. `codec serve`
+    and the CLI stay as they are. Windows first, macOS later. Installed
+    per user without admin rights (NSIS into `%LOCALAPPDATA%\Programs`,
+    HKCU entries only), plus a portable exe; this amends "no installer"
+    in 12. Windows signing through the SignPath Foundation once approved,
+    unsigned until then (2026-10-03).

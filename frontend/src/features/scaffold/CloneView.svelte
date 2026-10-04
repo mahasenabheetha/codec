@@ -118,9 +118,9 @@
     return [
       EditorView.decorations.compute(['doc'], (s) => build(s.doc)),
       EditorView.theme({
-        '.cm-clone-applied': { backgroundColor: 'var(--ok-soft, rgba(80, 200, 120, 0.1))' },
-        '.cm-clone-kept': { backgroundColor: 'var(--warn-soft, rgba(230, 180, 60, 0.12))' },
-        '.cm-clone-check': { backgroundColor: 'var(--info-soft, rgba(90, 160, 230, 0.1))' },
+        '.cm-clone-applied': { backgroundColor: 'var(--ok-soft)' },
+        '.cm-clone-kept': { backgroundColor: 'var(--warn-soft)' },
+        '.cm-clone-check': { backgroundColor: 'var(--info-soft)' },
       }),
     ]
   })

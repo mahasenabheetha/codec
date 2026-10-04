@@ -24,6 +24,9 @@
   import Ship from '@lucide/svelte/icons/ship'
   import FlaskConical from '@lucide/svelte/icons/flask-conical'
   import X from '@lucide/svelte/icons/x'
+  import SunMoon from '@lucide/svelte/icons/sun-moon'
+  import Monitor from '@lucide/svelte/icons/monitor'
+  import { theme } from './lib/stores/theme.svelte'
   import Rail from './lib/shell/Rail.svelte'
   import TabBar from './lib/shell/TabBar.svelte'
   import StatusBar from './lib/shell/StatusBar.svelte'
@@ -234,6 +237,20 @@
       run: () => layout.toggleExplorer(),
     },
     { id: 'view.rail', title: 'Toggle sidebar', group: 'View', icon: PanelLeft, shortcut: 'Mod+B', run: () => layout.toggleRail() },
+    {
+      id: 'view.theme',
+      title: 'Toggle light and dark theme',
+      group: 'View',
+      icon: SunMoon,
+      run: () => (theme.pref = theme.resolved === 'dark' ? 'light' : 'dark'),
+    },
+    {
+      id: 'view.themeSystem',
+      title: 'Use the system theme',
+      group: 'View',
+      icon: Monitor,
+      run: () => (theme.pref = 'system'),
+    },
     {
       id: 'help.shortcuts',
       title: 'Keyboard shortcuts',

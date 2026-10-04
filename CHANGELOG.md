@@ -6,6 +6,23 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+## [2.4.0] - 2026-10-04
+
+A light theme, for bright rooms and side-by-side work with a light
+editor. Every view gets it, with the same contrast rules as dark.
+
+### Added
+
+- Light theme: Settings → General → Theme offers System, Dark and
+  Light; System follows the operating system as it changes. Also in the
+  palette ("Toggle light and dark theme", "Use the system theme"). Dark
+  stays the default, and the saved theme applies before the first paint.
+
+### Changed
+
+- Project: Dependabot opens grouped update PRs, weekly for Go modules
+  and frontend packages, monthly for GitHub Actions.
+
 ## [2.3.0] - 2026-10-03
 
 Utilities: a new sidebar heading with Encode & hash, Time and Regex, for
@@ -488,7 +505,8 @@ First tagged release: codec as it stood before the 2.0 work began.
 - Release pipeline: pushing a `v*` tag publishes binaries for Linux,
   Windows and macOS (amd64/arm64) to GitHub Releases via GoReleaser.
 
-[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v2.3.0...HEAD
+[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v2.4.0...HEAD
+[2.4.0]: https://github.com/mahasenabheetha/codec/compare/v2.3.0...v2.4.0
 [2.3.0]: https://github.com/mahasenabheetha/codec/compare/v2.2.0...v2.3.0
 [2.2.0]: https://github.com/mahasenabheetha/codec/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/mahasenabheetha/codec/compare/v2.0.1...v2.1.0
