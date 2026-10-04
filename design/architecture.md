@@ -9,7 +9,13 @@ flow charts and performance numbers are in `docs/architecture.html` and
 
 ```
 cmd/codec/            main → cli.Execute()
-frontend/             Svelte 5 + Vite + TS source (Wails-compatible location)
+cmd/codec-desktop/    Windows desktop app (Wails v3; go:build windows): runs
+                      web.Server on 127.0.0.1:8769 and opens a window on it;
+                      single instance, window state, tray, start at login,
+                      folder dialog (web.Desktop) — decisions 82, 83
+desktop/windows/      installer.nsi (per-user NSIS), manifest.xml, icon.ico
+frontend/             Svelte 5 + Vite + TS source; lib/platform.ts holds the
+                      desktop-only calls, each with a browser fallback
 internal/
   codec/              ENGINE v1 transforms (base64, JSON, JWT, ansible); smart
                       paste's Utilities detection (epoch, URL-encoded, cron)
@@ -208,8 +214,9 @@ Files over 8 MB are not listed or read.
 - Push updates via Server-Sent Events, `GET /api/v2/events`: `workspace`
   (folder opened / watch mode known), `files` (added/changed/removed
   paths), `tree` (file types classified; refetch the tree).
-- The frontend calls the backend only through `frontend/src/lib/api/`,
-  so Wails bindings can replace HTTP in v3.
+- The frontend calls the backend only through `frontend/src/lib/api/`.
+  The desktop app serves the same HTTP API (decision 83), so there is
+  no second transport.
 
 ## Security (local server that reads files)
 
@@ -237,3 +244,9 @@ Implemented in `internal/web/security.go`; every route passes the guard.
   polling is automatic in containers (bind-mount events are unreliable
   on Windows), or forced with `--poll`. Image: `ghcr.io/mahasenabheetha/codec`
   (distroless, non-root; run with `-p 127.0.0.1:8765:8765`), see releases.md.
+- Desktop (Windows): `codec-desktop [folder | file] [--hidden]` — the
+  same server on `127.0.0.1:8769` (fixed, so the window's local storage
+  survives restarts) in a Wails window. A second launch hands its path
+  to the first (`Server.OpenPath`, the `open-file` event). Desktop-only
+  routes under `/api/v2/desktop/` exist only when `web.Options.Desktop`
+  is set. Built with `scripts/desktop.sh`; see releases.md.

@@ -128,6 +128,7 @@
   <li><strong>Adapters</strong> do everything else: the workspace reads files through a read-only guard, config reads and writes the settings file in your profile, the schema cache downloads and stores schemas, the check adapter combines lint and schemas, the web server and the CLI turn requests into engine calls.</li>
 </ul>
 <p>Because both front ends call the same engine, <code>codec yaml lint</code> in CI reports exactly what the editor shows.</p>
+<p>The Windows desktop app (<code>codec-desktop</code>) is a third way in, not a second copy: it starts the same HTTP server on <code>127.0.0.1:8769</code> and shows the same UI in a native window (Wails, with WebView2). A feature added to the engine and the UI appears in the browser and in the desktop app from the same change; the few desktop-only parts (tray, folder dialog, window frame) sit behind <code>frontend/src/lib/platform.ts</code> with a browser fallback.</p>
 
 <h2 id="providers">File types: the provider model<a class="anchor" href="#providers">#</a></h2>
 <p>Each kind of YAML is handled by a <strong>provider</strong>. A provider answers a few questions about a file — "is this mine, and how sure am I?", "what is its outline?" — and optionally more: hover, go to definition, completion, diagnostics.</p>
@@ -176,6 +177,7 @@
 
 <h2 id="layout">Repository layout<a class="anchor" href="#layout">#</a></h2>
 <pre><code>cmd/codec/            <span class="c">entry point: starts the CLI</span>
+cmd/codec-desktop/    <span class="c">Windows desktop app: Wails window, tray, dialogs over the same server</span>
 internal/
   yamlkit/            <span class="c">engine · YAML parse with positions, templates, diagnostics, diff, layered merge</span>
   provider/           <span class="c">engine · file-type detection, outline, hover/definition/completion interface</span>
@@ -202,7 +204,8 @@ frontend/src/
   features/           <span class="c">one folder per view or tool</span>
 docs/                 <span class="c">this site (plain HTML and CSS) and screenshots</span>
 design/               <span class="c">architecture, decisions, conventions, design language, workflows</span>
-scripts/              <span class="c">dev.sh (build and run), perf.sh (performance budgets)</span></code></pre>
+desktop/windows/      <span class="c">installer script, manifest and icon of the desktop app</span>
+scripts/              <span class="c">dev.sh (build and run), perf.sh (performance budgets), desktop.sh (desktop exe and installer)</span></code></pre>
 <p>More detail for contributors is in <code>design/architecture.md</code> in the repository.</p>
 
 <h2 id="performance">Performance<a class="anchor" href="#performance">#</a></h2>
