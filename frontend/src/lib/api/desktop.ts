@@ -11,3 +11,16 @@ export function setWindowTheme(theme: 'dark' | 'light'): Promise<void> {
 export async function pickFolder(title: string, start: string): Promise<string> {
   return (await request<{ path: string }>('POST', '/api/v2/desktop/pick-folder', { title, start })).path
 }
+
+export interface DesktopSettings {
+  startAtLogin: boolean
+  keepInTray: boolean
+}
+
+export function getDesktopSettings(): Promise<DesktopSettings> {
+  return request('GET', '/api/v2/desktop/settings')
+}
+
+export function setDesktopSettings(st: DesktopSettings): Promise<DesktopSettings> {
+  return request('POST', '/api/v2/desktop/settings', st)
+}

@@ -77,7 +77,7 @@ func fitDefault(app *application.App, win *application.WebviewWindow) {
 // shows (Wails keeps it hidden until the page has loaded) and saves
 // them when it closes. While maximised, the normal bounds from before
 // are kept, so un-maximising next time returns there.
-func rememberWindow(app *application.App, win *application.WebviewWindow) {
+func rememberWindow(app *application.App, win *application.WebviewWindow, hidden bool) {
 	st, ok := loadState()
 	app.Event.OnApplicationEvent(eventStarted, func(*application.ApplicationEvent) {
 		r := application.Rect{X: st.X, Y: st.Y, Width: st.Width, Height: st.Height}
@@ -86,7 +86,7 @@ func rememberWindow(app *application.App, win *application.WebviewWindow) {
 			return
 		}
 		win.SetBounds(r)
-		if st.Maximised {
+		if st.Maximised && !hidden { // maximising would show a window started in the tray
 			win.Maximise()
 		}
 	})

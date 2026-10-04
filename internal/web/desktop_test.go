@@ -51,6 +51,8 @@ type fakeDesktop struct {
 	dark   []bool
 	picked string // what the folder dialog returns
 	asked  [2]string
+
+	settings DesktopSettings
 }
 
 func (f *fakeDesktop) SetTheme(dark bool) { f.dark = append(f.dark, dark) }
@@ -58,6 +60,31 @@ func (f *fakeDesktop) SetTheme(dark bool) { f.dark = append(f.dark, dark) }
 func (f *fakeDesktop) PickFolder(title, start string) (string, error) {
 	f.asked = [2]string{title, start}
 	return f.picked, nil
+}
+
+func (f *fakeDesktop) Settings() (DesktopSettings, error) { return f.settings, nil }
+
+func (f *fakeDesktop) SetSettings(st DesktopSettings) error {
+	f.settings = st
+	return nil
+}
+
+func TestDesktopSettings(t *testing.T) {
+	fake := &fakeDesktop{settings: DesktopSettings{KeepInTray: true}}
+	opts := testOptions(false)
+	opts.Desktop = fake
+	s := New(opts)
+	const host = "127.0.0.1:8769"
+	if rec := call(s, "GET", "/api/v2/desktop/settings", host, s.Token(), "", ""); !strings.Contains(rec.Body.String(), `"keepInTray":true`) {
+		t.Fatalf("GET: %d %s", rec.Code, rec.Body)
+	}
+	rec := call(s, "POST", "/api/v2/desktop/settings", host, s.Token(), "", `{"startAtLogin":true,"keepInTray":false}`)
+	if rec.Code != http.StatusOK || fake.settings != (DesktopSettings{StartAtLogin: true}) {
+		t.Fatalf("POST: %d %s, settings %+v", rec.Code, rec.Body, fake.settings)
+	}
+	if icon, err := AppFile("favicon.ico"); err != nil || len(icon) == 0 {
+		t.Errorf("AppFile(favicon.ico) = %d bytes, %v", len(icon), err)
+	}
 }
 
 func TestDesktopPickFolder(t *testing.T) {

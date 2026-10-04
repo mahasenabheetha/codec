@@ -1,6 +1,7 @@
 package web
 
 import (
+	"io/fs"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -17,6 +18,22 @@ type Desktop interface {
 	// PickFolder shows the system folder dialog, starting in start
 	// when set; "" means cancelled.
 	PickFolder(title, start string) (string, error)
+	// Settings and SetSettings read and change the desktop-only
+	// choices shown in Settings → Desktop.
+	Settings() (DesktopSettings, error)
+	SetSettings(DesktopSettings) error
+}
+
+// DesktopSettings are the desktop app's choices.
+type DesktopSettings struct {
+	StartAtLogin bool `json:"startAtLogin"`
+	KeepInTray   bool `json:"keepInTray"`
+}
+
+// AppFile returns a file of the embedded UI build, such as the app
+// icons the desktop app shows in the tray and title bar.
+func AppFile(name string) ([]byte, error) {
+	return fs.ReadFile(distFiles, "dist/app/"+name)
 }
 
 // desktopMeta tells the page it runs in the desktop window
@@ -65,6 +82,29 @@ func (s *Server) desktopRoutes(mux *http.ServeMux) {
 	}
 	mux.HandleFunc("POST /api/v2/desktop/theme", s.handleDesktopTheme)
 	mux.HandleFunc("POST /api/v2/desktop/pick-folder", s.handlePickFolder)
+	mux.HandleFunc("GET /api/v2/desktop/settings", s.handleDesktopSettings)
+	mux.HandleFunc("POST /api/v2/desktop/settings", s.handleDesktopSettings)
+}
+
+// handleDesktopSettings answers the current choices; a POST with the
+// whole object changes them first.
+func (s *Server) handleDesktopSettings(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost {
+		var req DesktopSettings
+		if !decode(w, r, &req) {
+			return
+		}
+		if err := s.opts.Desktop.SetSettings(req); err != nil {
+			writeError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+	}
+	st, err := s.opts.Desktop.Settings()
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, st)
 }
 
 // handlePickFolder answers once the dialog closes, which can take as

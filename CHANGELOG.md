@@ -14,6 +14,9 @@ All notable changes to codec are documented here. The format follows
   there (a file inside the open folder keeps that folder). The window
   comes back where it was, and its title bar follows the theme. Open
   folder uses the system folder dialog, starting in the open folder.
+  A tray icon opens the window, a recent folder, or quits; closing the
+  window keeps codec in the tray. Settings → Desktop: Start at login
+  (in the tray, per user, no admin) and Keep running in the tray.
 
 ### Changed
 

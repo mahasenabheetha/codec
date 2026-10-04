@@ -11,6 +11,8 @@
   import { copyText } from '../../lib/utils/clipboard'
   import { toast } from '../../lib/stores/toast.svelte'
   import { theme, type ThemePref } from '../../lib/stores/theme.svelte'
+  import { desktop } from '../../lib/platform'
+  import { getDesktopSettings, setDesktopSettings, type DesktopSettings } from '../../lib/api/desktop'
   import { comparison } from '../compare/compare.svelte'
   import { editorNames, lensOpen, openIn, type ExternalEditor } from '../editor/active.svelte'
   import { lint } from '../lint/lint.svelte'
@@ -56,8 +58,30 @@
     }
   }
 
+  // Desktop-only choices; the section exists only in the desktop app.
+  let desk = $state<DesktopSettings | null>(null)
+  async function loadDesk() {
+    if (!desktop) return
+    try {
+      desk = await getDesktopSettings()
+    } catch (e) {
+      toast(e instanceof Error ? e.message : String(e), 'err')
+    }
+  }
+  async function saveDesk(next: DesktopSettings) {
+    try {
+      desk = await setDesktopSettings(next)
+    } catch (e) {
+      toast(e instanceof Error ? e.message : String(e), 'err')
+    }
+  }
+  $effect(() => {
+    if (active) loadDesk()
+  })
+
   const nav = [
     { id: 'general', title: 'General' },
+    ...(desktop ? [{ id: 'desktop', title: 'Desktop' }] : []),
     { id: 'kubernetes', title: 'Kubernetes' },
     { id: 'schemas', title: 'Schemas' },
     { id: 'rules-style', title: 'Lint rules' },
@@ -122,6 +146,17 @@
           <Toggle checked={lensOpen.value} label={lensOpen.value ? 'Shown' : 'Hidden'} onchange={(on) => (lensOpen.value = on)} />
         </SettingRow>
       </SettingSection>
+
+      {#if desktop && desk}
+        <SettingSection id="desktop" title="Desktop">
+          <SettingRow title="Start at login" description="Start codec in the tray when you sign in to Windows.">
+            <Toggle checked={desk.startAtLogin} label={desk.startAtLogin ? 'On' : 'Off'} onchange={(on) => saveDesk({ ...desk!, startAtLogin: on })} />
+          </SettingRow>
+          <SettingRow title="Keep running in the tray" description="Closing the window leaves codec in the tray; quit from the tray menu. Off: closing the window quits.">
+            <Toggle checked={desk.keepInTray} label={desk.keepInTray ? 'On' : 'Off'} onchange={(on) => saveDesk({ ...desk!, keepInTray: on })} />
+          </SettingRow>
+        </SettingSection>
+      {/if}
 
       {#if lint.loaded}
         <LintSections />

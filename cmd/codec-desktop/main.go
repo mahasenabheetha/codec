@@ -17,6 +17,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"sync/atomic"
 
@@ -55,12 +56,33 @@ func main() {
 // desktop joins the window and the server: it is the server's view of
 // the window (web.Desktop) and handles later launches.
 type desktop struct {
-	app    *application.App
-	win    *application.WebviewWindow
-	server atomic.Pointer[web.Server] // set once the server exists
+	app      *application.App
+	win      *application.WebviewWindow
+	cfg      *config.Store
+	server   atomic.Pointer[web.Server] // set once the server exists
+	quitting atomic.Bool                // Quit from the tray: let the window close
 }
 
 func (d *desktop) SetTheme(dark bool) { setFrameTheme(d.win, dark) }
+
+func (d *desktop) Settings() (web.DesktopSettings, error) {
+	login, err := d.app.Autostart.IsEnabled()
+	return web.DesktopSettings{StartAtLogin: login, KeepInTray: !d.cfg.Get().Desktop.QuitOnClose}, err
+}
+
+func (d *desktop) SetSettings(st web.DesktopSettings) error {
+	if err := d.cfg.Update(func(s *config.Settings) { s.Desktop.QuitOnClose = !st.KeepInTray }); err != nil {
+		return err
+	}
+	if login, err := d.app.Autostart.IsEnabled(); err != nil || login == st.StartAtLogin {
+		return err
+	}
+	if st.StartAtLogin {
+		// Registers this exe (per user, no admin) to start in the tray.
+		return d.app.Autostart.EnableWithOptions(application.AutostartOptions{Arguments: []string{hiddenFlag}})
+	}
+	return d.app.Autostart.Disable()
+}
 
 func (d *desktop) PickFolder(title, start string) (string, error) {
 	dlg := d.app.Dialog.OpenFile().
@@ -84,12 +106,15 @@ func run() error {
 	ctx, stop := context.WithCancel(context.Background())
 	defer stop()
 	d := &desktop{}
+	hidden := slices.Contains(os.Args[1:], hiddenFlag)
+	icon, _ := web.AppFile("icon-512.png")
 
 	// New exits here when codec is already running, after handing this
 	// launch's arguments to the running window.
 	app := application.New(application.Options{
 		Name:        "codec",
 		Description: "The local workbench for a DevOps engineer's day",
+		Icon:        icon,
 		OnShutdown:  stop,
 		SingleInstance: &application.SingleInstanceOptions{
 			UniqueID:               "io.github.mahasenabheetha.codec",
@@ -107,6 +132,10 @@ func run() error {
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "warning:", err)
 	}
+	if cfg == nil {
+		cfg = config.Memory()
+	}
+	d.cfg = cfg
 	s := web.New(web.Options{Config: cfg, Desktop: d})
 	d.server.Store(s)
 
@@ -134,8 +163,11 @@ func run() error {
 		MinHeight:        minHeight,
 		URL:              "http://" + ln.Addr().String() + "/" + req.route(),
 		BackgroundColour: application.NewRGB(0x0b, 0x0d, 0x12), // --bg-0, no white flash
+		Hidden:           hidden,
 	})
-	rememberWindow(app, d.win)
+	rememberWindow(app, d.win, hidden)
+	d.keepInTray()
+	d.setupTray()
 
 	runErr := app.Run()
 	stop()
@@ -160,16 +192,7 @@ func (d *desktop) secondLaunch(data application.SecondInstanceData) {
 			fmt.Fprintln(os.Stderr, "warning:", err)
 		}
 	}
-	application.InvokeAsync(func() {
-		if d.win == nil {
-			return
-		}
-		if d.win.IsMinimised() {
-			d.win.UnMinimise()
-		}
-		d.win.Show()
-		d.win.Focus()
-	})
+	d.showWindow()
 }
 
 // webviewDataDir is where WebView2 keeps the window's storage (local
