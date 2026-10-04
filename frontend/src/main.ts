@@ -5,6 +5,7 @@ import '@fontsource-variable/inter'
 import '@fontsource-variable/jetbrains-mono'
 import './lib/styles/tokens.css'
 import './lib/styles/global.css'
+import './lib/stores/theme.svelte'
 import App from './App.svelte'
 
 const app = mount(App, {

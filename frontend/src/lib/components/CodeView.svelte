@@ -24,6 +24,7 @@
   import { json } from '@codemirror/lang-json'
   import { yaml } from '@codemirror/lang-yaml'
   import { tags as t } from '@lezer/highlight'
+  import { theme } from '../stores/theme.svelte'
 
   // CodeMirror 6 wrapper used for every code/text surface. Phase 04
   // extends it with engine-driven diagnostics and overlays.
@@ -63,6 +64,7 @@
   const wrapConf = new Compartment()
   const placeholderConf = new Compartment()
   const extraConf = new Compartment()
+  const themeConf = new Compartment()
 
   // Colors come from the syntax tokens in tokens.css.
   const highlight = HighlightStyle.define([
@@ -78,49 +80,52 @@
     { tag: t.invalid, color: 'var(--err)' },
   ])
 
-  const theme = EditorView.theme(
-    {
-      '&': { height: '100%', fontSize: 'var(--fs-md)', color: 'var(--fg-0)', backgroundColor: 'var(--bg-2)' },
-      '.cm-scroller': { fontFamily: 'var(--font-mono)', lineHeight: 'var(--lh-code)' },
-      '.cm-content': { padding: 'var(--s-2) 0', caretColor: 'var(--accent)' },
-      '.cm-line': { padding: '0 var(--s-3) 0 var(--s-2)' },
-      '.cm-gutters': { backgroundColor: 'var(--bg-2)', color: 'var(--fg-2)', border: 'none' },
-      '.cm-lineNumbers .cm-gutterElement': { padding: '0 var(--s-1) 0 var(--s-3)', minWidth: '32px' },
-      '.cm-activeLine': { backgroundColor: 'var(--editor-active-line)' },
-      '.cm-activeLineGutter': { backgroundColor: 'transparent', color: 'var(--fg-1)' },
-      '&.cm-focused .cm-cursor': { borderLeftColor: 'var(--accent)', borderLeftWidth: '2px' },
-      '.cm-selectionBackground': { backgroundColor: 'var(--editor-selection)' },
-      '&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground': {
-        backgroundColor: 'var(--editor-selection-focused)',
+  // The colours are tokens; the dark flag only picks CodeMirror's own
+  // defaults (panels, tooltips) to match the shown theme.
+  const editorTheme = (dark: boolean) =>
+    EditorView.theme(
+      {
+        '&': { height: '100%', fontSize: 'var(--fs-md)', color: 'var(--fg-0)', backgroundColor: 'var(--bg-2)' },
+        '.cm-scroller': { fontFamily: 'var(--font-mono)', lineHeight: 'var(--lh-code)' },
+        '.cm-content': { padding: 'var(--s-2) 0', caretColor: 'var(--accent)' },
+        '.cm-line': { padding: '0 var(--s-3) 0 var(--s-2)' },
+        '.cm-gutters': { backgroundColor: 'var(--bg-2)', color: 'var(--fg-2)', border: 'none' },
+        '.cm-lineNumbers .cm-gutterElement': { padding: '0 var(--s-1) 0 var(--s-3)', minWidth: '32px' },
+        '.cm-activeLine': { backgroundColor: 'var(--editor-active-line)' },
+        '.cm-activeLineGutter': { backgroundColor: 'transparent', color: 'var(--fg-1)' },
+        '&.cm-focused .cm-cursor': { borderLeftColor: 'var(--accent)', borderLeftWidth: '2px' },
+        '.cm-selectionBackground': { backgroundColor: 'var(--editor-selection)' },
+        '&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground': {
+          backgroundColor: 'var(--editor-selection-focused)',
+        },
+        '.cm-selectionMatch': { backgroundColor: 'var(--editor-selection-match)' },
+        '.cm-matchingBracket, &.cm-focused .cm-matchingBracket': {
+          backgroundColor: 'var(--accent-soft)',
+          outline: '1px solid var(--accent)',
+        },
+        '.cm-placeholder': { color: 'var(--fg-2)', fontFamily: 'var(--font-ui)' },
+        '.cm-foldGutter .cm-gutterElement': { color: 'var(--fg-2)', padding: '0 var(--s-1)' },
+        '.cm-foldPlaceholder': { backgroundColor: 'var(--bg-3)', border: 'none', color: 'var(--fg-1)' },
+        '.cm-panels': { backgroundColor: 'var(--bg-1)', color: 'var(--fg-0)', borderColor: 'var(--border)' },
+        '.cm-panels.cm-panels-bottom': { borderTop: '1px solid var(--border)' },
+        '.cm-searchMatch': { backgroundColor: 'var(--editor-search-match)' },
+        '.cm-searchMatch-selected': { backgroundColor: 'var(--editor-search-match-current)' },
+        '.cm-textfield': {
+          backgroundColor: 'var(--bg-0)',
+          border: '1px solid var(--border-strong)',
+          borderRadius: 'var(--r-sm)',
+          color: 'var(--fg-0)',
+        },
+        '.cm-button': {
+          backgroundImage: 'none',
+          backgroundColor: 'var(--bg-3)',
+          border: '1px solid var(--border-strong)',
+          borderRadius: 'var(--r-sm)',
+          color: 'var(--fg-0)',
+        },
       },
-      '.cm-selectionMatch': { backgroundColor: 'var(--editor-selection-match)' },
-      '.cm-matchingBracket, &.cm-focused .cm-matchingBracket': {
-        backgroundColor: 'var(--accent-soft)',
-        outline: '1px solid var(--accent)',
-      },
-      '.cm-placeholder': { color: 'var(--fg-2)', fontFamily: 'var(--font-ui)' },
-      '.cm-foldGutter .cm-gutterElement': { color: 'var(--fg-2)', padding: '0 var(--s-1)' },
-      '.cm-foldPlaceholder': { backgroundColor: 'var(--bg-3)', border: 'none', color: 'var(--fg-1)' },
-      '.cm-panels': { backgroundColor: 'var(--bg-1)', color: 'var(--fg-0)', borderColor: 'var(--border)' },
-      '.cm-panels.cm-panels-bottom': { borderTop: '1px solid var(--border)' },
-      '.cm-searchMatch': { backgroundColor: 'var(--editor-search-match)' },
-      '.cm-searchMatch-selected': { backgroundColor: 'var(--editor-search-match-current)' },
-      '.cm-textfield': {
-        backgroundColor: 'var(--bg-0)',
-        border: '1px solid var(--border-strong)',
-        borderRadius: 'var(--r-sm)',
-        color: 'var(--fg-0)',
-      },
-      '.cm-button': {
-        backgroundImage: 'none',
-        backgroundColor: 'var(--bg-3)',
-        border: '1px solid var(--border-strong)',
-        borderRadius: 'var(--r-sm)',
-        color: 'var(--fg-0)',
-      },
-    },
-    { dark: true },
-  )
+      { dark },
+    )
 
   // Mod-Enter is the app-wide "run" shortcut, so drop CodeMirror's
   // default binding (insert blank line) and let the key reach the app.
@@ -164,7 +169,7 @@
           highlightActiveLine(),
           highlightSelectionMatches(),
           syntaxHighlighting(highlight),
-          theme,
+          themeConf.of(editorTheme(untrack(() => theme.resolved) === 'dark')),
           keymap.of([...editorKeymap, ...historyKeymap, ...searchKeymap, ...foldKeymap]),
           langConf.of(langExt(init.language)),
           readonlyConf.of(readonlyExt(init.readonly)),
@@ -231,6 +236,11 @@
   })
   $effect(() => {
     view?.dispatch({ effects: placeholderConf.reconfigure(placeholder ? placeholderExt(placeholder) : []) })
+  })
+
+  $effect(() => {
+    const dark = theme.resolved === 'dark'
+    view?.dispatch({ effects: themeConf.reconfigure(editorTheme(dark)) })
   })
 
   $effect(() => {
