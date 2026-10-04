@@ -53,10 +53,16 @@ VIAddVersionKey "LegalCopyright" "MIT License"
 !insertmacro MUI_UNPAGE_INSTFILES
 !insertmacro MUI_LANGUAGE "English"
 
+!include "StrFunc.nsh"
+${UnStrStr}
+
 ; A running codec holds its exe open. It is read-only, so nothing is
 ; lost by ending it (closing the window would only hide it in the tray).
-!macro StopCodec
-  nsExec::Exec '"$SYSDIR\taskkill.exe" /F /IM ${APPEXE}'
+; Only the copy in DIR is stopped; a portable copy elsewhere keeps running.
+; CIM, not Get-Process: the installer is 32-bit, so its PowerShell can't
+; read a 64-bit process's path, but Win32_Process reports it.
+!macro StopCodec DIR
+  nsExec::Exec `powershell -NoProfile -NonInteractive -Command "Get-CimInstance Win32_Process -Filter \"Name='${APPEXE}'\" | Where-Object { $$_.ExecutablePath -eq '${DIR}\${APPEXE}' } | ForEach-Object { Stop-Process -Id $$_.ProcessId -Force }"`
   Pop $0
   Sleep 500
 !macroend
@@ -79,7 +85,19 @@ VIAddVersionKey "LegalCopyright" "MIT License"
 Section "codec" SecApp
   SectionIn RO
   SetShellVarContext current
-  !insertmacro StopCodec
+
+  ; Installed before in another folder: remove that copy first, so it
+  ; doesn't linger (or start at login) beside the new one.
+  ReadRegStr $1 HKCU "${UNINSTKEY}" "InstallLocation"
+  StrCmp $1 "" old_done
+  StrCmp $1 $INSTDIR old_done
+  IfFileExists "$1\uninstall.exe" 0 old_done
+    ExecWait '"$1\uninstall.exe" /S _?=$1'
+    Delete "$1\uninstall.exe"
+    RMDir "$1"
+  old_done:
+
+  !insertmacro StopCodec "$INSTDIR"
   SetOutPath "$INSTDIR"
   File "/oname=${APPEXE}" "${EXE}"
   WriteUninstaller "$INSTDIR\uninstall.exe"
@@ -129,7 +147,7 @@ SectionEnd
 
 Section "Uninstall"
   SetShellVarContext current
-  !insertmacro StopCodec
+  !insertmacro StopCodec "$INSTDIR"
   Delete "$INSTDIR\${APPEXE}"
   Delete "$INSTDIR\uninstall.exe"
   RMDir "$INSTDIR"
@@ -141,12 +159,25 @@ Section "Uninstall"
   DeleteRegValue HKCU "Software\Classes\.yaml\OpenWithProgids" "${PROGID}"
   DeleteRegValue HKCU "Software\Classes\.yml\OpenWithProgids" "${PROGID}"
   DeleteRegKey HKCU "Software\Classes\Applications\${APPEXE}"
-  ; Start at login (Settings → Desktop), if it was on.
-  DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "${APP}"
+  ; Start at login (Settings → Desktop), if it was on for this copy; a
+  ; portable copy's entry stays.
+  ReadRegStr $0 HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "${APP}"
+  ${UnStrStr} $1 $0 "$INSTDIR\${APPEXE}"
+  StrCmp $1 "" +2
+    DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "${APP}"
   System::Call 'shell32::SHChangeNotify(i 0x08000000, i 0, p 0, p 0)'
 
   ; The window's own storage (display preferences, cache). Settings and
   ; recent folders in %APPDATA%\codec are shared with the codec CLI and
-  ; stay.
-  RMDir /r "$LOCALAPPDATA\codec\webview"
+  ; stay. WebView2's helper processes may hold it for a moment after
+  ; codec stops, so try for a few seconds.
+  StrCpy $2 0
+  webview_loop:
+    RMDir /r "$LOCALAPPDATA\codec\webview"
+    IfFileExists "$LOCALAPPDATA\codec\webview\*.*" 0 webview_done
+    IntOp $2 $2 + 1
+    IntCmp $2 10 webview_done
+    Sleep 500
+    Goto webview_loop
+  webview_done:
 SectionEnd

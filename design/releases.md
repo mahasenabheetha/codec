@@ -39,7 +39,9 @@
    (portable), `…_setup.exe` (per-user installer) and
    `codec-desktop_<v>_checksums.txt` to the release. They are unsigned
    until SignPath signing is set up ([roadmap](roadmap.md#code-signing)),
-   so Windows shows "unknown publisher" on first run.
+   so Windows shows "unknown publisher" on first run. GoReleaser creates
+   the release as a draft; the desktop job publishes it last, so if that
+   job fails the release stays a draft: fix and re-run the job.
 4. First release with an image only: the GHCR package starts private.
    Make it public once: GitHub → Packages → codec → Package settings →
    Change visibility.

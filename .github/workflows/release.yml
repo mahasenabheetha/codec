@@ -54,7 +54,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # The Windows desktop app: portable exe and per-user installer, added
-  # to the release GoReleaser created above (scripts/desktop.sh).
+  # to the release GoReleaser created above as a draft (scripts/desktop.sh),
+  # then publishes it.
   desktop:
     needs: release
     runs-on: windows-latest
@@ -102,3 +103,11 @@ jobs:
           mv codec-setup.exe "codec-desktop_${v}_windows_amd64_setup.exe"
           sha256sum codec-desktop_* > "codec-desktop_${v}_checksums.txt"
           gh release upload "$TAG" codec-desktop_* --clobber
+
+      # GoReleaser leaves the release as a draft; publish it only now,
+      # with every file attached.
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: gh release edit "$TAG" --draft=false
