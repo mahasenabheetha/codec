@@ -256,7 +256,7 @@ func TestAppHandler(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			rec := httptest.NewRecorder()
-			appHandler(tt.fsys, "tok").ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
+			appHandler(tt.fsys, "tok", false).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
 
 			if rec.Code != tt.wantStatus {
 				t.Errorf("status = %d, want %d", rec.Code, tt.wantStatus)

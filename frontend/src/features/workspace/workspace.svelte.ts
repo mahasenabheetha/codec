@@ -180,6 +180,10 @@ class Workspace {
       this.rootChanged()
       this.loadTree()
     })
+    // The desktop app was launched again with a file (internal/web/desktop.go).
+    es.addEventListener('open-file', (e) => {
+      layout.openFile(JSON.parse((e as MessageEvent).data).path)
+    })
     es.addEventListener('tree', () => this.scheduleReload())
     es.addEventListener('files', (e) => {
       const { root, changes } = JSON.parse((e as MessageEvent).data) as {

@@ -61,6 +61,8 @@ type Options struct {
 	// SampleDir is where the sample workspace is written; "" = codec's
 	// cache folder (sample.Dir).
 	SampleDir string
+	// Desktop is set by the desktop app; nil under codec serve.
+	Desktop Desktop
 }
 
 // Server is the codec web server and the state it holds: the per-run
@@ -108,7 +110,7 @@ func (s *Server) routes() http.Handler {
 		// which would be a programming mistake, not a runtime one.
 		panic(err)
 	}
-	mux.Handle("/", appHandler(appRoot, s.token))
+	mux.Handle("/", appHandler(appRoot, s.token, s.opts.Desktop != nil))
 
 	// v1
 	mux.HandleFunc("POST /api/transform", handleTransform)
@@ -166,6 +168,7 @@ func (s *Server) routes() http.Handler {
 	mux.HandleFunc("POST /api/v2/scaffold/check", s.handleScaffoldCheck)
 	mux.HandleFunc("POST /api/v2/scaffold/zip", s.handleScaffoldZip)
 	mux.HandleFunc("POST /api/v2/scaffold/clone", s.handleScaffoldClone)
+	s.desktopRoutes(mux)
 	mux.HandleFunc("/api/v2/", func(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusNotFound, "no such endpoint: "+r.Method+" "+r.URL.Path)
 	})
@@ -181,8 +184,11 @@ func (s *Server) routes() http.Handler {
 // carries the per-run token in a <meta> tag, which the frontend sends
 // back on every /api/v2 call. It takes the FS as a parameter so tests
 // can exercise both cases without a real build.
-func appHandler(fsys fs.FS, token string) http.Handler {
+func appHandler(fsys fs.FS, token string, desktop bool) http.Handler {
 	meta := `<meta name="codec-token" content="` + token + `">`
+	if desktop {
+		meta += desktopMeta
+	}
 	index, err := fs.ReadFile(fsys, "index.html")
 	if err != nil {
 		page := strings.Replace(notBuiltPage, "<head>", "<head>"+meta, 1)

@@ -3,6 +3,7 @@
 // sets on <html> switches the token set in tokens.css. index.html applies
 // the same choice before the app loads, so the first paint is right.
 import { persisted } from './persist.svelte'
+import { windowTheme } from '../platform'
 
 export type ThemePref = 'system' | 'dark' | 'light'
 export type Theme = 'dark' | 'light'
@@ -22,6 +23,7 @@ $effect.root(() => {
     // Browser chrome (and an installed app's title bar) follows --bg-0.
     const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg-0').trim()
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', bg)
+    windowTheme(resolved)
   })
 })
 
