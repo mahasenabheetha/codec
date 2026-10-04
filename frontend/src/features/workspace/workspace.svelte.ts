@@ -14,7 +14,7 @@ import {
 } from '../../lib/api/workspace'
 import { layout } from '../../lib/stores/layout.svelte'
 import { persisted } from '../../lib/stores/persist.svelte'
-import { routeFile } from '../../lib/stores/router.svelte'
+import { routeFile, router } from '../../lib/stores/router.svelte'
 import { toast } from '../../lib/stores/toast.svelte'
 import { pickFolder } from '../../lib/platform'
 import { ancestors } from './tree'
@@ -87,25 +87,39 @@ class Workspace {
       // The sample isn't a recent folder; bring it back all the same.
       this.info = await openSampleWorkspace().catch(() => this.info!)
     }
+    // A file the page was opened on (the desktop app launched with a
+    // file) survives the folder switch, which closes the old folder's
+    // file tabs.
+    const launched = routeFile(router.path)
     this.rootChanged()
     if (this.info.open) await this.loadTree()
+    if (launched && this.byPath.has(launched) && routeFile(router.path) !== launched) layout.openFile(launched)
   }
 
+  private picking = false
+
   /** Ask for a folder to open: the system dialog in the desktop app,
-   *  codec's folder browser in a browser (or if the dialog fails). */
+   *  codec's folder browser in a browser, or when the dialog can't be
+   *  shown. A second request while the dialog is up is ignored. */
   async chooseFolder() {
+    if (this.picking) return
     const picked = pickFolder('Open folder', this.info?.root ?? '')
     if (!picked) {
       this.dialogOpen = true
       return
     }
+    this.picking = true
+    let path: string
     try {
-      const path = await picked
-      if (path) await this.open(path)
+      path = await picked
     } catch (e) {
       toast(e instanceof Error ? e.message : String(e), 'err')
       this.dialogOpen = true
+      return
+    } finally {
+      this.picking = false
     }
+    if (path) await openFolder(path) // reports its own failure
   }
 
   async open(path: string) {
