@@ -6,6 +6,13 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Light theme: Settings → General → Theme offers System, Dark and
+  Light; System follows the operating system as it changes. Also in the
+  palette ("Toggle light and dark theme", "Use the system theme"). Dark
+  stays the default, and the saved theme applies before the first paint.
+
 ## [2.3.0] - 2026-10-03
 
 Utilities: a new sidebar heading with Encode & hash, Time and Regex, for

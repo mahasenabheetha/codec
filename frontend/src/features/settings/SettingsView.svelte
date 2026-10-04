@@ -10,6 +10,7 @@
   import { forget, getSettings, type FolderID, type SettingsInfo } from '../../lib/api/settings'
   import { copyText } from '../../lib/utils/clipboard'
   import { toast } from '../../lib/stores/toast.svelte'
+  import { theme, type ThemePref } from '../../lib/stores/theme.svelte'
   import { comparison } from '../compare/compare.svelte'
   import { editorNames, lensOpen, openIn, type ExternalEditor } from '../editor/active.svelte'
   import { lint } from '../lint/lint.svelte'
@@ -72,6 +73,11 @@
     el?.scrollIntoView({ block: 'start' })
   }
 
+  const themes: { value: ThemePref; label: string }[] = [
+    { value: 'system', label: 'System' },
+    { value: 'dark', label: 'Dark' },
+    { value: 'light', label: 'Light' },
+  ]
   const editors = (Object.keys(editorNames) as ExternalEditor[]).map((e) => ({ value: e, label: editorNames[e] }))
 
   const folderText: Record<FolderID, { title: string; description: string }> = {
@@ -106,6 +112,9 @@
       <p class="intro">Saved in your user profile, never in a repository. codec only reads the folders you open.</p>
 
       <SettingSection id="general" title="General">
+        <SettingRow title="Theme" description="System follows your operating system's light or dark setting.">
+          <SegmentedControl options={themes} bind:value={theme.pref} label="Theme" />
+        </SettingRow>
         <SettingRow title="Open files in" description={'The editor "Open in" buttons and problem links launch.'}>
           <SegmentedControl options={editors} bind:value={openIn.value} label="Open files in" />
         </SettingRow>
