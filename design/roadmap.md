@@ -140,7 +140,7 @@ desktop/              Wails config, icons, installer
 
 | # | Task | Main parts | Status |
 |---|---|---|---|
-| T1 | Spike | `cmd/codec-desktop` loads the current app: the server's handler mounted in Wails (no port, no token) or, if SSE streaming fails there, a loopback server with the token; check live file events, clipboard, persisted settings, drag and drop, file drop for logs; confirm Wails v3 status | Done: Wails v3.0.0-beta.27; loopback server on 8769 (decision 83); live events, clipboard (secure context), persisted settings and log file drop work |
+| T1 | Spike | `cmd/codec-desktop` loads the current app: the server's handler mounted in Wails (no port, no token) or, if SSE streaming fails there, a loopback server with the token; check live file events, clipboard, persisted settings, drag and drop, file drop for logs; confirm Wails v3 status | Done: Wails v3.0.0-beta.27; loopback server on 8769 (decision 83); live events, clipboard (secure context), persisted settings work; log file drop fixed in code, to try by hand |
 | T2 | Window | Single instance (second launch focuses the window and passes its file), window size and position remembered, native menus mapped to palette commands, title bar follows the theme | |
 | T3 | Native dialogs | Open folder / file through `lib/platform.ts`; the web keeps its folder browser | |
 | T4 | Tray and auto-start | Tray menu (open, recent folders, quit); closing the window keeps codec in the tray; "Start at login" setting (per-user Run key) | |
