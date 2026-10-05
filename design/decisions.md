@@ -370,3 +370,9 @@ Settled unless the user reopens them. Add new ones at the bottom:
     injected into the page and refuses file drags at the page root
     unless a drop zone stops the event first, as the log drop zone does
     (2026-10-04).
+84. Markdown preview in 3.1.0, rendered in the browser (`marked` and
+    `DOMPurify`) from the editor's text, so what-if edits show; no Go
+    renderer. Repository Markdown is untrusted: raw HTML is off and the
+    output is sanitised before it reaches the page. Remote images are
+    blocked until the user loads them, so nothing leaves the machine
+    unasked (2026-10-05).

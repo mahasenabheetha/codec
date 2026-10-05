@@ -172,6 +172,23 @@ free Windows signing. Their conditions, and what codec needs:
 The certificate names SignPath Foundation as the publisher, not the
 author. SignPath signs Windows only; macOS needs Apple's program.
 
+### v3.1.0 — Markdown preview
+Agreed 2026-10-05 (decision 84). READMEs and docs in a repository are
+easier to read rendered than as raw syntax. `.md` files already open in
+the editor (lang `markdown`); a Source / Preview switch in the file
+toolbar shows them rendered, in the browser UI and the desktop app.
+
+| # | Task | Main parts | Status |
+|---|---|---|---|
+| T1 | Safe rendering | `marked` (GitHub-flavoured: tables, task lists, strikethrough) and `DOMPurify`; raw HTML off, scripts and event handlers stripped; renders the editor's text, so what-if edits show; tests with hostile Markdown | |
+| T2 | Preview in the file view | Source / Preview switch in `FileView.svelte` toolbar and the palette; styles for headings, lists, tables, quotes and code in both themes; heading anchors | |
+| T3 | Links and images | A link to another file opens it in a codec tab, `#heading` scrolls, external links open in the system browser; images inside the workspace through a read-only route (images only, inside the root); remote images blocked with "Load images" | |
+| T4 | Code blocks and setting | YAML, JSON and shell blocks highlighted with the editor's highlighter; Settings → Editor: open Markdown as Preview or Source; docs (`workspace.html`, settings) | |
+| — | Release | Full checks; CHANGELOG cut as 3.1.0 | |
+
+Later: Mermaid diagrams (loaded only when a file has one); side by side
+with scroll sync.
+
 ### Later
 The rest of "Next", picked up when it fits.
 
