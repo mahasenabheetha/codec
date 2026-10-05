@@ -7,7 +7,8 @@
   read and check the YAML you live in (Kubernetes, Helm, Kustomize, Argo,<br>
   CI pipelines, Compose, Ansible), make sense of pipeline logs, and handle<br>
   the tokens, hashes, timestamps, cron schedules and regexes around them.<br>
-  One binary, a local web UI and a CLI, next to your editor. Nothing leaves your machine.
+  One binary, a local web UI and a CLI, next to your editor,<br>
+  and a desktop app on Windows. Nothing leaves your machine.
 </p>
 <p align="center">
   <a href="https://github.com/mahasenabheetha/codec/actions/workflows/ci.yml"><img src="https://github.com/mahasenabheetha/codec/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
