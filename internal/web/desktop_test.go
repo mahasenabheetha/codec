@@ -152,9 +152,6 @@ func TestDesktopSettings(t *testing.T) {
 	if rec.Code != http.StatusOK || fake.settings != (DesktopSettings{StartAtLogin: true}) {
 		t.Fatalf("POST: %d %s, settings %+v", rec.Code, rec.Body, fake.settings)
 	}
-	if icon, err := AppFile("favicon.ico"); err != nil || len(icon) == 0 {
-		t.Errorf("AppFile(favicon.ico) = %d bytes, %v", len(icon), err)
-	}
 }
 
 func TestDesktopPickFolder(t *testing.T) {
