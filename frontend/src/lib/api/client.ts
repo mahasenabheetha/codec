@@ -1,6 +1,7 @@
 // The only place the frontend talks to the backend. Every feature goes
-// through request(), so auth headers, error shapes and (in v3) the swap
-// from HTTP to Wails bindings happen here and nowhere else.
+// through request(), so auth headers and error shapes are handled here
+// and nowhere else. The desktop app serves the same HTTP API (decision
+// 83), so there is no second transport.
 
 import { connection } from '../stores/connection.svelte'
 

@@ -113,11 +113,22 @@ everything, landing on its rendered Helm chart. Then open your own:
 codec serve --open --root path/to/your/repo
 ```
 
-No installer, no admin rights. On Windows, SmartScreen may warn about the
+The CLI needs no installer and no admin rights. On Windows, SmartScreen may warn about the
 unsigned binary (*More info → Run anyway*); on macOS run
 `xattr -d com.apple.quarantine codec` once.
 [Getting started](https://mahasenabheetha.github.io/codec/getting-started.html)
 has the details.
+
+### Desktop app (Windows)
+
+The same codec in its own window, with a tray icon. From
+[Releases](https://github.com/mahasenabheetha/codec/releases), run
+`codec-desktop_<version>_windows_amd64_setup.exe`. It installs for you
+alone, without admin rights, adds a Start menu entry and offers codec in
+Explorer's *Open with* for YAML files. The portable
+`codec-desktop_<version>_windows_amd64.exe` runs without installing.
+Closing the window keeps codec in the tray; *Settings → Desktop* turns
+on Start at login. macOS follows later.
 
 ### Docker
 

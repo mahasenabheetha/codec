@@ -124,7 +124,7 @@
         type="button"
         class="ws"
         title={`${workspace.info.root}\n${watchText[workspace.info.watch ?? ''] ?? watchText['']}\nClick to open another folder.`}
-        onclick={() => (workspace.dialogOpen = true)}
+        onclick={() => workspace.chooseFolder()}
       >
         <FolderGit size={12} strokeWidth={2} />
         {workspace.info.name}

@@ -71,6 +71,7 @@
 <div class="table-wrap"><table>
   <tr><th>Section</th><th>Settings</th></tr>
   <tr><td>General</td><td>Theme: System, Dark or Light (System follows your operating system; also in the palette as "Toggle light and dark theme"). The editor "Open in" launches (VS Code or Cursor); whether file tabs show the outline and problems panel.</td></tr>
+  <tr><td>Desktop</td><td>Desktop app only: Start at login (in the tray; a per-user startup entry, no admin) and Keep running in the tray when the window closes. See <a href="getting-started.html#desktop">Desktop app</a>.</td></tr>
   <tr><td>Kubernetes</td><td>The target version (1.30–1.37) for schemas and API removals.</td></tr>
   <tr><td>Schemas</td><td>Validate against schemas on or off; offline mode; a custom schema folder. See <a href="lint.html#download">Lint and schemas</a>.</td></tr>
   <tr><td>Lint rules</td><td>The level of every rule (error, warning, info, off) and the line-length limit.</td></tr>
@@ -87,6 +88,8 @@
   <tr><td>Personal starters</td><td><code>%AppData%\codec\templates</code></td><td><code>…/codec/templates</code></td><td><code>~/.config/codec/templates</code></td></tr>
   <tr><td>Schema cache</td><td><code>%LocalAppData%\codec\schemas</code></td><td><code>~/Library/Caches/codec/schemas</code></td><td><code>~/.cache/codec/schemas</code></td></tr>
   <tr><td>Sample repository</td><td><code>%LocalAppData%\codec\sample</code></td><td><code>~/Library/Caches/codec/sample</code></td><td><code>~/.cache/codec/sample</code></td></tr>
+  <tr><td>Desktop window position</td><td><code>%AppData%\codec\desktop-window.json</code></td><td colspan="2">Desktop app only (Windows)</td></tr>
+  <tr><td>Desktop window storage (display preferences, cache)</td><td><code>%LocalAppData%\codec\webview</code></td><td colspan="2">Desktop app only (Windows)</td></tr>
 </table></div>
 <ul>
   <li><code>CODEC_CONFIG_DIR</code> moves the settings folder (and starters with it) — useful to share lint rules with CI or to keep a portable setup.</li>
@@ -95,7 +98,7 @@
 </ul>
 
 <h2 id="browser">What your browser keeps<a class="anchor" href="#browser">#</a></h2>
-<p>Display preferences stay in the browser's local storage: open tabs, panel sizes, the sidebar state, expanded folders, the last route, the theme, the editor link choice. Clearing site data resets them; nothing else is lost.</p>
+<p>Display preferences stay in the browser's local storage: open tabs, panel sizes, the sidebar state, expanded folders, the last route, the theme, the editor link choice. Clearing site data resets them; nothing else is lost. The desktop app keeps its own set in its window storage (above), separate from your browser's.</p>
 
 <h2 id="never">What codec never stores<a class="anchor" href="#never">#</a></h2>
 <ul>

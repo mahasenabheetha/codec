@@ -61,6 +61,7 @@ npm --prefix frontend run check                 # UI type-check
 npm --prefix frontend run build                 # builds into internal/web/dist/app
 go build -o codec ./cmd/codec                   # binary (needs the UI built)
 scripts/dev.sh build|run|ui [port]              # all of the above in one step
+scripts/desktop.sh [exe]                        # Windows desktop exe + installer in dist/desktop (NSIS: MAKENSIS=…)
 scripts/perf.sh [dir]                           # time big inputs against the budgets
 codec serve --sample                            # try changes on the sample repository
 ```

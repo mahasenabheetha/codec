@@ -81,6 +81,7 @@
   <tr><td>Paths validated and read through a confined root</td><td><code>../</code> tricks and symlinks that point outside the open folder are refused, so the API can't be used to read other files.</td></tr>
   <tr><td>Request size limits and cancellation</td><td>Oversized requests are refused; requests stop when the page moves on.</td></tr>
 </table></div>
+<p>The Windows desktop app runs the same server, with the same protections, on <code>127.0.0.1:8769</code> and shows it in its own window. A few routes exist only there (the window's theme, the folder dialog, its settings), behind the same token. It installs per user, without admin rights, and writes only to your profile and <code>HKEY_CURRENT_USER</code>.</p>
 
 <h2 id="docker">Docker<a class="anchor" href="#docker">#</a></h2>
 <p>The image is distroless (no shell or package manager) and runs as a non-root user. Mount repositories read-only (<code>:ro</code>) and publish the port on <code>127.0.0.1</code> only (<code>-p 127.0.0.1:8765:8765</code>), so the extra safety of the container adds to codec's own.</p>

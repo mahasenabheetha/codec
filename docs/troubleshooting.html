@@ -73,6 +73,15 @@
 <h3 id="reload">"codec restarted" or "can't reach the server"<a class="anchor" href="#reload">#</a></h3>
 <p>Each run of <code>codec serve</code> uses a new security token, so a page opened before a restart can't talk to the new run. codec notices and shows a <strong>codec restarted — Reload</strong> banner; reload and your tabs and layout come back. "Can't reach the server" means codec isn't running: start it again.</p>
 
+<h3 id="desktop">Desktop app<a class="anchor" href="#desktop">#</a></h3>
+<ul>
+  <li><strong>No tray icon:</strong> Windows hides new tray icons behind the <strong>^</strong> arrow; drag it onto the taskbar to keep it in view.</li>
+  <li><strong>Closing the window doesn't quit:</strong> by design, codec stays in the tray. Quit from the tray menu, or turn off <em>Settings → Desktop → Keep running in the tray</em>.</li>
+  <li><strong>Display preferences reset:</strong> the desktop app uses port 8769 so its window keeps the same storage. If something else holds that port, codec starts on a free one with fresh preferences for that run; free the port and restart.</li>
+  <li><strong>The window stays blank:</strong> the app needs Microsoft Edge WebView2, part of Windows 11. On older Windows, install the WebView2 Runtime from Microsoft.</li>
+  <li><strong>Start at login points to an old place:</strong> it records where the exe was when you turned it on. After moving it, turn the setting off and on again.</li>
+</ul>
+
 <h2 id="files">Files and folders<a class="anchor" href="#files">#</a></h2>
 <h3 id="missing">A file isn't in the explorer<a class="anchor" href="#missing">#</a></h3>
 <ul>

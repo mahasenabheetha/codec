@@ -5,10 +5,12 @@
     label: string
     disabled?: boolean
     title?: string
+    /** Accessible name when the visible label only states on/off. */
+    name?: string
     onchange?: (checked: boolean) => void
   }
 
-  let { checked = $bindable(), label, disabled = false, title, onchange }: Props = $props()
+  let { checked = $bindable(), label, disabled = false, title, name, onchange }: Props = $props()
 
   function toggle() {
     checked = !checked
@@ -16,7 +18,7 @@
   }
 </script>
 
-<button type="button" role="switch" aria-checked={checked} class="toggle" {disabled} {title} onclick={toggle}>
+<button type="button" role="switch" aria-checked={checked} aria-label={name} class="toggle" {disabled} {title} onclick={toggle}>
   <span class="track" class:on={checked}><span class="thumb"></span></span>
   <span class="label">{label}</span>
 </button>

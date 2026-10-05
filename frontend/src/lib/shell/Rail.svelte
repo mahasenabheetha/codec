@@ -63,7 +63,7 @@
       layout.toggleSearch()
       finder.focusTick++
     }, 'Mod+Shift+F')}
-    {@render item(FolderOpen, 'Open folder…', false, () => (workspace.dialogOpen = true), 'Mod+O')}
+    {@render item(FolderOpen, 'Open folder…', false, () => workspace.chooseFolder(), 'Mod+O')}
     {@render item(ListChecks, 'Problems', router.path === problemsRoute, () => layout.open(problemsRoute))}
     {@render item(GitCompare, 'Compare', router.path === compareRoute, () => layout.open(compareRoute))}
     {@render item(TextSearch, 'Query', router.path === queryRoute, () => layout.open(queryRoute))}

@@ -11,6 +11,8 @@
   import { copyText } from '../../lib/utils/clipboard'
   import { toast } from '../../lib/stores/toast.svelte'
   import { theme, type ThemePref } from '../../lib/stores/theme.svelte'
+  import { desktop } from '../../lib/platform'
+  import { getDesktopSettings, setDesktopSettings, type DesktopSettings } from '../../lib/api/desktop'
   import { comparison } from '../compare/compare.svelte'
   import { editorNames, lensOpen, openIn, type ExternalEditor } from '../editor/active.svelte'
   import { lint } from '../lint/lint.svelte'
@@ -56,8 +58,39 @@
     }
   }
 
+  // Desktop-only choices; the section exists only in the desktop app.
+  let desk = $state<DesktopSettings | null>(null)
+  async function loadDesk() {
+    if (!desktop) return
+    try {
+      desk = await getDesktopSettings()
+    } catch (e) {
+      toast(e instanceof Error ? e.message : String(e), 'err')
+    }
+  }
+  // Shown at once and put back if saving fails; the switches wait while
+  // a save is in flight, so two quick changes can't undo each other.
+  let deskSaving = $state(false)
+  async function saveDesk(next: DesktopSettings) {
+    const prev = desk
+    desk = next
+    deskSaving = true
+    try {
+      desk = await setDesktopSettings(next)
+    } catch (e) {
+      desk = prev
+      toast(e instanceof Error ? e.message : String(e), 'err')
+    } finally {
+      deskSaving = false
+    }
+  }
+  $effect(() => {
+    if (active) loadDesk()
+  })
+
   const nav = [
     { id: 'general', title: 'General' },
+    ...(desktop ? [{ id: 'desktop', title: 'Desktop' }] : []),
     { id: 'kubernetes', title: 'Kubernetes' },
     { id: 'schemas', title: 'Schemas' },
     { id: 'rules-style', title: 'Lint rules' },
@@ -122,6 +155,17 @@
           <Toggle checked={lensOpen.value} label={lensOpen.value ? 'Shown' : 'Hidden'} onchange={(on) => (lensOpen.value = on)} />
         </SettingRow>
       </SettingSection>
+
+      {#if desktop && desk}
+        <SettingSection id="desktop" title="Desktop">
+          <SettingRow title="Start at login" description="Start codec in the tray when you sign in to Windows.">
+            <Toggle checked={desk.startAtLogin} label={desk.startAtLogin ? 'On' : 'Off'} name="Start at login" disabled={deskSaving} onchange={(on) => saveDesk({ ...desk!, startAtLogin: on })} />
+          </SettingRow>
+          <SettingRow title="Keep running in the tray" description="Closing the window leaves codec in the tray; quit from the tray menu. Off: closing the window quits.">
+            <Toggle checked={desk.keepInTray} label={desk.keepInTray ? 'On' : 'Off'} name="Keep running in the tray" disabled={deskSaving} onchange={(on) => saveDesk({ ...desk!, keepInTray: on })} />
+          </SettingRow>
+        </SettingSection>
+      {/if}
 
       {#if lint.loaded}
         <LintSections />

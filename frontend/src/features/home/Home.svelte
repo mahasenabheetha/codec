@@ -58,7 +58,7 @@
               <span class="title">Open your own folder</span>
               <span class="desc">A repository on this machine. codec reads it and never writes to it.</span>
             </span>
-            <Button icon={FolderOpen} onclick={() => (ws.dialogOpen = true)}>Open folder…</Button>
+            <Button icon={FolderOpen} onclick={() => ws.chooseFolder()}>Open folder…</Button>
           </li>
         </ol>
       </section>
@@ -78,7 +78,7 @@
             <span class="go"><ArrowRight size={16} strokeWidth={1.75} /></span>
           </button>
         {/if}
-        <button type="button" class="card" onclick={() => (ws.dialogOpen = true)}>
+        <button type="button" class="card" onclick={() => ws.chooseFolder()}>
           <span class="icon"><FolderOpen size={18} strokeWidth={1.75} /></span>
           <span class="text">
             <span class="title">{ws.info?.open ? 'Open another folder' : 'Open a folder'}</span>

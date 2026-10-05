@@ -35,6 +35,15 @@ type Settings struct {
 	// DiffIgnore lists path patterns semantic diffs skip (noise such as
 	// "metadata.annotations.checksum/*").
 	DiffIgnore []string `json:"diffIgnore,omitempty"`
+	Desktop    Desktop  `json:"desktop,omitzero"`
+}
+
+// Desktop holds the desktop app's own choices. Start at login lives in
+// the operating system, not here.
+type Desktop struct {
+	// QuitOnClose quits when the window closes instead of keeping codec
+	// in the tray (the default).
+	QuitOnClose bool `json:"quitOnClose,omitempty"`
 }
 
 // Lint holds the lint and schema choices. Zero values mean defaults.

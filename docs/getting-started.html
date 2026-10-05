@@ -73,6 +73,22 @@
 </table></div>
 <p>Check what you have with <code>codec version</code>.</p>
 
+<h2 id="desktop">Desktop app (Windows)<a class="anchor" href="#desktop">#</a></h2>
+<p>The same codec in its own window, for when you'd rather not keep a browser tab and a terminal open. Everything works as in the browser; a few things only the desktop app does are listed below. macOS follows later.</p>
+<div class="table-wrap"><table>
+  <tr><th>Download</th><th>What it is</th></tr>
+  <tr><td><code>codec-desktop_&lt;version&gt;_windows_amd64_setup.exe</code></td><td>Installer. Installs for you alone into <code>%LocalAppData%\Programs\codec</code>, without admin rights. Adds a Start menu entry, and optionally a desktop shortcut and codec in Explorer's <em>Open with</em> for <code>.yaml</code> and <code>.yml</code>.</td></tr>
+  <tr><td><code>codec-desktop_&lt;version&gt;_windows_amd64.exe</code></td><td>Portable: run it from anywhere, nothing installed.</td></tr>
+</table></div>
+<p>Both are unsigned for now, so Windows may say "Windows protected your PC" the first time: <em>More info → Run anyway</em>. The window uses Microsoft Edge WebView2, which is part of Windows 11.</p>
+<ul>
+  <li><strong>One window.</strong> Starting codec again brings the window forward. <code>codec-desktop path\to\folder</code> or a file (or <em>Open with → codec</em>) opens it there; a file inside the open folder keeps that folder.</li>
+  <li><strong>Tray.</strong> Closing the window keeps codec in the tray (Windows may put the icon behind the <strong>^</strong> arrow at first). Click it to open the window; right-click for recent folders and <em>Quit codec</em>.</li>
+  <li><strong>Settings → Desktop.</strong> <em>Start at login</em> starts codec in the tray when you sign in; <em>Keep running in the tray</em> off makes closing the window quit.</li>
+  <li><strong>Open folder</strong> uses the Windows folder dialog. The window remembers its size and position, and its title bar follows the theme.</li>
+</ul>
+<p>To uninstall: <em>Settings → Apps → Installed apps → codec → Uninstall</em>. Your settings and recent folders in <code>%AppData%\codec</code> stay, because the <code>codec</code> command uses them too.</p>
+
 <h2 id="first-run">First run: the sample repository<a class="anchor" href="#first-run">#</a></h2>
 <pre><code>codec serve --open --sample</code></pre>
 <p>This starts the local server on <a href="http://localhost:8765">http://localhost:8765</a>, opens your browser, and opens a small made-up repository built into codec, landing on its rendered Helm chart. The sample has one of everything: a Helm chart with dev and prod values, Kubernetes manifests with a Kustomize overlay, Argo workflows, GitHub Actions, GitLab CI and Azure pipelines, a Compose project and an Ansible playbook with a role. A few problems are planted in <code>k8s/legacy/</code> for the lint view to find.</p>
@@ -122,7 +138,7 @@ go build -o codec ./cmd/codec</code></pre>
 <p>Every file view has an <strong>Open in VS Code</strong> button (or Cursor — choose in <a href="settings.html">Settings</a>) that opens the same file at the cursor's line. Problem lists and "defined in" links jump the same way. A typical loop: read and experiment in codec, make the real change in your editor, and codec's tabs refresh as soon as you save.</p>
 
 <h2 id="app">Install as an app<a class="anchor" href="#app">#</a></h2>
-<p>For its own window and taskbar icon: in Edge, <em>menu → Apps → Install this site as an app</em>; in Chrome, the install icon in the address bar. <code>codec serve</code> must be running when you open it.</p>
+<p>On Windows, the <a href="#desktop">desktop app</a> is the simplest way to get codec in its own window. Elsewhere, or with <code>codec serve</code>: in Edge, <em>menu → Apps → Install this site as an app</em>; in Chrome, the install icon in the address bar. <code>codec serve</code> must be running when you open it.</p>
 
 <h2 id="next">Next steps<a class="anchor" href="#next">#</a></h2>
 <ul>

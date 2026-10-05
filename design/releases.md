@@ -34,6 +34,14 @@
    archives them (`zip` on Windows, `tar.gz` elsewhere), and publishes
    a GitHub Release with `checksums.txt`. Suffixed tags become
    pre-releases automatically. The same run pushes the Docker image.
+   A second job on Windows then builds the desktop app
+   (`scripts/desktop.sh`) and adds `codec-desktop_<v>_windows_amd64.exe`
+   (portable), `…_setup.exe` (per-user installer) and
+   `codec-desktop_<v>_checksums.txt` to the release. They are unsigned
+   until SignPath signing is set up ([roadmap](roadmap.md#code-signing)),
+   so Windows shows "unknown publisher" on first run. GoReleaser creates
+   the release as a draft; the desktop job publishes it last, so if that
+   job fails the release stays a draft: fix and re-run the job.
 4. First release with an image only: the GHCR package starts private.
    Make it public once: GitHub → Packages → codec → Package settings →
    Change visibility.
@@ -46,6 +54,9 @@ Local dry runs (output in `dist/`, gitignored):
   pushed (~10 min on Windows). The before-hook runs `npm ci`, which
   fails if a running vite dev server holds `node_modules`; stop it, or
   build the frontend yourself and add `before` to `--skip`.
+- `scripts/desktop.sh`: the desktop exe and installer in
+  `dist/desktop/` (NSIS 3 needed: `makensis` on PATH or `MAKENSIS=`;
+  the portable zip from SourceForge needs no admin).
 
 ## Docker image
 

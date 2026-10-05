@@ -129,6 +129,9 @@ func Open(dir string) (*Workspace, error) {
 // Root is the absolute path of the folder.
 func (w *Workspace) Root() string { return w.root }
 
+// RealRoot is Root with symlinks (and junctions) resolved.
+func (w *Workspace) RealRoot() string { return w.real }
+
 // Name is the folder's base name, e.g. "codec".
 func (w *Workspace) Name() string { return filepath.Base(w.root) }
 

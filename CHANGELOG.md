@@ -6,6 +6,41 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+## [3.0.0-rc.1] - 2026-10-05
+
+codec as a desktop app on Windows: its own window, a tray icon, start
+at login and "Open with" for YAML files, installed per user without
+admin rights. The browser UI (`codec serve`) is unchanged. A release
+candidate: Wails v3 is still in beta and the files are not yet signed,
+so Windows warns about an unknown publisher.
+
+### Added
+
+- Desktop app (`codec-desktop`, Windows): codec in its own window, with
+  the same features as the browser UI. One instance: launching it again
+  brings the window forward, and a folder or file given to it opens
+  there (a file inside the open folder keeps that folder). The window
+  comes back where it was, and its title bar follows the theme. Open
+  folder uses the system folder dialog, starting in the open folder.
+  A tray icon opens the window, a recent folder, or quits; closing the
+  window keeps codec in the tray. Settings → Desktop: Start at login
+  (in the tray, per user, no admin) and Keep running in the tray.
+- Windows installer (`codec-setup.exe`): installs for the current user
+  without admin rights, with a Start menu entry, an optional desktop
+  shortcut and codec in Explorer's "Open with" for `.yaml` and `.yml`;
+  uninstall from Apps. A portable `codec-desktop.exe` as well.
+
+### Changed
+
+- The log drop zone works in the desktop window too.
+
+## [2.4.1] - 2026-10-04
+
+### Changed
+
+- Dependency updates: Go modules, `@types/node` and GitHub Actions.
+  Dependabot holds TypeScript at 6 until svelte-check supports 7.
+
 ## [2.4.0] - 2026-10-04
 
 A light theme, for bright rooms and side-by-side work with a light
@@ -505,7 +540,9 @@ First tagged release: codec as it stood before the 2.0 work began.
 - Release pipeline: pushing a `v*` tag publishes binaries for Linux,
   Windows and macOS (amd64/arm64) to GitHub Releases via GoReleaser.
 
-[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v2.4.0...HEAD
+[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v3.0.0-rc.1...HEAD
+[3.0.0-rc.1]: https://github.com/mahasenabheetha/codec/compare/v2.4.1...v3.0.0-rc.1
+[2.4.1]: https://github.com/mahasenabheetha/codec/compare/v2.4.0...v2.4.1
 [2.4.0]: https://github.com/mahasenabheetha/codec/compare/v2.3.0...v2.4.0
 [2.3.0]: https://github.com/mahasenabheetha/codec/compare/v2.2.0...v2.3.0
 [2.2.0]: https://github.com/mahasenabheetha/codec/compare/v2.1.0...v2.2.0

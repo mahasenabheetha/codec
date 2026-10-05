@@ -148,6 +148,11 @@ them when it changes, and rename the SVG if browser tabs keep the old one.
   persist tool input, what-if edits or variables [19].
 - **API.** Components call the backend only through `lib/api/*`.
   Requests that follow typing are debounced and abortable.
+- **Desktop.** The same UI runs in the desktop window. Anything only it
+  can do (system folder dialog, window frame, Settings → Desktop) goes
+  through `lib/platform.ts`, which checks `desktop` and leaves the
+  browser with a working fallback. Never branch on the platform
+  elsewhere.
 - **Feedback.** Copy actions confirm with a toast; destructive actions
   don't exist (read-only), "forget" actions confirm with a toast.
 

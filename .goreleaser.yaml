@@ -73,3 +73,6 @@ changelog:
 release:
   # Tags like v2.0.0-alpha.1 are published as pre-releases automatically.
   prerelease: auto
+  # Published by the desktop job in release.yml once the Windows desktop
+  # files are attached, so a release is never public without them.
+  draft: true

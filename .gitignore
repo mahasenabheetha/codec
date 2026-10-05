@@ -18,3 +18,6 @@
 # Local builds from scripts/dev.sh
 /codec-dev
 /codec-dev.exe
+/codec-desktop
+/codec-desktop.exe
+/cmd/codec-desktop/*.syso
