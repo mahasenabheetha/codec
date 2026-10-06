@@ -376,3 +376,9 @@ Settled unless the user reopens them. Add new ones at the bottom:
     output is sanitised before it reaches the page. Remote images are
     blocked until the user loads them, so nothing leaves the machine
     unasked (2026-10-05).
+85. Update check in 3.2.0: codec may ask GitHub's releases API for the
+    latest version and show a notice; it never downloads or installs on
+    its own. Off by default, a setting turns it on, and "Check now"
+    works either way. It is codec's second network use after schemas
+    (40); the request carries nothing but codec's version in the
+    User-Agent, and nothing is collected (2026-10-06).

@@ -189,6 +189,23 @@ toolbar shows them rendered, in the browser UI and the desktop app.
 Later: Mermaid diagrams (loaded only when a file has one); side by side
 with scroll sync.
 
+### v3.2.0 — Update check
+Agreed 2026-10-06 (decision 85). Wails has no updater and codec never
+looks for new versions, so an installed copy stays old until the user
+notices a release. codec can ask GitHub for the latest release and say
+when a newer one exists; updating stays the installer run over the top
+(it replaces the install in place and keeps settings).
+
+| # | Task | Main parts | Status |
+|---|---|---|---|
+| T1 | Check: engine + API + CLI | `internal/update`: latest release from the GitHub API (pre-releases only when running one), semver compare with `internal/version`, 5 s timeout, at most once a day (result cached in the config dir), dev builds never check; `updates.check` setting, off by default; `GET /api/v2/update`; `codec version --check`; tests against a fake server | |
+| T2 | Notice in the UI | Settings → General: "Check for updates" switch and "Check now"; "codec X.Y.Z is available" in the footer with a link to the release (the system browser in the desktop app), dismissable per version; tray menu entry in the desktop app; docs (settings, security: the second network use, troubleshooting) | |
+| — | Release | Full checks; CHANGELOG cut as 3.2.0 | |
+
+Later, after SignPath signing: "Update now" (download the installer,
+verify it against the release checksums, run it silently, restart);
+a winget package published by the release workflow.
+
 ### Later
 The rest of "Next", picked up when it fits.
 
