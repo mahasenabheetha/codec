@@ -172,7 +172,43 @@ free Windows signing. Their conditions, and what codec needs:
 The certificate names SignPath Foundation as the publisher, not the
 author. SignPath signs Windows only; macOS needs Apple's program.
 
-### v3.1.0 — Markdown preview
+### v3.1.0 — Argo workflow logs
+Agreed 2026-10-10 (decision 86). Reading an Argo run from `argo logs`
+in a terminal is slow: steps interleave, ECS JSON lines are hard to
+scan, and a step that failed before logging leaves no trace there. A
+Logs tool (Tools, no open folder needed, browser UI and desktop app)
+shows the run as its steps: what each did, how long it took, what
+failed and why.
+
+Two inputs, each opened from a file (`.txt`/`.log`/`.yaml`, the system
+dialog in the desktop app, drag and drop, including
+`\\wsl.localhost\…` paths) or pasted:
+
+- **Logs** (required): raw `argo logs <wf>` output, with or without
+  `--follow` and `--timestamps`, also `kubectl logs` and plain ECS or
+  JSON lines. Colour codes, pod prefixes and timestamp prefixes are
+  stripped; lines from different pods may interleave; a log that stops
+  mid-run shows its last steps as still running.
+- **Workflow status** (optional): `argo get <wf> -o yaml` (or `-o json`,
+  or `kubectl get wf -o yaml`), the whole object or a pasted snippet
+  (`status:`, `nodes:` or a few nodes). It gives the real step tree and
+  each step's phase, times, exit code and message, so steps that never
+  logged still show.
+
+| # | Task | Main parts | Status |
+|---|---|---|---|
+| T1 | Log engine | `internal/argolog`, pure: clean (ANSI, CRLF, UTF-16 BOM, pod and timestamp prefixes), read each line as ECS (dotted or nested fields), other JSON, logfmt (Argo's `init`/`wait` containers) or text; level from `log.level`/`level`/`severity`; stack traces from `error.stack_trace` or following lines; JSON inside `message`; step from the pod name; synthetic fixtures | |
+| T2 | Analysis + API | Summary (result, span, counts by level), per-step stats (first/last time, errors, warnings, a few words on what it did), error groups (numbers, IDs and UUIDs ignored), field list with top values, entries per minute; `POST /api/v2/argo/log`; budget 100k lines < 1 s in `scripts/perf.sh` | |
+| T3 | Workflow status | Read a Workflow's status from YAML or JSON, whole or a snippet, into the step tree (steps, DAG tasks, parallel groups, retries, loop items) with phase, times, exit code and message; match its pods to the log's steps; failed reason = Argo's message + the step's first error | |
+| T4 | Logs tool UI | Tools → Logs: two inputs (open file, drop or paste each); overview with the step tree, failed steps highlighted and expanded with the reason, step timeline (Gantt); a step's entries (level colours, info/debug foldable, details as a field tree, stack trace laid out); all entries with filters (level, step, text/regex, field value, time range) and error groups; long lists windowed; smart paste detects `argo logs` output; docs (`tools.html` or a page of its own, `argo.html`) | |
+| T5 | Argo graph coloured by a run | When the open folder has the workflow, its graph in the Argo view is coloured by the run's step results, with durations; a node opens its step's log | |
+| — | Release | Full checks; CHANGELOG cut as 3.1.0 | |
+
+A first useful cut is T1, T2 and T4 with logs only. Later: `codec argo
+log` on the command line (filters, `-o json`, exit code as a gate,
+stdin); following a live log; CSV and Kibana exports.
+
+### v3.2.0 — Markdown preview
 Agreed 2026-10-05 (decision 84). READMEs and docs in a repository are
 easier to read rendered than as raw syntax. `.md` files already open in
 the editor (lang `markdown`); a Source / Preview switch in the file
@@ -184,12 +220,12 @@ toolbar shows them rendered, in the browser UI and the desktop app.
 | T2 | Preview in the file view | Source / Preview switch in `FileView.svelte` toolbar and the palette; styles for headings, lists, tables, quotes and code in both themes; heading anchors | |
 | T3 | Links and images | A link to another file opens it in a codec tab, `#heading` scrolls, external links open in the system browser; images inside the workspace through a read-only route (images only, inside the root); remote images blocked with "Load images" | |
 | T4 | Code blocks and setting | YAML, JSON and shell blocks highlighted with the editor's highlighter; Settings → Editor: open Markdown as Preview or Source; docs (`workspace.html`, settings) | |
-| — | Release | Full checks; CHANGELOG cut as 3.1.0 | |
+| — | Release | Full checks; CHANGELOG cut as 3.2.0 | |
 
 Later: Mermaid diagrams (loaded only when a file has one); side by side
 with scroll sync.
 
-### v3.2.0 — Update check
+### v3.3.0 — Update check
 Agreed 2026-10-06 (decision 85). Wails has no updater and codec never
 looks for new versions, so an installed copy stays old until the user
 notices a release. codec can ask GitHub for the latest release and say
@@ -200,7 +236,7 @@ when a newer one exists; updating stays the installer run over the top
 |---|---|---|---|
 | T1 | Check: engine + API + CLI | `internal/update`: latest release from the GitHub API (pre-releases only when running one), semver compare with `internal/version`, 5 s timeout, at most once a day (result cached in the config dir), dev builds never check; `updates.check` setting, off by default; `GET /api/v2/update`; `codec version --check`; tests against a fake server | |
 | T2 | Notice in the UI | Settings → General: "Check for updates" switch and "Check now"; "codec X.Y.Z is available" in the footer with a link to the release (the system browser in the desktop app), dismissable per version; tray menu entry in the desktop app; docs (settings, security: the second network use, troubleshooting) | |
-| — | Release | Full checks; CHANGELOG cut as 3.2.0 | |
+| — | Release | Full checks; CHANGELOG cut as 3.3.0 | |
 
 Later, after SignPath signing: "Update now" (download the installer,
 verify it against the release checksums, run it silently, restart);

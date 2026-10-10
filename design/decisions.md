@@ -370,15 +370,25 @@ Settled unless the user reopens them. Add new ones at the bottom:
     injected into the page and refuses file drags at the page root
     unless a drop zone stops the event first, as the log drop zone does
     (2026-10-04).
-84. Markdown preview in 3.1.0, rendered in the browser (`marked` and
+84. Markdown preview in 3.2.0, rendered in the browser (`marked` and
     `DOMPurify`) from the editor's text, so what-if edits show; no Go
     renderer. Repository Markdown is untrusted: raw HTML is off and the
     output is sanitised before it reaches the page. Remote images are
     blocked until the user loads them, so nothing leaves the machine
     unasked (2026-10-05).
-85. Update check in 3.2.0: codec may ask GitHub's releases API for the
+85. Update check in 3.3.0: codec may ask GitHub's releases API for the
     latest version and show a notice; it never downloads or installs on
     its own. Off by default, a setting turns it on, and "Check now"
     works either way. It is codec's second network use after schemas
     (40); the request carries nothing but codec's version in the
     User-Agent, and nothing is collected (2026-10-06).
+86. Argo workflow logs in 3.1.0, ahead of 84 and 85 (now 3.2.0 and
+    3.3.0): a Logs tool reads `argo logs` output (also `--follow`,
+    `kubectl logs`, plain ECS/JSON lines) and, optionally, the
+    workflow's status from `argo get -o yaml|json`, each from a file or
+    pasted. A pure engine `internal/argolog` parses in Go, as
+    `ansiblelog` does; the reader is generic over ECS libraries (dotted
+    or nested fields, several level and stack-trace fields) rather than
+    tied to one. codec never talks to the cluster: no kubeconfig, no
+    live follow. Logs are never stored. UI first; the CLI comes later
+    (2026-10-10).
