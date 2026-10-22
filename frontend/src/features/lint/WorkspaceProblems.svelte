@@ -9,6 +9,7 @@
   import Button from '../../lib/components/Button.svelte'
   import EmptyState from '../../lib/components/EmptyState.svelte'
   import SegmentedControl from '../../lib/components/SegmentedControl.svelte'
+  import VirtualList from '../../lib/components/VirtualList.svelte'
   import type { Diagnostic } from '../../lib/api/yaml'
   import { layout } from '../../lib/stores/layout.svelte'
   import { settingsRoute } from '../../lib/stores/router.svelte'
@@ -43,6 +44,18 @@
   const shown = $derived(
     (lint.results ?? []).map((f) => ({ ...f, diagnostics: f.diagnostics.filter(keep) })).filter((f) => f.diagnostics.length > 0),
   )
+  // One row per file and per problem of an open file, so the list can
+  // be windowed: a big folder has thousands of findings.
+  type Row = { key: string; f: (typeof shown)[number]; d?: Diagnostic; last?: boolean }
+  const rows = $derived.by(() => {
+    const out: Row[] = []
+    for (const f of shown) {
+      out.push({ key: `f:${f.path}`, f })
+      if (collapsed.has(f.path)) continue
+      f.diagnostics.forEach((d, i) => out.push({ key: `p:${f.path}#${i}`, f, d, last: i === f.diagnostics.length - 1 }))
+    }
+    return out
+  })
   const totals = $derived.by(() => {
     const t = { error: 0, warning: 0, info: 0 }
     for (const f of lint.results ?? []) for (const d of f.diagnostics) t[d.severity]++
@@ -102,37 +115,39 @@
       <p class="ok"><CircleCheck size={14} strokeWidth={1.75} /> Nothing at this level.</p>
     {:else}
       <div class="files">
-        {#each shown as f (f.path)}
-          {@const isOpen = !collapsed.has(f.path)}
-          <section>
-            <button
-              type="button"
-              class="file"
-              aria-expanded={isOpen}
-              onclick={() => (isOpen ? collapsed.add(f.path) : collapsed.delete(f.path))}
-            >
-              {#if isOpen}<ChevronDown size={14} />{:else}<ChevronRight size={14} />{/if}
-              <FileIcon file={workspace.byPath.get(f.path) ?? { lang: 'yaml', type: f.type }} />
-              <span class="name">{f.path}</span>
-              <span class="count">{f.diagnostics.length}</span>
-            </button>
-            {#if isOpen}
-              <ul>
-                {#each f.diagnostics as d, i (i)}
-                  <ProblemItem
-                    severity={d.severity}
-                    message={d.message}
-                    hint={d.hint}
-                    why={d.why}
-                    code={d.code}
-                    where="{d.range.start.line}:{d.range.start.col}"
-                    onjump={() => open(f.path, d)}
-                  />
-                {/each}
-              </ul>
+        <VirtualList count={rows.length} key={(i) => rows[i].key} estimate={40}>
+          {#snippet row(i)}
+            {@const r = rows[i]}
+            {#if r.d === undefined}
+              {@const isOpen = !collapsed.has(r.f.path)}
+              <button
+                type="button"
+                class="file"
+                aria-expanded={isOpen}
+                onclick={() => (isOpen ? collapsed.add(r.f.path) : collapsed.delete(r.f.path))}
+              >
+                {#if isOpen}<ChevronDown size={14} />{:else}<ChevronRight size={14} />{/if}
+                <FileIcon file={workspace.byPath.get(r.f.path) ?? { lang: 'yaml', type: r.f.type }} />
+                <span class="name">{r.f.path}</span>
+                <span class="count">{r.f.diagnostics.length}</span>
+              </button>
+            {:else}
+              {@const d = r.d}
+              <div class="problem" class:last={r.last}>
+                <ProblemItem
+                  tag="div"
+                  severity={d.severity}
+                  message={d.message}
+                  hint={d.hint}
+                  why={d.why}
+                  code={d.code}
+                  where="{d.range.start.line}:{d.range.start.col}"
+                  onjump={() => open(r.f.path, d)}
+                />
+              </div>
             {/if}
-          </section>
-        {/each}
+          {/snippet}
+        </VirtualList>
       </div>
     {/if}
   {/if}
@@ -212,9 +227,11 @@
     font-size: var(--fs-xs);
     color: var(--fg-2);
   }
-  ul {
-    margin: 0 0 var(--s-2);
-    padding: 0 0 0 var(--s-5);
+  .problem {
+    padding-left: var(--s-5);
+  }
+  .problem.last {
+    padding-bottom: var(--s-2);
   }
   .ok,
   .error {

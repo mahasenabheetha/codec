@@ -161,7 +161,8 @@ typed ≤ 10 s, Go to file ≤ 100 ms per key, lint of 6,000 files ≤ 30 s;
 5 MB file shown ≤ 2 s, typing ≤ 16 ms per key; 500-document chart render
 ≤ 2 s; a 100k-line ECS log opened ≤ 1 s, a query or page ≤ 100 ms
 (3.1.0: 0.55 s, 3–27 ms). Results at 2.0: `docs/architecture.html#performance`. Mechanisms:
-parallel document parsing (≥ 16 docs), windowed trees (> 300 rows),
+parallel document parsing (≥ 16 docs), windowed trees (> 300 rows)
+and lists (`VirtualList`, > 150 rows),
 outline trimming, background classification, schema downloads started
 together and never blocking a render (`schemasPending`) [70, 71].
 Files over 8 MB are not listed or read.

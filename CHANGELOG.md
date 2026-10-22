@@ -6,6 +6,12 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+### Changed
+
+- The Workspace problems view and the Resources cards draw only the
+  rows in view, so folders with thousands of findings or objects
+  scroll smoothly.
+
 ## [3.0.0] - 2026-10-22
 
 codec as a desktop app on Windows: its own window, a tray icon, start
