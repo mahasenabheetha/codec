@@ -1,0 +1,10 @@
+2026-10-22 09:30:00.101  INFO 1 --- [           main] c.e.orders.Application                   : Started Application in 4.2 seconds
+2026-10-22 09:30:05,250 ERROR [http-nio-8080-exec-1] c.e.orders.PaymentController - Charge failed for order 1044
+java.lang.IllegalStateException: card declined
+␉at com.example.orders.PaymentService.charge(PaymentService.java:73)
+␉at com.example.orders.PaymentController.pay(PaymentController.java:41)
+Caused by: java.io.IOException: upstream closed
+␉at com.example.orders.Gateway.call(Gateway.java:19)
+␉... 12 more
+2026-10-22 09:30:06,000 WARN  [scheduler-1] c.e.orders.Cleanup - Cleanup took 1200 ms
+  removed 3 stale carts

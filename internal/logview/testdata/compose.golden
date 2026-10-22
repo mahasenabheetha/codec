@@ -1,0 +1,6 @@
+L1+1 text 2026-10-22T10:20:00Z src=web-1 msg="listening on :8080"
+L2+1 text 2026-10-22T10:20:00.5Z src=db-1 msg="[1] LOG:  database system is ready to accept connections"
+L3+1 json error(error) src=web-1 msg="query failed" err="relation \"carts\" does not exist"
+    level:s=error
+    msg:s=query failed
+    error:s=relation "carts" does not exist

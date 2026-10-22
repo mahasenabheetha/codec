@@ -1,0 +1,4 @@
+L1+1 json info(info) 2026-10-22T10:05:00.000000001Z src=build-7f2kd-test-2345678901 msg="colour and timestamps"
+    level:s=info
+    msg:s=colour and timestamps
+L2+1 text 2026-10-22T10:05:01.000000001Z src=build-7f2kd-lint-3456789012 msg="lint ok"

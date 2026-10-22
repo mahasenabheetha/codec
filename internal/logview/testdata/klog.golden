@@ -1,0 +1,8 @@
+L1+1 klog info(I) 2026-10-22T09:10:00.000001Z msg="attempting to acquire leader lease kube-system/example-controller..." caller="leaderelection.go:250"
+L2+1 klog warn(W) 2026-10-22T09:10:05.123456Z msg="failed to list *v1.Pod: the server is currently unable to handle the request" caller="reflector.go:561"
+L3+1 klog error(E) 2026-10-22T09:10:06.654321Z msg="Reconcile failed" caller="controller.go:114" err="timeout waiting for cache sync"
+    err:s=timeout waiting for cache sync
+    controller:s=deployment
+    namespace:s=shop
+    name:s=orders
+L4+1 klog fatal(F) 2026-10-22T09:10:07Z msg="cannot start: no kubeconfig" caller="main.go:59"

@@ -1,0 +1,13 @@
+L1+1 json debug(debug) 2026-10-22T08:40:00Z msg="cache warm"
+    level:s=debug
+    time:s=2026-10-22T08:40:00+00:00
+    message:s=cache warm
+    entries:n=512
+L2+1 json error(error) 2026-10-22T08:40:01Z msg="load failed" err="permission denied"
+    | open 41 store.go
+    | Load 18 store.go
+    level:s=error
+    error:s=permission denied
+    stack:a=[{"func":"open","line":"41","source":"store.go"},{"func":"Load","line":"18","source":"store.go"}]
+    time:s=2026-10-22T08:40:01+00:00
+    message:s=load failed

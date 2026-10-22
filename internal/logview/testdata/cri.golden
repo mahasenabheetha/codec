@@ -1,0 +1,7 @@
+L1+1 json warn(warn) 2026-10-22T10:10:02Z msg="disk 91% full"
+    level:s=warn
+    msg:s=disk 91% full
+    stream:s=stdout
+L2+2 text 2026-10-22T10:10:03Z msg="a line the runtime split in the middle of a word"
+    stream:s=stderr
+    raw="2026-10-22T10:10:03.000000000Z stderr P a line the runtime split in the mid\n2026-10-22T10:10:03.000000001Z stderr F dle of a word"

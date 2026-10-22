@@ -1,0 +1,8 @@
+L1+1 json info(info) 2026-10-22T10:30:00.000000001Z msg="hello"
+    level:s=info
+    msg:s=hello
+    stream:s=stdout
+L2+2 text 2026-10-22T10:30:01Z msg="Exception in thread \"main\" java.lang.RuntimeException: boom" err="Exception in thread \"main\" java.lang.RuntimeException: boom"
+    | 	at Main.main(Main.java:5)
+    stream:s=stderr
+    raw="{\"log\":\"Exception in thread \\\"main\\\" java.lang.RuntimeException: boom\\n\",\"stream\":\"stderr\",\"time\":\"2026-10-22T10:30:01Z\"}\n{\"log\":\"\\tat Main.main(Main.java:5)\\n\",\"stream\":\"stderr\",\"time\":\"2026-10-22T10:30:01Z\"}"

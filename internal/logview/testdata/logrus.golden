@@ -1,0 +1,22 @@
+L1+1 json info(info) 2026-10-22T08:30:00Z msg="workflow submitted"
+    level:s=info
+    msg:s=workflow submitted
+    time:s=2026-10-22T08:30:00Z
+    workflow:s=build-7f2kd
+L2+1 json error(error) 2026-10-22T08:31:10Z msg="step failed" err="exit status 1"
+    error:s=exit status 1
+    level:s=error
+    msg:s=step failed
+    step:s=test
+    time:s=2026-10-22T08:31:10Z
+L3+1 logfmt warn(warning) 2026-10-22T08:31:11Z msg="retry scheduled"
+    time:s=2026-10-22T08:31:11Z
+    level:s=warning
+    msg:s=retry scheduled
+    step:s=test
+    retries:n=1
+L4+1 logfmt fatal(fatal) 2026-10-22T08:31:12Z msg="giving up" err="exit status 1"
+    time:s=2026-10-22T08:31:12Z
+    level:s=fatal
+    msg:s=giving up
+    error:s=exit status 1

@@ -1,0 +1,11 @@
+L1+1 text info(INFO) 2026-10-22T09:30:00.101Z msg="1 --- [           main] c.e.orders.Application                   : Started Application in 4.2 seconds"
+L2+7 text error(ERROR) 2026-10-22T09:30:05.25Z msg="[http-nio-8080-exec-1] c.e.orders.PaymentController - Charge failed for order 1044" err="java.lang.IllegalStateException: card declined"
+    | java.lang.IllegalStateException: card declined
+    | 	at com.example.orders.PaymentService.charge(PaymentService.java:73)
+    | 	at com.example.orders.PaymentController.pay(PaymentController.java:41)
+    | Caused by: java.io.IOException: upstream closed
+    | 	at com.example.orders.Gateway.call(Gateway.java:19)
+    | 	... 12 more
+    raw="2026-10-22 09:30:05,250 ERROR [http-nio-8080-exec-1] c.e.orders.PaymentController - Charge failed for order 1044\njava.lang.IllegalStateException: card declined\n\tat com.example.orders.PaymentService.charge(PaymentService.java:73)\n\tat com.example.orders.PaymentController.pay(PaymentController.java:41)\nCaused by: java.io.IOException: upstream closed\n\tat com.example.orders.Gateway.call(Gateway.java:19)\n\t... 12 more"
+L9+2 text warn(WARN) 2026-10-22T09:30:06Z msg="[scheduler-1] c.e.orders.Cleanup - Cleanup took 1200 ms\n  removed 3 stale carts"
+    raw="2026-10-22 09:30:06,000 WARN  [scheduler-1] c.e.orders.Cleanup - Cleanup took 1200 ms\n  removed 3 stale carts"

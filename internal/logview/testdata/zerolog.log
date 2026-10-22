@@ -1,0 +1,2 @@
+{"level":"debug","time":"2026-10-22T08:40:00+00:00","message":"cache warm","entries":512}
+{"level":"error","error":"permission denied","stack":[{"func":"open","line":"41","source":"store.go"},{"func":"Load","line":"18","source":"store.go"}],"time":"2026-10-22T08:40:01+00:00","message":"load failed"}

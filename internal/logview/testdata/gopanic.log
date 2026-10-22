@@ -1,0 +1,11 @@
+2026/10/22 09:20:00 starting worker pool size=4
+2026/10/22 09:20:01 worker.go:31: processing job 17
+panic: runtime error: index out of range [5] with length 3
+
+goroutine 7 [running]:
+example.com/worker.(*Pool).run(0xc000012345, 0x5)
+␉/app/worker/pool.go:88 +0x1d4
+created by example.com/worker.Start in goroutine 1
+␉/app/worker/pool.go:40 +0x85
+exit status 2
+2026/10/22 09:20:02 restarted

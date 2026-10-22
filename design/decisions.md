@@ -393,11 +393,13 @@ Settled unless the user reopens them. Add new ones at the bottom:
     and is dropped after an idle hour, when logs pass 1 GB in all
     (oldest first) or on restart, and the UI re-sends what it still
     holds (19 still applies: nothing in browser storage). Queries use a
-    small `field:value` syntax that the UI's chips write. New
-    dependencies only where they beat our own code: `valyala/fastjson`
-    only if it reads lines at least twice as fast as `encoding/json`.
-    codec never talks to a cluster. UI first; the CLI comes later on
-    the same engine (2026-10-22).
+    small `field:value` syntax that the UI's chips write. JSON lines
+    are read by a scanner of our own: it keeps fields in the order
+    written (`encoding/json`'s maps lose it), shares the input's memory
+    and is about 11× faster; a fuzz test holds it to what
+    `encoding/json` accepts, so no `fastjson`. logfmt is ours too. No
+    new dependencies. codec never talks to a cluster. UI first; the CLI
+    comes later on the same engine (2026-10-22).
 87. Argo workflow logs in 3.2.0, on top of the Log viewer (86): pod
     names become steps, and an optional `argo get -o yaml|json` (a file
     or pasted) gives the step tree with phases and exit codes, so steps

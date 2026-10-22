@@ -1,0 +1,12 @@
+{
+  "took": 3,
+  "hits": {
+    "total": {"value": 2, "relation": "eq"},
+    "hits": [
+      {"_index": "logs-orders", "_id": "a1", "_score": 1.0, "_source": {"@timestamp": "2026-10-22T11:00:00Z", "log.level": "info", "message": "first", "ecs.version": "8.11.0"}},
+      {"_index": "logs-orders", "_id": "a2", "_score": 1.0,
+       "_source": {"@timestamp": "2026-10-22T11:00:01Z", "log": {"level": "error"}, "message": "second"},
+       "fields": {"message": ["second"]}}
+    ]
+  }
+}
