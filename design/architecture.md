@@ -159,7 +159,8 @@ Budgets (measured with `scripts/perf.sh`, fixtures from
 `scripts/perfgen`): 10k-file folder open and listed ≤ 1 s, every file
 typed ≤ 10 s, Go to file ≤ 100 ms per key, lint of 6,000 files ≤ 30 s;
 5 MB file shown ≤ 2 s, typing ≤ 16 ms per key; 500-document chart render
-≤ 2 s. Results at 2.0: `docs/architecture.html#performance`. Mechanisms:
+≤ 2 s; a 100k-line ECS log opened ≤ 1 s, a query or page ≤ 100 ms
+(3.1.0: 0.55 s, 3–27 ms). Results at 2.0: `docs/architecture.html#performance`. Mechanisms:
 parallel document parsing (≥ 16 docs), windowed trees (> 300 rows),
 outline trimming, background classification, schema downloads started
 together and never blocking a render (`schemasPending`) [70, 71].
@@ -203,6 +204,17 @@ Files over 8 MB are not listed or read.
   overrides} → playbook (plays, steps, roles, variables) or inventory;
   `POST /ansible/find-task` {name, path} → definitions of a logged
   task. `/yaml/hover|definition|analyze` read the folder for both.
+  Log viewer (decision 86): `POST /logs` (form data: files and pasted
+  parts; or `{paths}` in the open folder) → `{id, files, summary}`; the
+  log is held in memory under the id (256 MB of text per log, 1 GB held
+  in all, oldest use dropped first, an idle hour, never on disk); an
+  unknown id is 410 `{expired: true}` and the UI sends the log again.
+  `POST /logs/{id}/entries` {q, from, to, offset, limit, columns,
+  histogram, at} → matches, a page of rows, the chart; `GET
+  /logs/{id}/entries/{n}?before=&after=` → the entry in full and the
+  entries around it; `POST /logs/{id}/fields|groups|export` (export:
+  text, ndjson or csv of the matches); `DELETE /logs/{id}`. A query
+  that can't be read is 422 `{error, pos}`.
   Scaffolding: `GET /scaffold/starters` (built-in + personal, the
   personal folder); `POST /scaffold/render` {id, values} → files, each
   linted and schema-checked, charts rendered, or field errors; `POST

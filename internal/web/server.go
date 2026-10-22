@@ -74,6 +74,7 @@ type Server struct {
 	helm  helmCache
 	argo  argoCache
 	check *check.Checker // lint and schema settings live here
+	logs  *logStore      // logs open in the Log viewer
 
 	mu    sync.Mutex // guards the workspace fields
 	ws    *workspace.Workspace
@@ -89,7 +90,7 @@ func New(opts Options) *Server {
 	if opts.Config == nil {
 		opts.Config = config.Memory()
 	}
-	s := &Server{opts: opts, token: newToken(), hub: newHub()}
+	s := &Server{opts: opts, token: newToken(), hub: newHub(), logs: newLogStore()}
 	s.check = check.New(provider.Default, opts.Config.Get().Lint, version.Get().Version)
 	s.handler = s.guard(s.routes())
 	return s
@@ -160,6 +161,13 @@ func (s *Server) routes() http.Handler {
 	mux.HandleFunc("POST /api/v2/ansible/analyze", s.handleAnsibleAnalyze)
 	mux.HandleFunc("POST /api/v2/ansible/find-task", s.handleFindTask)
 	mux.HandleFunc("POST /api/v2/ansible/log", s.handleAnsibleLog)
+	mux.HandleFunc("POST /api/v2/logs", s.handleLogsOpen)
+	mux.HandleFunc("POST /api/v2/logs/{id}/entries", s.handleLogEntries)
+	mux.HandleFunc("GET /api/v2/logs/{id}/entries/{n}", s.handleLogEntry)
+	mux.HandleFunc("POST /api/v2/logs/{id}/fields", s.handleLogFields)
+	mux.HandleFunc("POST /api/v2/logs/{id}/groups", s.handleLogGroups)
+	mux.HandleFunc("POST /api/v2/logs/{id}/export", s.handleLogExport)
+	mux.HandleFunc("DELETE /api/v2/logs/{id}", s.handleLogDelete)
 	mux.HandleFunc("POST /api/v2/encode/{kind}", s.handleEncode)
 	mux.HandleFunc("POST /api/v2/time/{kind}", s.handleTime)
 	mux.HandleFunc("POST /api/v2/regex", s.handleRegex)
@@ -243,6 +251,7 @@ func (s *Server) Serve(ctx context.Context, ln net.Listener) error {
 
 // Close stops the watcher and closes the open workspace.
 func (s *Server) Close() {
+	s.logs.clear()
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.stop != nil {

@@ -14,6 +14,9 @@ import (
 // ErrTooLarge is returned when a log, once decompressed, is over the limit.
 var ErrTooLarge = errors.New("the log is too large")
 
+// ErrNotText is returned for input that is binary even after decoding.
+var ErrNotText = errors.New("this doesn't look like a text log")
+
 // Decode turns a log's bytes into text: gzip is decompressed, UTF-8 and
 // UTF-16 byte order marks are removed, and UTF-16 (as PowerShell's ">"
 // writes) becomes UTF-8. A limit above zero caps the decompressed size.

@@ -44,6 +44,8 @@ var (
 	ErrNotFile  = errors.New("not a file")
 	ErrTooLarge = errors.New("file is larger than 8 MB")
 	ErrBinary   = errors.New("binary file")
+	// ErrOverLimit is a file over the limit its caller set (ReadLog).
+	ErrOverLimit = errors.New("file is over the size limit")
 )
 
 // skipDirs are never listed, whatever .gitignore says.
@@ -220,6 +222,39 @@ func (w *Workspace) ReadText(p string) ([]byte, error) {
 		return nil, err
 	}
 	return bytes.TrimPrefix(data, bom), nil
+}
+
+// ReadLog returns a log file's bytes for the Log viewer: through the
+// root like Read, but up to limit bytes instead of MaxFileSize and
+// without the binary check, since logs may be gzip or UTF-16 (the
+// viewer decodes them and refuses what is still binary).
+func (w *Workspace) ReadLog(p string, limit int64) ([]byte, error) {
+	if err := validPath(p); err != nil {
+		return nil, err
+	}
+	var data []byte
+	err := retry(func() error { // see Read
+		f, err := w.dir.Open(filepath.FromSlash(p))
+		if err != nil {
+			return w.wrapErr(p, err)
+		}
+		defer f.Close()
+		info, err := f.Stat()
+		switch {
+		case err != nil:
+			return w.wrapErr(p, err)
+		case info.IsDir():
+			return ErrNotFile
+		case info.Size() > limit:
+			return ErrOverLimit
+		}
+		data, err = io.ReadAll(io.LimitReader(f, limit+1))
+		if err == nil && int64(len(data)) > limit {
+			err = ErrOverLimit
+		}
+		return w.wrapErr(p, err)
+	})
+	return data, err
 }
 
 // readFile reads p through the root, refusing directories, big files
@@ -431,7 +466,7 @@ func retry(fn func() error) error {
 
 // definite errors won't change on a retry.
 func definite(err error) bool {
-	for _, target := range []error{fs.ErrNotExist, ErrOutside, ErrNotFile, ErrTooLarge, ErrBinary} {
+	for _, target := range []error{fs.ErrNotExist, ErrOutside, ErrNotFile, ErrTooLarge, ErrBinary, ErrOverLimit} {
 		if errors.Is(err, target) {
 			return true
 		}

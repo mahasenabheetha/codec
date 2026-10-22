@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"slices"
 	"strconv"
+	"strings"
 	"time"
 	"unsafe"
 )
@@ -92,6 +93,9 @@ func Build(files []File, opt BuildOptions) (*Log, error) {
 		text, enc, err := Decode(f.Data, limit)
 		if err != nil {
 			return nil, fmt.Errorf("%s: %w", f.Name, err)
+		}
+		if strings.IndexByte(text[:min(len(text), 8000)], 0) >= 0 {
+			return nil, fmt.Errorf("%s: %w", f.Name, ErrNotText)
 		}
 		total += int64(len(text))
 		if opt.Limit > 0 && total > opt.Limit {

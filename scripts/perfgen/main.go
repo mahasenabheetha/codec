@@ -1,6 +1,6 @@
 // Command perfgen writes the performance fixtures scripts/perf.sh times:
-// a 10k-file repo, a 5 MB YAML file and a chart that renders 500
-// documents (budgets: design/architecture.md, "Performance").
+// a 10k-file repo, a 5 MB YAML file, a chart that renders 500
+// documents and a 100k-line log (budgets: design/architecture.md, "Performance").
 //
 //	go run ./scripts/perfgen DIR
 package main
@@ -101,6 +101,18 @@ func main() {
 		write(filepath.Join(d, "go.mod"), "module example.com/"+name+"\n\ngo 1.26\n")
 		write(filepath.Join(d, "Makefile"), "test:\n\tgo test ./...\n")
 	}
+
+	// A 100k-line ECS log for the Log viewer, one error in 50.
+	var lg strings.Builder
+	for i := range 100_000 {
+		level, status := "info", 200+i%3*100
+		if i%50 == 0 {
+			level = "error"
+		}
+		fmt.Fprintf(&lg, `{"@timestamp":"2026-10-22T10:%02d:%02d.%03dZ","log.level":"%s","message":"handled request %d","ecs.version":"1.6.0","service.name":"orders","http":{"request":{"method":"GET"},"response":{"status_code":%d}},"url.path":"/api/orders/%d","event.duration":%d,"trace.id":"4bf92f3577b34da6a3ce929d0e0e%04d"}`+"\n",
+			i/1000%60, i/17%60, i%1000, level, i, status, i, i*1000, i%10000)
+	}
+	write(filepath.Join(root, "logs", "app.ndjson"), lg.String())
 
 	// A 5 MB file: Deployments and Services in one multi-document file.
 	var b strings.Builder
