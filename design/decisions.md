@@ -370,25 +370,37 @@ Settled unless the user reopens them. Add new ones at the bottom:
     injected into the page and refuses file drags at the page root
     unless a drop zone stops the event first, as the log drop zone does
     (2026-10-04).
-84. Markdown preview in 3.2.0, rendered in the browser (`marked` and
+84. Markdown preview in 3.3.0, rendered in the browser (`marked` and
     `DOMPurify`) from the editor's text, so what-if edits show; no Go
     renderer. Repository Markdown is untrusted: raw HTML is off and the
     output is sanitised before it reaches the page. Remote images are
     blocked until the user loads them, so nothing leaves the machine
     unasked (2026-10-05).
-85. Update check in 3.3.0: codec may ask GitHub's releases API for the
+85. Update check in 3.4.0: codec may ask GitHub's releases API for the
     latest version and show a notice; it never downloads or installs on
     its own. Off by default, a setting turns it on, and "Check now"
     works either way. It is codec's second network use after schemas
     (40); the request carries nothing but codec's version in the
     User-Agent, and nothing is collected (2026-10-06).
-86. Argo workflow logs in 3.1.0, ahead of 84 and 85 (now 3.2.0 and
-    3.3.0): a Logs tool reads `argo logs` output (also `--follow`,
-    `kubectl logs`, plain ECS/JSON lines) and, optionally, the
-    workflow's status from `argo get -o yaml|json`, each from a file or
-    pasted. A pure engine `internal/argolog` parses in Go, as
-    `ansiblelog` does; the reader is generic over ECS libraries (dotted
-    or nested fields, several level and stack-trace fields) rather than
-    tied to one. codec never talks to the cluster: no kubeconfig, no
-    live follow. Logs are never stored. UI first; the CLI comes later
-    (2026-10-10).
+86. Log viewer in 3.1.0, ahead of 84 and 85: a Logs tool reads
+    structured logs of any common format (ECS, other JSON such as Go's
+    slog, zap, logrus and zerolog, logfmt, klog, text with stack
+    traces) into one entry shape, with no settings. Argo is one source,
+    not the design (replaces the Argo-only plan of 2026-10-10). A pure
+    engine `internal/logview` parses, indexes and queries in Go. The
+    parsed log stays in the server's memory under a handle, so the
+    browser fetches only what it shows; it is never written to disk,
+    and is dropped after an idle hour, when logs pass 1 GB in all
+    (oldest first) or on restart, and the UI re-sends what it still
+    holds (19 still applies: nothing in browser storage). Queries use a
+    small `field:value` syntax that the UI's chips write. New
+    dependencies only where they beat our own code: `valyala/fastjson`
+    only if it reads lines at least twice as fast as `encoding/json`.
+    codec never talks to a cluster. UI first; the CLI comes later on
+    the same engine (2026-10-22).
+87. Argo workflow logs in 3.2.0, on top of the Log viewer (86): pod
+    names become steps, and an optional `argo get -o yaml|json` (a file
+    or pasted) gives the step tree with phases and exit codes, so steps
+    that never logged still show. Live follow reads a log file in the
+    open folder as it grows; codec still never talks to the cluster
+    (2026-10-22).

@@ -147,7 +147,7 @@ desktop/              Wails config, icons, installer
 | T5 | Installer | Per-user NSIS (`RequestExecutionLevel user`) into `%LOCALAPPDATA%\Programs\codec`: Start menu entry, uninstall entry in HKCU, "Open with codec" for `.yaml`/`.yml` in HKCU; no admin; a portable exe as well | Done: `scripts/desktop.sh`, `desktop/windows/` (installer.nsi, manifest, icon.ico); exe icon and version via a generated `.syso` (wails3 generate syso). Optional desktop shortcut; existing shortcuts are never overwritten, and uninstall removes only what it created. Uninstall keeps `%APPDATA%\codec` (shared with the CLI) |
 | T6 | Release build and signing | Desktop build in the release workflow next to the CLI; version and product metadata on the exe; signing step through [SignPath](#code-signing) (off until approved) | Done without signing: `desktop` job in release.yml (windows-latest, after GoReleaser) uploads the portable exe, installer and checksums. The desktop package builds on Windows only (`//go:build windows`), so Linux vet/test/build skip it. Signing waits for the SignPath application (Open checks) |
 | T7 | Docs | Install, desktop features, uninstall; README and docs site; `architecture.md` | Done: README Quick start, getting-started (Desktop app), settings, security, troubleshooting, architecture page; `design/architecture.md` (layout, runtime mode), design-language (`lib/platform.ts` pattern), releases.md |
-| — | Release | Full checks; CHANGELOG cut as 3.0.0 | Review (16 findings fixed); pre-released as v3.0.0-rc.1 (release workflow and installer confirmed); rebuilt with Wails beta.28, full checks passed; CHANGELOG cut as 3.0.0, ready to merge and tag |
+| — | Release | Full checks; CHANGELOG cut as 3.0.0 | Review (16 findings fixed); pre-released as v3.0.0-rc.1 (release workflow and installer confirmed); rebuilt with Wails beta.28, full checks passed; CHANGELOG cut as 3.0.0. Released as v3.0.0 |
 
 Later, with a Mac: build on a macOS runner (cgo, Xcode), Apple Developer
 ID signing and notarization, macOS menu bar, Dock and window-close
@@ -172,43 +172,73 @@ free Windows signing. Their conditions, and what codec needs:
 The certificate names SignPath Foundation as the publisher, not the
 author. SignPath signs Windows only; macOS needs Apple's program.
 
-### v3.1.0 — Argo workflow logs
-Agreed 2026-10-10 (decision 86). Reading an Argo run from `argo logs`
-in a terminal is slow: steps interleave, ECS JSON lines are hard to
-scan, and a step that failed before logging leaves no trace there. A
-Logs tool (Tools, no open folder needed, browser UI and desktop app)
-shows the run as its steps: what each did, how long it took, what
-failed and why.
+### v3.1.0 — Log viewer
+Agreed 2026-10-22 (decision 86, replacing the Argo-only plan of
+2026-10-10). Structured logs are slow to read in a terminal: JSON lines
+are long, sources interleave, and the line that matters sits among
+thousands. A Log viewer (Tools → Logs, beside the Ansible log; no open
+folder needed; browser UI and desktop app) reads every common format
+into one shape (time, level, message, source, logger, caller, error,
+trace ID, other fields), and every view works on that shape. Argo is
+one source among many; its step tree comes in 3.2.0.
 
-Two inputs, each opened from a file (`.txt`/`.log`/`.yaml`, the system
-dialog in the desktop app, drag and drop, including
-`\\wsl.localhost\…` paths) or pasted:
+What it reads, with no settings:
 
-- **Logs** (required): raw `argo logs <wf>` output, with or without
-  `--follow` and `--timestamps`, also `kubectl logs` and plain ECS or
-  JSON lines. Colour codes, pod prefixes and timestamp prefixes are
-  stripped; lines from different pods may interleave; a log that stops
-  mid-run shows its last steps as still running.
-- **Workflow status** (optional): `argo get <wf> -o yaml` (or `-o json`,
-  or `kubectl get wf -o yaml`), the whole object or a pasted snippet
-  (`status:`, `nodes:` or a few nodes). It gives the real step tree and
-  each step's phase, times, exit code and message, so steps that never
-  logged still show.
+| Kind | Examples |
+|---|---|
+| ECS JSON | any ecs-logging library (Go `ecszap`, Java, .NET, Python, Node): `@timestamp`, `log.level`, `message`, `error.*`, `trace.id`; dotted or nested fields |
+| Other JSON | Go `slog`, zap, logrus, zerolog; Bunyan and pino (numeric levels); `severity` (Google Cloud); Kibana and Elasticsearch exports (`_source`, `hits.hits`) |
+| logfmt | `slog`'s text handler, logrus text, Argo's own containers |
+| Text | Kubernetes `klog`; Go panics and goroutine dumps, Java and Python stack traces joined to their entry; any other line kept as a text entry |
+| Prefixes, stripped and kept as the line's source | `argo logs` and `stern` pod prefixes, `kubectl logs --timestamps`, container-runtime lines (`… stdout F …`), `docker compose logs`, CI timestamps, colour codes |
+
+Input: files opened or dropped (several at once, merged by time;
+gzip read as is), pasted text, or a log file in the open folder
+(Explorer → Open in Log viewer). The parsed log stays in the server's
+memory, never on disk, and the browser asks only for what it shows
+(pages, counts, a chart), so 100k lines stay smooth and 1M lines work.
 
 | # | Task | Main parts | Status |
 |---|---|---|---|
-| T1 | Log engine | `internal/argolog`, pure: clean (ANSI, CRLF, UTF-16 BOM, pod and timestamp prefixes), read each line as ECS (dotted or nested fields), other JSON, logfmt (Argo's `init`/`wait` containers) or text; level from `log.level`/`level`/`severity`; stack traces from `error.stack_trace` or following lines; JSON inside `message`; step from the pod name; synthetic fixtures | |
-| T2 | Analysis + API | Summary (result, span, counts by level), per-step stats (first/last time, errors, warnings, a few words on what it did), error groups (numbers, IDs and UUIDs ignored), field list with top values, entries per minute; `POST /api/v2/argo/log`; budget 100k lines < 1 s in `scripts/perf.sh` | |
-| T3 | Workflow status | Read a Workflow's status from YAML or JSON, whole or a snippet, into the step tree (steps, DAG tasks, parallel groups, retries, loop items) with phase, times, exit code and message; match its pods to the log's steps; failed reason = Argo's message + the step's first error | |
-| T4 | Logs tool UI | Tools → Logs: two inputs (open file, drop or paste each); overview with the step tree, failed steps highlighted and expanded with the reason, step timeline (Gantt); a step's entries (level colours, info/debug foldable, details as a field tree, stack trace laid out); all entries with filters (level, step, text/regex, field value, time range) and error groups; long lists windowed; smart paste detects `argo logs` output; docs (`tools.html` or a page of its own, `argo.html`) | |
-| T5 | Argo graph coloured by a run | When the open folder has the workflow, its graph in the Argo view is coloured by the run's step results, with durations; a node opens its step's log | |
+| T1 | Reader | `internal/logview`, pure: decode (UTF-8 and UTF-16 BOMs, CRLF, gzip), strip colour codes and prefixes (kept as source and prefix time), detect the format per line; map each JSON flavour, logfmt and klog to the common entry (level names and numbers; RFC 3339, epoch s/ms/ns, `2006-01-02 15:04:05,000`, klog without a year); stack traces and panics joined to their entry; JSON inside `message` read as fields; synthetic fixtures per format; fuzz test; benchmark `encoding/json` against `valyala/fastjson` | |
+| T2 | Store and query | In-memory log: core fields per entry, other fields as dictionary-encoded columns; query `level>=warn service:api -logger:health status>=500 "connection reset" /time.?out/` (AND by default, `OR`, parentheses, `*` wildcards); time range; entries over time per level; the N entries around one, unfiltered; error groups (message with numbers, IDs, UUIDs, hex and quoted values masked); field stats (present in, distinct, top values; min, max, median, p95 for numbers); summary (levels, span, sources, first error, silent gaps); budgets in `scripts/perf.sh` (100k lines: load < 1 s, query < 100 ms) | |
+| T3 | API | `POST /api/v2/logs` (files, pasted text, or a workspace file through the root guard) → handle and summary; `/{id}/entries` (query, page), `/{id}/entries/{n}` (detail and context), `/{id}/fields`, `/{id}/groups`, `/{id}/export` (filtered entries as NDJSON, CSV or text); `DELETE`; limits: 512 MB per log, 1 GB in all with the oldest dropped first, dropped after an idle hour; "expired" answered so the UI re-sends what it holds; tests | |
+| T4 | Windowed list | Shared list component that keeps only visible rows in the DOM, with variable heights (wrapped lines, expanded context); also used by the Problems view and Resources cards ([Window long lists](#window-long-lists)) | |
+| T5 | Viewer UI | Tools → Logs → Log viewer: inputs (open, drop, paste; files as chips; Explorer "Open in Log viewer" for `.log`, `.ndjson`, `.jsonl`); overview (levels, span, sources, first error, top error groups); entry list (level colours, any field as a column, absolute or relative time, wrap, line numbers); query bar with chips that write the query; chart of entries over time, drag to set a range; docs (`docs/logs.html`) | |
+| T6 | Investigate | Detail panel (fields as a tree, raw line, stack trace laid out, JSON in the message pretty-printed); per value: only this, hide this, add as column, follow (`trace.id`, request IDs); ±N entries around one in a filtered list; Errors tab (groups with count, first and last time); Fields tab (stats); export and copy (filtered entries, a summary; password, token and secret values and bearer tokens masked on copy); keyboard (next error, next match, `/` for the query); smart paste sends logs here; docs | |
 | — | Release | Full checks; CHANGELOG cut as 3.1.0 | |
 
-A first useful cut is T1, T2 and T4 with logs only. Later: `codec argo
-log` on the command line (filters, `-o json`, exit code as a gate,
-stdin); following a live log; CSV and Kibana exports.
+Later: `codec logs` on the command line on the same engine (filters,
+`-o json`, stdin, an exit code for gates); saved queries.
 
-### v3.2.0 — Markdown preview
+### v3.1.1 — Review and stabilisation
+A whole-codebase pass after 3.1.0, so it covers the viewer too. Bug
+fixes only, as a patch release.
+
+| # | Task | Main parts | Status |
+|---|---|---|---|
+| T1 | Static checks | `staticcheck`, `govulncheck`, `go test -race`, `npm audit`; the useful ones join CI | |
+| T2 | Fuzz tests | Every parser (YAML tools, logs, Ansible logs, encoders, cron, regex), for crashes and hangs | |
+| T3 | Browser tests | Playwright against the sample workspace: open a folder, the main views, Compare, tools, settings; in CI | |
+| T4 | Review by area | Separate reviewers (a workflow, under 10 at a time): Go engines; server, API and security; frontend; desktop app and installer; release workflow; docs against behaviour; each finding verified before it is reported | |
+| T5 | Fixes | Each with a regression test | |
+| — | Release | Full checks; CHANGELOG cut as 3.1.1 | |
+
+### v3.2.0 — Argo workflows and live follow
+Agreed 2026-10-22 (decision 87). Built on the Log viewer: an Argo run
+shown as its steps, what each did, how long it took, what failed and
+why, including steps that failed before they logged.
+
+| # | Task | Main parts | Status |
+|---|---|---|---|
+| T1 | Steps from pods | Argo pod names become steps; `init` and `wait` container lines folded; per step: first and last time, errors, warnings | |
+| T2 | Workflow status | `argo get <wf> -o yaml` or `-o json` (or `kubectl get wf`), whole or a snippet, opened or pasted beside the logs: the step tree (steps, DAG tasks, parallel groups, retries, loop items) with phase, times, exit code and message; failed reason = Argo's message + the step's first error | |
+| T3 | Steps and lanes | Step tree with failed steps expanded; one lane per source (pod, step, service) over time; a log that stops mid-run shows its last steps as still running | |
+| T4 | Live follow | A log file in the open folder followed as it grows (codec's file watching), e.g. `argo logs --follow > run.log` | |
+| T5 | Argo graph coloured by a run | When the open folder has the workflow, its graph in the Argo view is coloured by the run's step results, with durations; a node opens its step's log; docs (`argo.html`) | |
+| — | Release | Full checks; CHANGELOG cut as 3.2.0 | |
+
+### v3.3.0 — Markdown preview
 Agreed 2026-10-05 (decision 84). READMEs and docs in a repository are
 easier to read rendered than as raw syntax. `.md` files already open in
 the editor (lang `markdown`); a Source / Preview switch in the file
@@ -220,12 +250,12 @@ toolbar shows them rendered, in the browser UI and the desktop app.
 | T2 | Preview in the file view | Source / Preview switch in `FileView.svelte` toolbar and the palette; styles for headings, lists, tables, quotes and code in both themes; heading anchors | |
 | T3 | Links and images | A link to another file opens it in a codec tab, `#heading` scrolls, external links open in the system browser; images inside the workspace through a read-only route (images only, inside the root); remote images blocked with "Load images" | |
 | T4 | Code blocks and setting | YAML, JSON and shell blocks highlighted with the editor's highlighter; Settings → Editor: open Markdown as Preview or Source; docs (`workspace.html`, settings) | |
-| — | Release | Full checks; CHANGELOG cut as 3.2.0 | |
+| — | Release | Full checks; CHANGELOG cut as 3.3.0 | |
 
 Later: Mermaid diagrams (loaded only when a file has one); side by side
 with scroll sync.
 
-### v3.3.0 — Update check
+### v3.4.0 — Update check
 Agreed 2026-10-06 (decision 85). Wails has no updater and codec never
 looks for new versions, so an installed copy stays old until the user
 notices a release. codec can ask GitHub for the latest release and say
@@ -236,7 +266,7 @@ when a newer one exists; updating stays the installer run over the top
 |---|---|---|---|
 | T1 | Check: engine + API + CLI | `internal/update`: latest release from the GitHub API (pre-releases only when running one), semver compare with `internal/version`, 5 s timeout, at most once a day (result cached in the config dir), dev builds never check; `updates.check` setting, off by default; `GET /api/v2/update`; `codec version --check`; tests against a fake server | |
 | T2 | Notice in the UI | Settings → General: "Check for updates" switch and "Check now"; "codec X.Y.Z is available" in the footer with a link to the release (the system browser in the desktop app), dismissable per version; tray menu entry in the desktop app; docs (settings, security: the second network use, troubleshooting) | |
-| — | Release | Full checks; CHANGELOG cut as 3.3.0 | |
+| — | Release | Full checks; CHANGELOG cut as 3.4.0 | |
 
 Later, after SignPath signing: "Update now" (download the installer,
 verify it against the release checksums, run it silently, restart);
@@ -251,7 +281,6 @@ The rest of "Next", picked up when it fits.
 |---|---|---|
 | [Expand matrix jobs in the pipeline graph](#expand-matrix-jobs-in-the-pipeline-graph) | S | A matrix job calling a reusable workflow shows as one node |
 | [Kustomize helmCharts](#kustomize-helmcharts) | M | Helm SDK is already embedded |
-| [Window long lists](#window-long-lists) | S | Problems and Resources cards, like TreeView |
 | [Helm environment matrix](#helm-environment-matrix) | M | All profiles of a chart at once: what differs per environment |
 | [Kubernetes resource totals](#kubernetes-resource-totals) | S | Requests and limits × replicas, summed |
 | [RBAC view](#rbac-view) | M | Who can do what; flags wildcards and cluster-admin |
