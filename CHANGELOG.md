@@ -34,7 +34,9 @@ publisher the first time. Pre-released as 3.0.0-rc.1 on 2026-10-05.
 
 - The log drop zone works in the desktop window too.
 - Since 3.0.0-rc.1: the desktop app is built with Wails v3.0.0-beta.28;
-  frontend dependency updates.
+  Helm SDK 4.3.1, `golang.org/x` and frontend dependency updates.
+  Kustomize stays at 0.21.2 until a Kubernetes release supports its
+  newer dependencies.
 
 ## [2.4.1] - 2026-10-04
 
