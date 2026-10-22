@@ -27,10 +27,10 @@ version, and add a CHANGELOG entry.
 
 | Check | Owner |
 |---|---|
-| Run codec natively on macOS (arm64) before tagging | user |
+| Run the CLI and `codec serve` natively on macOS (arm64); not needed for the Windows-only desktop app | user |
 | Make the GHCR package public (first release with an image) | user |
 | Turn on GitHub Pages: Settings → Pages → `main`, `/docs` | user |
-| Apply to SignPath Foundation for Windows code signing (before 3.0.0 T6; see [Code signing](#code-signing)) | user |
+| Apply to SignPath Foundation for Windows code signing (3.0.0 shipped unsigned; see [Code signing](#code-signing)) | user |
 
 ## Releases
 
@@ -147,7 +147,7 @@ desktop/              Wails config, icons, installer
 | T5 | Installer | Per-user NSIS (`RequestExecutionLevel user`) into `%LOCALAPPDATA%\Programs\codec`: Start menu entry, uninstall entry in HKCU, "Open with codec" for `.yaml`/`.yml` in HKCU; no admin; a portable exe as well | Done: `scripts/desktop.sh`, `desktop/windows/` (installer.nsi, manifest, icon.ico); exe icon and version via a generated `.syso` (wails3 generate syso). Optional desktop shortcut; existing shortcuts are never overwritten, and uninstall removes only what it created. Uninstall keeps `%APPDATA%\codec` (shared with the CLI) |
 | T6 | Release build and signing | Desktop build in the release workflow next to the CLI; version and product metadata on the exe; signing step through [SignPath](#code-signing) (off until approved) | Done without signing: `desktop` job in release.yml (windows-latest, after GoReleaser) uploads the portable exe, installer and checksums. The desktop package builds on Windows only (`//go:build windows`), so Linux vet/test/build skip it. Signing waits for the SignPath application (Open checks) |
 | T7 | Docs | Install, desktop features, uninstall; README and docs site; `architecture.md` | Done: README Quick start, getting-started (Desktop app), settings, security, troubleshooting, architecture page; `design/architecture.md` (layout, runtime mode), design-language (`lib/platform.ts` pattern), releases.md |
-| — | Release | Full checks; CHANGELOG cut as 3.0.0 | Review (16 findings fixed); full checks passed; CHANGELOG cut as 3.0.0-rc.1, ready to merge and tag. 3.0.0 after the RC's release run and a few days' use |
+| — | Release | Full checks; CHANGELOG cut as 3.0.0 | Review (16 findings fixed); pre-released as v3.0.0-rc.1 (release workflow and installer confirmed); rebuilt with Wails beta.28, full checks passed; CHANGELOG cut as 3.0.0, ready to merge and tag |
 
 Later, with a Mac: build on a macOS runner (cgo, Xcode), Apple Developer
 ID signing and notarization, macOS menu bar, Dock and window-close
@@ -202,6 +202,7 @@ The rest of "Next", picked up when it fits.
 
 | Version | Items |
 |---|---|
+| 3.0.0 | Desktop app for Windows (Wails v3): own window, tray, start at login, system folder dialog, "Open with" for YAML; per-user installer without admin rights and a portable exe |
 | 2.4.0 | Light theme: System, Dark and Light in Settings and the palette |
 | 2.3.0 | Utilities: Encode & hash (URL, hex, hash/HMAC, secrets & UUID, htpasswd), Time (timestamps, cron explainer and builder, schedule hover), Regex (tester and explainer); smart paste for their input |
 | 2.2.0 | Ansible log analyzer: whole pipeline logs (UI and `codec ansible log`); Ansible playbook map coloured by a run |
