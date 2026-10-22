@@ -6,13 +6,13 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
-## [3.0.0-rc.1] - 2026-10-05
+## [3.0.0] - 2026-10-22
 
 codec as a desktop app on Windows: its own window, a tray icon, start
 at login and "Open with" for YAML files, installed per user without
-admin rights. The browser UI (`codec serve`) is unchanged. A release
-candidate: Wails v3 is still in beta and the files are not yet signed,
-so Windows warns about an unknown publisher.
+admin rights. The browser UI (`codec serve`) and the CLI are unchanged.
+The desktop files are not yet signed, so Windows warns about an unknown
+publisher the first time. Pre-released as 3.0.0-rc.1 on 2026-10-05.
 
 ### Added
 
@@ -33,6 +33,8 @@ so Windows warns about an unknown publisher.
 ### Changed
 
 - The log drop zone works in the desktop window too.
+- Since 3.0.0-rc.1: the desktop app is built with Wails v3.0.0-beta.28;
+  frontend dependency updates.
 
 ## [2.4.1] - 2026-10-04
 
@@ -540,8 +542,8 @@ First tagged release: codec as it stood before the 2.0 work began.
 - Release pipeline: pushing a `v*` tag publishes binaries for Linux,
   Windows and macOS (amd64/arm64) to GitHub Releases via GoReleaser.
 
-[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v3.0.0-rc.1...HEAD
-[3.0.0-rc.1]: https://github.com/mahasenabheetha/codec/compare/v2.4.1...v3.0.0-rc.1
+[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v3.0.0...HEAD
+[3.0.0]: https://github.com/mahasenabheetha/codec/compare/v2.4.1...v3.0.0
 [2.4.1]: https://github.com/mahasenabheetha/codec/compare/v2.4.0...v2.4.1
 [2.4.0]: https://github.com/mahasenabheetha/codec/compare/v2.3.0...v2.4.0
 [2.3.0]: https://github.com/mahasenabheetha/codec/compare/v2.2.0...v2.3.0
