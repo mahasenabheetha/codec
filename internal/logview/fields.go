@@ -1,6 +1,10 @@
 package logview
 
-import "strings"
+import (
+	"strconv"
+	"strings"
+	"time"
+)
 
 // role is what a well-known field means for the common entry.
 type role uint8
@@ -26,8 +30,8 @@ const (
 // zerolog, Bunyan, pino, Serilog, log4j2, Python and structlog. When an
 // entry has several, the earlier name in its list wins.
 var roleKeys = [roleCount][]string{
-	roleTime:       {"@timestamp", "timestamp", "time", "ts", "@t", "t", "Timestamp", "date", "datetime", "eventTime", "asctime", "logtime"},
-	roleTimeMillis: {"timeMillis"},
+	roleTime:       {"@timestamp", "timestamp", "time", "ts", "@t", "t", "Timestamp", "date", "datetime", "dateTime", "date_time", "eventTime", "asctime", "logtime", "log_time", "time_local", "created_at", "createdAt"},
+	roleTimeMillis: {"timeMillis", "instant.epochSecond"},
 	roleLevel:      {"log.level", "level", "severity", "lvl", "@l", "Level", "loglevel", "log_level", "levelname", "level_name"},
 	roleMessage:    {"message", "msg", "@m", "RenderedMessage", "@mt", "MessageTemplate", "event", "log", "textPayload", "Message"},
 	roleLogger:     {"log.logger", "logger", "logger_name", "loggerName", "SourceContext"},
@@ -89,6 +93,12 @@ func fromFields(e *Entry) {
 	}
 	if f, ok := get(roleTimeMillis); ok && e.Time.IsZero() && f.Kind == Number {
 		e.Time, _ = epochText(f.Text)
+		// log4j2's JSON layout: "instant": {"epochSecond": …, "nanoOfSecond": …}
+		if n, ok := field(e.Fields, "instant.nanoOfSecond"); ok && f.Key == "instant.epochSecond" && !e.Time.IsZero() {
+			if ns, err := strconv.ParseInt(n.Text, 10, 64); err == nil {
+				e.Time = e.Time.Add(time.Duration(ns))
+			}
+		}
 	}
 	if f, ok := get(roleLevel); ok {
 		e.RawLevel = f.Text

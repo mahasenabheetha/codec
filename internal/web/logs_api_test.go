@@ -103,8 +103,9 @@ func TestLogsAPI(t *testing.T) {
 		t.Errorf("at: %v", v)
 	}
 	code, v = entries(`{"q":"web"}`)
-	if rows = v["entries"].([]any); len(rows) != 1 || rows[0].(map[string]any)["more"] != true || rows[0].(map[string]any)["message"] != "line one" {
-		t.Errorf("first line: %v", v)
+	// A row carries its message's lines, for reading it wrapped.
+	if rows = v["entries"].([]any); len(rows) != 1 || rows[0].(map[string]any)["more"] != nil || rows[0].(map[string]any)["message"] != "line one\nline two" {
+		t.Errorf("lines: %v", v)
 	}
 	code, v = entries(`{"q":"\"open"}`)
 	if code != 422 || v["error"] != "this quote is not closed" || v["pos"] != 0.0 {

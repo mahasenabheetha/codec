@@ -86,6 +86,7 @@ type line struct {
 
 type reader struct {
 	text  string
+	day   time.Time // the date for times written without one
 	year  int
 	shape labelShape
 	// cont: text lines without a time continue the entry before them,
@@ -119,40 +120,45 @@ func (r *reader) learn(opt Options) {
 		rest = rest[min(i+1, len(rest)):]
 	}
 	r.shape = learnLabel(sample)
+	// The day of the log's first full time, for times written without a
+	// date (klog, syslog, logback's HH:mm:ss.SSS). While learning, those
+	// read with year 1 and don't count.
+	setDay := func(t time.Time) {
+		if r.day.IsZero() && t.Year() > 1 {
+			t = t.UTC()
+			r.day = time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, time.UTC)
+		}
+	}
 	withTime, without := 0, 0
 	for _, s := range sample {
 		var p prefix
 		s = r.prep(s, &p)
-		if r.year == 0 && !p.time.IsZero() {
-			r.year = p.time.Year()
-		}
+		setDay(p.time)
 		if strings.TrimSpace(s) == "" || isStackish(s) {
 			continue
 		}
 		var e Entry
 		if r.structured(s, &e) {
-			if r.year == 0 && !e.Time.IsZero() && e.Format != Klog {
-				r.year = e.Time.Year()
-			}
+			setDay(e.Time)
 			continue
 		}
-		if readText(s, 1, &e) {
+		if readText(s, time.Time{}, &e) {
 			withTime++
-			if r.year == 0 && e.Time.Year() > 1 {
-				r.year = e.Time.Year()
-			}
+			setDay(e.Time)
 		} else {
 			without++
 		}
 	}
 	r.cont = withTime >= 2 && withTime >= without
-	if r.year == 0 {
+	if r.day.IsZero() {
 		now := time.Now
 		if opt.Now != nil {
 			now = opt.Now
 		}
-		r.year = now().Year()
+		t := now().UTC()
+		r.day = time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, time.UTC)
 	}
+	r.year = r.day.Year()
 }
 
 func isStackish(s string) bool {
@@ -322,7 +328,7 @@ func (r *reader) handle(l *line) {
 		r.start(Entry{Format: Text, Message: l.s}, l, goBlock)
 		return
 	}
-	hasTime := readText(l.s, r.year, &e)
+	hasTime := readText(l.s, r.day, &e)
 	if r.cont && !hasTime && e.Level == LevelNone && p != nil && p.e.Format == Text {
 		p.msg = append(p.msg, l.s)
 		r.join(p, l, false)

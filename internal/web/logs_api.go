@@ -334,18 +334,30 @@ type logRow struct {
 	Cols    map[string]string `json:"cols,omitempty"`
 }
 
-const rowText = 500 // characters of a message or error in a list
+// A list row carries enough of a message to read it wrapped: up to
+// rowLines lines and rowText characters; the entry view has the rest.
+const (
+	rowText  = 2000
+	rowLines = 40
+)
 
 func cut(s string, n int) (string, bool) {
 	more := false
-	if i := strings.IndexByte(s, '\n'); i >= 0 {
-		s, more = strings.TrimRight(s[:i], "\r"), true
+	if lines := 0; strings.Count(s, "\n") >= rowLines {
+		for i := 0; i < len(s); i++ {
+			if s[i] == '\n' {
+				if lines++; lines == rowLines {
+					s, more = s[:i], true
+					break
+				}
+			}
+		}
 	}
 	if utf8.RuneCountInString(s) > n {
 		r := []rune(s)
 		s, more = string(r[:n]), true
 	}
-	return s, more
+	return strings.ReplaceAll(s, "\r\n", "\n"), more
 }
 
 func row(l *logview.Log, i int, cols []string) logRow {

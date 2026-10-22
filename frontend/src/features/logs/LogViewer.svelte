@@ -5,7 +5,6 @@
   import FileUp from '@lucide/svelte/icons/file-up'
   import Logs from '@lucide/svelte/icons/logs'
   import Search from '@lucide/svelte/icons/search'
-  import TextWrap from '@lucide/svelte/icons/text-wrap'
   import X from '@lucide/svelte/icons/x'
   import Button from '../../lib/components/Button.svelte'
   import Dialog from '../../lib/components/Dialog.svelte'
@@ -33,6 +32,7 @@
   import LogDetail from './LogDetail.svelte'
   import LogList from './LogList.svelte'
   import LogOverview from './LogOverview.svelte'
+  import QueryInput from './QueryInput.svelte'
   import { prefs, sourceName, viewer, type TimeMode } from './viewer.svelte'
 
   // Structured logs of any common format, read on the server and held
@@ -103,6 +103,21 @@
   })
 
   let tab = $state<'entries' | 'errors' | 'fields'>('entries')
+
+  // Search as you type, after a pause. A term still being written (a
+  // field with no value yet, an open quote or bracket, a trailing OR)
+  // waits for Enter, so it doesn't flash an error mid-word.
+  const unfinished = (q: string) =>
+    /[:<>=(\-]$/.test(q) || /\b(OR|AND|NOT)$/.test(q) || (q.match(/(?<!\\)"/g)?.length ?? 0) % 2 === 1 ||
+    (q.match(/\(/g)?.length ?? 0) > (q.match(/\)/g)?.length ?? 0)
+  $effect(() => {
+    const q = viewer.input.trim()
+    if (!viewer.opened || q === viewer.requested || unfinished(q)) return
+    const t = setTimeout(() => {
+      if (viewer.input.trim() === q && q !== viewer.requested) viewer.run()
+    }, 350)
+    return () => clearTimeout(t)
+  })
 
   /** Select entry i and bring it into view in the entries. */
   async function jump(i: number) {
@@ -286,13 +301,33 @@
         <div class="viewer">
           <LogOverview summary={s} onjump={jump} />
 
-          <form
-            class="querybar"
-            onsubmit={(e) => {
-              e.preventDefault()
-              viewer.run()
-            }}
-          >
+          <div class="searchbar">
+            <QueryInput
+              bind:value={viewer.input}
+              bind:field={queryField}
+              invalid={!!viewer.queryError}
+              fieldKeys={viewer.fieldKeys ?? []}
+              fieldValues={viewer.fieldValues}
+              sources={(s.sources ?? []).map((x) => x.value)}
+              onsubmit={() => viewer.run()}
+              onclear={() => {
+                viewer.input = ''
+                viewer.run()
+                queryField?.focus()
+              }}
+            />
+            {#if ranged}
+              <span class="chip range">
+                {formatTime(viewer.applied.from, prefs.time.value, start, days) || 'start'} – {formatTime(viewer.applied.to, prefs.time.value, start, days) || 'end'}
+                <button type="button" class="chip-x" aria-label="Clear the time range" onclick={() => viewer.setRange()}><X size={12} /></button>
+              </span>
+            {/if}
+            <span class="total" aria-live="polite">
+              {viewer.loading ? 'Searching…' : viewer.applied.q || ranged ? `${count(viewer.total)} of ${count(s.entries)} entries` : `${count(viewer.total)} entries`}
+            </span>
+          </div>
+          <div class="optionbar">
+            <span class="label">Level</span>
             <SegmentedControl
               label="Minimum level"
               options={[
@@ -304,45 +339,10 @@
               value={viewer.minLevel}
               onchange={(v) => viewer.setLevel(v)}
             />
-            <div class="query" class:invalid={!!viewer.queryError}>
-              <Search size={14} />
-              <input
-                bind:this={queryField}
-                bind:value={viewer.input}
-                list="log-history"
-                aria-label="Query"
-                placeholder={'Filter: words, "a phrase", level>=warn, service.name:api, -source:x, status>=500, /regex/'}
-                spellcheck="false"
-                autocomplete="off"
-              />
-              {#if viewer.input}
-                <IconButton
-                  icon={X}
-                  label="Clear the query"
-                  size="sm"
-                  onclick={() => {
-                    viewer.input = ''
-                    viewer.run()
-                    queryField?.focus()
-                  }}
-                />
-              {/if}
-            </div>
-            <datalist id="log-history">
-              {#each viewer.history as h (h)}<option value={h}></option>{/each}
-            </datalist>
-            {#if ranged}
-              <span class="chip range">
-                {formatTime(viewer.applied.from, prefs.time.value, start, days) || 'start'} – {formatTime(viewer.applied.to, prefs.time.value, start, days) || 'end'}
-                <button type="button" class="chip-x" aria-label="Clear the time range" onclick={() => viewer.setRange()}><X size={12} /></button>
-              </span>
-            {/if}
-            <span class="total" aria-live="polite">
-              {viewer.loading ? '…' : viewer.applied.q || ranged ? `${count(viewer.total)} of ${count(s.entries)}` : `${count(viewer.total)}`}
-            </span>
+            <span class="spacer"></span>
             <Popover side="bottom" align="end">
               {#snippet trigger(props)}
-                <IconButton {...props} icon={Columns3} label="Columns" active={viewer.columns.length > 0} />
+                <Button {...props} size="sm" variant="ghost" icon={Columns3}>Columns{viewer.columns.length ? ` (${viewer.columns.length})` : ''}</Button>
               {/snippet}
               <div class="columns">
                 <input class="col-filter" bind:value={columnFilter} placeholder="Find a field" aria-label="Find a field" />
@@ -358,18 +358,30 @@
                 </div>
               </div>
             </Popover>
+            {#if s.timed > 0}
+              <span class="label">Time</span>
+              <SegmentedControl
+                label="Times"
+                options={[
+                  { value: 'local', label: 'Local' },
+                  { value: 'utc', label: 'UTC' },
+                  { value: 'relative', label: 'Since start' },
+                ]}
+                value={prefs.time.value}
+                onchange={(v: TimeMode) => (prefs.time.value = v)}
+              />
+            {/if}
+            <span class="label">Lines</span>
             <SegmentedControl
-              label="Times"
+              label="Long lines"
               options={[
-                { value: 'local', label: 'Local' },
-                { value: 'utc', label: 'UTC' },
-                { value: 'relative', label: '+time' },
+                { value: 'wrap', label: 'Wrap' },
+                { value: 'scroll', label: 'One line' },
               ]}
-              value={prefs.time.value}
-              onchange={(v: TimeMode) => (prefs.time.value = v)}
+              value={prefs.lines.value}
+              onchange={(v: 'wrap' | 'scroll') => (prefs.lines.value = v)}
             />
-            <IconButton icon={TextWrap} label="Wrap long messages" active={prefs.wrap.value} onclick={() => (prefs.wrap.value = !prefs.wrap.value)} />
-          </form>
+          </div>
           {#if viewer.queryError}
             <p class="qerror">
               {viewer.queryError.message}
@@ -379,7 +391,9 @@
             <p class="qwarn">{viewer.warnings.join(' · ')} — the term matches nothing</p>
           {/if}
 
-          {#if viewer.histogram?.buckets.length}
+          {#if s.timed === 0}
+            <p class="notime">No times were found in this log, so there is no chart over time; the entries are in the order they were written. If its lines do start with a time, send the shape of one so codec learns it.</p>
+          {:else if viewer.histogram?.buckets.length}
             <LogChart histogram={viewer.histogram} mode={prefs.time.value} {start} onrange={(a, b) => viewer.setRange(a, b)} />
           {/if}
 
@@ -457,42 +471,31 @@
     gap: var(--s-2);
     min-height: 0;
   }
-  .querybar {
+  .searchbar,
+  .optionbar {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: var(--s-2);
   }
-  .query {
-    flex: 1;
-    min-width: 260px;
-    display: flex;
-    align-items: center;
-    gap: var(--s-2);
-    height: var(--control-h);
-    padding: 0 2px 0 var(--s-2);
+  .optionbar .label {
+    font-size: var(--fs-xs);
     color: var(--fg-2);
-    background: var(--bg-0);
-    border: 1px solid var(--border-strong);
-    border-radius: var(--r-md);
   }
-  .query:focus-within {
-    border-color: var(--accent);
+  .optionbar .label:not(:first-child) {
+    margin-left: var(--s-2);
   }
-  .query.invalid {
-    border-color: var(--err);
-  }
-  .query input {
+  .optionbar .spacer {
     flex: 1;
-    min-width: 0;
-    height: 100%;
-    padding: 0;
-    font-family: var(--font-mono);
+  }
+  .notime {
+    margin: 0;
+    padding: var(--s-2) var(--s-3);
     font-size: var(--fs-sm);
-    color: var(--fg-0);
-    background: transparent;
-    border: none;
-    outline: none;
+    color: var(--fg-1);
+    background: var(--bg-1);
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--r-md);
   }
   .total {
     font-size: var(--fs-sm);

@@ -79,7 +79,7 @@
 <tr><td>ECS JSON</td><td>any ecs-logging library (Go <code>ecszap</code>, Java, .NET, Python, Node): <code>@timestamp</code>, <code>log.level</code>, <code>message</code>, <code>error.*</code>, <code>trace.id</code>; dotted or nested fields</td></tr>
 <tr><td>Other JSON</td><td>Go <code>slog</code>, zap, logrus, zerolog; Bunyan and pino; Serilog (message templates filled in); Docker's container log files; Kibana and Elasticsearch exports</td></tr>
 <tr><td>logfmt</td><td><code>time=… level=info msg="…" key=value</code>: slog's text handler, logrus, Argo's own containers</td></tr>
-<tr><td>Text</td><td>Kubernetes klog, Go's <code>log</code> package, timestamped lines with a level word; Go panics and Java, .NET, Node and Python stack traces, joined to the entry they belong to</td></tr>
+<tr><td>Text</td><td>Kubernetes klog, Go's <code>log</code> package, lines that start with a date and time or a time of day alone (<code>10:00:00.123 [main] INFO …</code>, logback's default) and a level word; Go panics and Java, .NET, Node and Python stack traces, joined to the entry they belong to</td></tr>
 <tr><td>Prefixes</td><td><code>argo logs</code> and stern pod names, <code>kubectl logs --prefix</code> and <code>--timestamps</code>, container runtime lines, <code>docker compose logs</code>, CI timestamps and colour codes are taken off and kept as the entry's source and time</td></tr>
 </tbody>
 </table>
@@ -89,7 +89,7 @@
 <p>Above the entries: how many there are and over how long, the count per level (click one to show it and worse), the sources and formats, a link to the <strong>first error</strong>, the errors that repeat most (messages that differ only in numbers, IDs, UUIDs or quoted values count as one) and the longest <strong>silences</strong>, when nothing was logged.</p>
 
 <h2 id="query">Filtering<a class="anchor" href="#query">#</a></h2>
-<p>Type a query and press <kbd>Enter</kbd>; <strong>All · Info+ · Warn+ · Errors</strong> writes the level part for you. Terms are combined with AND.</p>
+<p>Type in the search box and the entries filter as you go; the words you search for are marked in the rows. As you type, the box suggests field names, and once a field and <code>:</code> are there, the values it has — pick one with <kbd>↑</kbd> <kbd>↓</kbd> and <kbd>Enter</kbd> or <kbd>Tab</kbd>. <strong>?</strong> shows what you can write, with examples from your log. <strong>Level: All · Info+ · Warn+ · Errors</strong> writes the level part for you. Terms are combined with AND.</p>
 <table>
 <thead><tr><th>Query</th><th>Matches entries…</th></tr></thead>
 <tbody>
@@ -108,7 +108,7 @@
 <p>The chart counts the matching entries over time, stacked by level. Drag across it to keep only that time range; the range's chip clears it.</p>
 
 <h2 id="list">The entries<a class="anchor" href="#list">#</a></h2>
-<p>One row per entry: time, level, source (when there are several) and message, plus any field as a column (<strong>Columns</strong>; your choice is remembered). Times can be local, UTC or since the first entry; <strong>Wrap</strong> shows long messages whole. Rows are fetched as you scroll, so 100,000 entries scroll like 100.</p>
+<p>One row per entry: time, level, source (when there are several), any field as a column (<strong>Columns</strong>; your choice is remembered) and the message. <strong>Lines: Wrap</strong> (the default) shows every cell whole, over several lines if need be; <strong>One line</strong> keeps each entry on a line and the list scrolls sideways. <strong>Time</strong> shows times in local time, UTC or since the first entry; a log without times has no time column and no chart, and the tool says so. Rows are fetched as you scroll, so 100,000 entries scroll like 100.</p>
 <p><kbd>↑</kbd> <kbd>↓</kbd> (or <kbd>J</kbd> <kbd>K</kbd>) move through the entries, <kbd>E</kbd> and <kbd>Shift</kbd> <kbd>E</kbd> go to the next and previous error, <kbd>/</kbd> to the query, <kbd>Esc</kbd> closes the entry.</p>
 
 <h2 id="entry">An entry<a class="anchor" href="#entry">#</a></h2>

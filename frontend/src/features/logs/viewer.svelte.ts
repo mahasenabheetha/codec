@@ -26,7 +26,8 @@ const BUCKETS = 120
 export type TimeMode = 'local' | 'utc' | 'relative'
 export const prefs = {
   time: persisted<TimeMode>('logs.time', 'local'),
-  wrap: persisted('logs.wrap', false),
+  /** Long cells wrapped (the default), or kept on one line with the list scrolling sideways. */
+  lines: persisted<'wrap' | 'scroll'>('logs.lines', 'wrap'),
   /** Field columns, kept by name across logs; only the ones a log has show. */
   columns: persisted<string[]>('logs.columns', []),
 }
@@ -52,6 +53,10 @@ class LogViewer {
   readonly pages = new SvelteMap<number, LogRow[]>()
   /** Field keys of the log, for the column picker (asked for once). */
   fieldKeys = $state.raw<string[] | null>(null)
+  /** Each field's most common values, for the query's suggestions. */
+  fieldValues = $state.raw<Map<string, string[]>>(new Map())
+  /** The query last sent, so typing doesn't send it twice. */
+  requested = ''
   selected = $state<number | null>(null) // entry index
   history = $state.raw<string[]>([]) // queries run, newest first; memory only
 
@@ -129,6 +134,7 @@ class LogViewer {
     this.error = null
     this.opening = false
     this.fieldKeys = null
+    this.fieldValues = new Map()
     this.selected = null
     this.resetQuery()
   }
@@ -148,6 +154,7 @@ class LogViewer {
   async run(q: LogQuery = { ...this.applied, q: this.input.trim() }) {
     if (!this.id) return
     const gen = ++this.gen
+    this.requested = q.q
     this.loading = true
     try {
       const page = await this.withLog((id) => logEntries(id, { ...q, limit: PAGE, columns: this.columns, histogram: BUCKETS }))
@@ -294,8 +301,9 @@ class LogViewer {
 
   async loadFieldKeys() {
     if (this.fieldKeys || !this.id) return
-    const r = await this.withLog((id) => logFields(id, { q: '', top: 1 }))
+    const r = await this.withLog((id) => logFields(id, { q: '', top: 20 }))
     this.fieldKeys = r.fields.map((f) => f.key).filter((k) => k !== 'source')
+    this.fieldValues = new Map(r.fields.filter((f) => !f.long).map((f) => [f.key, (f.top ?? []).map((t) => t.value)]))
   }
 
   toggleColumn(key: string) {

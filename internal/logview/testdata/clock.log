@@ -1,0 +1,6 @@
+10:00:00.123 [main] INFO  c.e.App - started
+10:00:01.456 [main] WARN  c.e.App - slow start
+10:00:02,789 [exec-1] ERROR c.e.Payment - charge failed
+2026-10-22 10:00:03.000 +0000 INFO a zone after a space
+{"instant":{"epochSecond":1792656004,"nanoOfSecond":123000000},"level":"INFO","message":"log4j2 JSON layout"}
+{"created_at":"2026-10-22T10:00:05Z","msg":"created_at as the time"}

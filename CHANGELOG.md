@@ -25,7 +25,11 @@ All notable changes to codec are documented here. The format follows
   values, number statistics) tabs; export as lines, NDJSON or CSV;
   copies have likely secrets masked; keyboard (`J`/`K`, `E` for the
   next error, `/`). Smart paste opens a pasted log there. The log is
-  held in codec's memory only, never written to disk.
+  held in codec's memory only, never written to disk. Search filters as
+  you type, suggests field names and their values, marks the words
+  found and explains itself under "?"; rows wrap so nothing is cut off
+  (or stay on one line and scroll sideways). Times of day without a
+  date (logback's default) are read.
 
 ### Changed
 

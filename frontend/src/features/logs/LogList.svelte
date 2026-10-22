@@ -2,11 +2,15 @@
   import Layers from '@lucide/svelte/icons/layers'
   import VirtualList from '../../lib/components/VirtualList.svelte'
   import { formatTime } from './format'
+  import { marks, textTerms } from './terms'
   import { prefs, viewer } from './viewer.svelte'
 
-  // The matching entries, one row each: time, level, source, message
-  // and any field columns. Only rows in view are drawn, and only the
-  // pages they are on are fetched, so 100k entries scroll like 100.
+  // The matching entries, one row each: time, level, source, any field
+  // columns, then the message. Cells wrap by default, so a row shows all
+  // it has; on one line, the list scrolls sideways instead of cutting
+  // text off. Words the query searches for are marked. Only rows in
+  // view are drawn and only their pages fetched, so 100k entries
+  // scroll like 100.
   interface Props {
     onselect: (i: number, pos: number) => void
   }
@@ -17,11 +21,20 @@
   const s = $derived(viewer.opened?.summary)
   const start = $derived(s?.from ? new Date(s.from).getTime() : 0)
   const days = $derived(!!s?.from && !!s?.to && new Date(s.to).getTime() - start > 86_400_000)
+  const timed = $derived((s?.timed ?? 0) > 0)
   const many = $derived((s?.sources?.length ?? 0) > 1)
   const cols = $derived(viewer.columns)
-  const wrap = $derived(prefs.wrap.value)
+  const wrap = $derived(prefs.lines.value === 'wrap')
+  const terms = $derived(textTerms(viewer.applied.q))
+  const timeW = $derived(prefs.time.value === 'relative' ? '92px' : days ? '150px' : '104px')
   const template = $derived(
-    ['var(--time-w)', '52px', ...(many ? ['minmax(80px, 14%)'] : []), 'minmax(0, 1fr)', ...cols.map(() => 'minmax(60px, 12%)')].join(' '),
+    [
+      ...(timed ? [timeW] : []),
+      '52px',
+      ...(many ? [wrap ? 'minmax(80px, 14%)' : '180px'] : []),
+      ...cols.map(() => (wrap ? 'minmax(80px, 16%)' : '160px')),
+      wrap ? 'minmax(0, 1fr)' : 'max-content',
+    ].join(' '),
   )
 
   /** Bring a position in the matches into view. */
@@ -30,48 +43,53 @@
   }
 </script>
 
-<div class="log-list" style:--cols={template} style:--time-w={prefs.time.value === 'relative' ? '92px' : days ? '150px' : '104px'}>
-  <div class="head row" role="row">
-    <span>Time</span>
-    <span>Level</span>
-    {#if many}<span>Source</span>{/if}
-    <span>Message</span>
-    {#each cols as c (c)}<span class="col" title={c}>{c}</span>{/each}
-  </div>
+{#snippet text(t: string)}
+  {#each marks(t, terms) as m, j (j)}{#if m.hit}<mark>{m.t}</mark>{:else}{m.t}{/if}{/each}
+{/snippet}
+
+<div class="log-list" class:wrap style:--cols={template}>
   <div class="scroll" role="grid" aria-label="Log entries" aria-rowcount={viewer.total}>
-    <VirtualList
-      bind:this={list}
-      count={viewer.total}
-      estimate={wrap ? 40 : 24}
-      windowFrom={0}
-      overscan={800}
-      onrange={(a, b) => viewer.ensure(a, b)}
-    >
-      {#snippet row(pos)}
-        {@const r = viewer.rowAt(pos)}
-        {#if r}
-          <button
-            type="button"
-            class="row lv-{r.level || 'none'}"
-            class:wrap
-            class:sel={viewer.selected === r.i}
-            role="row"
-            onclick={() => onselect(r.i, pos)}
-          >
-            <span class="time">{formatTime(r.time, prefs.time.value, start, days)}</span>
-            <span class="level">{r.level || ''}</span>
-            {#if many}<span class="src" title={r.source}>{r.source ?? ''}</span>{/if}
-            <span class="msg">
-              {r.message || r.error || ''}{#if r.more}<span class="more">…</span>{/if}
-              {#if r.stack}<Layers size={11} class="stack-icon" aria-label="has a stack trace" />{/if}
-            </span>
-            {#each cols as c (c)}<span class="col" title={r.cols?.[c]}>{r.cols?.[c] ?? ''}</span>{/each}
-          </button>
-        {:else}
-          <div class="row placeholder" aria-hidden="true"><span class="bar"></span></div>
-        {/if}
-      {/snippet}
-    </VirtualList>
+    <div class="inner">
+      <div class="head row" role="row">
+        {#if timed}<span>Time</span>{/if}
+        <span>Level</span>
+        {#if many}<span>Source</span>{/if}
+        {#each cols as c (c)}<span class="col" title={c}>{c}</span>{/each}
+        <span>Message <span class="hint">· click a row for the whole entry</span></span>
+      </div>
+      <VirtualList
+        bind:this={list}
+        count={viewer.total}
+        estimate={wrap ? 40 : 24}
+        windowFrom={0}
+        overscan={800}
+        onrange={(a, b) => viewer.ensure(a, b)}
+      >
+        {#snippet row(pos)}
+          {@const r = viewer.rowAt(pos)}
+          {#if r}
+            <button
+              type="button"
+              class="row lv-{r.level || 'none'}"
+              class:sel={viewer.selected === r.i}
+              role="row"
+              onclick={() => onselect(r.i, pos)}
+            >
+              {#if timed}<span class="time">{formatTime(r.time, prefs.time.value, start, days)}</span>{/if}
+              <span class="level">{r.level || ''}</span>
+              {#if many}<span class="src" title={r.source}>{r.source ?? ''}</span>{/if}
+              {#each cols as c (c)}<span class="col" title={r.cols?.[c]}>{@render text(r.cols?.[c] ?? '')}</span>{/each}
+              <span class="msg">
+                {@render text(r.message || r.error || '')}{#if r.more}<span class="more"> …</span>{/if}
+                {#if r.stack}<Layers size={11} class="stack-icon" aria-label="has a stack trace" />{/if}
+              </span>
+            </button>
+          {:else}
+            <div class="row placeholder" aria-hidden="true"><span class="bar"></span></div>
+          {/if}
+        {/snippet}
+      </VirtualList>
+    </div>
   </div>
 </div>
 
@@ -90,6 +108,15 @@
     flex: 1;
     min-height: 0;
     overflow: auto;
+  }
+  /* On one line the rows are as wide as their content and the list
+     scrolls sideways; wrapped, they fit the list's width. */
+  .inner {
+    min-width: 100%;
+    width: max-content;
+  }
+  .wrap .inner {
+    width: 100%;
   }
   .row {
     display: grid;
@@ -116,22 +143,36 @@
     border-left-color: var(--accent);
   }
   .head {
-    flex: none;
+    position: sticky;
+    top: 0;
+    z-index: 1;
     font-family: var(--font-ui);
     font-size: var(--fs-xs);
     font-weight: var(--fw-semibold);
     color: var(--fg-2);
+    background: var(--bg-1);
     border-bottom: 1px solid var(--border);
+  }
+  .hint {
+    font-weight: var(--fw-regular);
   }
   .row > span {
     min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .row.wrap .msg {
+  /* One line: fixed columns cut with …, the message runs on. */
+  .src,
+  .col {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .wrap .row > span {
     white-space: pre-wrap;
     overflow-wrap: anywhere;
+  }
+  .wrap .src,
+  .wrap .col {
+    overflow: visible;
   }
   .time {
     color: var(--fg-2);
@@ -167,6 +208,11 @@
   }
   .more {
     color: var(--fg-2);
+  }
+  mark {
+    color: inherit;
+    background: var(--editor-search-match);
+    border-radius: 2px;
   }
   .msg :global(.stack-icon) {
     margin-left: var(--s-1);

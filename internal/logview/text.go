@@ -15,7 +15,9 @@ var (
 	goLogRe  = regexp.MustCompile(`^(\d{4}/\d\d/\d\d \d\d:\d\d:\d\d(?:\.\d+)?) `)
 	goFileRe = regexp.MustCompile(`^([\w./-]+\.go:\d+): `)
 	// Text with a leading time: logback, log4j, Python, most others.
-	textTimeRe = regexp.MustCompile(`^\[?(\d{4}-\d\d-\d\d[T ]\d\d:\d\d:\d\d(?:[.,]\d+)?(?:Z|[+-]\d\d:?\d\d)?)(?: UTC)?\]?:?\s+`)
+	textTimeRe = regexp.MustCompile(`^\[?(\d{4}-\d\d-\d\d[T ]\d\d:\d\d:\d\d(?:[.,]\d+)?(?: ?(?:Z|[+-]\d\d:?\d\d))?)(?: UTC)?\]?:?\s+`)
+	// A time of day without a date: "10:00:00.123 [main] INFO …".
+	clockRe = regexp.MustCompile(`^\[?(\d\d:\d\d:\d\d(?:[.,]\d{1,9})?)\]?\s+`)
 	// syslog: "Oct 22 10:00:00 ", without a year.
 	syslogRe = regexp.MustCompile(`^([A-Z][a-z]{2} [ \d]\d \d\d:\d\d:\d\d) `)
 
@@ -66,12 +68,25 @@ func readKlog(s string, year int, e *Entry) bool {
 
 // readText reads a plain text line: a leading time if there is one,
 // then a level word near the start. It reports whether a time was found.
-func readText(s string, year int, e *Entry) bool {
+func readText(s string, day time.Time, e *Entry) bool {
 	e.Format = Text
 	rest, found := s, false
 	if m := textTimeRe.FindStringSubmatchIndex(s); m != nil {
-		if t, ok := parseTime(s[m[2]:m[3]]); ok {
+		if t, ok := parseTime(strings.Replace(s[m[2]:m[3]], " +", "+", 1)); ok {
 			e.Time, rest, found = t, s[m[1]:], true
+		} else if t, ok := parseTime(strings.Replace(s[m[2]:m[3]], " -", "-", 1)); ok {
+			e.Time, rest, found = t, s[m[1]:], true
+		}
+	} else if m := clockRe.FindStringSubmatchIndex(s); m != nil {
+		// A time of day only (logback's default HH:mm:ss.SSS): on the
+		// log's day, or year 1 while the reader is still learning.
+		if c, err := time.Parse("15:04:05.999999999", strings.Replace(s[m[2]:m[3]], ",", ".", 1)); err == nil {
+			y, mo, d := day.Date()
+			if day.IsZero() {
+				y, mo, d = 1, 1, 1
+			}
+			e.Time = time.Date(y, mo, d, c.Hour(), c.Minute(), c.Second(), c.Nanosecond(), time.UTC)
+			rest, found = s[m[1]:], true
 		}
 	} else if m := goLogRe.FindStringSubmatchIndex(s); m != nil {
 		if t, ok := parseTime(s[m[2]:m[3]]); ok {
@@ -82,7 +97,7 @@ func readText(s string, year int, e *Entry) bool {
 		}
 	} else if m := syslogRe.FindStringSubmatchIndex(s); m != nil {
 		if t, err := time.Parse("Jan _2 15:04:05", s[m[2]:m[3]]); err == nil {
-			e.Time, rest, found = withYear(t, year), s[m[1]:], true
+			e.Time, rest, found = withYear(t, max(day.Year(), 1)), s[m[1]:], true
 		}
 	}
 	e.Level, e.RawLevel, rest = textLevel(rest)
