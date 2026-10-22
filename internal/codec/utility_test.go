@@ -18,6 +18,9 @@ func TestDetectUtility(t *testing.T) {
 		{"*/15 2-6 * * 1-5", "cron", "cron", "Every 15 minutes"},
 		{"@daily", "cron", "cron", "At 00:00"},
 		{"0 0 12 * * ?", "cron", "cron", "Quartz"},
+		{"{\"level\":\"info\",\"msg\":\"a\"}\n{\"level\":\"error\",\"msg\":\"b\"}", "log", "viewer", "A log: 2 entries · json 2\n1 error"},
+		{"time=2026-10-22T10:00:00Z level=info msg=up\ntime=2026-10-22T10:00:01Z level=warn msg=slow\n", "log", "viewer", "logfmt 2"},
+		{"pod-1234567890: 2026-10-22T10:00:00Z started\npod-1234567890: 2026-10-22T10:00:01Z ERROR boom", "log", "viewer", "text 2"},
 	} {
 		u, ok := DetectUtility(c.in, now)
 		if !ok || u.Kind != c.kind || u.Tab != c.tab || !strings.Contains(u.Summary, c.has) {
@@ -25,7 +28,8 @@ func TestDetectUtility(t *testing.T) {
 		}
 	}
 	// Left to the other detectors, or to nothing.
-	for _, in := range []string{"12", "12345678", `{"url":"a%20b"}`, "aGVsbG8gd29ybGQ=", "1 2 3 4 5", "hello world", "100%", "@someone"} {
+	for _, in := range []string{"12", "12345678", `{"url":"a%20b"}`, "aGVsbG8gd29ybGQ=", "1 2 3 4 5", "hello world", "100%", "@someone",
+		"{\n  \"level\": \"info\",\n  \"msg\": \"one pretty object\"\n}", "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: x\n", "first line\nsecond line\nthird"} {
 		if u, ok := DetectUtility(in, now); ok {
 			t.Errorf("%q detected as %+v", in, u)
 		}

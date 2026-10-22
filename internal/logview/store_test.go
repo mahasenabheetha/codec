@@ -177,6 +177,12 @@ func TestGroups(t *testing.T) {
 	if g := l.Groups(m.IDs); len(g) != 1 {
 		t.Errorf("groups of a query: %+v", g)
 	}
+	if m, _ := l.Match(fmt.Sprintf("group:%d", g[0].ID), time.Time{}, time.Time{}); m.Total != 5 {
+		t.Errorf("group:%d matched %d", g[0].ID, m.Total)
+	}
+	if m, _ := l.Match("group:*", time.Time{}, time.Time{}); m.Total != 6 {
+		t.Errorf("group:* matched %d", m.Total)
+	}
 	if l.Summary().Groups != 2 {
 		t.Errorf("summary groups %d", l.Summary().Groups)
 	}

@@ -10,6 +10,7 @@ import (
 
 	"github.com/mahasenabheetha/codec/v2/internal/cron"
 	"github.com/mahasenabheetha/codec/v2/internal/encode"
+	"github.com/mahasenabheetha/codec/v2/internal/logview"
 	"github.com/mahasenabheetha/codec/v2/internal/timeutil"
 )
 
@@ -17,9 +18,9 @@ import (
 // number, URL-encoded text or a cron expression. Smart paste shows the
 // summary and offers to open the tool on the right tab.
 type Utility struct {
-	Kind    string `json:"kind"` // epoch, url, cron
-	Tool    string `json:"tool"` // time, encode
-	Tab     string `json:"tab"`  // timestamp, url, cron
+	Kind    string `json:"kind"` // epoch, url, cron, log
+	Tool    string `json:"tool"` // time, encode, logs
+	Tab     string `json:"tab"`  // timestamp, url, cron, viewer
 	Summary string `json:"summary"`
 }
 
@@ -39,7 +40,9 @@ var (
 //   - one line with %XX escapes, no braces, that decodes to readable text
 //     (not JSON or a log that mentions a URL, not a printf format);
 //   - 5 to 7 cron fields, at least two of them numbers or *, or a
-//     shortcut.
+//     shortcut;
+//   - a log of at least two entries, most with a time or a level (not an
+//     Ansible run, which has its own tool), for the Log viewer.
 //
 // The clipboard watcher doesn't use it.
 func DetectUtility(s string, now time.Time) (*Utility, bool) {
@@ -84,7 +87,60 @@ func DetectUtility(s string, now time.Time) (*Utility, bool) {
 		u.Summary = b.String()
 		return u, true
 	}
+	if sum, ok := logSummary(s); ok {
+		return &Utility{Kind: "log", Tool: "logs", Tab: "viewer", Summary: sum}, true
+	}
 	return nil, false
+}
+
+// logSummary reads the first lines of s as a log and describes it, when
+// at least two entries and most of them have a time or a level. A single
+// JSON object is JSON, not a log; an Ansible run goes to its own tool.
+func logSummary(s string) (string, bool) {
+	if strings.Contains(s, "TASK [") || strings.Contains(s, "PLAY [") {
+		return "", false
+	}
+	head := s
+	for i, n := 0, 0; i < len(s); i++ {
+		if s[i] == '\n' {
+			if n++; n == 200 {
+				head = s[:i]
+				break
+			}
+		}
+	}
+	entries, marked := 0, 0
+	formats := map[string]int{}
+	levels := map[logview.Level]int{}
+	for e := range logview.Read(head, logview.Options{}) {
+		entries++
+		formats[e.Format.String()]++
+		levels[e.Level]++
+		if !e.Time.IsZero() || e.Level != logview.LevelNone {
+			marked++
+		}
+	}
+	if entries < 2 || marked*10 < entries*6 {
+		return "", false
+	}
+	var b strings.Builder
+	fmt.Fprintf(&b, "A log: %d entries", entries)
+	if strings.Count(s, "\n") >= 200 {
+		b.WriteString(" in its first 200 lines")
+	}
+	for _, f := range []string{"ecs", "json", "logfmt", "klog", "text"} {
+		if formats[f] > 0 {
+			fmt.Fprintf(&b, " · %s %d", f, formats[f])
+		}
+	}
+	switch n := levels[logview.Error] + levels[logview.Fatal]; n {
+	case 0:
+	case 1:
+		b.WriteString("\n1 error")
+	default:
+		fmt.Fprintf(&b, "\n%d errors", n)
+	}
+	return b.String(), true
 }
 
 // readable reports UTF-8 text without control characters: what a decoded

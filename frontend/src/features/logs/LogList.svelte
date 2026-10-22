@@ -8,7 +8,7 @@
   // and any field columns. Only rows in view are drawn, and only the
   // pages they are on are fetched, so 100k entries scroll like 100.
   interface Props {
-    onselect: (i: number) => void
+    onselect: (i: number, pos: number) => void
   }
 
   let { onselect }: Props = $props()
@@ -56,7 +56,7 @@
             class:wrap
             class:sel={viewer.selected === r.i}
             role="row"
-            onclick={() => onselect(r.i)}
+            onclick={() => onselect(r.i, pos)}
           >
             <span class="time">{formatTime(r.time, prefs.time.value, start, days)}</span>
             <span class="level">{r.level || ''}</span>

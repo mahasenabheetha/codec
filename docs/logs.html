@@ -108,7 +108,19 @@
 <p>The chart counts the matching entries over time, stacked by level. Drag across it to keep only that time range; the range's chip clears it.</p>
 
 <h2 id="list">The entries<a class="anchor" href="#list">#</a></h2>
-<p>One row per entry: time, level, source (when there are several) and message, plus any field as a column (<strong>Columns</strong>; your choice is remembered). Times can be local, UTC or since the first entry; <strong>Wrap</strong> shows long messages whole. Select a row for the entry in full: its message, error, stack trace, every field and the line as it was read. Rows are fetched as you scroll, so 100,000 entries scroll like 100.</p>
+<p>One row per entry: time, level, source (when there are several) and message, plus any field as a column (<strong>Columns</strong>; your choice is remembered). Times can be local, UTC or since the first entry; <strong>Wrap</strong> shows long messages whole. Rows are fetched as you scroll, so 100,000 entries scroll like 100.</p>
+<p><kbd>↑</kbd> <kbd>↓</kbd> (or <kbd>J</kbd> <kbd>K</kbd>) move through the entries, <kbd>E</kbd> and <kbd>Shift</kbd> <kbd>E</kbd> go to the next and previous error, <kbd>/</kbd> to the query, <kbd>Esc</kbd> closes the entry.</p>
+
+<h2 id="entry">An entry<a class="anchor" href="#entry">#</a></h2>
+<p>Select a row for the entry in full: its message (JSON in it laid out), error, time, source, logger, caller and trace; its stack trace, with each frame's function apart from its file and the runtime's and frameworks' frames folded away; its fields as a tree; the entries just <strong>around it</strong> (±5, 20 or 50, whatever the query hides — what led up to it); and the line as it was read.</p>
+<p>Next to any value: <strong>only this</strong> and <strong>hide this</strong> add a term to the query, the column button shows the field in the list, and for trace, span, request and correlation IDs <strong>follow</strong> replaces the query with that ID, so you see everything that happened to one request across the log.</p>
+
+<h2 id="errors">Errors and fields<a class="anchor" href="#errors">#</a></h2>
+<p><strong>Errors</strong> lists the warnings and errors of the matching entries grouped by message (numbers, IDs, UUIDs and quoted values don't split a group), most frequent first, with when they started and stopped and how many sources had them. Click one for its first entry; <strong>Show</strong> filters to it (<code>group:3</code>).</p>
+<p><strong>Fields</strong> lists every field of the matching entries: how often it is there, its most common values (click one to filter to it) and, for numbers, the minimum, median, 95th percentile, maximum and mean.</p>
+
+<h2 id="export">Export and copy<a class="anchor" href="#export">#</a></h2>
+<p>The export button saves the matching entries as the lines they were read from (<code>.log</code>), as one JSON object each (<code>.ndjson</code>) or as a table with your columns (<code>.csv</code>). <kbd>Alt</kbd> <kbd>C</kbd> copies a short summary of the log; an entry's buttons copy its line or the entry as JSON. Whatever is copied has likely secrets masked — values of password, token, secret, key and cookie fields, bearer credentials, JWTs and passwords in URLs — so it is safer to paste into a ticket. Masking is a safety net; read what you share.</p>
 
 <h2 id="memory">Where the log is kept<a class="anchor" href="#memory">#</a></h2>
 <p>The log is read by codec's server and held in its memory while you look at it — never written to disk. A log unused for an hour is let go, and so are the oldest when the logs held reach 1 GB of memory; the tool then sends it again from what it still holds, without asking. Closing the log, or codec, lets it go.</p>

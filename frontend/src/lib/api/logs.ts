@@ -115,6 +115,7 @@ export interface FieldStat {
 }
 
 export interface LogGroup {
+  id: number // for the query group:ID
   text: string
   level: Level
   count: number

@@ -223,6 +223,53 @@ class LogViewer {
     return pos
   }
 
+  /** Where the selected entry is among the matches, when known. */
+  selectedPos = $state<number | null>(null)
+
+  select(i: number | null, pos: number | null = null) {
+    this.selected = i
+    this.selectedPos = pos
+  }
+
+  /** Add a term to the query and run it ("only this", "hide this"). */
+  addTerm(term: string) {
+    this.input = this.input.trim() ? `${this.input.trim()} ${term}` : term
+    this.run({ ...this.applied, q: this.input })
+  }
+
+  /** Show only entries with this value, whatever else was filtered:
+   *  what happened to one request or trace. */
+  follow(term: string) {
+    this.input = term
+    this.run({ q: term })
+  }
+
+  /** The row at a position, fetching its page if needed. */
+  async rowAsync(pos: number): Promise<LogRow | undefined> {
+    const r = this.rowAt(pos)
+    if (r || pos < 0 || pos >= this.total) return r
+    const p = Math.floor(pos / PAGE)
+    const page = await this.withLog((id) => logEntries(id, { ...this.applied, offset: p * PAGE, limit: PAGE, columns: this.columns }))
+    this.take(page, false)
+    return this.rowAt(pos)
+  }
+
+  /** The position of the next (or previous) error or worse among the
+   *  matches, from the selected entry; null when there is none. */
+  async nextError(dir: 1 | -1): Promise<number | null> {
+    const from = this.selected ?? (dir > 0 ? -1 : this.opened?.summary.entries ?? 0)
+    const q = this.applied.q ? `(${this.applied.q}) level>=error` : 'level>=error'
+    const req = { ...this.applied, q, limit: 1 }
+    const hit = await this.withLog(async (id) => {
+      if (dir > 0) return (await logEntries(id, { ...req, at: from + 1 })).entries[0]
+      const k = (await logEntries(id, { ...req, at: from })).offset
+      return k > 0 ? (await logEntries(id, { ...req, offset: k - 1 })).entries[0] : undefined
+    })
+    if (!hit || (dir > 0 ? hit.i <= from : hit.i >= from)) return null
+    const pos = await this.locate(hit.i)
+    return pos < 0 ? null : pos
+  }
+
   /** Rows again for the same query (columns changed). */
   refetch() {
     this.run(this.applied)

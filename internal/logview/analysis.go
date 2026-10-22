@@ -147,6 +147,7 @@ func isUUID(s string) bool {
 
 // Group is an error group among some entries.
 type Group struct {
+	ID      int       `json:"id"` // for the query group:ID
 	Text    string    `json:"text"`
 	Level   string    `json:"level"` // the worst level in it
 	Count   int       `json:"count"`
@@ -173,7 +174,7 @@ func (l *Log) Groups(ids []uint32) []Group {
 		}
 		a := by[r.group]
 		if a == nil {
-			a = &acc{g: Group{Text: l.groups[r.group-1].text, First: i}, sources: map[uint32]bool{}}
+			a = &acc{g: Group{ID: int(r.group), Text: l.groups[r.group-1].text, First: i}, sources: map[uint32]bool{}}
 			by[r.group] = a
 		}
 		a.g.Count++

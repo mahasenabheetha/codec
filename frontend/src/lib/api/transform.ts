@@ -12,7 +12,7 @@ export type Mode =
   | 'jwt'
   | 'ansible'
 
-export type Kind = 'json' | 'jwt' | 'base64' | 'ansible' | 'epoch' | 'url' | 'cron' | 'unknown'
+export type Kind = 'json' | 'jwt' | 'base64' | 'ansible' | 'epoch' | 'url' | 'cron' | 'log' | 'unknown'
 
 export interface TransformRequest {
   input: string

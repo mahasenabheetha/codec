@@ -17,8 +17,15 @@ All notable changes to codec are documented here. The format follows
   log file in the Explorer. An overview with the first error, repeated
   errors and silences; a query language (`level>=warn
   service.name:api -logger:health status>=500 "connection reset"`); a
-  chart to drag a time range on; field columns; the entry in full. The
-  log is held in codec's memory only, never written to disk.
+  chart to drag a time range on; field columns. An entry in full: JSON
+  in its message laid out, its stack trace with framework frames folded,
+  its fields as a tree, the entries around it; any value filters the
+  log, becomes a column or, for trace and request IDs, is followed
+  across it. Errors (grouped, `group:N` in the query) and Fields (top
+  values, number statistics) tabs; export as lines, NDJSON or CSV;
+  copies have likely secrets masked; keyboard (`J`/`K`, `E` for the
+  next error, `/`). Smart paste opens a pasted log there. The log is
+  held in codec's memory only, never written to disk.
 
 ### Changed
 

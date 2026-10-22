@@ -34,10 +34,11 @@
     epoch: 'Epoch timestamp → read',
     url: 'URL-encoded → decoded',
     cron: 'Cron expression → explained',
+    log: 'Log → summarised',
     unknown: 'unrecognised',
   }
   // Where the full tool for a Utilities kind lives.
-  const openLabel: Record<string, string> = { timestamp: 'Open in Timestamp', url: 'Open in URL', cron: 'Open in Cron' }
+  const openLabel: Record<string, string> = { timestamp: 'Open in Timestamp', url: 'Open in URL', cron: 'Open in Cron', viewer: 'Open in Log viewer' }
   function openUtility() {
     const u = session.result?.utility
     if (u) handoff.send(u.tool, u.tab, session.input.trim())

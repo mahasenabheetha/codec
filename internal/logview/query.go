@@ -20,8 +20,8 @@ import (
 // value ignoring case (* is a wildcard; field:* means the field is
 // there); >, >=, < and <= compare numbers, durations and levels. The
 // core fields have short names: level, message, source, logger,
-// caller, error, stack, trace, format, file; any other name is a
-// field's key ("http.response.status_code", or "log.level" for the
+// caller, error, stack, trace, format, file, and group (an error
+// group's id, from Groups); any other name is a field's key ("http.response.status_code", or "log.level" for the
 // level as written).
 
 // QueryError is a query that can't be read, with where the problem is.
@@ -164,12 +164,13 @@ const (
 	pTrace
 	pFormat
 	pFile
+	pGroup
 )
 
 var pseudoNames = map[string]pseudo{
 	"level": pLevel, "message": pMessage, "msg": pMessage, "source": pSource, "logger": pLogger,
 	"caller": pCaller, "error": pError, "err": pError, "stack": pStack, "trace": pTrace,
-	"format": pFormat, "file": pFile,
+	"format": pFormat, "file": pFile, "group": pGroup,
 }
 
 // fieldNode matches a field's value.
@@ -274,6 +275,8 @@ func (n *fieldNode) matchPseudo(l *Log, r *row) bool {
 		s = r.format.String()
 	case pFile:
 		s = l.Files[r.file].Name
+	case pGroup:
+		return r.group != 0 && (n.val.any || n.val.isNum && float64(r.group) == n.val.num)
 	}
 	if n.op != opIs {
 		return n.val.compare(s, n.op)
@@ -449,7 +452,7 @@ func (p *parser) unary() (node, error) {
 }
 
 func isFieldChar(c byte) bool {
-	return isAlnum(c) || c == '.' || c == '@' || c == '-' || c == '$'
+	return isAlnum(c) || c == '.' || c == '@' || c == '-' || c == '$' || c == '/' // label keys: app.kubernetes.io/name
 }
 
 func (p *parser) term() (node, error) {

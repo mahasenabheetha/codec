@@ -14,8 +14,17 @@
   import Popover from '../../lib/components/Popover.svelte'
   import SegmentedControl from '../../lib/components/SegmentedControl.svelte'
   import SplitPane from '../../lib/components/SplitPane.svelte'
+  import Tabs from '../../lib/components/Tabs.svelte'
+  import { exportLog, logGroups } from '../../lib/api/logs'
   import { handoff } from '../../lib/stores/handoff.svelte'
+  import { shortcut } from '../../lib/stores/shortcuts.svelte'
+  import { toast } from '../../lib/stores/toast.svelte'
   import { toolById } from '../../lib/tools'
+  import { copyText } from '../../lib/utils/clipboard'
+  import Download from '@lucide/svelte/icons/download'
+  import LogFields from './LogFields.svelte'
+  import LogGroups from './LogGroups.svelte'
+  import { maskSecrets } from './mask'
   import { samples } from '../shared/samples'
   import ToolLayout from '../shared/ToolLayout.svelte'
   import { toolShortcuts, toolStatus } from '../shared/tool.svelte'
@@ -93,13 +102,86 @@
     return () => window.removeEventListener('paste', onpaste)
   })
 
+  let tab = $state<'entries' | 'errors' | 'fields'>('entries')
+
+  /** Select entry i and bring it into view in the entries. */
   async function jump(i: number) {
+    tab = 'entries'
     const pos = await viewer.locate(i)
     if (pos < 0) return
-    viewer.selected = i
+    viewer.select(i, pos)
     await tick() // the list moves into the split view
     list?.reveal(pos)
   }
+
+  /** Select the entry at a position in the matches (keyboard). */
+  async function selectAt(pos: number) {
+    if (!viewer.total) return
+    pos = Math.max(0, Math.min(viewer.total - 1, pos))
+    const r = await viewer.rowAsync(pos)
+    if (!r) return
+    viewer.select(r.i, pos)
+    await tick()
+    list?.reveal(pos)
+  }
+
+  async function nextError(dir: 1 | -1) {
+    const pos = await viewer.nextError(dir)
+    if (pos === null) toast(dir > 0 ? 'No more errors below' : 'No errors above')
+    else await selectAt(pos)
+  }
+
+  async function exportAs(format: 'text' | 'ndjson' | 'csv') {
+    try {
+      const blob = await viewer.withLog((id) => exportLog(id, { ...viewer.applied, format, columns: viewer.columns }))
+      const name = (viewer.sources.length === 1 ? sourceName(viewer.sources[0]).replace(/\.[^.]+$/, '') : 'log') + '-filtered'
+      const url = URL.createObjectURL(blob)
+      Object.assign(document.createElement('a'), { href: url, download: `${name}.${format === 'text' ? 'log' : format}` }).click()
+      setTimeout(() => URL.revokeObjectURL(url), 1000)
+    } catch (e) {
+      toast(e instanceof Error ? e.message : String(e), 'err')
+    }
+  }
+
+  // The log in a few lines, for a ticket or a chat (secrets masked).
+  async function copySummary() {
+    const sm = viewer.opened?.summary
+    if (!sm) return
+    const { groups } = await viewer.withLog((id) => logGroups(id, { q: '' }))
+    const lv = (k: string) => sm.levels[k] ?? 0
+    const out = [
+      `${viewer.sources.map(sourceName).join(', ')}: ${count(sm.entries)} entries${sm.from && sm.to ? `, ${sm.from} → ${sm.to}` : ''}`,
+      `fatal ${lv('fatal')} · errors ${lv('error')} · warnings ${lv('warn')} · info ${lv('info')}`,
+    ]
+    if (viewer.applied.q) out.push(`Query: ${viewer.applied.q} → ${count(viewer.total)} entries`)
+    if (groups.length) {
+      out.push('', 'Most repeated:')
+      for (const g of groups.slice(0, 5)) out.push(`  ${g.count}× [${g.level}] ${g.text}`)
+    }
+    const m = maskSecrets(out.join('\n'))
+    copyText(m.text, 'Summary')
+  }
+
+  // j/k or the arrows move through the entries, e and Shift+E to the
+  // next and previous error, / to the query.
+  $effect(() => {
+    const when = () => active && !!viewer.opened && tab === 'entries'
+    const step = (d: number) => () => selectAt(viewer.selectedPos === null ? (d > 0 ? 0 : viewer.total - 1) : viewer.selectedPos + d)
+    const offs = [
+      shortcut('ArrowDown', step(1), { when }),
+      shortcut('J', step(1), { when }),
+      shortcut('ArrowUp', step(-1), { when }),
+      shortcut('K', step(-1), { when }),
+      shortcut('PageDown', step(20), { when }),
+      shortcut('PageUp', step(-20), { when }),
+      shortcut('Home', () => selectAt(0), { when }),
+      shortcut('End', () => selectAt(viewer.total - 1), { when }),
+      shortcut('E', () => nextError(1), { when }),
+      shortcut('Shift+E', () => nextError(-1), { when }),
+      shortcut('/', () => queryField?.focus(), { when: () => active && !!viewer.opened }),
+    ]
+    return () => offs.forEach((off) => off())
+  })
 
   const s = $derived(viewer.opened?.summary)
   const start = $derived(s?.from ? new Date(s.from).getTime() : 0)
@@ -110,9 +192,9 @@
 
   toolShortcuts(() => active, {
     run: () => viewer.run(),
-    copy: () => {},
+    copy: () => copySummary(),
     clear: () => {
-      if (viewer.selected !== null) viewer.selected = null
+      if (viewer.selected !== null) viewer.select(null)
       else if (viewer.input) viewer.input = ''
     },
   })
@@ -165,6 +247,17 @@
       {#if viewer.opened}
         <Button icon={FileUp} onclick={() => pick(true)} title="Add logs; they are merged by time">Add logs…</Button>
         <Button icon={ClipboardPaste} onclick={() => (pasteOpen = true)}>Paste…</Button>
+        <Popover side="bottom" align="end">
+          {#snippet trigger(props)}
+            <IconButton {...props} icon={Download} label="Export the matching entries" />
+          {/snippet}
+          <div class="menu">
+            <p class="muted">The {count(viewer.total)} matching entries as</p>
+            <button type="button" onclick={() => exportAs('text')}>Lines as read <span class="muted">.log</span></button>
+            <button type="button" onclick={() => exportAs('ndjson')}>One JSON object each <span class="muted">.ndjson</span></button>
+            <button type="button" onclick={() => exportAs('csv')}>A table <span class="muted">.csv, with your columns</span></button>
+          </div>
+        </Popover>
         <IconButton icon={X} label="Close the log" onclick={() => viewer.close()} />
       {:else}
         <Button icon={ClipboardPaste} onclick={() => (pasteOpen = true)}>Paste…</Button>
@@ -290,16 +383,29 @@
             <LogChart histogram={viewer.histogram} mode={prefs.time.value} {start} onrange={(a, b) => viewer.setRange(a, b)} />
           {/if}
 
+          <Tabs
+            bind:value={tab}
+            label="Views"
+            tabs={[
+              { value: 'entries', label: 'Entries', count: viewer.total },
+              { value: 'errors', label: 'Errors', count: s.groups },
+              { value: 'fields', label: 'Fields' },
+            ]}
+          />
           <div class="main">
-            {#if viewer.total === 0 && !viewer.loading}
+            {#if tab === 'errors'}
+              <LogGroups onjump={jump} onshow={() => (tab = 'entries')} />
+            {:else if tab === 'fields'}
+              <LogFields onshow={() => (tab = 'entries')} />
+            {:else if viewer.total === 0 && !viewer.loading}
               <EmptyState icon={Search} title="Nothing matches" description="Change the query or the time range." />
             {:else if viewer.selected !== null}
               <SplitPane id="logs" initial={0.62} min={260}>
-                {#snippet first()}<LogList bind:this={list} onselect={(i) => (viewer.selected = i)} />{/snippet}
-                {#snippet second()}<LogDetail index={viewer.selected!} onclose={() => (viewer.selected = null)} />{/snippet}
+                {#snippet first()}<LogList bind:this={list} onselect={(i, pos) => viewer.select(i, pos)} />{/snippet}
+                {#snippet second()}<LogDetail index={viewer.selected!} onclose={() => viewer.select(null)} onpick={(i) => jump(i)} />{/snippet}
               </SplitPane>
             {:else}
-              <LogList bind:this={list} onselect={(i) => (viewer.selected = i)} />
+              <LogList bind:this={list} onselect={(i, pos) => viewer.select(i, pos)} />
             {/if}
           </div>
         </div>
@@ -448,6 +554,29 @@
   .main {
     flex: 1;
     min-height: 0;
+  }
+  .menu {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    width: 260px;
+    padding: var(--s-2);
+  }
+  .menu p {
+    margin: 0 0 var(--s-1);
+    font-size: var(--fs-xs);
+  }
+  .menu button {
+    padding: var(--s-1) var(--s-2);
+    font-size: var(--fs-sm);
+    text-align: left;
+    color: var(--fg-0);
+    background: none;
+    border: none;
+    border-radius: var(--r-sm);
+  }
+  .menu button:hover {
+    background: var(--bg-3);
   }
   .columns {
     display: flex;
