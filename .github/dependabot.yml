@@ -11,6 +11,13 @@ updates:
     open-pull-requests-limit: 5
     commit-message:
       prefix: "deps(go)"
+    ignore:
+      # kustomize 0.21.3 needs a kube-openapi built for
+      # structured-merge-diff/v7, which k8s.io/apimachinery 0.37 cannot use
+      # (go vet fails) and which also raises the Go version to 1.27. Drop
+      # this once k8s.io 0.38 is out, and update kustomize with it.
+      - dependency-name: "sigs.k8s.io/kustomize/*"
+        versions: [">= 0.21.3"]
     groups:
       go-security:
         applies-to: security-updates
