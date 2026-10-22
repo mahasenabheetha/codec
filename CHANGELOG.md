@@ -6,6 +6,20 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Log viewer (Tools → Log viewer): structured logs of any common format
+  read into one shape — ECS and other JSON (Go's slog, zap, logrus,
+  zerolog; Bunyan, pino, Serilog; Docker log files; Kibana exports),
+  logfmt, klog and text with stack traces, behind `argo logs`,
+  `kubectl logs`, container or CI prefixes. Open, drop or paste one or
+  more logs (merged by time; gzip and UTF-16 are fine), or right-click a
+  log file in the Explorer. An overview with the first error, repeated
+  errors and silences; a query language (`level>=warn
+  service.name:api -logger:health status>=500 "connection reset"`); a
+  chart to drag a time range on; field columns; the entry in full. The
+  log is held in codec's memory only, never written to disk.
+
 ### Changed
 
 - The Workspace problems view and the Resources cards draw only the

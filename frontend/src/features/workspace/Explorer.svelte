@@ -9,6 +9,7 @@
   import FolderSearch from '@lucide/svelte/icons/folder-search'
   import FlaskConical from '@lucide/svelte/icons/flask-conical'
   import ListFilter from '@lucide/svelte/icons/list-filter'
+  import Logs from '@lucide/svelte/icons/logs'
   import RotateCw from '@lucide/svelte/icons/rotate-cw'
   import Search from '@lucide/svelte/icons/search'
   import Button from '../../lib/components/Button.svelte'
@@ -21,6 +22,7 @@
   import { router } from '../../lib/stores/router.svelte'
   import { toast } from '../../lib/stores/toast.svelte'
   import { comparison } from '../compare/compare.svelte'
+  import { viewer } from '../logs/viewer.svelte'
   import FileIcon from './FileIcon.svelte'
   import { kindOf, lookOf } from './filetypes'
   import { buildTree, flatten, type TreeNode } from './tree'
@@ -63,12 +65,25 @@
   })
 
   const base = (path: string) => path.split('/').pop() ?? path
+  // Files the Log viewer can open from here (bigger ones aren't listed; open them as files there).
+  const isLog = (path: string) => /\.(log|ndjson|jsonl|clef|out|txt)(\.gz)?$|\.log\.\d+$/i.test(path)
 
   /** The context menu for the file row under the pointer. */
   function menuFor(e: MouseEvent): MenuEntry[] {
     const path = (e.target as HTMLElement).closest<HTMLElement>('[data-id]')?.dataset.id
     if (!path || !ws.byPath.has(path)) return []
-    const out: MenuEntry[] = [{ label: 'Open', icon: FileText, run: () => layout.openFile(path) }, 'separator']
+    const out: MenuEntry[] = [{ label: 'Open', icon: FileText, run: () => layout.openFile(path) }]
+    if (isLog(path)) {
+      out.push({
+        label: 'Open in Log viewer',
+        icon: Logs,
+        run: () => {
+          viewer.open([{ kind: 'path', path }])
+          layout.openTool('logs')
+        },
+      })
+    }
+    out.push('separator')
     const [a, b] = [...selection]
     if (selection.size === 2 && selection.has(path) && ws.byPath.has(a) && ws.byPath.has(b)) {
       out.push({ label: `Compare selected (${base(a)} ↔ ${base(b)})`, icon: GitCompare, run: () => comparison.openFiles(a, b) })

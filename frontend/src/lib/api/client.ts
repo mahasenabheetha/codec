@@ -33,7 +33,7 @@ export function isAbort(e: unknown): boolean {
 }
 
 export async function request<T>(
-  method: 'GET' | 'POST',
+  method: 'GET' | 'POST' | 'DELETE',
   path: string,
   body?: unknown,
   signal?: AbortSignal,
@@ -108,6 +108,27 @@ export async function postRaw<T>(path: string, body: Blob | string, signal?: Abo
   if (!res.ok) {
     if (res.status === 401 && data?.code === 'stale-token') connection.restarted = true
     throw new ApiError(res.status, data?.error ?? `${res.status} ${res.statusText}`)
+  }
+  return data as T
+}
+
+/** POST form data (several files at once); the reply is JSON, with
+ *  errors handled as request(). The browser sets the multipart header. */
+export async function postForm<T>(path: string, form: FormData, signal?: AbortSignal): Promise<T> {
+  const headers: Record<string, string> = {}
+  if (token) headers['X-Codec-Token'] = token
+  let res: Response
+  try {
+    res = await fetch(path, { method: 'POST', headers, body: form, signal })
+  } catch (e) {
+    if (isAbort(e)) throw e
+    throw new ApiError(0, 'Cannot reach the codec server. Is `codec serve` still running?')
+  }
+  const data = await res.json().catch(() => null)
+  if (signal?.aborted) throw new DOMException('Aborted', 'AbortError')
+  if (!res.ok) {
+    if (res.status === 401 && data?.code === 'stale-token') connection.restarted = true
+    throw new ApiError(res.status, data?.error ?? `${res.status} ${res.statusText}`, undefined, undefined, data ?? undefined)
   }
   return data as T
 }

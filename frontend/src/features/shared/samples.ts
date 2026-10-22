@@ -59,6 +59,24 @@ export const samples = {
 2026-01-05T10:00:20.3000000Z web-2                      : ok=3    changed=1    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0
 2026-01-05T10:00:21.0000000Z ##[error]Process completed with exit code 2.`,
 
+  // An Argo-style run (argo logs): pod prefixes, Argo's own logfmt lines,
+  // an ECS service and a Go panic. Made up.
+  logs: `build-7f2kd-checkout-1234567890: time="2026-10-22T10:00:00.000Z" level=info msg="capturing logs" argo=true
+build-7f2kd-checkout-1234567890: Cloning into 'src'...
+build-7f2kd-checkout-1234567890: done
+build-7f2kd-test-2345678901: {"@timestamp":"2026-10-22T10:00:05.120Z","log.level":"info","message":"running 42 tests","ecs.version":"1.6.0","service.name":"orders"}
+build-7f2kd-test-2345678901: {"@timestamp":"2026-10-22T10:00:06.004Z","log.level":"warn","message":"slow query","ecs.version":"1.6.0","service.name":"orders","event.duration":1520000000,"trace.id":"4bf92f3577b34da6a3ce929d0e0e4736"}
+build-7f2kd-test-2345678901: {"@timestamp":"2026-10-22T10:00:07.511Z","log.level":"error","message":"payment failed for order 1042","ecs.version":"1.6.0","service.name":"orders","error.type":"TimeoutError","error.message":"dial tcp 10.0.0.5:5432: i/o timeout","trace.id":"0af7651916cd43dd8448eb211c80319c","http.response.status_code":502}
+build-7f2kd-test-2345678901: {"@timestamp":"2026-10-22T10:00:08.733Z","log.level":"error","message":"payment failed for order 1043","ecs.version":"1.6.0","service.name":"orders","error.type":"TimeoutError","error.message":"dial tcp 10.0.0.5:5432: i/o timeout","trace.id":"b7ad6b7169203331","http.response.status_code":502}
+build-7f2kd-test-2345678901: {"@timestamp":"2026-10-22T10:00:09.000Z","log.level":"info","message":"retrying with backoff 2s","ecs.version":"1.6.0","service.name":"orders"}
+build-7f2kd-test-2345678901: panic: test timed out after 5s
+build-7f2kd-test-2345678901:
+build-7f2kd-test-2345678901: goroutine 1 [running]:
+build-7f2kd-test-2345678901: testing.(*M).startAlarm.func1()
+build-7f2kd-test-2345678901: \t/usr/local/go/src/testing/testing.go:2373 +0x385
+build-7f2kd-checkout-1234567890: time="2026-10-22T10:01:10.000Z" level=info msg="sub-process exited" argo=true error="<nil>"
+`,
+
   ansible: `TASK [installer : Run application installer] **********************************
 task path: /builds/example/ansible/roles/installer/tasks/install.yml:42
 fatal: [app-server-01]: FAILED! => {"changed": false, "cmd": "# Running the installer\\nbash ./installer.sh --timeout 30m --set action=\\"install\\" --set env=staging\\n", "delta": "0:00:13.244235", "end": "2026-08-18 09:35:57.276976", "msg": "non-zero return code", "rc": 1, "start": "2026-08-18 09:35:44.032741", "stderr": "[INSTALLER] - INFO: Installer action: install\\n[INSTALLER] - SEVERE: failed to fetch artifact \\"app-bundle-2.4.1\\": not found\\n[INSTALLER] - INFO: Installer finished with SEVERE errors", "stderr_lines": ["[INSTALLER] - INFO: Installer action: install", "[INSTALLER] - SEVERE: failed to fetch artifact \\"app-bundle-2.4.1\\": not found", "[INSTALLER] - INFO: Installer finished with SEVERE errors"], "stdout": "", "stdout_lines": []}`,
