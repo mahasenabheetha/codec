@@ -26,6 +26,7 @@
   import LogList from './LogList.svelte'
   import HighlightRules from './HighlightRules.svelte'
   import LogOverview from './LogOverview.svelte'
+  import LogPins from './LogPins.svelte'
   import { maskSecrets } from './mask'
   import QueryInput from './QueryInput.svelte'
   import { logTabs, prefs, provideViewer, sourceName, type LogViewer, type RepeatMode, type TimeMode } from './viewer.svelte'
@@ -45,7 +46,7 @@
 
   let queryField = $state<HTMLInputElement>()
   let list = $state<LogList>()
-  let tab = $state<'entries' | 'errors' | 'fields'>('entries')
+  let tab = $state<'entries' | 'errors' | 'fields' | 'pins'>('entries')
   let columnFilter = $state('')
 
   // Search as you type, after a pause. A term still being written (a
@@ -87,6 +88,20 @@
     viewer.select(r.i, pos, r.lastI ?? r.i)
     await tick()
     list?.reveal(pos)
+  }
+
+  /** Pin or unpin the selected entry. */
+  function pinSelected() {
+    const i = viewer.selected
+    if (i === null) return
+    const r = viewer.selectedPos === null ? undefined : viewer.rowAt(viewer.selectedPos)
+    viewer.togglePin(i, r?.i === i ? r : undefined)
+  }
+
+  /** Go to the next or previous pin. */
+  function toPin(dir: 1 | -1) {
+    const p = viewer.pinNear(viewer.selected, dir)
+    if (p) jump(p.i)
   }
 
   /** Open the selected fold, or fold back the lines it opened. */
@@ -150,6 +165,9 @@
       shortcut('E', () => nextError(1), { when }),
       shortcut('Shift+E', () => nextError(-1), { when }),
       shortcut('O', toggleSelectedFold, { when }),
+      shortcut('P', pinSelected, { when }),
+      shortcut('[', () => toPin(-1), { when: () => active && !!viewer.opened }),
+      shortcut(']', () => toPin(1), { when: () => active && !!viewer.opened }),
       shortcut('/', () => queryField?.focus(), { when: () => active && !!viewer.opened }),
     ]
     return () => offs.forEach((off) => off())
@@ -349,6 +367,7 @@
         { value: 'entries', label: 'Entries', count: viewer.total },
         { value: 'errors', label: 'Errors', count: s.groups },
         { value: 'fields', label: 'Fields' },
+        { value: 'pins', label: 'Pins', count: viewer.pins.length },
       ]}
     />
     <div class="main">
@@ -356,6 +375,8 @@
         <LogGroups onjump={jump} onshow={() => (tab = 'entries')} />
       {:else if tab === 'fields'}
         <LogFields onshow={() => (tab = 'entries')} />
+      {:else if tab === 'pins'}
+        <LogPins onjump={jump} />
       {:else if viewer.total === 0 && !viewer.loading}
         <EmptyState icon={Search} title="Nothing matches" description="Change the query or the time range." />
       {:else if viewer.selected !== null}

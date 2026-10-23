@@ -129,6 +129,9 @@
 <p><strong>Errors</strong> lists the warnings and errors of the matching entries grouped by message (numbers, IDs, UUIDs and quoted values don't split a group), most frequent first, with when they started and stopped and how many sources had them. Click one for its first entry; <strong>Show</strong> filters to it (<code>group:3</code>).</p>
 <p><strong>Fields</strong> lists every field of the matching entries: how often it is there, its most common values (click one to filter to it) and, for numbers, the minimum, median, 95th percentile, maximum and mean.</p>
 
+<h2 id="pins">Pins<a class="anchor" href="#pins">#</a></h2>
+<p>Pin the entries that matter while you investigate: <kbd>P</kbd> on the selected row, the pin at the start of a row, or <strong>Pin</strong> in the entry. <strong>Pins</strong> lists them in time order with a note each; <kbd>[</kbd> and <kbd>]</kbd> go from pin to pin, and the strip beside the scrollbar marks them. <strong>Copy as text</strong> or <strong>Copy as Markdown</strong> gives a short report — time, level, source, message and your notes — for a ticket or a chat, with likely secrets masked. Pins are kept in the tab's memory only; they are cleared when files are added to or removed from the tab.</p>
+
 <h2 id="export">Export and copy<a class="anchor" href="#export">#</a></h2>
 <p>The export button saves the matching entries as the lines they were read from (<code>.log</code>), as one JSON object each (<code>.ndjson</code>) or as a table with your columns (<code>.csv</code>). <kbd>Alt</kbd> <kbd>C</kbd> copies a short summary of the log; an entry's buttons copy its line or the entry as JSON. Whatever is copied has likely secrets masked — values of password, token, secret, key and cookie fields, bearer credentials, JWTs and passwords in URLs — so it is safer to paste into a ticket. Masking is a safety net; read what you share.</p>
 

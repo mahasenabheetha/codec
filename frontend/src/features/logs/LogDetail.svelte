@@ -1,5 +1,7 @@
 <script lang="ts">
   import Braces from '@lucide/svelte/icons/braces'
+  import PinIcon from '@lucide/svelte/icons/pin'
+  import PinOff from '@lucide/svelte/icons/pin-off'
   import Copy from '@lucide/svelte/icons/copy'
   import X from '@lucide/svelte/icons/x'
   import IconButton from '../../lib/components/IconButton.svelte'
@@ -65,6 +67,22 @@
   const before = $derived(around.filter((r) => r.i < index))
   const after = $derived(around.filter((r) => r.i > index))
 
+  /** The entry as a list row, for its pin. */
+  function asRow(e: LogEntry): LogRow {
+    return {
+      i: e.i,
+      file: Math.max(0, viewer.opened?.files.findIndex((f) => f.name === e.file) ?? 0),
+      line: e.line,
+      time: e.time,
+      level: e.level,
+      source: e.source,
+      message: e.message,
+      format: e.format,
+      error: e.error,
+      stack: !!e.stack,
+    }
+  }
+
   function copy(what: 'line' | 'entry') {
     if (!entry) return
     const text =
@@ -104,6 +122,14 @@
     {#if entry}
       <IconButton icon={Copy} label="Copy the line as read (secrets masked)" size="sm" onclick={() => copy('line')} />
       <IconButton icon={Braces} label="Copy the entry as JSON (secrets masked)" size="sm" onclick={() => copy('entry')} />
+      <IconButton
+        icon={viewer.isPinned(entry.i) ? PinOff : PinIcon}
+        label={viewer.isPinned(entry.i) ? 'Unpin' : 'Pin this entry'}
+        shortcut="P"
+        size="sm"
+        active={viewer.isPinned(entry.i)}
+        onclick={() => entry && viewer.togglePin(entry.i, asRow(entry))}
+      />
     {/if}
     <IconButton icon={X} label="Close" shortcut="Escape" size="sm" onclick={onclose} />
   </header>

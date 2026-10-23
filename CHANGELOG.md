@@ -35,7 +35,8 @@ All notable changes to codec are documented here. The format follows
   plain output and repeated lines folded into one row each (a click or
   O shows them); up to four highlight rules in colour; a strip beside
   the scrollbar showing where errors, warnings, highlights and pins
-  are.
+  are. Pins (P, [ and ]) with a note each, copied as a report in text
+  or Markdown with secrets masked.
 
 ### Changed
 

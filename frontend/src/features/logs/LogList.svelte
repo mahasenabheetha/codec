@@ -1,5 +1,6 @@
 <script lang="ts">
   import Layers from '@lucide/svelte/icons/layers'
+  import PinIcon from '@lucide/svelte/icons/pin'
   import VirtualList from '../../lib/components/VirtualList.svelte'
   import { markError, markPin, markRule, markWarn, type LogRow } from '../../lib/api/logs'
   import { count, firstRule, formatSpan, formatTime, ruleTones } from './format'
@@ -140,6 +141,16 @@
                   </span>
                 {:else}
                   <span class="msg">
+                    <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
+                    <span
+                      class="pin"
+                      class:on={viewer.isPinned(r.i)}
+                      title={viewer.isPinned(r.i) ? 'Unpin (P)' : 'Pin this entry (P)'}
+                      onclick={(e) => {
+                        e.stopPropagation()
+                        viewer.togglePin(r.i, r)
+                      }}><PinIcon size={11} /></span
+                    >
                     {#if r.kind === 'repeat'}
                       <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
                       <span
@@ -343,6 +354,29 @@
   }
   .badge.open {
     color: var(--fg-2);
+  }
+  /* A pin: shown on a pinned row, offered on hover. */
+  .pin {
+    display: inline-grid;
+    place-items: center;
+    width: 16px;
+    margin-right: var(--s-1);
+    color: var(--fg-2);
+    vertical-align: -1px;
+    opacity: 0;
+    cursor: pointer;
+  }
+  button.row:hover .pin,
+  button.row.sel .pin {
+    opacity: 0.7;
+  }
+  .pin:hover {
+    color: var(--fg-0);
+    opacity: 1 !important;
+  }
+  .pin.on {
+    color: var(--accent);
+    opacity: 1;
   }
   .fold .preview {
     color: var(--fg-2);

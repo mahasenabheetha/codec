@@ -20,6 +20,7 @@ import {
   type LogSource,
 } from '../../lib/api/logs'
 import { persisted } from '../../lib/stores/persist.svelte'
+import { toast } from '../../lib/stores/toast.svelte'
 
 export const PAGE = 200
 const BUCKETS = 120
@@ -37,6 +38,13 @@ export const prefs = {
 }
 
 export type RepeatMode = 'off' | 'exact' | 'similar'
+
+/** A pinned entry: what its row showed, and a note of the user's. */
+export interface Pin {
+  i: number
+  row: LogRow
+  note: string
+}
 const MARKERS = 300
 
 /** A log that mixes structured entries with plain output (a database's
@@ -88,6 +96,8 @@ export class LogViewer {
   markers = $state.raw<number[]>([])
   /** Rows in the view: matches, context, gaps and folds. */
   rowCount = $state(0)
+  /** Entries pinned while investigating, in log order; memory only. */
+  pins = $state.raw<Pin[]>([])
 
   private gen = 0 // bumped per query, so late pages of an old one are dropped
   private asked = new Set<number>()
@@ -122,6 +132,12 @@ export class LogViewer {
       this.fieldKeys = null
       this.selected = null
       this.expanded = new Set()
+      // Pins point at entries by their place in the log, which changes
+      // when files are added or removed.
+      if (this.pins.length) {
+        this.pins = []
+        toast('Pins were cleared: the log changed')
+      }
       if (!add) {
         this.resetQuery()
         this.view.output = mixed(o.summary)
@@ -206,7 +222,54 @@ export class LogViewer {
       },
       columns: this.columns,
       highlights: this.highlights,
+      pins: this.pins.map((p) => p.i),
     }
+  }
+
+  isPinned(i: number): boolean {
+    return this.pins.some((p) => p.i === i)
+  }
+
+  /** Pin entry i (with what its row shows), or unpin it. */
+  async togglePin(i: number, row?: LogRow) {
+    if (this.isPinned(i)) {
+      this.pins = this.pins.filter((p) => p.i !== i)
+    } else {
+      if (!row) row = (await this.withLog((id) => logEntries(id, { ...this.base(), at: i, limit: 1, view: {} }))).entries.find((r) => r.i === i)
+      if (!row) return
+      // A fold's row is pinned as its first entry.
+      const r: LogRow = { ...row, kind: undefined, n: undefined, matches: undefined, lastI: undefined, lastTime: undefined, hl: undefined }
+      this.pins = [...this.pins, { i, row: r, note: '' }].sort((a, b) => a.i - b.i)
+    }
+    this.refreshMarkers()
+  }
+
+  setNote(i: number, note: string) {
+    this.pins = this.pins.map((p) => (p.i === i ? { ...p, note } : p))
+  }
+
+  clearPins() {
+    this.pins = []
+    this.refreshMarkers()
+  }
+
+  /** The pin before or after entry i, in log order (wrapping round). */
+  pinNear(i: number | null, dir: 1 | -1): Pin | undefined {
+    const ps = this.pins
+    if (!ps.length) return undefined
+    if (i === null) return dir > 0 ? ps[0] : ps[ps.length - 1]
+    return dir > 0 ? (ps.find((p) => p.i > i) ?? ps[0]) : (ps.findLast((p) => p.i < i) ?? ps[ps.length - 1])
+  }
+
+  /** The marker strip again, after pins changed. */
+  private refreshMarkers() {
+    if (!this.id) return
+    const gen = this.gen
+    this.withLog((id) => logEntries(id, { ...this.base(), limit: 1, markers: MARKERS }))
+      .then((p) => {
+        if (gen === this.gen) this.markers = p.markers ?? []
+      })
+      .catch(() => {})
   }
 
   /** Apply the query box (and the time range) and fetch the first page. */

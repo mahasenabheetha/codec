@@ -41,6 +41,14 @@ export function formatWhen(iso: string, mode: TimeMode): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
 }
 
+/** A full time to the millisecond, for a report: local or UTC (said so). */
+export function formatStamp(iso: string | undefined, mode: TimeMode): string {
+  if (!iso) return ''
+  const d = new Date(iso)
+  if (mode === 'utc') return d.toISOString().replace('T', ' ').replace('Z', ' UTC')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}.${pad(d.getMilliseconds(), 3)}`
+}
+
 /** The colours of the four highlight rules, in order. */
 export const ruleTones = ['var(--syn-anchor)', 'var(--syn-bool)', 'var(--syn-number)', 'var(--syn-expr-rt)']
 
