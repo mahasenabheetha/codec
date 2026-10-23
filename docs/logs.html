@@ -111,6 +111,16 @@
 <p>One row per entry: time, level, source (when there are several), any field as a column (<strong>Columns</strong>; your choice is remembered) and the message. <strong>Lines: Wrap</strong> (the default) shows every cell whole, over several lines if need be; <strong>One line</strong> keeps each entry on a line and the list scrolls sideways. <strong>Time</strong> shows times in local time, UTC or since the first entry; a log without times has no time column and no chart, and the tool says so. Rows are fetched as you scroll, so 100,000 entries scroll like 100.</p>
 <p><kbd>↑</kbd> <kbd>↓</kbd> (or <kbd>J</kbd> <kbd>K</kbd>) move through the entries, <kbd>E</kbd> and <kbd>Shift</kbd> <kbd>E</kbd> go to the next and previous error, <kbd>/</kbd> to the query, <kbd>Esc</kbd> closes the entry.</p>
 
+<h2 id="view">Around, folds and highlights<a class="anchor" href="#view">#</a></h2>
+<ul>
+  <li><strong>Around: ±3 / ±10</strong> shows that many entries before and after each match, dimmed, whatever the search hides — what led up to it. A row "⋯ 240 entries" stands for what is skipped between them.</li>
+  <li><strong>Fold: Output</strong> folds each run of plain output (lines without a level, such as a database's own messages inside an Argo run) into one row, "⋯ 12 entries of output"; it is on when a log mixes structured entries with plain output. Click the row (or press <kbd>O</kbd>) to show the lines; <strong>fold</strong> on the first of them folds them again. Nothing is dropped.</li>
+  <li><strong>Repeats</strong> folds the same line logged again and again by one source into one row with a <strong>×120</strong> badge and how long it went on; <strong>Similar</strong> also folds lines that differ only in numbers and IDs. Click the badge (or press <kbd>O</kbd>) to show them all.</li>
+  <li><strong>Highlight</strong> takes up to four searches, each with a colour: matching entries get that colour on their edge, and nothing is hidden.</li>
+  <li>The strip beside the scrollbar shows where in the whole list the errors (red), warnings (yellow), highlights (their colour) and pins are, and the part you are looking at; click it to go there.</li>
+</ul>
+<p>The counts, the chart and the Errors tab always count the entries the search matched.</p>
+
 <h2 id="entry">An entry<a class="anchor" href="#entry">#</a></h2>
 <p>Select a row for the entry in full: its message (JSON in it laid out), error, time, source, logger, caller and trace; its stack trace, with each frame's function apart from its file and the runtime's and frameworks' frames folded away; its fields as a tree; the entries just <strong>around it</strong> (±5, 20 or 50, whatever the query hides — what led up to it); and the line as it was read.</p>
 <p>Next to any value: <strong>only this</strong> and <strong>hide this</strong> add a term to the query, the column button shows the field in the list, and for trace, span, request and correlation IDs <strong>follow</strong> replaces the query with that ID, so you see everything that happened to one request across the log.</p>

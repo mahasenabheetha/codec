@@ -12,6 +12,7 @@
   import SegmentedControl from '../../lib/components/SegmentedControl.svelte'
   import SplitPane from '../../lib/components/SplitPane.svelte'
   import Tabs from '../../lib/components/Tabs.svelte'
+  import Toggle from '../../lib/components/Toggle.svelte'
   import { exportLog, logGroups } from '../../lib/api/logs'
   import { shortcut } from '../../lib/stores/shortcuts.svelte'
   import { toast } from '../../lib/stores/toast.svelte'
@@ -23,10 +24,11 @@
   import LogFields from './LogFields.svelte'
   import LogGroups from './LogGroups.svelte'
   import LogList from './LogList.svelte'
+  import HighlightRules from './HighlightRules.svelte'
   import LogOverview from './LogOverview.svelte'
   import { maskSecrets } from './mask'
   import QueryInput from './QueryInput.svelte'
-  import { logTabs, prefs, provideViewer, sourceName, type LogViewer, type TimeMode } from './viewer.svelte'
+  import { logTabs, prefs, provideViewer, sourceName, type LogViewer, type RepeatMode, type TimeMode } from './viewer.svelte'
 
   // One open log, in a tab of the Log viewer: its files, overview,
   // search, chart and entries. Every tab keeps its own state, so going
@@ -72,14 +74,25 @@
   }
 
   /** Select the entry at a position in the matches (keyboard). */
-  async function selectAt(pos: number) {
-    if (!viewer.total) return
-    pos = Math.max(0, Math.min(viewer.total - 1, pos))
-    const r = await viewer.rowAsync(pos)
-    if (!r) return
-    viewer.select(r.i, pos)
+  async function selectAt(pos: number, dir: 1 | -1 = 1) {
+    if (!viewer.rowCount) return
+    pos = Math.max(0, Math.min(viewer.rowCount - 1, pos))
+    let r = await viewer.rowAsync(pos)
+    // A gap holds no entry: step over it.
+    while (r?.kind === 'gap' && pos + dir >= 0 && pos + dir < viewer.rowCount) {
+      pos += dir
+      r = await viewer.rowAsync(pos)
+    }
+    if (!r || r.kind === 'gap') return
+    viewer.select(r.i, pos, r.lastI ?? r.i)
     await tick()
     list?.reveal(pos)
+  }
+
+  /** Open the selected fold, or fold back the lines it opened. */
+  function toggleSelectedFold() {
+    const r = viewer.selectedPos === null ? undefined : viewer.rowAt(viewer.selectedPos)
+    if (r && (r.kind === 'output' || r.kind === 'repeat' || viewer.expanded.has(r.i))) viewer.toggleFold(r.i)
   }
 
   async function nextError(dir: 1 | -1) {
@@ -123,7 +136,8 @@
   // next and previous error, / to the query.
   $effect(() => {
     const when = () => active && !!viewer.opened && tab === 'entries'
-    const step = (d: number) => () => selectAt(viewer.selectedPos === null ? (d > 0 ? 0 : viewer.total - 1) : viewer.selectedPos + d)
+    const step = (d: number) => () =>
+      selectAt(viewer.selectedPos === null ? (d > 0 ? 0 : viewer.rowCount - 1) : viewer.selectedPos + d, d > 0 ? 1 : -1)
     const offs = [
       shortcut('ArrowDown', step(1), { when }),
       shortcut('J', step(1), { when }),
@@ -132,9 +146,10 @@
       shortcut('PageDown', step(20), { when }),
       shortcut('PageUp', step(-20), { when }),
       shortcut('Home', () => selectAt(0), { when }),
-      shortcut('End', () => selectAt(viewer.total - 1), { when }),
+      shortcut('End', () => selectAt(viewer.rowCount - 1, -1), { when }),
       shortcut('E', () => nextError(1), { when }),
       shortcut('Shift+E', () => nextError(-1), { when }),
+      shortcut('O', toggleSelectedFold, { when }),
       shortcut('/', () => queryField?.focus(), { when: () => active && !!viewer.opened }),
     ]
     return () => offs.forEach((off) => off())
@@ -224,7 +239,7 @@
         </span>
       {/if}
       <span class="total" aria-live="polite">
-        {viewer.loading ? 'Searching…' : viewer.applied.q || ranged ? `${count(viewer.total)} of ${count(s.entries)} entries` : `${count(viewer.total)} entries`}
+        {viewer.loading ? 'Searching…' : viewer.applied.q || ranged ? `${count(viewer.total)} of ${count(s.entries)} entries` : `${count(viewer.total)} entries`}{#if viewer.view.context && (viewer.applied.q || ranged)}<span class="muted">{` · with ${viewer.view.context} around each`}</span>{/if}
       </span>
     </div>
     <div class="optionbar">
@@ -240,7 +255,36 @@
         value={viewer.minLevel}
         onchange={(v) => viewer.setLevel(v)}
       />
+      <span class="label" title="Entries shown around each match, whatever the query (dimmed)">Around</span>
+      <SegmentedControl
+        label="Entries around each match"
+        options={[
+          { value: '0', label: 'Off' },
+          { value: '3', label: '±3' },
+          { value: '10', label: '±10' },
+        ]}
+        value={String(viewer.view.context)}
+        onchange={(v) => viewer.setView({ context: Number(v) })}
+      />
+      <span class="label" title="Fold runs of plain output, and lines repeated one after another">Fold</span>
+      <Toggle
+        checked={viewer.view.output}
+        label="Output"
+        title="Fold runs of plain output lines (text without a level) into one row each"
+        onchange={(on) => viewer.setView({ output: on })}
+      />
+      <SegmentedControl
+        label="Fold repeated lines"
+        options={[
+          { value: 'off', label: 'No repeats' },
+          { value: 'exact', label: 'Repeats' },
+          { value: 'similar', label: 'Similar' },
+        ]}
+        value={viewer.view.repeats}
+        onchange={(v: RepeatMode) => viewer.setView({ repeats: v })}
+      />
       <span class="spacer"></span>
+      <HighlightRules />
       <Popover side="bottom" align="end">
         {#snippet trigger(props)}
           <Button {...props} size="sm" variant="ghost" icon={Columns3}>Columns{viewer.columns.length ? ` (${viewer.columns.length})` : ''}</Button>
@@ -316,11 +360,11 @@
         <EmptyState icon={Search} title="Nothing matches" description="Change the query or the time range." />
       {:else if viewer.selected !== null}
         <SplitPane id="logs" initial={0.62} min={260}>
-          {#snippet first()}<LogList bind:this={list} onselect={(i, pos) => viewer.select(i, pos)} />{/snippet}
+          {#snippet first()}<LogList bind:this={list} onselect={(i, pos, last) => viewer.select(i, pos, last)} />{/snippet}
           {#snippet second()}<LogDetail index={viewer.selected!} onclose={() => viewer.select(null)} onpick={(i) => jump(i)} />{/snippet}
         </SplitPane>
       {:else}
-        <LogList bind:this={list} onselect={(i, pos) => viewer.select(i, pos)} />
+        <LogList bind:this={list} onselect={(i, pos, last) => viewer.select(i, pos, last)} />
       {/if}
     </div>
   </div>

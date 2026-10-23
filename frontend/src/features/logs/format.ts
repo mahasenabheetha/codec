@@ -41,6 +41,12 @@ export function formatWhen(iso: string, mode: TimeMode): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
 }
 
+/** The colours of the four highlight rules, in order. */
+export const ruleTones = ['var(--syn-anchor)', 'var(--syn-bool)', 'var(--syn-number)', 'var(--syn-expr-rt)']
+
+/** The first highlight rule a row matches (its bits), or -1. */
+export const firstRule = (hl = 0) => (hl ? Math.log2(hl & -hl) : -1)
+
 /** Level → the colour token it is drawn with. */
 export const levelTone: Record<string, string> = {
   fatal: 'var(--err)',

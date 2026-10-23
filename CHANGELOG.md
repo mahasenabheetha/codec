@@ -30,7 +30,12 @@ All notable changes to codec are documented here. The format follows
   found and explains itself under "?"; rows wrap so nothing is cut off
   (or stay on one line and scroll sideways). Times of day without a
   date (logback's default) are read. Several logs open at once, a tab
-  each, every tab keeping its own search, range and selection.
+  each, every tab keeping its own search, range and selection. Entries
+  around each match (±3, ±10) with the skipped ones marked; runs of
+  plain output and repeated lines folded into one row each (a click or
+  O shows them); up to four highlight rules in colour; a strip beside
+  the scrollbar showing where errors, warnings, highlights and pins
+  are.
 
 ### Changed
 

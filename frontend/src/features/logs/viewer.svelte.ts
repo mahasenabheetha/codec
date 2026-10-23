@@ -31,6 +31,19 @@ export const prefs = {
   lines: persisted<'wrap' | 'scroll'>('logs.lines', 'wrap'),
   /** Field columns, kept by name across logs; only the ones a log has show. */
   columns: persisted<string[]>('logs.columns', []),
+  /** Entries shown around each match, and how repeated lines fold. */
+  context: persisted<number>('logs.context', 0),
+  repeats: persisted<RepeatMode>('logs.repeats', 'exact'),
+}
+
+export type RepeatMode = 'off' | 'exact' | 'similar'
+const MARKERS = 300
+
+/** A log that mixes structured entries with plain output (a database's
+ *  lines inside an Argo run) starts with the output folded. */
+function mixed(s: LogOpened['summary']): boolean {
+  const f = s.formats
+  return (f.text ?? 0) > 0 && (f.json ?? 0) + (f.ecs ?? 0) + (f.logfmt ?? 0) + (f.klog ?? 0) > 0
 }
 
 export const sourceName = (s: LogSource) => (s.kind === 'file' ? s.file.name : s.kind === 'text' ? s.name : s.path.split('/').pop()!)
@@ -64,6 +77,18 @@ export class LogViewer {
   requested = ''
   selected = $state<number | null>(null) // entry index
 
+  /** How the matches are laid out (see internal/logview/view.go). */
+  view = $state({ context: prefs.context.value, output: false, repeats: prefs.repeats.value })
+  /** Folds opened, by their first entry. */
+  expanded = $state.raw<Set<number>>(new Set())
+  /** Up to four queries whose entries are marked, not filtered; memory only. */
+  highlights = $state.raw<string[]>([])
+  highlightErrors = $state.raw<string[]>([])
+  /** A picture of the whole view, for beside the scrollbar. */
+  markers = $state.raw<number[]>([])
+  /** Rows in the view: matches, context, gaps and folds. */
+  rowCount = $state(0)
+
   private gen = 0 // bumped per query, so late pages of an old one are dropped
   private asked = new Set<number>()
   private ctrl: AbortController | null = null
@@ -96,7 +121,11 @@ export class LogViewer {
       this.opened = o
       this.fieldKeys = null
       this.selected = null
-      if (!add) this.resetQuery()
+      this.expanded = new Set()
+      if (!add) {
+        this.resetQuery()
+        this.view.output = mixed(o.summary)
+      }
       if (old) closeLog(old).catch(() => {})
       this.loadFieldKeys().catch(() => {})
       await this.run()
@@ -160,7 +189,24 @@ export class LogViewer {
     this.pages.clear()
     this.asked.clear()
     this.total = 0
+    this.rowCount = 0
+    this.markers = []
     this.histogram = null
+  }
+
+  /** What every page request carries besides where it starts. */
+  private base(q: LogQuery = this.applied) {
+    return {
+      ...q,
+      view: {
+        context: this.view.context,
+        output: this.view.output,
+        repeats: this.view.repeats === 'off' ? ('' as const) : this.view.repeats,
+        expanded: [...this.expanded],
+      },
+      columns: this.columns,
+      highlights: this.highlights,
+    }
   }
 
   /** Apply the query box (and the time range) and fetch the first page. */
@@ -170,12 +216,21 @@ export class LogViewer {
     this.requested = q.q
     this.loading = true
     try {
-      const page = await this.withLog((id) => logEntries(id, { ...q, limit: PAGE, columns: this.columns, histogram: BUCKETS }))
+      const page = await this.withLog((id) => logEntries(id, { ...this.base(q), limit: PAGE, histogram: BUCKETS, markers: MARKERS }))
       if (gen !== this.gen) return
       this.applied = q
       this.queryError = null
       logTabs.remember(q.q)
       this.take(page, true)
+      // The selected entry may have moved (a fold opened above it).
+      if (this.selected !== null) {
+        const sel = this.selected
+        this.withLog((id) => logEntries(id, { ...this.base(), at: sel, limit: 1 }))
+          .then((p) => {
+            if (gen === this.gen && this.selected === sel) this.selectedPos = (p.atRow ?? -1) >= 0 ? p.atRow! : null
+          })
+          .catch(() => {})
+      }
     } catch (e) {
       if (gen !== this.gen) return
       if (e instanceof ApiError && e.status === 422) {
@@ -193,8 +248,11 @@ export class LogViewer {
       this.pages.clear()
       this.asked.clear()
       this.total = page.total
+      this.rowCount = page.rows
       this.levelCounts = page.levels
       this.warnings = page.warnings ?? []
+      this.markers = page.markers ?? []
+      this.highlightErrors = page.highlightErrors ?? []
       if (page.histogram) this.histogram = page.histogram
     }
     const p = Math.floor(page.offset / PAGE)
@@ -202,19 +260,19 @@ export class LogViewer {
     this.pages.set(p, page.entries)
   }
 
-  /** The row at a position in the matches, if its page has arrived. */
+  /** The row at a position in the view, if its page has arrived. */
   rowAt(pos: number): LogRow | undefined {
     return this.pages.get(Math.floor(pos / PAGE))?.[pos % PAGE]
   }
 
   /** Fetch the pages rows first…last fall on (the list calls this as it scrolls). */
   ensure(first: number, last: number) {
-    if (!this.id || this.total === 0) return
+    if (!this.id || this.rowCount === 0) return
     const gen = this.gen
     for (let p = Math.floor(first / PAGE); p <= Math.floor(Math.max(last - 1, 0) / PAGE); p++) {
       if (this.asked.has(p)) continue
       this.asked.add(p)
-      this.withLog((id) => logEntries(id, { ...this.applied, offset: p * PAGE, limit: PAGE, columns: this.columns }))
+      this.withLog((id) => logEntries(id, { ...this.base(), offset: p * PAGE, limit: PAGE }))
         .then((page) => gen === this.gen && this.take(page, false))
         .catch((e) => {
           if (gen === this.gen && !isAbort(e)) {
@@ -225,14 +283,17 @@ export class LogViewer {
     }
   }
 
-  /** Where entry i is among the matches, fetching its page; when the
-   *  query hides it, the query and range are cleared first. -1 if gone. */
+  /** The row that shows entry i (its own, or the fold holding it),
+   *  fetching its page; when the query hides it (or a gap skips it), the
+   *  query and range are cleared first. -1 if gone. */
   async locate(i: number): Promise<number> {
     const find = async () => {
-      const page = await this.withLog((id) => logEntries(id, { ...this.applied, at: i, limit: PAGE, columns: this.columns }))
-      const j = page.entries.findIndex((r) => r.i === i)
-      if (j >= 0) this.take(page, false)
-      return j < 0 ? -1 : page.offset + j
+      const page = await this.withLog((id) => logEntries(id, { ...this.base(), at: i, limit: PAGE }))
+      const pos = page.atRow ?? -1
+      const r = pos >= 0 ? page.entries[pos - page.offset] : undefined
+      if (!r || r.kind === 'gap') return -1
+      this.take(page, false)
+      return pos
     }
     let pos = await find()
     if (pos < 0 && (this.applied.q || this.applied.from || this.applied.to)) {
@@ -243,12 +304,38 @@ export class LogViewer {
     return pos
   }
 
-  /** Where the selected entry is among the matches, when known. */
+  /** The view row that shows the selected entry, when known, and the
+   *  last entry of that row (a fold holds several). */
   selectedPos = $state<number | null>(null)
+  selectedLast: number | null = null
 
-  select(i: number | null, pos: number | null = null) {
+  select(i: number | null, pos: number | null = null, last?: number) {
     this.selected = i
     this.selectedPos = pos
+    this.selectedLast = last ?? i
+  }
+
+  /** Change how the matches are laid out; the folds opened start over. */
+  setView(v: Partial<{ context: number; output: boolean; repeats: RepeatMode }>) {
+    Object.assign(this.view, v)
+    if (v.context !== undefined) prefs.context.value = v.context
+    if (v.repeats !== undefined) prefs.repeats.value = v.repeats
+    this.expanded = new Set()
+    this.run(this.applied)
+  }
+
+  /** Open a fold (show its entries) or fold them back. */
+  toggleFold(i: number) {
+    const e = new Set(this.expanded)
+    if (e.has(i)) e.delete(i)
+    else e.add(i)
+    this.expanded = e
+    this.run(this.applied)
+  }
+
+  setHighlights(rules: string[]) {
+    this.highlights = rules.map((r) => r.trim()).filter(Boolean).slice(0, 4)
+    this.run(this.applied)
   }
 
   /** Add a term to the query and run it ("only this", "hide this"). */
@@ -267,9 +354,9 @@ export class LogViewer {
   /** The row at a position, fetching its page if needed. */
   async rowAsync(pos: number): Promise<LogRow | undefined> {
     const r = this.rowAt(pos)
-    if (r || pos < 0 || pos >= this.total) return r
+    if (r || pos < 0 || pos >= this.rowCount) return r
     const p = Math.floor(pos / PAGE)
-    const page = await this.withLog((id) => logEntries(id, { ...this.applied, offset: p * PAGE, limit: PAGE, columns: this.columns }))
+    const page = await this.withLog((id) => logEntries(id, { ...this.base(), offset: p * PAGE, limit: PAGE }))
     this.take(page, false)
     return this.rowAt(pos)
   }
@@ -277,7 +364,8 @@ export class LogViewer {
   /** The position of the next (or previous) error or worse among the
    *  matches, from the selected entry; null when there is none. */
   async nextError(dir: 1 | -1): Promise<number | null> {
-    const from = this.selected ?? (dir > 0 ? -1 : this.opened?.summary.entries ?? 0)
+    // From the end of the selected row going down: a fold of errors is passed whole.
+    const from = (dir > 0 ? this.selectedLast : this.selected) ?? (dir > 0 ? -1 : this.opened?.summary.entries ?? 0)
     const q = this.applied.q ? `(${this.applied.q}) level>=error` : 'level>=error'
     const req = { ...this.applied, q, limit: 1 }
     const hit = await this.withLog(async (id) => {
