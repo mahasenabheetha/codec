@@ -78,6 +78,7 @@ scripts/dev.sh ui                  <span class="c"># the same, plus a hot-reload
   <tr><td>Build the UI (embedded by go build)</td><td><code>npm --prefix frontend run build</code></td></tr>
   <tr><td>Build the binary</td><td><code>go build -o codec ./cmd/codec</code></td></tr>
   <tr><td>Performance budgets</td><td><code>scripts/perf.sh</code></td></tr>
+  <tr><td>Fuzz a parser for crashes and hangs (failing inputs land in its <code>testdata/fuzz</code> and stay as tests)</td><td><code>go test -run XXX -fuzz FuzzWorkbench -fuzztime 5m ./internal/sample</code></td></tr>
   <tr><td>Static checks and known vulnerabilities (CI runs them, and the race detector, on Linux)</td><td><code>go run honnef.co/go/tools/cmd/staticcheck@v0.8.2 ./...</code><br><code>go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./...</code></td></tr>
   <tr><td>Everything, before a pull request</td><td><code>go test ./...</code> and the UI check</td></tr>
 </table></div>

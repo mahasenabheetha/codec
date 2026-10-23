@@ -69,6 +69,20 @@ func TestFormatRefuses(t *testing.T) {
 	if !errors.As(err, &e) || e.Code != "tab-indent" {
 		t.Errorf("invalid YAML: err = %v, want a tab-indent *Error", err)
 	}
+	// A map as a key: the encoder writes text that doesn't read back.
+	if _, err := Format([]byte("? a: b\n"), FormatOptions{}); !errors.Is(err, ErrUnformattable) {
+		t.Errorf("map as a key: err = %v, want ErrUnformattable", err)
+	}
+}
+
+// Found by FuzzParseFormat: text with nothing to format comes back as
+// it is, and an empty document is dropped once, not on a second pass.
+func TestFormatNothing(t *testing.T) {
+	for in, want := range map[string]string{"": "", "\n": "\n", "# only a comment\n---\n": "# only a comment\n---\n", "---\n--- 0\n": "0\n"} {
+		if got, err := Format([]byte(in), FormatOptions{}); err != nil || string(got) != want {
+			t.Errorf("%q: got %q, %v; want %q", in, got, err, want)
+		}
+	}
 }
 
 func TestToJSON(t *testing.T) {

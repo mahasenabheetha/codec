@@ -8,6 +8,7 @@ import (
 	"io"
 	"math"
 	"regexp"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -21,6 +22,11 @@ import (
 // ErrTemplated is returned when an operation would destroy template
 // expressions, e.g. re-formatting a Helm template.
 var ErrTemplated = errors.New("the file contains template expressions ({{ … }}); re-emitting it would break them")
+
+// ErrUnformattable is returned when the formatted text would not read
+// back, as with a map used as a key ("? a: b"), which the encoder writes
+// in a form the parser refuses.
+var ErrUnformattable = errors.New("this YAML can't be re-indented without breaking it (a map or list used as a key?); it was left as it is")
 
 // Error is a diagnostic returned as an error, so callers can still get
 // at its position.
@@ -62,6 +68,11 @@ func Format(content []byte, opts FormatOptions) ([]byte, error) {
 	if err := firstError(f); err != nil {
 		return nil, err
 	}
+	// Only blank lines, comments and "---": nothing to format, and
+	// yaml.v3 can't decode it.
+	if !slices.ContainsFunc(f.Docs, func(d *Document) bool { return d.Root != nil }) {
+		return src, nil
+	}
 	indent := opts.Indent
 	if indent <= 0 {
 		indent = 2
@@ -80,7 +91,7 @@ func Format(content []byte, opts FormatOptions) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		if len(n.Content) == 0 {
+		if len(n.Content) == 0 || emptyDoc(&n) {
 			continue // empty document
 		}
 		reorder(n.Content[0], opts, true)
@@ -92,10 +103,22 @@ func Format(content []byte, opts FormatOptions) ([]byte, error) {
 		return nil, err
 	}
 	res := out.Bytes()
+	if firstError(Parse(res)) != nil {
+		return nil, ErrUnformattable
+	}
 	if f.CRLF {
 		res = bytes.ReplaceAll(res, []byte("\n"), []byte("\r\n"))
 	}
 	return res, nil
+}
+
+// emptyDoc reports whether a document holds only an implicit null
+// ("---" with nothing under it): yaml.v3 would write it as a blank line,
+// which reads back as no document at all.
+func emptyDoc(n *yaml.Node) bool {
+	c := n.Content[0]
+	return len(n.Content) == 1 && c.Kind == yaml.ScalarNode && c.Tag == "!!null" && c.Value == "" &&
+		n.HeadComment+n.LineComment+n.FootComment+c.HeadComment+c.LineComment+c.FootComment == ""
 }
 
 // reorder sorts mapping entries in place per opts, recursively. It also

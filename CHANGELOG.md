@@ -6,6 +6,18 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+### Fixed
+
+- Hovering over some unfinished lists in a CI pipeline file failed.
+- Format YAML no longer hands back text that doesn't read as YAML (a
+  map used as a key: it now says it can't), fails on a file of only
+  comments, or gives a different result when run a second time.
+- A neat copy of an object whose metadata had only a comment left after
+  the server fields came out as invalid YAML; the comment now stays on
+  the `metadata: {}` line.
+- A problem could be underlined from the wrong place in files with
+  stacked tags or templates inside a value over several lines.
+
 ### Security
 
 - Releases are built with the newest Go patch release. They were built
