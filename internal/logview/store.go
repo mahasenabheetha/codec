@@ -255,6 +255,14 @@ func (l *Log) Entry(i int) Entry {
 	return e
 }
 
+// Time is entry i's time; zero when it has none.
+func (l *Log) Time(i int) time.Time {
+	if t := l.rows[i].time; t != 0 {
+		return time.Unix(0, t).UTC()
+	}
+	return time.Time{}
+}
+
 // File is the index into Files of the file entry i came from.
 func (l *Log) File(i int) int { return int(l.rows[i].file) }
 

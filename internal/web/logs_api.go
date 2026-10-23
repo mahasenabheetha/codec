@@ -2,11 +2,13 @@ package web
 
 import (
 	"bytes"
+	"cmp"
 	"crypto/rand"
 	"encoding/csv"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"mime"
@@ -46,9 +48,31 @@ type heldLog struct {
 	used time.Time
 	idle *time.Timer
 
-	mu  sync.Mutex // guards the last query, which paging reuses
+	mu  sync.Mutex // guards the last query and view, which paging reuses
 	key string
 	m   *logview.Matches
+
+	viewKey string
+	viewOf  *logview.Matches
+	rows    []logview.ViewRow
+}
+
+// view lays out the matches of q as v asks, reusing the last layout
+// while the user pages through it.
+func (h *heldLog) view(q logQuery, v viewRequest) (*logview.Matches, []logview.ViewRow, error) {
+	m, err := h.matches(q)
+	if err != nil {
+		return nil, nil, err
+	}
+	key := v.key()
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	if h.viewOf == m && h.viewKey == key {
+		return m, h.rows, nil
+	}
+	rows := h.log.View(m, v.options())
+	h.viewKey, h.viewOf, h.rows = key, m, rows
+	return m, rows, nil
 }
 
 type logStore struct {
@@ -332,6 +356,37 @@ type logRow struct {
 	Error   string            `json:"error,omitempty"`
 	Stack   bool              `json:"stack,omitempty"`
 	Cols    map[string]string `json:"cols,omitempty"`
+	// In a view: what the row is ("" for a match, context, gap, output,
+	// repeat); for a fold or a gap, how many entries it holds or skips,
+	// how many of them matched, and its last entry.
+	Kind     string `json:"kind,omitempty"`
+	N        int    `json:"n,omitempty"`
+	Matches  int    `json:"matches,omitempty"`
+	LastI    int    `json:"lastI,omitempty"`
+	LastTime string `json:"lastTime,omitempty"`
+	HL       uint8  `json:"hl,omitempty"` // the highlight rules it matches, a bit each
+}
+
+// viewRow is a row of a view as the list shows it; a fold looks like
+// its first entry.
+func viewRow(l *logview.Log, vr logview.ViewRow, cols []string, rules []*logview.Filter) logRow {
+	if vr.Kind == logview.RowGap {
+		return logRow{I: int(vr.I), Kind: "gap", N: int(vr.N), LastI: int(vr.Last)}
+	}
+	r := row(l, int(vr.I), cols)
+	r.Kind = vr.Kind.String()
+	if vr.N > 1 {
+		r.N, r.Matches, r.LastI = int(vr.N), int(vr.Matches), int(vr.Last)
+		if t := l.Time(int(vr.Last)); !t.IsZero() {
+			r.LastTime = t.Format(time.RFC3339Nano)
+		}
+	}
+	for k, f := range rules {
+		if f != nil && f.Match(int(vr.I)) {
+			r.HL |= 1 << k
+		}
+	}
+	return r
 }
 
 // A list row carries enough of a message to read it wrapped: up to
@@ -388,20 +443,64 @@ func row(l *logview.Log, i int, cols []string) logRow {
 
 type entriesRequest struct {
 	logQuery
-	Offset    int      `json:"offset"`
-	Limit     int      `json:"limit"`
-	Columns   []string `json:"columns"`
-	Histogram int      `json:"histogram"` // buckets wanted; 0 for none
+	View      viewRequest `json:"view"`
+	Offset    int         `json:"offset"` // in the view's rows
+	Limit     int         `json:"limit"`
+	Columns   []string    `json:"columns"`
+	Histogram int         `json:"histogram"` // buckets wanted; 0 for none
 	// At asks for the page holding this entry index instead of Offset
 	// (to show an entry picked elsewhere, such as an error group's first).
 	At *int `json:"at"`
+	// Highlights are up to four queries whose entries are marked, not
+	// filtered; Markers asks for that many buckets picturing the whole
+	// view (errors, warnings, highlights, Pins) for beside the scrollbar.
+	Highlights []string `json:"highlights"`
+	Markers    int      `json:"markers"`
+	Pins       []int    `json:"pins"`
+}
+
+// viewRequest is how the matches are laid out (logview.ViewOptions).
+type viewRequest struct {
+	Context  int    `json:"context"`
+	Output   bool   `json:"output"`
+	Repeats  string `json:"repeats"`  // "", "exact" or "similar"
+	Expanded []int  `json:"expanded"` // folds shown whole, by their first entry
+}
+
+func (v viewRequest) options() logview.ViewOptions {
+	o := logview.ViewOptions{Context: min(max(v.Context, 0), logview.MaxContext), Output: v.Output}
+	switch v.Repeats {
+	case "exact":
+		o.Repeats = logview.RepeatsExact
+	case "similar":
+		o.Repeats = logview.RepeatsSimilar
+	}
+	if len(v.Expanded) > 0 {
+		o.Expanded = map[uint32]bool{}
+		for _, i := range v.Expanded {
+			if i >= 0 {
+				o.Expanded[uint32(i)] = true
+			}
+		}
+	}
+	return o
+}
+
+func (v viewRequest) key() string {
+	e := slices.Clone(v.Expanded)
+	slices.Sort(e)
+	return fmt.Sprint(v.Context, v.Output, v.Repeats, e)
 }
 
 type entriesResponse struct {
 	*logview.Matches
-	Offset    int                `json:"offset"`
-	Entries   []logRow           `json:"entries"`
-	Histogram *logview.Histogram `json:"histogram,omitempty"`
+	Rows            int                `json:"rows"`   // in the view: matches, context, gaps and folds
+	Offset          int                `json:"offset"` // of the page, in rows
+	AtRow           *int               `json:"atRow,omitempty"`
+	Entries         []logRow           `json:"entries"`
+	Histogram       *logview.Histogram `json:"histogram,omitempty"`
+	Markers         []int              `json:"markers,omitempty"` // a logview.Mark* bit set per bucket
+	HighlightErrors []string           `json:"highlightErrors,omitempty"`
 }
 
 // POST /api/v2/logs/{id}/entries {q, from, to, offset, limit, columns,
@@ -415,7 +514,7 @@ func (s *Server) handleLogEntries(w http.ResponseWriter, r *http.Request) {
 	if !decode(w, r, &req) {
 		return
 	}
-	m, err := h.matches(req.logQuery)
+	m, rows, err := h.view(req.logQuery, req.View)
 	if err != nil {
 		writeQueryError(w, err)
 		return
@@ -425,15 +524,46 @@ func (s *Server) handleLogEntries(w http.ResponseWriter, r *http.Request) {
 		limit = 200
 	}
 	off := max(req.Offset, 0)
+	resp := entriesResponse{Matches: m, Rows: len(rows), Entries: []logRow{}}
 	if req.At != nil {
-		// The page that holds the entry, or the next one after it.
-		pos, _ := slices.BinarySearch(m.IDs, uint32(max(*req.At, 0)))
+		// The page that holds the entry's row, or the next row after it.
+		at := uint32(max(*req.At, 0))
+		pos := h.log.RowAt(rows, at)
+		resp.AtRow = &pos
+		if pos < 0 {
+			pos, _ = slices.BinarySearchFunc(rows, at, func(r logview.ViewRow, i uint32) int { return cmp.Compare(r.I, i) })
+		}
 		off = pos / limit * limit
 	}
-	off = min(off, len(m.IDs))
-	resp := entriesResponse{Matches: m, Offset: off, Entries: []logRow{}}
-	for _, i := range m.IDs[off:min(off+limit, len(m.IDs))] {
-		resp.Entries = append(resp.Entries, row(h.log, int(i), req.Columns))
+	off = min(off, len(rows))
+	resp.Offset = off
+	rules := make([]*logview.Filter, 0, 4)
+	for _, q := range req.Highlights[:min(len(req.Highlights), 4)] {
+		f, err := h.log.Filter(q)
+		msg := ""
+		if err != nil {
+			msg = err.Error()
+		}
+		rules = append(rules, f)
+		resp.HighlightErrors = append(resp.HighlightErrors, msg)
+	}
+	if !slices.ContainsFunc(resp.HighlightErrors, func(s string) bool { return s != "" }) {
+		resp.HighlightErrors = nil
+	}
+	for _, vr := range rows[off:min(off+limit, len(rows))] {
+		resp.Entries = append(resp.Entries, viewRow(h.log, vr, req.Columns, rules))
+	}
+	if req.Markers > 0 {
+		pins := make([]uint32, 0, len(req.Pins))
+		for _, p := range req.Pins {
+			if p >= 0 && p < h.log.Len() {
+				pins = append(pins, uint32(p))
+			}
+		}
+		// As numbers: a []uint8 would be written as base64.
+		for _, m := range h.log.Markers(rows, min(req.Markers, 1000), rules, pins) {
+			resp.Markers = append(resp.Markers, int(m))
+		}
 	}
 	if req.Histogram > 0 {
 		from, to, _ := req.times()

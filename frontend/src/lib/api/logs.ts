@@ -53,7 +53,28 @@ export interface LogRow {
   error?: string
   stack?: boolean
   cols?: Record<string, string>
+  /** In a view: '' for a match, else context, gap, output or repeat. */
+  kind?: '' | 'context' | 'gap' | 'output' | 'repeat'
+  n?: number // entries a fold holds or a gap skips
+  matches?: number // of those, the ones the query matched
+  lastI?: number
+  lastTime?: string
+  hl?: number // highlight rules matched, a bit each
 }
+
+/** How the matches are laid out (internal/logview/view.go). */
+export interface ViewOptions {
+  context?: number // entries around each match
+  output?: boolean // fold runs of plain output
+  repeats?: '' | 'exact' | 'similar'
+  expanded?: number[] // folds shown whole, by their first entry
+}
+
+/** Marker bits per bucket, for beside the scrollbar; rule k is markRule << k. */
+export const markError = 1
+export const markWarn = 2
+export const markPin = 4
+export const markRule = 8
 
 export interface Histogram {
   from?: string
@@ -69,12 +90,16 @@ export interface LogQuery {
 }
 
 export interface EntriesPage {
-  total: number
+  total: number // matches
   levels: number[]
   warnings?: string[]
-  offset: number
+  rows: number // in the view: matches, context, gaps and folds
+  offset: number // of the page, in rows
+  atRow?: number // the row holding the entry asked for with `at`; -1 when the view doesn't show it
   entries: LogRow[]
   histogram?: Histogram
+  markers?: number[]
+  highlightErrors?: string[]
 }
 
 export interface EntryField {
@@ -145,7 +170,17 @@ const base = (id: string) => `/api/v2/logs/${encodeURIComponent(id)}`
 
 export function logEntries(
   id: string,
-  req: LogQuery & { offset?: number; limit?: number; columns?: string[]; histogram?: number; at?: number },
+  req: LogQuery & {
+    view?: ViewOptions
+    offset?: number
+    limit?: number
+    columns?: string[]
+    histogram?: number
+    at?: number
+    highlights?: string[]
+    markers?: number
+    pins?: number[]
+  },
   signal?: AbortSignal,
 ): Promise<EntriesPage> {
   return request('POST', base(id) + '/entries', req, signal)

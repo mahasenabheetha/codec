@@ -170,6 +170,67 @@ func TestLogsAPI(t *testing.T) {
 	}
 }
 
+func TestLogsView(t *testing.T) {
+	s := New(testOptions(false))
+	defer s.Close()
+	id := openLog(t, s, [][2]string{{"run.log", strings.Join([]string{
+		`{"level":"info","msg":"start","time":"2026-10-22T10:00:00Z"}`,
+		"plain a", "plain b", "plain c",
+		`{"level":"error","msg":"boom","time":"2026-10-22T10:00:04Z"}`,
+		`{"level":"warn","msg":"retry in 5ms","time":"2026-10-22T10:00:05Z"}`,
+		`{"level":"warn","msg":"retry in 7ms","time":"2026-10-22T10:00:06Z"}`,
+		`{"level":"info","msg":"done","time":"2026-10-22T10:00:07Z"}`,
+	}, "\n")}})
+	entries := func(req string) map[string]any {
+		code, v := send(s, "POST", "/api/v2/logs/"+id+"/entries", "application/json", req)
+		if code != 200 {
+			t.Fatalf("%s: %d %v", req, code, v)
+		}
+		return v
+	}
+	kinds := func(v map[string]any) string {
+		var out []string
+		for _, e := range v["entries"].([]any) {
+			r := e.(map[string]any)
+			k, _ := r["kind"].(string)
+			if n, ok := r["n"].(float64); ok {
+				k += fmt.Sprintf("×%d", int(n))
+			}
+			out = append(out, fmt.Sprintf("%v%s", r["i"], map[bool]string{true: ":" + k, false: ""}[k != ""]))
+		}
+		return strings.Join(out, " ")
+	}
+
+	v := entries(`{"q":"boom","view":{"context":1}}`)
+	if kinds(v) != "0:gap×3 3:context 4 5:context 6:gap×2" || v["total"] != 1.0 || v["rows"] != 5.0 {
+		t.Errorf("context: %s %v", kinds(v), v)
+	}
+	v = entries(`{"view":{"output":true,"repeats":"similar"},"highlights":["retry","\"open"],"markers":7,"pins":[7]}`)
+	if kinds(v) != "0 1:output×3 4 5:repeat×2 7" || v["rows"] != 5.0 || v["total"] != 8.0 {
+		t.Errorf("folds: %s", kinds(v))
+	}
+	rows := v["entries"].([]any)
+	if r := rows[3].(map[string]any); r["hl"] != 1.0 || r["lastI"] != 6.0 || r["lastTime"] != "2026-10-22T10:00:06Z" {
+		t.Errorf("repeat row: %v", r)
+	}
+	if he := v["highlightErrors"].([]any); len(he) != 2 || he[0] != "" || he[1] == "" {
+		t.Errorf("highlight errors: %v", he)
+	}
+	if m := v["markers"].([]any); len(m) != 5 || m[2] != 1.0 || m[3] != float64(2|8) || m[4] != 4.0 {
+		t.Errorf("markers: %v", m)
+	}
+	// Entry 2 is inside the output fold: its row is found.
+	v = entries(`{"view":{"output":true},"at":2,"limit":2}`)
+	if v["atRow"] != 1.0 || v["offset"] != 0.0 {
+		t.Errorf("at in a fold: %v %v", v["atRow"], v["offset"])
+	}
+	// An opened fold is shown whole.
+	v = entries(`{"view":{"output":true,"expanded":[1]}}`)
+	if kinds(v) != "0 1 2 3 4 5 6 7" {
+		t.Errorf("opened: %s", kinds(v))
+	}
+}
+
 func TestLogsOpenErrors(t *testing.T) {
 	s := New(testOptions(false))
 	defer s.Close()

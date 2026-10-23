@@ -210,8 +210,11 @@ Files over 8 MB are not listed or read.
   log is held in memory under the id (256 MB of text per log, 1 GB held
   in all, oldest use dropped first, an idle hour, never on disk); an
   unknown id is 410 `{expired: true}` and the UI sends the log again.
-  `POST /logs/{id}/entries` {q, from, to, offset, limit, columns,
-  histogram, at} → matches, a page of rows, the chart; `GET
+  `POST /logs/{id}/entries` {q, from, to, view: {context, output,
+  repeats, expanded}, offset, limit, columns, histogram, at, highlights,
+  markers, pins} → the matches' counts, a page of the view's rows
+  (matches, context, gaps, folded output and repeats; highlight bits),
+  the chart and the scrollbar markers; `GET
   /logs/{id}/entries/{n}?before=&after=` → the entry in full and the
   entries around it; `POST /logs/{id}/fields|groups|export` (export:
   text, ndjson or csv of the matches); `DELETE /logs/{id}`. A query
