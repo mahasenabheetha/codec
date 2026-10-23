@@ -36,6 +36,5 @@ func keyName(k *yamlkit.Node) string { return yamlkit.KeyName(k) }
 
 func indexOf(m *yamlkit.Node, key string) int { return yamlkit.IndexOf(m, key) }
 
-// scalar and flow show a node as YAML would on one line.
-func scalar(n *yamlkit.Node) string { return yamlkit.InlineText(n) }
-func flow(n *yamlkit.Node) string   { return yamlkit.InlineText(n) }
+// flow shows a node as YAML would on one line.
+func flow(n *yamlkit.Node) string { return yamlkit.InlineText(n) }

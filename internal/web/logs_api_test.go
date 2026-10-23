@@ -95,16 +95,16 @@ func TestLogsAPI(t *testing.T) {
 	// Merged by time: the pasted line comes between the first two errors.
 	code, v = entries(`{"q":"","offset":1,"limit":2}`)
 	rows = v["entries"].([]any)
-	if v["total"] != 5.0 || v["offset"] != 1.0 || len(rows) != 2 || rows[1].(map[string]any)["source"] != "Pasted" {
+	if code != 200 || v["total"] != 5.0 || v["offset"] != 1.0 || len(rows) != 2 || rows[1].(map[string]any)["source"] != "Pasted" {
 		t.Errorf("page: %v", v)
 	}
 	code, v = entries(`{"q":"","limit":2,"at":4}`)
-	if v["offset"] != 4.0 {
-		t.Errorf("at: %v", v)
+	if code != 200 || v["offset"] != 4.0 {
+		t.Errorf("at: %d %v", code, v)
 	}
 	code, v = entries(`{"q":"web"}`)
 	// A row carries its message's lines, for reading it wrapped.
-	if rows = v["entries"].([]any); len(rows) != 1 || rows[0].(map[string]any)["more"] != nil || rows[0].(map[string]any)["message"] != "line one\nline two" {
+	if rows = v["entries"].([]any); code != 200 || len(rows) != 1 || rows[0].(map[string]any)["more"] != nil || rows[0].(map[string]any)["message"] != "line one\nline two" {
 		t.Errorf("lines: %v", v)
 	}
 	code, v = entries(`{"q":"\"open"}`)
@@ -116,8 +116,8 @@ func TestLogsAPI(t *testing.T) {
 		t.Errorf("bad time: %d %v", code, v)
 	}
 	code, v = entries(`{"from":"2026-10-22T10:00:01Z","to":"2026-10-22T10:00:02Z"}`)
-	if v["total"] != 2.0 {
-		t.Errorf("range: %v", v)
+	if code != 200 || v["total"] != 2.0 {
+		t.Errorf("range: %d %v", code, v)
 	}
 
 	code, v = send(s, "GET", "/api/v2/logs/"+id+"/entries/1?before=1&after=1", "", "")

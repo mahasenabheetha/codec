@@ -19,7 +19,10 @@ jobs:
 
       - uses: actions/setup-go@v7
         with:
-          go-version-file: go.mod
+          # The newest Go patch release, so builds carry its security
+          # fixes; go.mod's go line is only the minimum.
+          go-version: stable
+          check-latest: true
 
       - uses: actions/setup-node@v7
         with:
@@ -42,6 +45,20 @@ jobs:
 
       - name: Test
         run: go test ./...
+
+      # Linux only: the race detector needs cgo, and one run of the
+      # checks below is enough. Tools are pinned; bump them by hand.
+      - name: Test with the race detector
+        if: matrix.os == 'ubuntu-latest'
+        run: go test -race ./...
+
+      - name: Staticcheck
+        if: matrix.os == 'ubuntu-latest'
+        run: go run honnef.co/go/tools/cmd/staticcheck@v0.8.2 ./...
+
+      - name: Known vulnerabilities
+        if: matrix.os == 'ubuntu-latest'
+        run: go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./...
 
       - name: Build
         run: go build ./...

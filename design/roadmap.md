@@ -223,7 +223,7 @@ fixes only, as a patch release.
 
 | # | Task | Main parts | Status |
 |---|---|---|---|
-| T1 | Static checks | `staticcheck`, `govulncheck`, `go test -race`, `npm audit`; the useful ones join CI | |
+| T1 | Static checks | `staticcheck`, `govulncheck`, `go test -race`, `npm audit`; the useful ones join CI | Done: staticcheck 2026.2.2 found 10 (dead code in ansible, ci, web and yamlkit; a loop in compose; four API test lines that never checked the status), all fixed; govulncheck 1.9.0 found GO-2026-6809 (`crypto/x509`, fixed in Go 1.27.3): releases took whatever Go the runner had (2.4.1's binary says 1.27.1), so CI and release now ask for `stable` with `check-latest` (the `golang.org/x/crypto` openpgp advisory is not reached); `npm audit` found nothing; CI on Linux now runs the race detector, staticcheck and govulncheck (pinned); npm stays with Dependabot. No C compiler here, so the race detector first runs in CI |
 | T2 | Fuzz tests | Every parser (YAML tools, logs, Ansible logs, encoders, cron, regex), for crashes and hangs | |
 | T3 | Browser tests | Playwright against the sample workspace: open a folder, the main views, Compare, tools, settings; in CI | |
 | T4 | Review by area | Separate reviewers (a workflow, under 10 at a time): Go engines; server, API and security; frontend; desktop app and installer; release workflow; docs against behaviour; each finding verified before it is reported | |

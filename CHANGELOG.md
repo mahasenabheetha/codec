@@ -6,6 +6,12 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+### Security
+
+- Releases are built with the newest Go patch release. They were built
+  with whatever Go the build machine had, which could lag behind its
+  security fixes (2.4.1 was built with Go 1.27.1, for one).
+
 ## [3.1.0] - 2026-10-23
 
 A Log viewer: structured logs of any common format read into one
