@@ -36,7 +36,11 @@ All notable changes to codec are documented here. The format follows
   O shows them); up to four highlight rules in colour; a strip beside
   the scrollbar showing where errors, warnings, highlights and pins
   are. Pins (P, [ and ]) with a note each, copied as a report in text
-  or Markdown with secrets masked.
+  or Markdown with secrets masked. Compare two runs (Compare with…
+  another tab): the first entry where they part, messages new or
+  missing in this run, ones logged much more or less often, and each
+  source's time, matched with numbers, IDs, times and generated pod
+  names masked; any item opens its entry in either tab.
 
 ### Changed
 

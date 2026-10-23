@@ -2,6 +2,7 @@
   import { tick } from 'svelte'
   import Columns3 from '@lucide/svelte/icons/columns-3'
   import Download from '@lucide/svelte/icons/download'
+  import GitCompareArrows from '@lucide/svelte/icons/git-compare-arrows'
   import Logs from '@lucide/svelte/icons/logs'
   import Search from '@lucide/svelte/icons/search'
   import X from '@lucide/svelte/icons/x'
@@ -18,8 +19,9 @@
   import { toast } from '../../lib/stores/toast.svelte'
   import { copyText } from '../../lib/utils/clipboard'
   import { toolShortcuts, toolStatus } from '../shared/tool.svelte'
-  import { count, formatTime } from './format'
+  import { count, formatTime, formatWhen } from './format'
   import LogChart from './LogChart.svelte'
+  import LogCompare from './LogCompare.svelte'
   import LogDetail from './LogDetail.svelte'
   import LogFields from './LogFields.svelte'
   import LogGroups from './LogGroups.svelte'
@@ -46,8 +48,27 @@
 
   let queryField = $state<HTMLInputElement>()
   let list = $state<LogList>()
-  let tab = $state<'entries' | 'errors' | 'fields' | 'pins'>('entries')
+  let tab = $state<'entries' | 'errors' | 'fields' | 'pins' | 'compare'>('entries')
   let columnFilter = $state('')
+  let comparePicker = $state(false)
+
+  // The other tabs with a log, to compare this run with.
+  const others = $derived(logTabs.list.filter((v) => v !== viewer && v.opened))
+  function compareWith(o: LogViewer) {
+    comparePicker = false
+    tab = 'compare'
+    viewer.compareWith(o)
+  }
+  $effect(() => {
+    if (tab === 'compare' && !viewer.compare) tab = 'entries'
+  })
+  // An entry another tab asked to show (from a comparison).
+  $effect(() => {
+    const i = viewer.want
+    if (!active || i === null || !viewer.opened) return
+    viewer.want = null
+    jump(i)
+  })
 
   // Search as you type, after a pause. A term still being written (a
   // field with no value yet, an open quote or bracket, a trailing OR)
@@ -219,6 +240,25 @@
         </span>
       {/each}
       <span class="spacer"></span>
+      <Popover side="bottom" align="end" bind:open={comparePicker}>
+        {#snippet trigger(props)}
+          <Button {...props} size="sm" variant="ghost" icon={GitCompareArrows}>Compare with…</Button>
+        {/snippet}
+        <div class="menu">
+          {#if others.length}
+            <p class="muted">Compare this run with the log in</p>
+            {#each others as o (o.key)}
+              {@const os = o.opened!.summary}
+              <button type="button" onclick={() => compareWith(o)}>
+                {o.title}
+                <span class="muted">{count(os.entries)} entries{os.from ? ` · ${formatWhen(os.from, prefs.time.value === 'utc' ? 'utc' : 'local')}` : ''}</span>
+              </button>
+            {/each}
+          {:else}
+            <p class="hint">Open the other run (the one that passed, say) in a tab of its own with <strong>+</strong> beside the tabs, then compare: what is new, what is missing, what is logged more or less often, and which sources took longer.</p>
+          {/if}
+        </div>
+      </Popover>
       <Popover side="bottom" align="end">
         {#snippet trigger(props)}
           <Button {...props} size="sm" variant="ghost" icon={Download}>Export</Button>
@@ -368,6 +408,7 @@
         { value: 'errors', label: 'Errors', count: s.groups },
         { value: 'fields', label: 'Fields' },
         { value: 'pins', label: 'Pins', count: viewer.pins.length },
+        ...(viewer.compare ? [{ value: 'compare' as const, label: 'Compare' }] : []),
       ]}
     />
     <div class="main">
@@ -377,6 +418,8 @@
         <LogFields onshow={() => (tab = 'entries')} />
       {:else if tab === 'pins'}
         <LogPins onjump={jump} />
+      {:else if tab === 'compare' && viewer.compare}
+        <LogCompare onjump={jump} />
       {:else if viewer.total === 0 && !viewer.loading}
         <EmptyState icon={Search} title="Nothing matches" description="Change the query or the time range." />
       {:else if viewer.selected !== null}
@@ -501,6 +544,14 @@
   }
   .menu p {
     margin: 0 0 var(--s-1);
+    font-size: var(--fs-xs);
+  }
+  .menu .hint {
+    font-size: var(--fs-sm);
+    color: var(--fg-1);
+  }
+  .menu button .muted {
+    display: block;
     font-size: var(--fs-xs);
   }
   .menu button {

@@ -196,9 +196,10 @@ type logOpened struct {
 }
 
 // POST /api/v2/logs: read logs and hold them. The body is either
-// multipart form data, each part a file (its filename) or pasted text
-// (a part without one), or JSON {"paths": [...]} naming log files in
-// the open folder. Several logs are merged by time into one.
+// multipart form data, each part a file (its filename), pasted text (a
+// part without one) or a "path" naming a log file in the open folder,
+// or JSON {"paths": [...]} naming only those. Several logs are merged
+// by time into one.
 func (s *Server) handleLogsOpen(w http.ResponseWriter, r *http.Request) {
 	select {
 	case logBuilds <- struct{}{}:
@@ -249,23 +250,16 @@ func (s *Server) logFiles(w http.ResponseWriter, r *http.Request) ([]logview.Fil
 		if !decode(w, r, &req) {
 			return nil, &httpError{0, ""}
 		}
-		ws := s.current()
-		if ws == nil {
-			return nil, &httpError{http.StatusConflict, "no folder is open"}
-		}
 		if len(req.Paths) == 0 {
 			return nil, &httpError{http.StatusBadRequest, "no log was given"}
 		}
 		var files []logview.File
 		for _, p := range req.Paths {
-			data, err := ws.ReadLog(p, maxLogText)
-			if errors.Is(err, workspace.ErrOverLimit) {
-				return nil, &httpError{http.StatusRequestEntityTooLarge, p + " is over 256 MB; open the part that matters"}
+			f, he := s.folderLog(p)
+			if he != nil {
+				return nil, he
 			}
-			if err != nil {
-				return nil, readError(err)
-			}
-			files = append(files, logview.File{Name: path.Base(p), Data: data})
+			files = append(files, f)
 		}
 		return files, nil
 	}
@@ -295,6 +289,16 @@ func (s *Server) logFiles(w http.ResponseWriter, r *http.Request) ([]logview.Fil
 			}
 			return nil, &httpError{http.StatusBadRequest, "reading the logs: " + err.Error()}
 		}
+		// A "path" part names a file in the open folder, so a tab opened
+		// from the Explorer can take dropped files too.
+		if part.FormName() == "path" {
+			f, he := s.folderLog(string(data))
+			if he != nil {
+				return nil, he
+			}
+			files = append(files, f)
+			continue
+		}
 		name := part.FileName()
 		if name == "" {
 			pasted++
@@ -312,6 +316,22 @@ func (s *Server) logFiles(w http.ResponseWriter, r *http.Request) ([]logview.Fil
 		return nil, &httpError{http.StatusBadRequest, "too many files at once"}
 	}
 	return files, nil
+}
+
+// folderLog reads log file p of the open folder.
+func (s *Server) folderLog(p string) (logview.File, *httpError) {
+	ws := s.current()
+	if ws == nil {
+		return logview.File{}, &httpError{http.StatusConflict, "no folder is open"}
+	}
+	data, err := ws.ReadLog(p, maxLogText)
+	if errors.Is(err, workspace.ErrOverLimit) {
+		return logview.File{}, &httpError{http.StatusRequestEntityTooLarge, p + " is over 256 MB; open the part that matters"}
+	}
+	if err != nil {
+		return logview.File{}, readError(err)
+	}
+	return logview.File{Name: path.Base(p), Data: data}, nil
 }
 
 // held finds the log named in the path, or answers 410 Gone.
@@ -833,6 +853,48 @@ func orderedFields(fields []logview.Field) json.RawMessage {
 	}
 	b.WriteByte('}')
 	return b.Bytes()
+}
+
+// POST /api/v2/logs/{id}/compare {other}: how this log differs from
+// another held one, run against run, with the first entry of each where
+// they part. A gone other log answers 410 with "other" set, so the UI
+// knows which to send again.
+func (s *Server) handleLogCompare(w http.ResponseWriter, r *http.Request) {
+	h := s.held(w, r)
+	if h == nil {
+		return
+	}
+	var req struct {
+		Other string `json:"other"`
+	}
+	if !decode(w, r, &req) {
+		return
+	}
+	if req.Other == "" {
+		writeError(w, http.StatusBadRequest, "no log to compare with")
+		return
+	}
+	o := s.logs.get(req.Other)
+	if o == nil {
+		writeJSON(w, http.StatusGone, struct {
+			Error   string `json:"error"`
+			Expired bool   `json:"expired"`
+			Other   bool   `json:"other"`
+		}{"the other log is no longer held; open it again", true, true})
+		return
+	}
+	d := logview.Compare(h.log, o.log)
+	var first [2]*logRow
+	for k, l := range [2]*logview.Log{h.log, o.log} {
+		if i := d.First[k]; i >= 0 {
+			r := row(l, i, nil)
+			first[k] = &r
+		}
+	}
+	writeJSON(w, http.StatusOK, struct {
+		logview.Diff
+		FirstRows [2]*logRow `json:"firstRows"`
+	}{d, first})
 }
 
 // DELETE /api/v2/logs/{id}: let go of a log (the tab closed it).

@@ -205,8 +205,8 @@ Files over 8 MB are not listed or read.
   overrides} → playbook (plays, steps, roles, variables) or inventory;
   `POST /ansible/find-task` {name, path} → definitions of a logged
   task. `/yaml/hover|definition|analyze` read the folder for both.
-  Log viewer (decision 86): `POST /logs` (form data: files and pasted
-  parts; or `{paths}` in the open folder) → `{id, files, summary}`; the
+  Log viewer (decision 86): `POST /logs` (form data: files, pasted
+  parts and `path` parts naming files in the open folder; or `{paths}`) → `{id, files, summary}`; the
   log is held in memory under the id (256 MB of text per log, 1 GB held
   in all, oldest use dropped first, an idle hour, never on disk); an
   unknown id is 410 `{expired: true}` and the UI sends the log again.
@@ -216,9 +216,11 @@ Files over 8 MB are not listed or read.
   (matches, context, gaps, folded output and repeats; highlight bits),
   the chart and the scrollbar markers; `GET
   /logs/{id}/entries/{n}?before=&after=` → the entry in full and the
-  entries around it; `POST /logs/{id}/fields|groups|export` (export:
-  text, ndjson or csv of the matches); `DELETE /logs/{id}`. A query
-  that can't be read is 422 `{error, pos}`.
+  entries around it; `POST /logs/{id}/fields|groups|export|compare`
+  (export: text, ndjson or csv of the matches; compare {other}: how
+  this log differs from another held one, 410 `{other: true}` when
+  that one is gone); `DELETE /logs/{id}`. A query that can't be read
+  is 422 `{error, pos}`.
   Scaffolding: `GET /scaffold/starters` (built-in + personal, the
   personal folder); `POST /scaffold/render` {id, values} → files, each
   linted and schema-checked, charts rendered, or field errors; `POST

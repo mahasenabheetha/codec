@@ -152,6 +152,7 @@ func TestFingerprint(t *testing.T) {
 		`relation "carts" does not exist`:                                 "relation <s> does not exist",
 		"order 1042 for user 550e8400-e29b-41d4-a716-446655440000 failed": "order <n> for user <id> failed",
 		"pod web-7d9c8b6f5-x2x9z restarted 3 times":                       "pod web-<id>-<id> restarted <n> times",
+		"pod build-xkqpz-test started, its host x-trace":                  "pod build-<id>-test started, its host x-trace",
 		"don't retry v1 utf8 at 0xc000a1":                                 "don't retry v1 utf8 at <id>",
 		"took   12ms\nsecond line":                                        "took <n>ms",
 	} {

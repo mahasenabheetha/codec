@@ -5,6 +5,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 	"unsafe"
 )
@@ -30,6 +31,9 @@ type Log struct {
 	strIDs  map[string]uint32
 	groups  []groupKey // error groups by fingerprint; a row's group is index+1
 	summary Summary
+
+	msgOnce sync.Once // every entry's fingerprint, for comparing runs
+	msg     *msgIndex
 }
 
 // FileInfo describes one input of a log.

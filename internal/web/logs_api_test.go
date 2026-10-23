@@ -278,6 +278,57 @@ func TestLogsFromWorkspace(t *testing.T) {
 			t.Errorf("%s: %d %v", p, code, v)
 		}
 	}
+
+	// A folder file and a dropped one together, in form data.
+	var b bytes.Buffer
+	mw := multipart.NewWriter(&b)
+	mw.WriteField("path", "run.log")
+	fw, _ := mw.CreateFormFile("file", "extra.log")
+	fw.Write([]byte(`{"@timestamp":"2026-10-22T10:00:09Z","log.level":"info","message":"extra"}` + "\n"))
+	mw.Close()
+	code, v = send(s, "POST", "/api/v2/logs", mw.FormDataContentType(), b.String())
+	if code != 200 || v["summary"].(map[string]any)["entries"] != 5.0 || len(v["files"].([]any)) != 2 {
+		t.Errorf("a folder file and a dropped one: %d %v", code, v)
+	}
+	mw = multipart.NewWriter(&b)
+	b.Reset()
+	mw.WriteField("path", "../x.log")
+	mw.Close()
+	if code, _ := send(s, "POST", "/api/v2/logs", mw.FormDataContentType(), b.String()); code != 403 {
+		t.Errorf("a path part outside the folder: %d", code)
+	}
+}
+
+func TestLogsCompare(t *testing.T) {
+	s := New(testOptions(false))
+	defer s.Close()
+	failed := openLog(t, s, [][2]string{{"today.log", apiLog}})
+	passed := openLog(t, s, [][2]string{{"yesterday.log", strings.Replace(apiLog, "timeout", "refused", 2) + `{"@timestamp":"2026-10-22T10:00:04Z","log.level":"info","message":"done"}` + "\n"}})
+
+	code, v := send(s, "POST", "/api/v2/logs/"+failed+"/compare", "application/json", `{"other":"`+passed+`"}`)
+	if code != 200 {
+		t.Fatalf("%d %v", code, v)
+	}
+	first := v["firstRows"].([]any)
+	if v["first"].([]any)[0].(float64) != 1 || first[0].(map[string]any)["message"] != "order 7 failed" || first[1].(map[string]any)["message"] != "order 7 failed" {
+		t.Errorf("first differences: %v %v", v["first"], first)
+	}
+	if n, m := len(v["new"].([]any)), len(v["missing"].([]any)); n != 1 || m != 2 {
+		t.Errorf("%d new, %d missing: %v", n, m, v)
+	}
+	if v["sources"] != nil {
+		t.Errorf("sources of logs without any: %v", v["sources"])
+	}
+
+	if code, v := send(s, "POST", "/api/v2/logs/"+failed+"/compare", "application/json", `{"other":"nope"}`); code != 410 || v["other"] != true {
+		t.Errorf("a gone other log: %d %v", code, v)
+	}
+	if code, v := send(s, "POST", "/api/v2/logs/nope/compare", "application/json", `{"other":"`+passed+`"}`); code != 410 || v["other"] != nil {
+		t.Errorf("a gone log: %d %v", code, v)
+	}
+	if code, _ := send(s, "POST", "/api/v2/logs/"+failed+"/compare", "application/json", `{}`); code != 400 {
+		t.Errorf("nothing to compare with: %d", code)
+	}
 }
 
 func TestLogStore(t *testing.T) {

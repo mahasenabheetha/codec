@@ -25,13 +25,7 @@ type grouper struct {
 func newGrouper() *grouper { return &grouper{ids: map[string]uint32{}} }
 
 func (g *grouper) id(msg, err string) uint32 {
-	k := fingerprint(msg)
-	if err != "" && !strings.Contains(msg, err) {
-		if k != "" {
-			k += " · "
-		}
-		k += fingerprint(err)
-	}
+	k := messageKey(msg, err)
 	if id, ok := g.ids[k]; ok {
 		return id
 	}
@@ -42,8 +36,9 @@ func (g *grouper) id(msg, err string) uint32 {
 }
 
 // fingerprint masks what varies between repeats of one message: its
-// first line, with numbers as <n>, IDs (words with digits, hex runs) as
-// <id> and quoted values as <s>.
+// first line, with numbers as <n>, IDs (words with digits, hex runs,
+// the random part of a generated Kubernetes name) as <id> and quoted
+// values as <s>.
 func fingerprint(s string) string {
 	if i := strings.IndexByte(s, '\n'); i >= 0 {
 		s = s[:i]
@@ -78,7 +73,11 @@ func fingerprint(s string) string {
 				j++
 			}
 			flush(&b, &space)
-			b.WriteString(maskWord(s[i:j]))
+			if i > 0 && s[i-1] == '-' && kubeRandom(s[i:j]) {
+				b.WriteString("<id>")
+			} else {
+				b.WriteString(maskWord(s[i:j]))
+			}
 			i = j
 			continue
 		}
@@ -125,6 +124,25 @@ func maskWord(w string) string {
 		return "<id>"
 	}
 	return w
+}
+
+// kubeRandom reports whether w, after a dash, looks like what Kubernetes
+// adds to a generated name: five characters (or nine or ten, a pod
+// template hash) from its alphabet, which has no vowels so it spells no
+// words. "build-xkqpz" names the same pod template as "build-7f2kd". A
+// number stays a number (<n>).
+func kubeRandom(w string) bool {
+	if n := len(w); n != 5 && n != 9 && n != 10 {
+		return false
+	}
+	letters := false
+	for i := 0; i < len(w); i++ {
+		if !strings.ContainsRune("bcdfghjklmnpqrstvwxz2456789", rune(w[i])) {
+			return false
+		}
+		letters = letters || w[i] > '9'
+	}
+	return letters
 }
 
 // isUUID reports whether s starts with a UUID (8-4-4-4-12 hex digits).

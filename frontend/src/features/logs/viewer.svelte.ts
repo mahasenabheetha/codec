@@ -9,11 +9,13 @@ import { SvelteMap } from 'svelte/reactivity'
 import { ApiError, isAbort } from '../../lib/api/client'
 import {
   closeLog,
+  compareLogs,
   logEntries,
   logFields,
   openLogs,
   type EntriesPage,
   type Histogram,
+  type LogDiff,
   type LogOpened,
   type LogQuery,
   type LogRow,
@@ -46,6 +48,18 @@ export interface Pin {
   note: string
 }
 const MARKERS = 300
+
+/** This tab's log compared with another tab's (Compare with…); memory
+ *  only. versions are the two logs' when it was made: if either has
+ *  changed since, it is stale. */
+export interface Comparison {
+  other: LogViewer
+  name: string // the other tab's, kept for when it closes
+  diff: LogDiff | null
+  loading: boolean
+  error: string | null
+  versions: [number, number]
+}
 
 /** A log that mixes structured entries with plain output (a database's
  *  lines inside an Argo run) starts with the output folded. */
@@ -98,6 +112,11 @@ export class LogViewer {
   rowCount = $state(0)
   /** Entries pinned while investigating, in log order; memory only. */
   pins = $state.raw<Pin[]>([])
+  /** Bumped when the tab's files change. */
+  version = $state(0)
+  /** An entry to show when the tab is next in front (from another tab). */
+  want = $state<number | null>(null)
+  compare = $state.raw<Comparison | null>(null)
 
   private gen = 0 // bumped per query, so late pages of an old one are dropped
   private asked = new Set<number>()
@@ -129,6 +148,7 @@ export class LogViewer {
       const old = this.opened?.id
       this.sources = all
       this.opened = o
+      this.version++
       this.fieldKeys = null
       this.selected = null
       this.expanded = new Set()
@@ -159,13 +179,14 @@ export class LogViewer {
     this.opened = o
   }
 
-  /** Run fn with the log's id, sending the log again once if it expired. */
-  async withLog<T>(fn: (id: string) => Promise<T>): Promise<T> {
+  /** Run fn with the log's id, sending the log again once if it expired
+   *  (a 410 that mine says is about this log, when fn uses two). */
+  async withLog<T>(fn: (id: string) => Promise<T>, mine: (e: ApiError) => boolean = () => true): Promise<T> {
     if (!this.id) throw new Error('no log is open')
     try {
       return await fn(this.id)
     } catch (e) {
-      if (!(e instanceof ApiError && e.status === 410) || !this.sources.length) throw e
+      if (!(e instanceof ApiError && e.status === 410 && mine(e)) || !this.sources.length) throw e
       await this.reopen()
       return fn(this.id!)
     }
@@ -184,8 +205,33 @@ export class LogViewer {
     return sourceName(this.sources[0]) + (more ? ` +${more}` : '')
   }
 
+  /** Compare this run with another tab's: what is new, missing, more or
+   *  less often, and slower. */
+  async compareWith(other: LogViewer) {
+    const versions: [number, number] = [this.version, other.version]
+    const c: Comparison = { other, name: other.title, diff: null, loading: true, error: null, versions }
+    this.compare = c
+    const theirs = (e: ApiError) => !!e.body?.other
+    try {
+      const diff = await this.withLog(
+        (id) => other.withLog((oid) => compareLogs(id, oid), theirs),
+        (e) => !theirs(e),
+      )
+      if (this.compare === c) this.compare = { ...c, diff, loading: false }
+    } catch (e) {
+      if (this.compare === c) this.compare = { ...c, loading: false, error: e instanceof Error ? e.message : String(e) }
+    }
+  }
+
+  /** The comparison no longer matches the logs (files added or removed). */
+  get compareStale(): boolean {
+    const c = this.compare
+    return !!c && (c.versions[0] !== this.version || c.versions[1] !== c.other.version)
+  }
+
   close() {
     this.ctrl?.abort()
+    this.compare = null
     if (this.id) closeLog(this.id).catch(() => {})
     this.sources = []
     this.opened = null

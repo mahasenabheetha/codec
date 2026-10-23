@@ -19,7 +19,7 @@ plain c
 {"level":"info","msg":"done"}
 `
 
-func buildText(t *testing.T, text string) *Log {
+func buildText(t testing.TB, text string) *Log {
 	t.Helper()
 	l, err := Build([]File{{Name: "x", Data: []byte(text)}}, BuildOptions{Options: testOpts})
 	if err != nil {

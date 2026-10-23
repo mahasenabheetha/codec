@@ -151,6 +151,43 @@ export interface LogGroup {
   sources: number
 }
 
+/** Two runs compared (internal/logview/compare.go): pairs hold this
+ *  run's value first, the other's second; -1 where there is no entry. */
+export interface LogRunStats {
+  entries: number
+  errors: number
+  warnings: number
+  seconds: number
+  messages: number
+}
+
+export interface LogDiffItem {
+  text: string // the fingerprint, as matched
+  sample: string
+  level: Level
+  count: [number, number]
+  first: [number, number]
+}
+
+export interface LogSourceDiff {
+  name: [string, string]
+  entries: [number, number]
+  errors: [number, number]
+  seconds: [number, number]
+  first: [number, number]
+}
+
+export interface LogDiff {
+  runs: [LogRunStats, LogRunStats]
+  first: [number, number]
+  firstRows: [LogRow | null, LogRow | null]
+  new: LogDiffItem[] | null
+  missing: LogDiffItem[] | null
+  changed: LogDiffItem[] | null
+  more: [number, number, number]
+  sources?: LogSourceDiff[]
+}
+
 /** A log to read: a file (dropped or picked), pasted text, or a file in
  *  the open folder. */
 export type LogSource = { kind: 'file'; file: File } | { kind: 'text'; name: string; text: string } | { kind: 'path'; path: string }
@@ -162,6 +199,7 @@ export function openLogs(sources: LogSource[], signal?: AbortSignal): Promise<Lo
   for (const s of sources) {
     if (s.kind === 'file') form.append('file', s.file, s.file.name)
     else if (s.kind === 'text') form.append('file', new Blob([s.text], { type: 'text/plain' }), s.name)
+    else form.append('path', s.path) // a file in the open folder, beside dropped ones
   }
   return postForm('/api/v2/logs', form, signal)
 }
@@ -200,6 +238,12 @@ export function logGroups(id: string, req: LogQuery, signal?: AbortSignal): Prom
 
 export function exportLog(id: string, req: LogQuery & { format: 'text' | 'ndjson' | 'csv'; columns?: string[] }): Promise<Blob> {
   return requestBlob(base(id) + '/export', req)
+}
+
+/** How log id differs from log other; a 410 with body.other set means
+ *  the other log is the one gone. */
+export function compareLogs(id: string, other: string, signal?: AbortSignal): Promise<LogDiff> {
+  return request('POST', base(id) + '/compare', { other }, signal)
 }
 
 export function closeLog(id: string): Promise<void> {

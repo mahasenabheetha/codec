@@ -406,3 +406,12 @@ Settled unless the user reopens them. Add new ones at the bottom:
     that never logged still show. Live follow reads a log file in the
     open folder as it grows; codec still never talks to the cluster
     (2026-10-22).
+88. Two runs are compared by message, not line by line: each entry's
+    message (and error) is fingerprinted as error groups are, numbers,
+    IDs, quoted values and the random part of a generated Kubernetes
+    name masked, and any masked value matches any other. Runs of one
+    job log the same steps with different values, so a line diff would
+    mark everything; sources are matched by their names' fingerprints
+    the same way. The comparison is worked out on the server from the
+    two held logs (40 ms to fingerprint 100k entries, once; 5 ms to
+    compare) and lives in the tab's memory (2026-10-23).
