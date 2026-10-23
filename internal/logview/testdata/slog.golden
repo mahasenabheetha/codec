@@ -1,0 +1,26 @@
+L1+1 json info(INFO) 2026-10-22T06:20:00.000123Z msg="listening"
+    time:s=2026-10-22T08:20:00.000123+02:00
+    level:s=INFO
+    msg:s=listening
+    addr:s=:8080
+L2+1 json error(ERROR) 2026-10-22T06:20:01.5Z msg="connect failed" caller="/app/main.go:41" err="dial tcp 10.0.0.5:5432: connect: connection refused"
+    time:s=2026-10-22T08:20:01.5+02:00
+    level:s=ERROR
+    source.function:s=main.run
+    source.file:s=/app/main.go
+    source.line:n=41
+    msg:s=connect failed
+    err:s=dial tcp 10.0.0.5:5432: connect: connection refused
+    attempt:n=3
+L3+1 logfmt warn(WARN) 2026-10-22T06:20:02Z msg="retrying in 2s"
+    time:s=2026-10-22T08:20:02.000+02:00
+    level:s=WARN
+    msg:s=retrying in 2s
+    attempt:n=4
+    backoff:s=2s
+L4+1 logfmt info(INFO) 2026-10-22T06:20:04Z msg="connected"
+    time:s=2026-10-22T08:20:04.000+02:00
+    level:s=INFO
+    msg:s=connected
+    db.host:s=db.internal
+    ok:b=true

@@ -6,6 +6,58 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+## [3.1.0] - 2026-10-23
+
+A Log viewer: structured logs of any common format read into one
+shape, to filter, chart and read, several logs at once, and two runs of
+a job compared. Built for what `argo logs`, `kubectl logs` and
+pipelines print; the log is held in codec's memory only, never written
+to disk.
+
+### Added
+
+- Log viewer (Tools → Log viewer), with no settings: ECS and other JSON
+  (Go's slog, zap, logrus, zerolog; Bunyan, pino, Serilog; Docker log
+  files; Kibana exports), logfmt, klog and text with stack traces,
+  behind `argo logs`, `kubectl logs`, container or CI prefixes; times
+  of day without a date (logback's default) too. Open, drop or paste
+  one or more logs (merged by time; gzip and UTF-16 are fine), or
+  right-click a log file in the Explorer; Smart paste opens a pasted
+  log there. Several logs open at once, a tab each, every tab keeping
+  its own search, range and selection.
+- Search: an overview with the first error, repeated errors and
+  silences; a query language (`level>=warn service.name:api
+  -logger:health status>=500 "connection reset"`) that filters as you
+  type, suggests field names and their values, marks the words found
+  and explains itself under "?"; a chart to drag a time range on;
+  field columns; rows wrap so nothing is cut off, or stay on one line
+  and scroll sideways.
+- Around a match: entries around each match (±3, ±10) with the skipped
+  ones marked; runs of plain output and repeated lines folded into one
+  row each (a click or `O` shows them); up to four highlight rules in
+  colour; a strip beside the scrollbar showing where errors, warnings,
+  highlights and pins are.
+- An entry in full: JSON in its message laid out, its stack trace with
+  framework frames folded, its fields as a tree, the entries around
+  it; any value filters the log, becomes a column or, for trace and
+  request IDs, is followed across it. Errors (grouped, `group:N` in the
+  query) and Fields (top values, number statistics) tabs.
+- Pins (`P`, `[` and `]`) with a note each, copied as a report in text
+  or Markdown.
+- Compare two runs (Compare with… another tab): the first entry where
+  they part, messages new or missing in this run, ones logged much
+  more or less often, and each source's time, matched with numbers,
+  IDs, times and generated pod names masked; any item opens its entry
+  in either tab.
+- Export as lines, NDJSON or CSV; whatever is copied has likely secrets
+  masked; keyboard (`J`/`K`, `E` for the next error, `/`).
+
+### Changed
+
+- The Workspace problems view and the Resources cards draw only the
+  rows in view, so folders with thousands of findings or objects
+  scroll smoothly.
+
 ## [3.0.0] - 2026-10-22
 
 codec as a desktop app on Windows: its own window, a tray icon, start
@@ -544,7 +596,8 @@ First tagged release: codec as it stood before the 2.0 work began.
 - Release pipeline: pushing a `v*` tag publishes binaries for Linux,
   Windows and macOS (amd64/arm64) to GitHub Releases via GoReleaser.
 
-[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v3.0.0...HEAD
+[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v3.1.0...HEAD
+[3.1.0]: https://github.com/mahasenabheetha/codec/compare/v3.0.0...v3.1.0
 [3.0.0]: https://github.com/mahasenabheetha/codec/compare/v2.4.1...v3.0.0
 [2.4.1]: https://github.com/mahasenabheetha/codec/compare/v2.4.0...v2.4.1
 [2.4.0]: https://github.com/mahasenabheetha/codec/compare/v2.3.0...v2.4.0

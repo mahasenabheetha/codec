@@ -1,0 +1,15 @@
+L1+1 json info() 2026-10-22T09:00:00.1234567Z msg="Processed 12 orders in 34 ms" logger="Orders.Worker"
+    @t:s=2026-10-22T09:00:00.1234567Z
+    @mt:s=Processed {Count} orders in {Elapsed} ms
+    Count:n=12
+    Elapsed:n=34
+    SourceContext:s=Orders.Worker
+L2+1 json error(Error) 2026-10-22T09:00:01Z msg="Order 1043 failed"
+    | System.InvalidOperationException: Order is closed
+    |    at Orders.Worker.Process(Order o) in /src/Worker.cs:line 42
+    @t:s=2026-10-22T09:00:01.0000000Z
+    @mt:s=Order {OrderId} failed
+    @l:s=Error
+    @x:s=System.InvalidOperationException: Order is closed
+   at Orders.Worker.Process(Order o) in /src/Worker.cs:line 42
+    OrderId:n=1043

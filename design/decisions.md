@@ -370,3 +370,48 @@ Settled unless the user reopens them. Add new ones at the bottom:
     injected into the page and refuses file drags at the page root
     unless a drop zone stops the event first, as the log drop zone does
     (2026-10-04).
+84. Markdown preview in 3.3.0, rendered in the browser (`marked` and
+    `DOMPurify`) from the editor's text, so what-if edits show; no Go
+    renderer. Repository Markdown is untrusted: raw HTML is off and the
+    output is sanitised before it reaches the page. Remote images are
+    blocked until the user loads them, so nothing leaves the machine
+    unasked (2026-10-05).
+85. Update check in 3.4.0: codec may ask GitHub's releases API for the
+    latest version and show a notice; it never downloads or installs on
+    its own. Off by default, a setting turns it on, and "Check now"
+    works either way. It is codec's second network use after schemas
+    (40); the request carries nothing but codec's version in the
+    User-Agent, and nothing is collected (2026-10-06).
+86. Log viewer in 3.1.0, ahead of 84 and 85: a Logs tool reads
+    structured logs of any common format (ECS, other JSON such as Go's
+    slog, zap, logrus and zerolog, logfmt, klog, text with stack
+    traces) into one entry shape, with no settings. Argo is one source,
+    not the design (replaces the Argo-only plan of 2026-10-10). A pure
+    engine `internal/logview` parses, indexes and queries in Go. The
+    parsed log stays in the server's memory under a handle, so the
+    browser fetches only what it shows; it is never written to disk,
+    and is dropped after an idle hour, when logs pass 1 GB in all
+    (oldest first) or on restart, and the UI re-sends what it still
+    holds (19 still applies: nothing in browser storage). Queries use a
+    small `field:value` syntax that the UI's chips write. JSON lines
+    are read by a scanner of our own: it keeps fields in the order
+    written (`encoding/json`'s maps lose it), shares the input's memory
+    and is about 11× faster; a fuzz test holds it to what
+    `encoding/json` accepts, so no `fastjson`. logfmt is ours too. No
+    new dependencies. codec never talks to a cluster. UI first; the CLI
+    comes later on the same engine (2026-10-22).
+87. Argo workflow logs in 3.2.0, on top of the Log viewer (86): pod
+    names become steps, and an optional `argo get -o yaml|json` (a file
+    or pasted) gives the step tree with phases and exit codes, so steps
+    that never logged still show. Live follow reads a log file in the
+    open folder as it grows; codec still never talks to the cluster
+    (2026-10-22).
+88. Two runs are compared by message, not line by line: each entry's
+    message (and error) is fingerprinted as error groups are, numbers,
+    IDs, quoted values and the random part of a generated Kubernetes
+    name masked, and any masked value matches any other. Runs of one
+    job log the same steps with different values, so a line diff would
+    mark everything; sources are matched by their names' fingerprints
+    the same way. The comparison is worked out on the server from the
+    two held logs (40 ms to fingerprint 100k entries, once; 5 ms to
+    compare) and lives in the tab's memory (2026-10-23).

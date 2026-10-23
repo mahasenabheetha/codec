@@ -1,0 +1,4 @@
+I1022 09:10:00.000001       1 leaderelection.go:250] attempting to acquire leader lease kube-system/example-controller...
+W1022 09:10:05.123456       1 reflector.go:561] failed to list *v1.Pod: the server is currently unable to handle the request
+E1022 09:10:06.654321       1 controller.go:114] "Reconcile failed" err="timeout waiting for cache sync" controller="deployment" namespace="shop" name="orders"
+F1022 09:10:07.000000       1 main.go:59] cannot start: no kubeconfig

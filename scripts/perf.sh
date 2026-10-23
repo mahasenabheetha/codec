@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# Time codec on large inputs: a 10k-file repo, a 5 MB file and a chart
-# rendering 500 documents. Budgets: design/architecture.md ("Performance").
+# Time codec on large inputs: a 10k-file repo, a 5 MB file, a chart
+# rendering 500 documents and a 100k-line log. Budgets: design/architecture.md ("Performance").
 #   scripts/perf.sh [dir]   fixtures go in dir (default: a temp folder)
 # Uses a throwaway settings folder; schemas download on first use.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 dir="${1:-$(mktemp -d)}"
-[[ -d "$dir/repo10k" ]] || go run ./scripts/perfgen "$dir"
+[[ -d "$dir/repo10k" && -f "$dir/logs/app.ndjson" ]] || go run ./scripts/perfgen "$dir"
 now() { perl -MTime::HiRes=time -e 'printf "%d", time * 1000'; } # ms; macOS date has no %N
 path() { if command -v cygpath >/dev/null; then cygpath -m "$1"; else echo "$1"; fi; }
 
@@ -57,3 +57,12 @@ echo "analyze     $(call POST /api/v2/yaml/analyze '{"path":"big.yaml"}') (again
 echo "== 500-document chart"
 open "$dir/chart500"
 for i in 1 2 3; do echo "render $i    $(call POST /api/v2/helm/render '{"chart":"many"}')"; done
+
+echo "== 100k-line log"
+echo "open        $(curl -s -o "$out" -w '%{http_code} %{time_total}s' -H "X-Codec-Token: $token" -F "file=@$(path "$dir/logs/app.ndjson")" "$base/api/v2/logs")"
+id=$(grep -o '"id":"[^"]*"' "$out" | head -1 | cut -d'"' -f4)
+echo "first page  $(call POST "/api/v2/logs/$id/entries" '{"q":"","histogram":120}')"
+echo "query       $(call POST "/api/v2/logs/$id/entries" '{"q":"level>=error http.response.status_code>=500","histogram":120}')"
+echo "text        $(call POST "/api/v2/logs/$id/entries" '{"q":"\"request 4242\""}')"
+echo "fields      $(call POST "/api/v2/logs/$id/fields" '{"q":""}')"
+echo "groups      $(call POST "/api/v2/logs/$id/groups" '{"q":""}')"

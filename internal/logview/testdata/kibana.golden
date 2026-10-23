@@ -1,0 +1,14 @@
+L6+1 ecs info(info) 2026-10-22T11:00:00Z msg="first"
+    _index:s=logs-orders
+    _id:s=a1
+    @timestamp:s=2026-10-22T11:00:00Z
+    log.level:s=info
+    message:s=first
+    ecs.version:s=8.11.0
+L7+3 ecs error(error) 2026-10-22T11:00:01Z msg="second"
+    _index:s=logs-orders
+    _id:s=a2
+    @timestamp:s=2026-10-22T11:00:01Z
+    log.level:s=error
+    message:s=second
+    raw="{\"_index\": \"logs-orders\", \"_id\": \"a2\", \"_score\": 1.0,\n       \"_source\": {\"@timestamp\": \"2026-10-22T11:00:01Z\", \"log\": {\"level\": \"error\"}, \"message\": \"second\"},\n       \"fields\": {\"message\": [\"second\"]}}"

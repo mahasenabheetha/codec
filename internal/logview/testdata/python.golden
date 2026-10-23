@@ -1,0 +1,10 @@
+L1+1 text info(INFO) 2026-10-22T09:40:00.001Z msg="- billing - INFO - invoice run started"
+L2+7 text error(ERROR) 2026-10-22T09:40:02.5Z msg="- billing - ERROR - invoice 88 failed" err="ZeroDivisionError: division by zero"
+    | Traceback (most recent call last):
+    |   File "/app/billing.py", line 42, in run
+    |     total = compute(items)
+    |   File "/app/billing.py", line 17, in compute
+    |     return sum(i.price for i in items) / len(items)
+    | ZeroDivisionError: division by zero
+    raw="2026-10-22 09:40:02,500 - billing - ERROR - invoice 88 failed\nTraceback (most recent call last):\n  File \"/app/billing.py\", line 42, in run\n    total = compute(items)\n  File \"/app/billing.py\", line 17, in compute\n    return sum(i.price for i in items) / len(items)\nZeroDivisionError: division by zero"
+L9+1 text error(ERROR) msg="retry budget exhausted"

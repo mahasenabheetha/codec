@@ -1,0 +1,7 @@
+Starting job...
+[INFO] Fetching dependencies
+WARNING: disk usage above 80%
+error: could not resolve host
+Oct 22 11:10:00 node-1 systemd[1]: Started example.service.
+Everything is fine (status 40 items)
+I think this is plain text

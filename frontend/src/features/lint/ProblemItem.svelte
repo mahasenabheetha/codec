@@ -15,16 +15,17 @@
     code?: string
     where?: string // e.g. "12:3"
     onjump: () => void
+    tag?: 'li' | 'div' // div inside a windowed list, which has no <ul>
   }
 
-  let { severity, message, hint, why, code, where, onjump }: Props = $props()
+  let { severity, message, hint, why, code, where, onjump, tag = 'li' }: Props = $props()
   let open = $state(false)
   const icons = { error: CircleX, warning: TriangleAlert, info: Info }
   const Icon = $derived(icons[severity])
   const rule = $derived(code ? lint.rule(code) : undefined)
 </script>
 
-<li class="item {severity}">
+<svelte:element this={tag} class="item {severity}">
   <button type="button" class="main" onclick={onjump}>
     <span class="icon"><Icon size={14} strokeWidth={1.75} /></span>
     <span class="text">
@@ -47,7 +48,7 @@
     </div>
     {#if open && why}<p class="why">{why}</p>{/if}
   {/if}
-</li>
+</svelte:element>
 
 <style>
   .item {

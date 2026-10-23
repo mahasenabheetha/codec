@@ -1,0 +1,2 @@
+{"@t":"2026-10-22T09:00:00.1234567Z","@mt":"Processed {Count} orders in {Elapsed} ms","Count":12,"Elapsed":34,"SourceContext":"Orders.Worker"}
+{"@t":"2026-10-22T09:00:01.0000000Z","@mt":"Order {OrderId} failed","@l":"Error","@x":"System.InvalidOperationException: Order is closed\n   at Orders.Worker.Process(Order o) in /src/Worker.cs:line 42","OrderId":1043}

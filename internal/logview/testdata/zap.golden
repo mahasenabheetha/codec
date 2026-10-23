@@ -1,0 +1,32 @@
+L1+1 json info(info) 2026-10-22T08:00:00.123456Z msg="request handled" caller="server/server.go:57"
+    level:s=info
+    ts:n=1792656000.123456
+    caller:s=server/server.go:57
+    msg:s=request handled
+    method:s=GET
+    path:s=/healthz
+    status:n=200
+    latency:n=0.0012
+L2+1 json error(error) 2026-10-22T08:00:01.5Z msg="request failed" caller="server/server.go:63" err="context deadline exceeded"
+    | main.(*Server).handle
+    | 	/app/server/server.go:63
+    | net/http.HandlerFunc.ServeHTTP
+    | 	/usr/local/go/src/net/http/server.go:2220
+    level:s=error
+    ts:n=1792656001.5
+    caller:s=server/server.go:63
+    msg:s=request failed
+    method:s=POST
+    path:s=/orders
+    status:n=500
+    error:s=context deadline exceeded
+    stacktrace:s=main.(*Server).handle
+	/app/server/server.go:63
+net/http.HandlerFunc.ServeHTTP
+	/usr/local/go/src/net/http/server.go:2220
+L3+1 json fatal(dpanic) 2026-10-22T08:00:02Z msg="nil entry" logger="cache"
+    level:s=dpanic
+    ts:n=1792656002.0
+    logger:s=cache
+    msg:s=nil entry
+    key:s=user:17

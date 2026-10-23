@@ -1,0 +1,4 @@
+{"level":"info","msg":"workflow submitted","time":"2026-10-22T08:30:00Z","workflow":"build-7f2kd"}
+{"error":"exit status 1","level":"error","msg":"step failed","step":"test","time":"2026-10-22T08:31:10Z"}
+time="2026-10-22T08:31:11Z" level=warning msg="retry scheduled" step=test retries=1
+time="2026-10-22T08:31:12Z" level=fatal msg="giving up" error="exit status 1"

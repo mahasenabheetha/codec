@@ -1,0 +1,9 @@
+2026-10-22 09:40:00,001 - billing - INFO - invoice run started
+2026-10-22 09:40:02,500 - billing - ERROR - invoice 88 failed
+Traceback (most recent call last):
+  File "/app/billing.py", line 42, in run
+    total = compute(items)
+  File "/app/billing.py", line 17, in compute
+    return sum(i.price for i in items) / len(items)
+ZeroDivisionError: division by zero
+ERROR:root:retry budget exhausted

@@ -1,0 +1,3 @@
+{"name":"api","hostname":"web-1","pid":42,"level":30,"msg":"started","time":"2026-10-22T08:50:00.000Z","v":0}
+{"level":50,"time":1792659000123,"pid":7,"hostname":"web-2","msg":"upstream 502","req":{"method":"GET","url":"/cart"}}
+{"level":60,"time":1792659001000,"msg":"out of memory"}

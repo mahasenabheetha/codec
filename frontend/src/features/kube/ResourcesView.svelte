@@ -19,6 +19,7 @@
   import Graph from '../../lib/components/Graph.svelte'
   import SearchInput from '../../lib/components/SearchInput.svelte'
   import Tabs from '../../lib/components/Tabs.svelte'
+  import VirtualList from '../../lib/components/VirtualList.svelte'
   import type { K8sAnalysis, K8sSource } from '../../lib/api/k8s'
   import ProblemItem from '../lint/ProblemItem.svelte'
 
@@ -51,6 +52,28 @@
     const q = filter.trim().toLowerCase()
     if (!q) return sorted
     return sorted.filter((c) => `${c.kind} ${c.name} ${c.namespace ?? ''}`.toLowerCase().includes(q))
+  })
+  // Cards are windowed a row at a time (a big folder has thousands of
+  // objects); as many fit a row as the old auto-fill grid put there.
+  const minCard = 300
+  let cardsEl = $state<HTMLDivElement>()
+  let columns = $state(1)
+  $effect(() => {
+    const el = cardsEl
+    if (!el) return
+    const ro = new ResizeObserver(() => {
+      const cs = getComputedStyle(el)
+      const width = el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)
+      const gap = parseFloat(cs.rowGap) || 12
+      columns = Math.max(1, Math.floor((width + gap) / (minCard + gap)))
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  })
+  const cardRows = $derived.by(() => {
+    const out: (typeof cards)[] = []
+    for (let i = 0; i < cards.length; i += columns) out.push(cards.slice(i, i + columns))
+    return out
   })
   const graphNodes = $derived(
     data.graph.nodes.map((n) => ({ id: n.id, label: n.name, sub: n.kind + (n.missing ? ' · not here' : ''), group: kindGroup(n.kind), missing: n.missing })),
@@ -90,50 +113,56 @@
   {#if data.cards.length === 0}
     <p class="muted pad">No Kubernetes objects here.</p>
   {:else if tab === 'cards'}
-    <div class="cards">
-      {#each cards as c (c.id)}
-        <article class="card g-{kindGroup(c.kind)}">
-          <button type="button" class="head" title="Open where it is written" onclick={() => onopen(c.source)}>
-            <span class="kind">{c.kind}</span>
-            <span class="name">{c.name}</span>
-            {#if c.namespace}<span class="ns">{c.namespace}</span>{/if}
-          </button>
-          {#if c.facts.length}
-            <dl>
-              {#each c.facts as f, i (i)}<dt>{f.label}</dt><dd>{f.value}</dd>{/each}
-            </dl>
-          {/if}
-          {#if c.containers?.length}
-            <ul class="ctrs">
-              {#each c.containers as ct (ct.name)}
-                <li>
-                  <span class="cname">{ct.init ? 'init · ' : ''}{ct.name}</span>
-                  <span class="img">{ct.image}</span>
-                  {#if ct.ports?.length}<span class="ports">{ct.ports.join(', ')}</span>{/if}
-                </li>
-              {/each}
-            </ul>
-          {/if}
-          {#if c.secret?.length}
-            <div class="secret">
-              <button type="button" class="reveal" onclick={() => (revealed.has(c.id) ? revealed.delete(c.id) : revealed.add(c.id))}>
-                {#if revealed.has(c.id)}<EyeOff size={12} /> Hide values{:else}<Eye size={12} /> Reveal values{/if}
-              </button>
-              <dl>
-                {#each c.secret as s (s.key)}
-                  <dt>{s.key}</dt>
-                  <dd class="val">
-                    {#if s.error}<span class="muted">{s.error}</span>
-                    {:else if s.binary}<span class="muted">binary, {s.size} bytes</span>
-                    {:else if revealed.has(c.id)}{s.value}
-                    {:else}<span class="mask">{'•'.repeat(Math.min(12, Math.max(4, s.size)))}</span>{/if}
-                  </dd>
-                {/each}
-              </dl>
-            </div>
-          {/if}
-        </article>
-      {/each}
+    <div class="cards" bind:this={cardsEl}>
+      <VirtualList count={cardRows.length} key={(i) => `${columns}:${cardRows[i][0].id}`} estimate={160}>
+        {#snippet row(i)}
+          <div class="card-row" style:--cols={columns}>
+            {#each cardRows[i] as c (c.id)}
+              <article class="card g-{kindGroup(c.kind)}">
+                <button type="button" class="head" title="Open where it is written" onclick={() => onopen(c.source)}>
+                  <span class="kind">{c.kind}</span>
+                  <span class="name">{c.name}</span>
+                  {#if c.namespace}<span class="ns">{c.namespace}</span>{/if}
+                </button>
+                {#if c.facts.length}
+                  <dl>
+                    {#each c.facts as f, i (i)}<dt>{f.label}</dt><dd>{f.value}</dd>{/each}
+                  </dl>
+                {/if}
+                {#if c.containers?.length}
+                  <ul class="ctrs">
+                    {#each c.containers as ct (ct.name)}
+                      <li>
+                        <span class="cname">{ct.init ? 'init · ' : ''}{ct.name}</span>
+                        <span class="img">{ct.image}</span>
+                        {#if ct.ports?.length}<span class="ports">{ct.ports.join(', ')}</span>{/if}
+                      </li>
+                    {/each}
+                  </ul>
+                {/if}
+                {#if c.secret?.length}
+                  <div class="secret">
+                    <button type="button" class="reveal" onclick={() => (revealed.has(c.id) ? revealed.delete(c.id) : revealed.add(c.id))}>
+                      {#if revealed.has(c.id)}<EyeOff size={12} /> Hide values{:else}<Eye size={12} /> Reveal values{/if}
+                    </button>
+                    <dl>
+                      {#each c.secret as s (s.key)}
+                        <dt>{s.key}</dt>
+                        <dd class="val">
+                          {#if s.error}<span class="muted">{s.error}</span>
+                          {:else if s.binary}<span class="muted">binary, {s.size} bytes</span>
+                          {:else if revealed.has(c.id)}{s.value}
+                          {:else}<span class="mask">{'•'.repeat(Math.min(12, Math.max(4, s.size)))}</span>{/if}
+                        </dd>
+                      {/each}
+                    </dl>
+                  </div>
+                {/if}
+              </article>
+            {/each}
+          </div>
+        {/snippet}
+      </VirtualList>
     </div>
   {:else if tab === 'graph'}
     <div class="graph">
@@ -253,11 +282,15 @@
   .cards {
     flex: 1;
     overflow: auto;
+    /* row-gap is read by the script as the gap between cards. */
+    row-gap: var(--s-3);
+    padding: var(--s-3) var(--s-3) 0;
+  }
+  .card-row {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    align-content: start;
+    grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
     gap: var(--s-3);
-    padding: var(--s-3);
+    padding-bottom: var(--s-3);
   }
   .card {
     --c: var(--fg-2);

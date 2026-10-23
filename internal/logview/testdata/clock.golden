@@ -1,0 +1,12 @@
+L1+1 text info(INFO) 2026-10-22T10:00:00.123Z msg="[main] INFO  c.e.App - started"
+L2+1 text warn(WARN) 2026-10-22T10:00:01.456Z msg="[main] WARN  c.e.App - slow start"
+L3+1 text error(ERROR) 2026-10-22T10:00:02.789Z msg="[exec-1] ERROR c.e.Payment - charge failed"
+L4+1 text info(INFO) 2026-10-22T10:00:03Z msg="a zone after a space"
+L5+1 json info(INFO) 2026-10-22T08:00:04.123Z msg="log4j2 JSON layout"
+    instant.epochSecond:n=1792656004
+    instant.nanoOfSecond:n=123000000
+    level:s=INFO
+    message:s=log4j2 JSON layout
+L6+1 json 2026-10-22T10:00:05Z msg="created_at as the time"
+    created_at:s=2026-10-22T10:00:05Z
+    msg:s=created_at as the time

@@ -1,0 +1,11 @@
+wf-a1b2c-main-1111111111: {"log.level":"warn","ecs.version":"9.2.0","argo_workflow_name":"wf-a1b2c","argo_step_name":"deploy","_timestamp":"2026-10-22T14:18:19.391Z","message":"Environment variable DB_PORT not set, using default value: 1521"}
+wf-a1b2c-main-1111111111: {"log.level":"info","ecs.version":"9.2.0","argo_workflow_name":"wf-a1b2c","argo_step_name":"deploy","_timestamp":"2026-10-22T14:18:19.392Z","message":"Utility: database"}
+wf-a1b2c-main-2222222222: 2026-10-22T14:18:19.444261+00:00
+wf-a1b2c-main-2222222222: ALTER PLUGGABLE DATABASE TESTPDB CLOSE IMMEDIATE
+wf-a1b2c-main-2222222222: 2026-10-22T14:18:19.445550+00:00
+wf-a1b2c-main-2222222222: TESTPDB(3):Pluggable database TESTPDB closing
+wf-a1b2c-main-1111111111: {"log.level":"info","ecs.version":"9.2.0","argo_workflow_name":"wf-a1b2c","argo_step_name":"deploy","_timestamp":"2026-10-22T14:18:20.000Z","message":"waiting for the database"}
+wf-a1b2c-main-2222222222: TESTPDB(3):JIT: pid 1856 requesting stop
+wf-a1b2c-main-2222222222: 2026-10-22T14:18:23.397478+00:00
+wf-a1b2c-main-2222222222: TESTPDB(3):Closing sequence subsystem (5634362655082).
+wf-a1b2c-main-2222222222: 2026-10-22T14:18:24.000000+00:00

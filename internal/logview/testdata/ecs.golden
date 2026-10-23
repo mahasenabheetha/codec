@@ -1,0 +1,44 @@
+L1+1 ecs info(info) 2026-10-22T08:15:01.12Z msg="server started" logger="http" caller="server.go:88"
+    @timestamp:s=2026-10-22T08:15:01.120Z
+    log.level:s=info
+    message:s=server started
+    ecs.version:s=1.6.0
+    service.name:s=orders
+    log.logger:s=http
+    log.origin.file.name:s=server.go
+    log.origin.file.line:n=88
+    http.port:n=8080
+L2+1 ecs warn(warn) 2026-10-22T08:15:02.004Z msg="slow query" trace="4bf92f3577b34da6a3ce929d0e0e4736"
+    @timestamp:s=2026-10-22T08:15:02.004Z
+    log.level:s=warn
+    message:s=slow query
+    ecs.version:s=1.6.0
+    service.name:s=orders
+    event.duration:n=1520000000
+    db.statement:s=SELECT id FROM orders WHERE customer_id = ?
+    trace.id:s=4bf92f3577b34da6a3ce929d0e0e4736
+L3+1 ecs error(ERROR) 2026-10-22T08:15:03.511Z msg="payment failed" logger="com.example.orders.PaymentClient" err="Read timed out" trace="0af7651916cd43dd8448eb211c80319c"
+    | java.net.SocketTimeoutException: Read timed out
+    | 	at java.base/sun.nio.ch.NioSocketImpl.timedRead(NioSocketImpl.java:288)
+    | 	at com.example.orders.PaymentClient.charge(PaymentClient.java:57)
+    @timestamp:s=2026-10-22T08:15:03.511Z
+    log.level:s=ERROR
+    log.logger:s=com.example.orders.PaymentClient
+    message:s=payment failed
+    ecs.version:s=1.2.0
+    error.type:s=java.net.SocketTimeoutException
+    error.message:s=Read timed out
+    error.stack_trace:s=java.net.SocketTimeoutException: Read timed out
+	at java.base/sun.nio.ch.NioSocketImpl.timedRead(NioSocketImpl.java:288)
+	at com.example.orders.PaymentClient.charge(PaymentClient.java:57)
+    trace.id:s=0af7651916cd43dd8448eb211c80319c
+    process.thread.name:s=http-nio-8080-exec-3
+    tags:a=["payments","retry"]
+L4+1 ecs info(info) 2026-10-22T08:15:04Z msg="{\"order\":{\"id\":1042,\"status\":\"paid\"}}"
+    @timestamp:s=2026-10-22T08:15:04Z
+    log.level:s=info
+    message:s={"order":{"id":1042,"status":"paid"}}
+    ecs.version:s=8.11.0
+    labels:o={}
+    message.order.id:n=1042
+    message.order.status:s=paid

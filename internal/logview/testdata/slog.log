@@ -1,0 +1,4 @@
+{"time":"2026-10-22T08:20:00.000123+02:00","level":"INFO","msg":"listening","addr":":8080"}
+{"time":"2026-10-22T08:20:01.5+02:00","level":"ERROR","source":{"function":"main.run","file":"/app/main.go","line":41},"msg":"connect failed","err":"dial tcp 10.0.0.5:5432: connect: connection refused","attempt":3}
+time=2026-10-22T08:20:02.000+02:00 level=WARN msg="retrying in 2s" attempt=4 backoff=2s
+time=2026-10-22T08:20:04.000+02:00 level=INFO msg=connected db.host=db.internal ok=true

@@ -147,7 +147,7 @@ desktop/              Wails config, icons, installer
 | T5 | Installer | Per-user NSIS (`RequestExecutionLevel user`) into `%LOCALAPPDATA%\Programs\codec`: Start menu entry, uninstall entry in HKCU, "Open with codec" for `.yaml`/`.yml` in HKCU; no admin; a portable exe as well | Done: `scripts/desktop.sh`, `desktop/windows/` (installer.nsi, manifest, icon.ico); exe icon and version via a generated `.syso` (wails3 generate syso). Optional desktop shortcut; existing shortcuts are never overwritten, and uninstall removes only what it created. Uninstall keeps `%APPDATA%\codec` (shared with the CLI) |
 | T6 | Release build and signing | Desktop build in the release workflow next to the CLI; version and product metadata on the exe; signing step through [SignPath](#code-signing) (off until approved) | Done without signing: `desktop` job in release.yml (windows-latest, after GoReleaser) uploads the portable exe, installer and checksums. The desktop package builds on Windows only (`//go:build windows`), so Linux vet/test/build skip it. Signing waits for the SignPath application (Open checks) |
 | T7 | Docs | Install, desktop features, uninstall; README and docs site; `architecture.md` | Done: README Quick start, getting-started (Desktop app), settings, security, troubleshooting, architecture page; `design/architecture.md` (layout, runtime mode), design-language (`lib/platform.ts` pattern), releases.md |
-| — | Release | Full checks; CHANGELOG cut as 3.0.0 | Review (16 findings fixed); pre-released as v3.0.0-rc.1 (release workflow and installer confirmed); rebuilt with Wails beta.28, full checks passed; CHANGELOG cut as 3.0.0, ready to merge and tag |
+| — | Release | Full checks; CHANGELOG cut as 3.0.0 | Review (16 findings fixed); pre-released as v3.0.0-rc.1 (release workflow and installer confirmed); rebuilt with Wails beta.28, full checks passed; CHANGELOG cut as 3.0.0. Released as v3.0.0 |
 
 Later, with a Mac: build on a macOS runner (cgo, Xcode), Apple Developer
 ID signing and notarization, macOS menu bar, Dock and window-close
@@ -172,6 +172,112 @@ free Windows signing. Their conditions, and what codec needs:
 The certificate names SignPath Foundation as the publisher, not the
 author. SignPath signs Windows only; macOS needs Apple's program.
 
+### v3.1.0 — Log viewer
+Agreed 2026-10-22 (decision 86, replacing the Argo-only plan of
+2026-10-10). Structured logs are slow to read in a terminal: JSON lines
+are long, sources interleave, and the line that matters sits among
+thousands. A Log viewer (Tools → Logs, beside the Ansible log; no open
+folder needed; browser UI and desktop app) reads every common format
+into one shape (time, level, message, source, logger, caller, error,
+trace ID, other fields), and every view works on that shape. Argo is
+one source among many; its step tree comes in 3.2.0.
+
+What it reads, with no settings:
+
+| Kind | Examples |
+|---|---|
+| ECS JSON | any ecs-logging library (Go `ecszap`, Java, .NET, Python, Node): `@timestamp`, `log.level`, `message`, `error.*`, `trace.id`; dotted or nested fields |
+| Other JSON | Go `slog`, zap, logrus, zerolog; Bunyan and pino (numeric levels); `severity` (Google Cloud); Kibana and Elasticsearch exports (`_source`, `hits.hits`) |
+| logfmt | `slog`'s text handler, logrus text, Argo's own containers |
+| Text | Kubernetes `klog`; Go panics and goroutine dumps, Java and Python stack traces joined to their entry; any other line kept as a text entry |
+| Prefixes, stripped and kept as the line's source | `argo logs` and `stern` pod prefixes, `kubectl logs --timestamps`, container-runtime lines (`… stdout F …`), `docker compose logs`, CI timestamps, colour codes |
+
+Input: files opened or dropped (several at once, merged by time;
+gzip read as is), pasted text, or a log file in the open folder
+(Explorer → Open in Log viewer). The parsed log stays in the server's
+memory, never on disk, and the browser asks only for what it shows
+(pages, counts, a chart), so 100k lines stay smooth and 1M lines work.
+
+| # | Task | Main parts | Status |
+|---|---|---|---|
+| T1 | Reader | `internal/logview`, pure: decode (UTF-8 and UTF-16 BOMs, CRLF, gzip), strip colour codes and prefixes (kept as source and prefix time), detect the format per line; map each JSON flavour, logfmt and klog to the common entry (level names and numbers; RFC 3339, epoch s/ms/ns, `2006-01-02 15:04:05,000`, klog without a year); stack traces and panics joined to their entry; JSON inside `message` read as fields; synthetic fixtures per format; fuzz test; benchmark `encoding/json` against `valyala/fastjson` | Done: own JSON scanner (order kept, ~11× `encoding/json`, fuzzed against it), so no new dependency; also Docker json-file, Serilog CLEF (templates rendered), Kibana/Elasticsearch documents, CRI split lines; 100k ECS lines read in ~0.25 s |
+| T2 | Store and query | In-memory log: core fields per entry, other fields as dictionary-encoded columns; query `level>=warn service:api -logger:health status>=500 "connection reset" /time.?out/` (AND by default, `OR`, parentheses, `*` wildcards); time range; entries over time per level; the N entries around one, unfiltered; error groups (message with numbers, IDs, UUIDs, hex and quoted values masked); field stats (present in, distinct, top values; min, max, median, p95 for numbers); summary (levels, span, sources, first error, silent gaps); budgets in `scripts/perf.sh` (100k lines: load < 1 s, query < 100 ms) | Done: compact rows with keys and sources stored once (columns not needed: a full scan of 100k entries takes 1–35 ms); also `field:(a OR b)`, durations, array items, files merged by time, histogram axis kept while filtering; 100k ECS lines: build 0.38 s, field stats 94 ms; held memory ≈ 2.4× the input (`Log.Size`). Budgets are benchmarks here; `perf.sh` gets them with the API |
+| T3 | API | `POST /api/v2/logs` (files, pasted text, or a workspace file through the root guard) → handle and summary; `/{id}/entries` (query, page), `/{id}/entries/{n}` (detail and context), `/{id}/fields`, `/{id}/groups`, `/{id}/export` (filtered entries as NDJSON, CSV or text); `DELETE`; limits on memory held (`Log.Size`, about 2.4× the input): 512 MB per log, 1 GB in all with the oldest dropped first, dropped after an idle hour; budgets in `scripts/perf.sh`; "expired" answered so the UI re-sends what it holds; tests | Done: limits are 256 MB of text per log (≈ 600 MB held) and 1 GB held in all; the last query is kept per log so paging doesn't rerun it; `at` finds the page holding an entry; a gzip or UTF-16 file in the open folder is read through the root guard (`workspace.ReadLog`); NDJSON export keeps field order. `perf.sh` on 100k lines: open 0.55 s, queries 3–27 ms, field stats 120 ms |
+| T4 | Windowed list | Shared list component that keeps only visible rows in the DOM, with variable heights (wrapped lines, expanded context); also used by the Problems view and Resources cards (the backlog item "Window long lists") | Done: `lib/components/VirtualList.svelte`; Problems flattened into file and finding rows, Resources cards windowed a row at a time with as many cards as fit; 5,000 findings: 14–22 rows in the DOM, 0–6 ms of script per scroll step |
+| T5 | Viewer UI | Tools → Logs → Log viewer: inputs (open, drop, paste; files as chips; Explorer "Open in Log viewer" for `.log`, `.ndjson`, `.jsonl`); overview (levels, span, sources, first error, top error groups); entry list (level colours, any field as a column, absolute or relative time, wrap, line numbers); query bar with chips that write the query; chart of entries over time, drag to set a range; docs (`docs/logs.html`) | Done: `features/logs` (viewer state, overview, chart, list on `VirtualList` with pages fetched as rows come into view, a basic entry panel T6 extends); a log the server dropped is sent again on its own (410); paste anywhere on the tool; display choices (time, wrap, columns) remembered; 100k pasted lines read in 0.64 s, any scroll position filled in ~70 ms. No screenshot yet in `docs/logs.html` |
+| T6 | Investigate | Detail panel (fields as a tree, raw line, stack trace laid out, JSON in the message pretty-printed); per value: only this, hide this, add as column, follow (`trace.id`, request IDs); ±N entries around one in a filtered list; Errors tab (groups with count, first and last time); Fields tab (stats); export and copy (filtered entries, a summary; password, token and secret values and bearer tokens masked on copy); keyboard (next error, next match, `/` for the query); smart paste sends logs here; docs | Done: detail panel (`FieldTree`, `StackTrace`, `ValueActions`, ±5/20/50 around); Errors and Fields tabs; `group:N` in the query (`logview` groups now have ids); export as lines, NDJSON or CSV; `mask.ts` on every copy (checked with 10 cases in Node, as the frontend has no Vitest); keyboard; smart paste detects logs (`codec.DetectUtility`, not Ansible runs); `/` allowed in query field names (Kubernetes labels) |
+| — | Feedback | After trying it | Done: search as you type with suggestions (field names, then values) and "?" examples, words marked in rows; rows wrap (or one line, scrolling sideways); a time of day alone, `_timestamp` and other time names read; a line that is only a time starts an entry and the plain lines after it from the same source are its message (Oracle's alert log inside an Argo run) |
+| T7 | Several logs | Tabs inside the viewer, one log each with its own query, range, selection, pins and highlights; Open logs and Explorer → Open in Log viewer open a tab, Add logs merges into the current one; each tab's held size shown; recent queries back in the suggestions | Done: `LogTabs` and one `LogViewer` per tab, reached through Svelte context; every tab stays mounted (hidden when not shown), so its scroll, entry panel and Errors/Fields tab survive switching; pasted logs numbered across tabs, the sample named Sample; a tab that fails to read shows why and closes |
+| T8 | View layer: engine + API | Over the matches, on the server so 100k entries stay smooth: context (N entries around each match, the rest dimmed, gaps as "⋯ 240 entries"); repeats folded (consecutive, same source; exact by default, or the same apart from numbers and IDs) as "×120, first–last"; runs of plain output between structured entries folded per source ("⋯ 12 lines of output from …"), expandable, nothing dropped; up to four highlight rules (queries) marked per row; a compact picture of where errors, highlights and pins are, for the scrollbar | Done: `logview.View` (context with gaps, output folded per source and broken by any structured entry or gap, runs of 3 or more; repeats exact or similar), `RowAt`, `Filter` for highlight rules, `Markers` (error, warning, pin and rule bits per bucket); the entries endpoint pages over the view (cached per log like the matches) and keeps counts, chart and groups on the matches; 100k entries: context 10 with output folding 5 ms, everything folded 22 ms; fuzzed |
+| T9 | View layer: UI | Context 0 / 3 / 10, Repeats and Output folding switches, highlight rules with colours (edge per row), markers beside the scrollbar to jump to; counts, chart and Errors keep counting matches only | Done: Around Off/±3/±10, Fold: Output (on by itself for mixed logs) and Repeats (off, exact, similar), Highlight (four rules, errors shown per rule), the marker strip with where you are; the list pages over view rows; O opens or folds; selection follows its entry when a fold opens above it; context and repeat style remembered as preferences |
+| T10 | Pins | Pin with P, a row button or the entry panel; a pins panel in time order with a note each; [ and ] between pins; copy as a report (text or Markdown, secrets masked); pins on the scrollbar; memory only | Done: a Pins tab (time order, a note each, go to, unpin, unpin all), P on the selected row, the pin on a row and in the entry, [ and ] from pin to pin (the query cleared if it hides one), pins on the marker strip; copy as text or Markdown through `maskSecrets`; cleared with a notice when the tab's files change, since pins point at entries by their place |
+| T11 | Compare two runs | Compare with… another open tab: the first difference (the first entry whose message the other run never has), new messages and errors, missing ones (a step that didn't happen), changed counts and slower sources; messages matched with numbers, IDs and times ignored; each item opens its entry in either tab; engine, API, UI | Done: Compare with… another open tab, a Compare tab with both runs in numbers, the first difference in each, New here / Missing here / More or less often (half as often again or a third less, and by 2 or more) / Sources (entries, errors, time; slower marked); `logview.Compare` over fingerprints (any masked value matches any other, generated pod names masked), `POST /logs/{id}/compare`; a click opens the entry in either tab; copy as text, masked; stale once a tab's files change. Also fixed: a tab opened from the Explorer lost its folder file when files were dropped into it (folder files now go as `path` parts beside dropped ones) |
+| — | Release | Full checks; CHANGELOG cut as 3.1.0 | Full checks passed (vet, all Go tests, frontend build, svelte-check; the 100k-entry log benchmarks within budget); docs pass (Log viewer page against the code, README, docs home, security); CHANGELOG cut as 3.1.0 |
+
+Later: `codec logs` on the command line on the same engine (filters,
+`-o json`, stdin, an exit code for gates); saved queries.
+
+### v3.1.1 — Review and stabilisation
+A whole-codebase pass after 3.1.0, so it covers the viewer too. Bug
+fixes only, as a patch release.
+
+| # | Task | Main parts | Status |
+|---|---|---|---|
+| T1 | Static checks | `staticcheck`, `govulncheck`, `go test -race`, `npm audit`; the useful ones join CI | |
+| T2 | Fuzz tests | Every parser (YAML tools, logs, Ansible logs, encoders, cron, regex), for crashes and hangs | |
+| T3 | Browser tests | Playwright against the sample workspace: open a folder, the main views, Compare, tools, settings; in CI | |
+| T4 | Review by area | Separate reviewers (a workflow, under 10 at a time): Go engines; server, API and security; frontend; desktop app and installer; release workflow; docs against behaviour; each finding verified before it is reported | |
+| T5 | Fixes | Each with a regression test | |
+| — | Release | Full checks; CHANGELOG cut as 3.1.1 | |
+
+### v3.2.0 — Argo workflows and live follow
+Agreed 2026-10-22 (decision 87). Built on the Log viewer: an Argo run
+shown as its steps, what each did, how long it took, what failed and
+why, including steps that failed before they logged.
+
+| # | Task | Main parts | Status |
+|---|---|---|---|
+| T1 | Steps from pods | Argo pod names become steps (or the `argo_step_name` and `argo_workflow_name` fields when the log carries them); `init` and `wait` container lines folded; per step: first and last time, errors, warnings | |
+| T2 | Workflow status | `argo get <wf> -o yaml` or `-o json` (or `kubectl get wf`), whole or a snippet, opened or pasted beside the logs: the step tree (steps, DAG tasks, parallel groups, retries, loop items) with phase, times, exit code and message; failed reason = Argo's message + the step's first error | |
+| T3 | Steps and lanes | Step tree with failed steps expanded; one lane per source (pod, step, service) over time; a log that stops mid-run shows its last steps as still running | |
+| T4 | Live follow | A log file in the open folder followed as it grows (codec's file watching), e.g. `argo logs --follow > run.log` | |
+| T5 | Argo graph coloured by a run | When the open folder has the workflow, its graph in the Argo view is coloured by the run's step results, with durations; a node opens its step's log; docs (`argo.html`) | |
+| — | Release | Full checks; CHANGELOG cut as 3.2.0 | |
+
+### v3.3.0 — Markdown preview
+Agreed 2026-10-05 (decision 84). READMEs and docs in a repository are
+easier to read rendered than as raw syntax. `.md` files already open in
+the editor (lang `markdown`); a Source / Preview switch in the file
+toolbar shows them rendered, in the browser UI and the desktop app.
+
+| # | Task | Main parts | Status |
+|---|---|---|---|
+| T1 | Safe rendering | `marked` (GitHub-flavoured: tables, task lists, strikethrough) and `DOMPurify`; raw HTML off, scripts and event handlers stripped; renders the editor's text, so what-if edits show; tests with hostile Markdown | |
+| T2 | Preview in the file view | Source / Preview switch in `FileView.svelte` toolbar and the palette; styles for headings, lists, tables, quotes and code in both themes; heading anchors | |
+| T3 | Links and images | A link to another file opens it in a codec tab, `#heading` scrolls, external links open in the system browser; images inside the workspace through a read-only route (images only, inside the root); remote images blocked with "Load images" | |
+| T4 | Code blocks and setting | YAML, JSON and shell blocks highlighted with the editor's highlighter; Settings → Editor: open Markdown as Preview or Source; docs (`workspace.html`, settings) | |
+| — | Release | Full checks; CHANGELOG cut as 3.3.0 | |
+
+Later: Mermaid diagrams (loaded only when a file has one); side by side
+with scroll sync.
+
+### v3.4.0 — Update check
+Agreed 2026-10-06 (decision 85). Wails has no updater and codec never
+looks for new versions, so an installed copy stays old until the user
+notices a release. codec can ask GitHub for the latest release and say
+when a newer one exists; updating stays the installer run over the top
+(it replaces the install in place and keeps settings).
+
+| # | Task | Main parts | Status |
+|---|---|---|---|
+| T1 | Check: engine + API + CLI | `internal/update`: latest release from the GitHub API (pre-releases only when running one), semver compare with `internal/version`, 5 s timeout, at most once a day (result cached in the config dir), dev builds never check; `updates.check` setting, off by default; `GET /api/v2/update`; `codec version --check`; tests against a fake server | |
+| T2 | Notice in the UI | Settings → General: "Check for updates" switch and "Check now"; "codec X.Y.Z is available" in the footer with a link to the release (the system browser in the desktop app), dismissable per version; tray menu entry in the desktop app; docs (settings, security: the second network use, troubleshooting) | |
+| — | Release | Full checks; CHANGELOG cut as 3.4.0 | |
+
+Later, after SignPath signing: "Update now" (download the installer,
+verify it against the release checksums, run it silently, restart);
+a winget package published by the release workflow.
+
 ### Later
 The rest of "Next", picked up when it fits.
 
@@ -181,7 +287,6 @@ The rest of "Next", picked up when it fits.
 |---|---|---|
 | [Expand matrix jobs in the pipeline graph](#expand-matrix-jobs-in-the-pipeline-graph) | S | A matrix job calling a reusable workflow shows as one node |
 | [Kustomize helmCharts](#kustomize-helmcharts) | M | Helm SDK is already embedded |
-| [Window long lists](#window-long-lists) | S | Problems and Resources cards, like TreeView |
 | [Helm environment matrix](#helm-environment-matrix) | M | All profiles of a chart at once: what differs per environment |
 | [Kubernetes resource totals](#kubernetes-resource-totals) | S | Requests and limits × replicas, summed |
 | [RBAC view](#rbac-view) | M | Who can do what; flags wildcards and cluster-admin |
@@ -202,6 +307,7 @@ The rest of "Next", picked up when it fits.
 
 | Version | Items |
 |---|---|
+| 3.1.0 | Log viewer: structured logs of any common format, filtered, charted and read; several logs in tabs, folds, highlights, pins and two runs compared |
 | 3.0.0 | Desktop app for Windows (Wails v3): own window, tray, start at login, system folder dialog, "Open with" for YAML; per-user installer without admin rights and a portable exe |
 | 2.4.0 | Light theme: System, Dark and Light in Settings and the palette |
 | 2.3.0 | Utilities: Encode & hash (URL, hex, hash/HMAC, secrets & UUID, htpasswd), Time (timestamps, cron explainer and builder, schedule hover), Regex (tester and explainer); smart paste for their input |
@@ -227,13 +333,6 @@ The rest of "Next", picked up when it fits.
   never download).
 - **Scope:** `internal/kube` (kustomize plugin hook), `internal/helm`.
 - **Done when:** a kustomization with a local chart builds like `kubectl kustomize --enable-helm`.
-
-### Window long lists
-- **Problem:** the Problems view and Resources cards render every row;
-  a repository with thousands of findings or objects gets slow.
-- **Result:** only visible rows are in the DOM, like TreeView (decision 70).
-- **Scope:** `frontend/src/features/lint`, `features/kube`, possibly a shared list component.
-- **Done when:** 5,000 findings scroll smoothly; `scripts/perf.sh` notes it.
 
 ### Helm environment matrix
 - **Problem:** Compare shows two renders at a time; seeing how dev, test

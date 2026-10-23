@@ -38,6 +38,7 @@
 <li><a href="ci.html">CI pipelines</a></li>
 <li><a href="compose.html">Compose</a></li>
 <li><a href="ansible.html">Ansible</a></li>
+<li><a href="logs.html">Log viewer</a></li>
 <li><a href="compare.html">Compare and query</a></li>
 <li><a href="new.html">New files and clones</a></li>
 <li><a href="tools.html">Everyday tools</a></li>
@@ -67,7 +68,7 @@
 <ul>
   <li><strong>It never writes to the folders it opens.</strong> Files are opened for reading only. What-if edits live in the browser tab. Generated files are text to copy or a zip your browser saves.</li>
   <li><strong>Nothing leaves your machine.</strong> No telemetry, no analytics, no accounts. The UI loads no third-party resources. The only outbound requests are downloads of public JSON schemas, which you can turn off (offline mode).</li>
-  <li><strong>Nothing you paste is stored.</strong> The tools keep input, passwords and keys in memory only; only display choices (a remembered tab or time zone) are saved.</li>
+  <li><strong>Nothing you paste is stored.</strong> The tools keep input, passwords and keys in memory only; only display choices (a remembered tab or time zone) are saved. A log in the Log viewer is held in the server's memory while you read it, never written to disk, and let go after an idle hour.</li>
   <li><strong>No config files in your repositories.</strong> Settings live in your user profile.</li>
 </ul>
 
@@ -92,6 +93,7 @@
   <li>GitHub <code>secrets.*</code> references are shown by name only.</li>
   <li>Compose variables come from <code>.env</code> and what-if values, not from your shell's environment — so a secret in your environment never appears in the view.</li>
   <li>The JWT tool decodes tokens locally and never verifies signatures against remote keys.</li>
+  <li>What the Log viewer copies (a line, an entry, a summary, pins, a comparison) has likely secrets masked: password, token, secret, key and cookie fields, bearer credentials, JWTs and passwords in URLs.</li>
   <li>Secrets and UUIDs come from the operating system's secure random source, and htpasswd lines are hashed with bcrypt, all on your machine. On the command line, passwords and HMAC keys are never taken as arguments, so they stay out of your shell history.</li>
 </ul>
 

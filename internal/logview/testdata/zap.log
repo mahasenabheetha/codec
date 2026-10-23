@@ -1,0 +1,3 @@
+{"level":"info","ts":1792656000.123456,"caller":"server/server.go:57","msg":"request handled","method":"GET","path":"/healthz","status":200,"latency":0.0012}
+{"level":"error","ts":1792656001.5,"caller":"server/server.go:63","msg":"request failed","method":"POST","path":"/orders","status":500,"error":"context deadline exceeded","stacktrace":"main.(*Server).handle\n\t/app/server/server.go:63\nnet/http.HandlerFunc.ServeHTTP\n\t/usr/local/go/src/net/http/server.go:2220"}
+{"level":"dpanic","ts":1792656002.0,"logger":"cache","msg":"nil entry","key":"user:17"}

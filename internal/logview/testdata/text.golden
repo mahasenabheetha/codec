@@ -1,0 +1,7 @@
+L1+1 text msg="Starting job..."
+L2+1 text info(INFO) msg="Fetching dependencies"
+L3+1 text warn(WARNING) msg="disk usage above 80%"
+L4+1 text error(error) msg="could not resolve host"
+L5+1 text 2026-10-22T11:10:00Z msg="node-1 systemd[1]: Started example.service."
+L6+1 text msg="Everything is fine (status 40 items)"
+L7+1 text msg="I think this is plain text"

@@ -1,0 +1,4 @@
+L1+1 json info(info) 2026-10-22T10:10:00.123456789Z msg="ready"
+    level:s=info
+    msg:s=ready
+L2+1 text 2026-10-22T10:10:01Z msg="plain line from stdout"

@@ -9,12 +9,13 @@
     children: Snippet
     side?: 'top' | 'right' | 'bottom' | 'left'
     align?: 'start' | 'center' | 'end'
+    open?: boolean // bind it to close the panel after a choice
   }
 
-  let { trigger, children, side = 'top', align = 'end' }: Props = $props()
+  let { trigger, children, side = 'top', align = 'end', open = $bindable(false) }: Props = $props()
 </script>
 
-<Popover.Root>
+<Popover.Root bind:open>
   <Popover.Trigger>
     {#snippet child({ props })}
       {@render trigger(props)}

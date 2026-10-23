@@ -1,0 +1,29 @@
+L1+1 logfmt info(info) 2026-10-22T10:00:00Z src=build-7f2kd-checkout-1234567890 msg="capturing logs"
+    time:s=2026-10-22T10:00:00.000Z
+    level:s=info
+    msg:s=capturing logs
+    argo:b=true
+L2+1 text src=build-7f2kd-checkout-1234567890 msg="Cloning into 'src'..."
+L3+1 ecs info(info) 2026-10-22T10:00:05Z src=build-7f2kd-test-2345678901 msg="running 42 tests"
+    @timestamp:s=2026-10-22T10:00:05.000Z
+    log.level:s=info
+    message:s=running 42 tests
+    ecs.version:s=1.6.0
+L4+1 text src=build-7f2kd-checkout-1234567890 msg="done"
+L5+1 ecs error(error) 2026-10-22T10:00:09Z src=build-7f2kd-test-2345678901 msg="test failed"
+    @timestamp:s=2026-10-22T10:00:09.000Z
+    log.level:s=error
+    message:s=test failed
+    ecs.version:s=1.6.0
+    test.name:s=TestCharge
+L6+5 text fatal() src=build-7f2kd-test-2345678901 msg="panic: test timed out after 5s" err="test timed out after 5s"
+    | goroutine 1 [running]:
+    | testing.(*M).startAlarm.func1()
+    | 	/usr/local/go/src/testing/testing.go:2373 +0x385
+    raw="build-7f2kd-test-2345678901: panic: test timed out after 5s\nbuild-7f2kd-test-2345678901:\nbuild-7f2kd-test-2345678901: goroutine 1 [running]:\nbuild-7f2kd-test-2345678901: testing.(*M).startAlarm.func1()\nbuild-7f2kd-test-2345678901: \t/usr/local/go/src/testing/testing.go:2373 +0x385"
+L7+1 logfmt info(info) 2026-10-22T10:00:10Z src=build-7f2kd-checkout-1234567890 msg="sub-process exited" err="<nil>"
+    time:s=2026-10-22T10:00:10.000Z
+    level:s=info
+    msg:s=sub-process exited
+    argo:b=true
+    error:s=<nil>

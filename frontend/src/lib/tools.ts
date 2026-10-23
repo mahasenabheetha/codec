@@ -8,6 +8,7 @@ import Binary from '@lucide/svelte/icons/binary'
 import Braces from '@lucide/svelte/icons/braces'
 import KeyRound from '@lucide/svelte/icons/key-round'
 import ScrollText from '@lucide/svelte/icons/scroll-text'
+import Logs from '@lucide/svelte/icons/logs'
 import Clock from '@lucide/svelte/icons/clock'
 import CalendarClock from '@lucide/svelte/icons/calendar-clock'
 import CalendarSync from '@lucide/svelte/icons/calendar-sync'
@@ -85,6 +86,15 @@ export const tools: ToolDef[] = [
     icon: ScrollText,
     keywords: ['log', 'playbook', 'task', 'failure', 'error', 'pipeline'],
     load: () => import('../features/ansible/AnsibleTool.svelte'),
+  },
+  {
+    id: 'logs',
+    title: 'Log viewer',
+    group: 'Logs',
+    description: 'Read ECS, JSON, logfmt, klog and text logs: filter, chart, error groups and fields, across several files merged by time.',
+    icon: Logs,
+    keywords: ['log', 'ecs', 'json', 'logfmt', 'klog', 'argo', 'kubectl', 'slog', 'zap', 'logrus', 'kibana', 'error', 'trace'],
+    load: () => import('../features/logs/LogViewer.svelte'),
   },
   {
     id: 'time',
