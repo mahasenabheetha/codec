@@ -1,0 +1,28 @@
+L1+1 ecs warn(warn) 2026-10-22T14:18:19.391Z src=wf-a1b2c-main-1111111111 msg="Environment variable DB_PORT not set, using default value: 1521"
+    log.level:s=warn
+    ecs.version:s=9.2.0
+    argo_workflow_name:s=wf-a1b2c
+    argo_step_name:s=deploy
+    _timestamp:s=2026-10-22T14:18:19.391Z
+    message:s=Environment variable DB_PORT not set, using default value: 1521
+L2+1 ecs info(info) 2026-10-22T14:18:19.392Z src=wf-a1b2c-main-1111111111 msg="Utility: database"
+    log.level:s=info
+    ecs.version:s=9.2.0
+    argo_workflow_name:s=wf-a1b2c
+    argo_step_name:s=deploy
+    _timestamp:s=2026-10-22T14:18:19.392Z
+    message:s=Utility: database
+L3+2 text 2026-10-22T14:18:19.444261Z src=wf-a1b2c-main-2222222222 msg="ALTER PLUGGABLE DATABASE TESTPDB CLOSE IMMEDIATE"
+    raw="wf-a1b2c-main-2222222222: 2026-10-22T14:18:19.444261+00:00\nwf-a1b2c-main-2222222222: ALTER PLUGGABLE DATABASE TESTPDB CLOSE IMMEDIATE"
+L5+3 text 2026-10-22T14:18:19.44555Z src=wf-a1b2c-main-2222222222 msg="TESTPDB(3):Pluggable database TESTPDB closing\nTESTPDB(3):JIT: pid 1856 requesting stop"
+    raw="wf-a1b2c-main-2222222222: 2026-10-22T14:18:19.445550+00:00\nwf-a1b2c-main-2222222222: TESTPDB(3):Pluggable database TESTPDB closing\nwf-a1b2c-main-2222222222: TESTPDB(3):JIT: pid 1856 requesting stop"
+L7+1 ecs info(info) 2026-10-22T14:18:20Z src=wf-a1b2c-main-1111111111 msg="waiting for the database"
+    log.level:s=info
+    ecs.version:s=9.2.0
+    argo_workflow_name:s=wf-a1b2c
+    argo_step_name:s=deploy
+    _timestamp:s=2026-10-22T14:18:20.000Z
+    message:s=waiting for the database
+L9+2 text 2026-10-22T14:18:23.397478Z src=wf-a1b2c-main-2222222222 msg="TESTPDB(3):Closing sequence subsystem (5634362655082)."
+    raw="wf-a1b2c-main-2222222222: 2026-10-22T14:18:23.397478+00:00\nwf-a1b2c-main-2222222222: TESTPDB(3):Closing sequence subsystem (5634362655082)."
+L11+1 text 2026-10-22T14:18:24Z src=wf-a1b2c-main-2222222222 msg=""

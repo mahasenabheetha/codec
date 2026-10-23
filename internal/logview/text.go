@@ -16,6 +16,8 @@ var (
 	goFileRe = regexp.MustCompile(`^([\w./-]+\.go:\d+): `)
 	// Text with a leading time: logback, log4j, Python, most others.
 	textTimeRe = regexp.MustCompile(`^\[?(\d{4}-\d\d-\d\d[T ]\d\d:\d\d:\d\d(?:[.,]\d+)?(?: ?(?:Z|[+-]\d\d:?\d\d))?)(?: UTC)?\]?:?\s+`)
+	// A line that is only a date and time (Oracle's alert log).
+	timeOnlyRe = regexp.MustCompile(`^\[?\d{4}-\d\d-\d\d[T ]\d\d:\d\d:\d\d(?:[.,]\d+)?(?: ?(?:Z|[+-]\d\d:?\d\d))?\]?$`)
 	// A time of day without a date: "10:00:00.123 [main] INFO …".
 	clockRe = regexp.MustCompile(`^\[?(\d\d:\d\d:\d\d(?:[.,]\d{1,9})?)\]?\s+`)
 	// syslog: "Oct 22 10:00:00 ", without a year.

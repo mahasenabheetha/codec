@@ -30,7 +30,7 @@ const (
 // zerolog, Bunyan, pino, Serilog, log4j2, Python and structlog. When an
 // entry has several, the earlier name in its list wins.
 var roleKeys = [roleCount][]string{
-	roleTime:       {"@timestamp", "timestamp", "time", "ts", "@t", "t", "Timestamp", "date", "datetime", "dateTime", "date_time", "eventTime", "asctime", "logtime", "log_time", "time_local", "created_at", "createdAt"},
+	roleTime:       {"@timestamp", "timestamp", "_timestamp", "time", "ts", "@t", "t", "Timestamp", "date", "datetime", "dateTime", "date_time", "eventTime", "asctime", "logtime", "log_time", "time_local", "created_at", "createdAt"},
 	roleTimeMillis: {"timeMillis", "instant.epochSecond"},
 	roleLevel:      {"log.level", "level", "severity", "lvl", "@l", "Level", "loglevel", "log_level", "levelname", "level_name"},
 	roleMessage:    {"message", "msg", "@m", "RenderedMessage", "@mt", "MessageTemplate", "event", "log", "textPayload", "Message"},
@@ -97,6 +97,18 @@ func fromFields(e *Entry) {
 		if n, ok := field(e.Fields, "instant.nanoOfSecond"); ok && f.Key == "instant.epochSecond" && !e.Time.IsZero() {
 			if ns, err := strconv.ParseInt(n.Text, 10, 64); err == nil {
 				e.Time = e.Time.Add(time.Duration(ns))
+			}
+		}
+	}
+	if e.Time.IsZero() {
+		// Any other field named like a time ("_timestamp", "event_time")
+		// whose value reads as one.
+		for _, f := range e.Fields {
+			if f.Kind == String && timeKey(f.Key) {
+				if t, ok := parseTime(f.Text); ok {
+					e.Time = t
+					break
+				}
 			}
 		}
 	}
@@ -184,6 +196,14 @@ func field(fields []Field, key string) (Field, bool) {
 		}
 	}
 	return Field{}, false
+}
+
+// timeKey reports a field name whose last part is a time: "_timestamp",
+// "event_time", "log.datetime".
+func timeKey(k string) bool {
+	k = strings.ToLower(k)
+	last := k[strings.LastIndexAny(k, "._-@")+1:]
+	return last == "time" || last == "datetime" || strings.HasSuffix(last, "timestamp")
 }
 
 func hasKey(fields []Field, key string) bool {

@@ -56,6 +56,7 @@ const (
 	javaBlock           // frames after an exception line
 	pyBlock             // a Python traceback, before its last line
 	pyEnded             // after a traceback's last line: only a chained one may follow
+	headBlock           // after a line that is only a time: the plain lines that follow are its message
 )
 
 type pending struct {
@@ -281,7 +282,12 @@ func (r *reader) handle(l *line) {
 	}
 	if p != nil && p.block != noBlock {
 		if r.inBlock(p, l.s) {
-			r.join(p, l, true)
+			if p.block == headBlock {
+				p.msg = append(p.msg, l.s)
+				r.join(p, l, false)
+			} else {
+				r.join(p, l, true)
+			}
 			return
 		}
 		p.block, p.blanks = noBlock, nil
@@ -296,6 +302,13 @@ func (r *reader) handle(l *line) {
 	// not its stack.
 	takes := p != nil && p.e.Format == Text && p.stream == l.pre.stream
 	switch {
+	case timeOnlyRe.MatchString(l.s):
+		// Oracle's alert log and others write the time on a line of its
+		// own; the lines after it are what happened then.
+		e := Entry{Format: Text}
+		e.Time, _ = parseTime(strings.Replace(strings.Trim(l.s, "[]"), " +", "+", 1))
+		r.start(e, l, headBlock)
+		return
 	case takes && javaFrame(l.s):
 		r.join(p, l, true)
 		if p.e.Error == "" && exceptionRe.MatchString(p.e.Message) {
@@ -365,6 +378,17 @@ func (r *reader) inBlock(p *pending, s string) bool {
 			p.block = pyBlock
 			return true
 		}
+	case headBlock:
+		// Plain lines only: one that is structured, has a time or a level
+		// of its own, or starts a stack trace begins its own entry.
+		if timeOnlyRe.MatchString(s) || goPanicStart(s) || s == pyTraceback {
+			return false
+		}
+		var e Entry
+		if r.structured(s, &e) || readText(s, r.day, &e) || e.Level != LevelNone {
+			return false
+		}
+		return true
 	}
 	return false
 }
@@ -520,7 +544,10 @@ func (r *reader) finish(p *pending) Entry {
 		e.Raw = strings.Join(lines, "\n")
 	}
 	if len(p.msg) > 0 {
-		e.Message = strings.Join(append([]string{e.Message}, p.msg...), "\n")
+		if e.Message != "" {
+			p.msg = append([]string{e.Message}, p.msg...)
+		}
+		e.Message = strings.Join(p.msg, "\n")
 	}
 	for len(p.stack) > 0 && p.stack[0] == "" {
 		// The blank line between a Go panic's message and its goroutines.
