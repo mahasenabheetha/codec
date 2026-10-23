@@ -3,7 +3,7 @@
   import Hourglass from '@lucide/svelte/icons/hourglass'
   import { logGroups, type LogGroup, type LogSummary } from '../../lib/api/logs'
   import { count, formatSpan, formatWhen } from './format'
-  import { prefs, viewer } from './viewer.svelte'
+  import { prefs, useViewer } from './viewer.svelte'
 
   // The log at a glance: how much, over how long, how bad, from where;
   // its first error, the errors that repeat most and the silences.
@@ -13,6 +13,7 @@
   }
 
   let { summary: s, onjump }: Props = $props()
+  const viewer = useViewer()
 
   let groups = $state.raw<LogGroup[]>([])
   $effect(() => {

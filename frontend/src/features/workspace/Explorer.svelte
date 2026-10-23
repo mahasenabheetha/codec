@@ -22,7 +22,7 @@
   import { router } from '../../lib/stores/router.svelte'
   import { toast } from '../../lib/stores/toast.svelte'
   import { comparison } from '../compare/compare.svelte'
-  import { viewer } from '../logs/viewer.svelte'
+  import { logTabs } from '../logs/viewer.svelte'
   import FileIcon from './FileIcon.svelte'
   import { kindOf, lookOf } from './filetypes'
   import { buildTree, flatten, type TreeNode } from './tree'
@@ -78,7 +78,7 @@
         label: 'Open in Log viewer',
         icon: Logs,
         run: () => {
-          viewer.open([{ kind: 'path', path }])
+          logTabs.open([{ kind: 'path', path }])
           layout.openTool('logs')
         },
       })

@@ -3,7 +3,7 @@
   import VirtualList from '../../lib/components/VirtualList.svelte'
   import { formatTime } from './format'
   import { marks, textTerms } from './terms'
-  import { prefs, viewer } from './viewer.svelte'
+  import { prefs, useViewer } from './viewer.svelte'
 
   // The matching entries, one row each: time, level, source, any field
   // columns, then the message. Cells wrap by default, so a row shows all
@@ -16,6 +16,7 @@
   }
 
   let { onselect }: Props = $props()
+  const viewer = useViewer()
 
   let list = $state<VirtualList>()
   const s = $derived(viewer.opened?.summary)

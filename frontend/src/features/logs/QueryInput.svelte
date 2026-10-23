@@ -17,12 +17,13 @@
     fieldKeys: string[]
     fieldValues: Map<string, string[]>
     sources: string[]
+    history: string[] // recent queries, newest first
     onsubmit: () => void
     onclear: () => void
     field?: HTMLInputElement
   }
 
-  let { value = $bindable(), invalid = false, fieldKeys, fieldValues, sources, onsubmit, onclear, field = $bindable() }: Props = $props()
+  let { value = $bindable(), invalid = false, fieldKeys, fieldValues, sources, history, onsubmit, onclear, field = $bindable() }: Props = $props()
 
   interface Item {
     label: string // what the row shows
@@ -89,6 +90,7 @@
       for (const n of [...starts, ...has].slice(0, 12)) out.push({ label: `${n.k}:`, hint: n.hint || undefined, insert: `${lead}${n.k}:`, keep: true })
     } else if (!value.trim()) {
       out.push(
+        ...history.slice(0, 5).map((h) => ({ label: h, hint: 'recent', insert: h + ' ' })),
         { label: 'level>=warn', hint: 'warnings and worse', insert: 'level>=warn ' },
         { label: 'level>=error', hint: 'errors only', insert: 'level>=error ' },
         ...fieldKeys

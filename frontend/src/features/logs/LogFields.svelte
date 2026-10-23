@@ -7,7 +7,7 @@
   import { logFields, type FieldStat } from '../../lib/api/logs'
   import { count } from './format'
   import { nameable, term } from './terms'
-  import { prefs, viewer } from './viewer.svelte'
+  import { prefs, useViewer } from './viewer.svelte'
 
   // Every field of the matching entries: how often it is there, its
   // most common values (a click filters to one), and for numbers the
@@ -17,6 +17,7 @@
   }
 
   let { onshow }: Props = $props()
+  const viewer = useViewer()
 
   let fields = $state.raw<FieldStat[] | null>(null)
   let total = $state(0)

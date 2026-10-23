@@ -7,7 +7,7 @@
   import { copyText } from '../../lib/utils/clipboard'
   import { maskSecrets } from './mask'
   import { followable, nameable, term } from './terms'
-  import { prefs, viewer } from './viewer.svelte'
+  import { prefs, useViewer } from './viewer.svelte'
 
   // What can be done with one value: filter to it or out, show its
   // field as a column, follow an ID across the log, copy it.
@@ -18,6 +18,7 @@
   }
 
   let { key, value, column = false }: Props = $props()
+  const viewer = useViewer()
 
   const can = $derived(nameable(key))
   const follow = $derived(can && (followable(key) || key === 'trace'))

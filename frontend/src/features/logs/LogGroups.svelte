@@ -5,7 +5,7 @@
   import { isAbort } from '../../lib/api/client'
   import { logGroups, type LogGroup } from '../../lib/api/logs'
   import { count, formatSpan, formatTime } from './format'
-  import { prefs, viewer } from './viewer.svelte'
+  import { prefs, useViewer } from './viewer.svelte'
 
   // The warnings and errors of the matching entries, grouped: messages
   // that differ only in numbers, IDs and quoted values are one group.
@@ -15,6 +15,7 @@
   }
 
   let { onjump, onshow }: Props = $props()
+  const viewer = useViewer()
 
   let groups = $state.raw<LogGroup[] | null>(null)
   let error = $state<string | null>(null)

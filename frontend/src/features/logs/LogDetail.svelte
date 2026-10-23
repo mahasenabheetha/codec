@@ -12,7 +12,7 @@
   import { maskSecrets } from './mask'
   import StackTrace from './StackTrace.svelte'
   import ValueActions from './ValueActions.svelte'
-  import { prefs, viewer } from './viewer.svelte'
+  import { prefs, useViewer } from './viewer.svelte'
 
   // One entry in full: message (JSON in it laid out), error, where it
   // came from, its stack trace, its fields as a tree, the entries just
@@ -25,6 +25,7 @@
   }
 
   let { index, onclose, onpick }: Props = $props()
+  const viewer = useViewer()
 
   let entry = $state.raw<LogEntry | null>(null)
   let around = $state.raw<LogRow[]>([])

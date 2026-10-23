@@ -29,7 +29,8 @@ All notable changes to codec are documented here. The format follows
   you type, suggests field names and their values, marks the words
   found and explains itself under "?"; rows wrap so nothing is cut off
   (or stay on one line and scroll sideways). Times of day without a
-  date (logback's default) are read.
+  date (logback's default) are read. Several logs open at once, a tab
+  each, every tab keeping its own search, range and selection.
 
 ### Changed
 

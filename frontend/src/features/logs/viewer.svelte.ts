@@ -1,9 +1,10 @@
-// The Log viewer's state: the log being read, the query and the rows
+// The Log viewer's state: per tab, the log being read, the query and the rows
 // fetched so far. The log itself lives on the server under an id; the
 // sources (files, pasted text, folder paths) stay here in memory only
 // (decision 19), so a log the server dropped (idle, or codec restarted)
 // is sent again without asking. Display choices are preferences.
 
+import { getContext, setContext } from 'svelte'
 import { SvelteMap } from 'svelte/reactivity'
 import { ApiError, isAbort } from '../../lib/api/client'
 import {
@@ -34,7 +35,11 @@ export const prefs = {
 
 export const sourceName = (s: LogSource) => (s.kind === 'file' ? s.file.name : s.kind === 'text' ? s.name : s.path.split('/').pop()!)
 
-class LogViewer {
+let nextKey = 0
+
+/** One open log: a tab of the Log viewer. */
+export class LogViewer {
+  readonly key = ++nextKey
   sources = $state.raw<LogSource[]>([])
   opened = $state.raw<LogOpened | null>(null)
   opening = $state(false)
@@ -58,7 +63,6 @@ class LogViewer {
   /** The query last sent, so typing doesn't send it twice. */
   requested = ''
   selected = $state<number | null>(null) // entry index
-  history = $state.raw<string[]>([]) // queries run, newest first; memory only
 
   private gen = 0 // bumped per query, so late pages of an old one are dropped
   private asked = new Set<number>()
@@ -82,6 +86,8 @@ class LogViewer {
     this.ctrl = c
     this.opening = true
     this.error = null
+    // A tab with nothing read yet is named by what it is reading.
+    if (!this.opened) this.sources = all
     try {
       const o = await openLogs(all, c.signal)
       if (c.signal.aborted) return
@@ -123,7 +129,14 @@ class LogViewer {
   remove(i: number) {
     const rest = this.sources.filter((_, j) => j !== i)
     if (rest.length) this.open(rest)
-    else this.close()
+    else logTabs.close(this)
+  }
+
+  /** The tab's name: its first source, and how many more. */
+  get title(): string {
+    if (!this.sources.length) return 'New log'
+    const more = this.sources.length - 1
+    return sourceName(this.sources[0]) + (more ? ` +${more}` : '')
   }
 
   close() {
@@ -161,7 +174,7 @@ class LogViewer {
       if (gen !== this.gen) return
       this.applied = q
       this.queryError = null
-      if (q.q && this.history[0] !== q.q) this.history = [q.q, ...this.history.filter((h) => h !== q.q)].slice(0, 20)
+      logTabs.remember(q.q)
       this.take(page, true)
     } catch (e) {
       if (gen !== this.gen) return
@@ -313,4 +326,62 @@ class LogViewer {
   }
 }
 
-export const viewer = new LogViewer()
+/** The open logs, one tab each, and the queries run in any of them. */
+class LogTabs {
+  list = $state.raw<LogViewer[]>([])
+  current = $state.raw<LogViewer | null>(null)
+  history = $state.raw<string[]>([]) // newest first; memory only (decision 19)
+
+  /** Read sources in a tab of their own (the current tab when it holds
+   *  nothing yet), or add them to the current log, merged by time. A
+   *  folder file already open on its own just gets its tab back. */
+  open(sources: LogSource[], add = false) {
+    if (!sources.length) return
+    const cur = this.current
+    if (add && cur?.opened) {
+      cur.open(sources, true)
+      return
+    }
+    const one = sources.length === 1 && sources[0].kind === 'path' ? sources[0].path : null
+    const same = one && this.list.find((v) => v.sources.length === 1 && v.sources[0].kind === 'path' && v.sources[0].path === one)
+    if (same) {
+      this.current = same
+      return
+    }
+    let v = cur && !cur.opened && !cur.opening ? cur : null
+    if (!v) {
+      v = new LogViewer()
+      this.list = [...this.list, v]
+    }
+    this.current = v
+    v.open(sources)
+  }
+
+  select(v: LogViewer) {
+    this.current = v
+  }
+
+  /** Close a tab and let the server go of its log. */
+  close(v: LogViewer) {
+    const i = this.list.indexOf(v)
+    v.close()
+    this.list = this.list.filter((x) => x !== v)
+    if (this.current === v) this.current = this.list[Math.min(i, this.list.length - 1)] ?? null
+  }
+
+  remember(q: string) {
+    if (q && this.history[0] !== q) this.history = [q, ...this.history.filter((h) => h !== q)].slice(0, 20)
+  }
+}
+
+export const logTabs = new LogTabs()
+
+// Each tab's components reach its LogViewer through Svelte's context, so
+// the same components serve every tab.
+const KEY = Symbol('log viewer')
+export function provideViewer(v: LogViewer) {
+  setContext(KEY, v)
+}
+export function useViewer(): LogViewer {
+  return getContext<LogViewer>(KEY)
+}
