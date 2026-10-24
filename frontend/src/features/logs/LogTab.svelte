@@ -14,6 +14,7 @@
   import SplitPane from '../../lib/components/SplitPane.svelte'
   import Tabs from '../../lib/components/Tabs.svelte'
   import Toggle from '../../lib/components/Toggle.svelte'
+  import { statFile } from '../../lib/api/workspace'
   import { exportLog, logGroups } from '../../lib/api/logs'
   import { shortcut } from '../../lib/stores/shortcuts.svelte'
   import { toast } from '../../lib/stores/toast.svelte'
@@ -65,6 +66,44 @@
   $effect(() => {
     if (tab === 'compare' && !viewer.compare) tab = 'entries'
   })
+  // Live follow: once a second, ask whether the followed folder files
+  // changed (size or time, at any size, so a log past what the Explorer
+  // lists still follows); read them again when they did, and stay at the
+  // end if the list was there, like tail -f.
+  $effect(() => {
+    if (!viewer.following) return
+    const paths = viewer.sources.flatMap((src) => (src.kind === 'path' ? [src.path] : []))
+    const c = new AbortController()
+    let seen = ''
+    let busy = false
+    const tickFollow = async () => {
+      if (busy) return
+      busy = true
+      try {
+        const now = (await Promise.all(paths.map((p) => statFile(p, c.signal)))).map((st) => `${st.size}:${st.modTime}`).join(',')
+        if (seen && now !== seen) {
+          const tail = !list || list.atEnd()
+          await viewer.refresh()
+          if (tail && viewer.rowCount) {
+            await tick()
+            list?.reveal(viewer.rowCount - 1)
+          }
+        }
+        seen = now
+      } catch {
+        // gone or unreadable for now: try again next time
+      } finally {
+        busy = false
+      }
+    }
+    tickFollow()
+    const timer = setInterval(tickFollow, 1000)
+    return () => {
+      clearInterval(timer)
+      c.abort()
+    }
+  })
+
   // An entry another tab asked to show (from a comparison).
   $effect(() => {
     const i = viewer.want
@@ -263,6 +302,18 @@
         </span>
       {/each}
       <span class="spacer"></span>
+      {#if viewer.followable}
+        <Toggle
+          checked={viewer.following}
+          label="Follow"
+          title="Read the file again as it grows (argo logs --follow > run.log), staying at the end if you are there"
+          onchange={(on) => {
+            viewer.following = on
+            if (on) viewer.refresh()
+          }}
+        />
+        {#if viewer.following && viewer.updatedAt}<span class="muted live">{`updated ${viewer.updatedAt.toLocaleTimeString()}`}</span>{/if}
+      {/if}
       {#if s.steps?.length || viewer.status}<StatusPicker onread={() => (tab = 'steps')} />{/if}
       <Popover side="bottom" align="end" bind:open={comparePicker}>
         {#snippet trigger(props)}
@@ -572,6 +623,9 @@
   }
   .muted {
     color: var(--fg-2);
+  }
+  .live {
+    font-size: var(--fs-xs);
   }
   .main {
     flex: 1;

@@ -279,6 +279,17 @@ func TestLogsFromWorkspace(t *testing.T) {
 		}
 	}
 
+	// The size and time of a file, for following it as it grows.
+	code, v = send(s, "GET", "/api/v2/files/stat?path=run.log", "", "")
+	if code != 200 || v["size"] != float64(len(apiLog)) || v["modTime"].(float64) <= 0 {
+		t.Errorf("stat: %d %v", code, v)
+	}
+	for p, want := range map[string]int{"../x.log": 403, "nope.log": 404, "sub": 422} {
+		if code, _ := send(s, "GET", "/api/v2/files/stat?path="+p, "", ""); code != want {
+			t.Errorf("stat %s: %d", p, code)
+		}
+	}
+
 	// A folder file and a dropped one together, in form data.
 	var b bytes.Buffer
 	mw := multipart.NewWriter(&b)

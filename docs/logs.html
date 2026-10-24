@@ -69,6 +69,7 @@
   <li><strong>Open logs…</strong>, or drop files anywhere on the tool. Each log you open gets a <strong>tab</strong> of its own, so you can keep several runs open and switch between them; each tab keeps its own search, time range and selection. Several files opened together are read as one log, merged by time; <strong>Add to this tab…</strong> (or Shift while dropping) merges more into the current tab. Each file is a chip you can remove.</li>
   <li>Paste with <kbd>Ctrl</kbd>+<kbd>V</kbd> anywhere on the tool, or use <strong>Paste…</strong> for a box.</li>
   <li>In the Explorer, right-click a log file (<code>.log</code>, <code>.ndjson</code>, <code>.jsonl</code>, <code>.txt</code>, <code>.out</code>, <code>.clef</code>, gzipped, or rotated like <code>.log.1</code>) → <strong>Open in Log viewer</strong>; a file already open in a tab gets its tab back. The Explorer lists files up to 8 MB; open bigger ones as files.</li>
+  <li><strong>Follow</strong> (for files from the open folder) reads the log again as it grows — say <code>argo logs --follow my-wf &gt; run.log</code> — keeping your search, view and pins, and staying at the end if you are there. It checks the file every second, at any size; the step that logged last shows as still running.</li>
 </ul>
 <p>Files may be gzip-compressed or UTF-16 (as PowerShell's <code>&gt;</code> writes them). A log can hold up to 256 MB of text.</p>
 

@@ -21,6 +21,12 @@ All notable changes to codec are documented here. The format follows
   matched to the log by name, so a retry's attempts each show their own.
   The tree folds, with the parts that failed or still run open; running
   steps show a striped bar to the end of the log.
+- Log viewer: Follow reads a log file from the open folder again as it
+  grows (`argo logs --follow > run.log`), keeping the search, view and
+  pins and staying at the end; it checks every second, at any size.
+- Argo view: a workflow's graph is coloured by a run whose status a Log
+  viewer tab holds: each step's result and duration, Argo's message in
+  its details, and Open its log.
 - Log viewer: lanes, a second chart over time with a lane per source
   (per step in an Argo run): when each logged and where its warnings
   and errors fall; a cell goes to its entry.

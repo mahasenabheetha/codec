@@ -48,6 +48,12 @@
     ].join(' '),
   )
 
+  /** Whether the list is scrolled to its end (to stay there as it grows). */
+  export function atEnd(): boolean {
+    const el = scroller
+    return !el || el.scrollTop + el.clientHeight >= el.scrollHeight - 40
+  }
+
   /** Bring a position in the view into view. */
   export function reveal(pos: number) {
     list?.scrollToIndex(pos, 'center')

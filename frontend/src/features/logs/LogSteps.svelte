@@ -6,6 +6,7 @@
   import { logEntry, type LogStep, type LogTally } from '../../lib/api/logs'
   import { count, formatSpan, formatTime } from './format'
   import { term } from './terms'
+  import { findInLog, type Found } from './steps'
   import { prefs, useViewer } from './viewer.svelte'
 
   // An Argo run's steps, in the order they started: when each ran, how
@@ -37,24 +38,7 @@
     return { left: Math.max(a, 0) * 100, width: Math.max((b - a) * 100, 0.5) }
   }
 
-  // What the log has for a status node: a pod node's own pod (exact,
-  // so a retry's attempts each get theirs); else the step of that name
-  // or template, where an attempt ("deploy(1)") leaves the log's
-  // "deploy" to the retry node above it rather than each claiming it.
-  type Found = LogTally & { step: LogStep; filter: string }
-  const podOf = (source: string) => source.replace(/^pods?\//, '').split('/')[0]
-  const attempt = (n: ArgoRunNode) => /\(\d+\)$/.test(n.displayName)
-  function found(n: ArgoRunNode): Found | undefined {
-    if (n.type === 'Pod' && n.pod) {
-      for (const st of steps) {
-        const p = st.podStats?.find((ps) => podOf(ps.name) === n.pod)
-        if (p) return { ...p, step: st, filter: term('source', p.name) }
-      }
-    }
-    if ((n.type !== 'Pod' && n.type !== 'Retry') || attempt(n)) return undefined
-    const st = steps.find((st) => st.name === n.displayName || st.name === n.template)
-    return st && { ...st, step: st, filter: term('step', st.name) }
-  }
+  const found = (n: ArgoRunNode) => findInLog(steps, n)
 
   // The tree without its parallel groups ("[0]"): their steps move up.
   const rows = $derived.by(() => {
@@ -103,6 +87,11 @@
     flipped = f
   }
   const logOnly = $derived(run ? steps.filter((st) => !matched.has(st)) : steps)
+  // Followed without a status: the step that logged last is taken to be
+  // still running, as far as the log goes.
+  const lastLive = $derived(
+    viewer.following && !run && steps.length ? steps.reduce((a, b) => (t(b.to) >= t(a.to) ? b : a)).name : null,
+  )
 
   const failed = (phase = '') => phase === 'Failed' || phase === 'Error'
   const tone = (phase = '') => (failed(phase) ? 'err' : phase === 'Succeeded' ? 'ok' : phase === 'Running' || phase === 'Pending' ? 'run' : 'muted')
@@ -194,7 +183,7 @@
           {#if st.from}{formatTime(st.from, prefs.time.value, start, days)}{/if}
           {#if b}<span class="track"><i style:left="{b.left}%" style:width="{b.width}%"></i></span>{/if}
         </span>
-        <span class="num">{st.from && st.to ? formatSpan(t(st.to) - t(st.from)) : '—'}</span>
+        <span class="num" class:live={lastLive === st.name}>{lastLive === st.name ? 'running' : st.from && st.to ? formatSpan(t(st.to) - t(st.from)) : '—'}</span>
         {#if run}<span></span>{/if}
         {@render counts(st, term('step', st.name))}
       </div>
@@ -354,6 +343,9 @@
   }
   .warn {
     color: var(--warn);
+  }
+  .live {
+    color: var(--info);
   }
   .why {
     padding: 2px var(--s-3) 6px;
