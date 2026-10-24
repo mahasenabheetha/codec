@@ -1,0 +1,392 @@
+<script lang="ts">
+  import ChevronDown from '@lucide/svelte/icons/chevron-down'
+  import ChevronRight from '@lucide/svelte/icons/chevron-right'
+  import FunnelPlus from '@lucide/svelte/icons/funnel-plus'
+  import type { ArgoRunNode } from '../../lib/api/argo'
+  import { logEntry, type LogStep, type LogTally } from '../../lib/api/logs'
+  import { count, formatSpan, formatTime } from './format'
+  import { term } from './terms'
+  import { findInLog, type Found } from './steps'
+  import { prefs, useViewer } from './viewer.svelte'
+
+  // An Argo run's steps, in the order they started: when each ran, how
+  // long it took, what it logged and how much of it went wrong. Steps
+  // come from the entries' argo_step_name or the pods' names. With the
+  // run's status beside the log, the whole step tree shows: each node's
+  // phase, exit code and Argo's message, steps that never logged too,
+  // and why a failed step failed.
+  interface Props {
+    onjump: (i: number) => void
+    onshow: () => void // after filtering to a step: show the entries
+  }
+
+  let { onjump, onshow }: Props = $props()
+  const viewer = useViewer()
+
+  const s = $derived(viewer.opened?.summary)
+  const steps = $derived(s?.steps ?? [])
+  const run = $derived(viewer.status?.run)
+  const t = (iso?: string) => (iso ? new Date(iso).getTime() : 0)
+  const start = $derived(t(run?.startedAt) || t(s?.from))
+  const end = $derived(Math.max(t(run?.finishedAt), t(s?.to), start))
+  const days = $derived(end - start > 86_400_000)
+  const bar = (from?: string, to?: string) => {
+    const span = end - start
+    if (!from || span <= 0) return null
+    const a = (t(from) - start) / span
+    const b = ((to ? t(to) : end) - start) / span
+    return { left: Math.max(a, 0) * 100, width: Math.max((b - a) * 100, 0.5) }
+  }
+
+  const found = (n: ArgoRunNode) => findInLog(steps, n)
+
+  // The tree without its parallel groups ("[0]"): their steps move up.
+  const rows = $derived.by(() => {
+    if (!run) return []
+    const stack: { depth: number; group: boolean }[] = []
+    const out: { n: ArgoRunNode; depth: number; step?: Found }[] = []
+    for (const n of run.nodes) {
+      while (stack.length && stack[stack.length - 1].depth >= n.depth) stack.pop()
+      const group = n.type === 'StepGroup' || n.type === 'TaskGroup'
+      if (!group) out.push({ n, depth: n.depth - stack.filter((x) => x.group).length, step: found(n) })
+      stack.push({ depth: n.depth, group })
+    }
+    return out
+  })
+  const matched = $derived(new Set(rows.map((r) => r.step?.step).filter(Boolean)))
+
+  // Folding: a node with steps under it starts open when one of them
+  // failed or is still running (or it is the workflow's own node), else
+  // folded; a click flips it.
+  const running = (phase = '') => phase === 'Running' || phase === 'Pending'
+  let flipped = $state<Set<string>>(new Set())
+  const tree = $derived.by(() => {
+    const info = rows.map((r, k) => {
+      let kids = 0
+      let hot = failed(r.n.phase) || running(r.n.phase)
+      for (let j = k + 1; j < rows.length && rows[j].depth > r.depth; j++) {
+        kids++
+        hot ||= failed(rows[j].n.phase) || running(rows[j].n.phase)
+      }
+      const opened = r.depth === 0 || hot
+      return { ...r, kids, open: kids > 0 && (flipped.has(r.n.id) ? !opened : opened) }
+    })
+    const shown: typeof info = []
+    let hideBelow = Infinity
+    for (const r of info) {
+      if (r.depth > hideBelow) continue
+      hideBelow = r.kids && !r.open ? r.depth : Infinity
+      shown.push(r)
+    }
+    return shown
+  })
+  function flip(id: string) {
+    const f = new Set(flipped)
+    if (f.has(id)) f.delete(id)
+    else f.add(id)
+    flipped = f
+  }
+  const logOnly = $derived(run ? steps.filter((st) => !matched.has(st)) : steps)
+  // Followed without a status: the step that logged last is taken to be
+  // still running, as far as the log goes.
+  const lastLive = $derived(
+    viewer.following && !run && steps.length ? steps.reduce((a, b) => (t(b.to) >= t(a.to) ? b : a)).name : null,
+  )
+
+  const failed = (phase = '') => phase === 'Failed' || phase === 'Error'
+  const tone = (phase = '') => (failed(phase) ? 'err' : phase === 'Succeeded' ? 'ok' : phase === 'Running' || phase === 'Pending' ? 'run' : 'muted')
+  const took = (from?: string, to?: string) => (from && to ? formatSpan(t(to) - t(from)) : from ? 'running' : '—')
+
+  // A failed step's first error from the log, fetched when shown.
+  let firstErrors = $state<Record<number, string>>({})
+  $effect(() => {
+    const want = rows.filter((r) => failed(r.n.phase) && r.step && r.step.firstError >= 0).map((r) => r.step!.firstError)
+    for (const i of want) {
+      if (i in firstErrors) continue
+      firstErrors[i] = ''
+      viewer
+        .withLog((id) => logEntry(id, i, 0))
+        .then((r) => (firstErrors[i] = (r.entry.message || r.entry.error || '').split('\n')[0]))
+        .catch(() => {})
+    }
+  })
+
+  function show(filter: string) {
+    viewer.follow(filter)
+    onshow()
+  }
+</script>
+
+{#snippet counts(st: LogTally | undefined, filter = '')}
+  {#if st}
+    <span class="num">{count(st.entries)}</span>
+    <span class="num">{#if st.errors}<span class="err">{count(st.errors)}</span>{:else}0{/if}{#if st.warnings}<span class="warn">{` · ${count(st.warnings)} warn`}</span>{/if}</span>
+    <button type="button" class="show" title="Show only these entries ({filter})" onclick={() => show(filter)}><FunnelPlus size={12} /> Show</button>
+  {:else}
+    <span class="num muted">—</span><span class="num muted">—</span><span></span>
+  {/if}
+{/snippet}
+
+<div class="steps">
+  {#if run}
+    <p class="wf">
+      Workflow <strong>{run.name}</strong>
+      {#if run.phase}<span class="phase {tone(run.phase)}">{run.phase}</span>{/if}
+      {#if run.startedAt}<span class="muted">{` · ${took(run.startedAt, run.finishedAt)}`}</span>{/if}
+      {#if run.message}<span class="muted">{` · ${run.message}`}</span>{/if}
+    </p>
+  {:else if s?.workflows?.length}
+    <p class="wf">Workflow {s.workflows.join(', ')} · {steps.length} {steps.length === 1 ? 'step' : 'steps'} <span class="muted">· add the run's status for its whole step tree</span></p>
+  {/if}
+  <div class="head row" class:tree={!!run}>
+    <span>Step</span>{#if run}<span>Phase</span>{/if}<span>When</span><span>Took</span>{#if run}<span>Exit</span>{/if}<span>Entries</span><span>Errors</span><span></span>
+  </div>
+  <div class="list">
+    {#each tree as { n, depth, step, kids, open } (n.id)}
+      {@const b = bar(n.startedAt, n.finishedAt)}
+      <div class="row tree" class:failed={failed(n.phase)} class:quiet={n.type !== 'Pod'} class:running={running(n.phase)}>
+        <span class="name" style:padding-left="{depth * 14}px">
+          {#if kids}
+            <button type="button" class="fold" aria-expanded={open} aria-label="{open ? 'Fold' : 'Open'} {n.displayName}" onclick={() => flip(n.id)}>
+              {#if open}<ChevronDown size={12} />{:else}<ChevronRight size={12} />{/if}
+            </button>
+          {:else}<span class="fold-space"></span>{/if}
+          {#if step}
+            <button type="button" class="label" title="Go to its first entry{n.pod ? ` · pod ${n.pod}` : ''}" onclick={() => onjump(step.first)}>{n.displayName}</button>
+          {:else}
+            <span class="label" title={n.type === 'Pod' ? 'Nothing in the log for this step' : n.type}>{n.displayName}</span>
+          {/if}
+          {#if n.type !== 'Pod'}<span class="type">{n.type}{kids && !open ? ` · ${kids} inside` : ''}</span>{/if}
+        </span>
+        <span class="phase {tone(n.phase)}">{n.phase ?? ''}</span>
+        <span class="when">
+          {#if n.startedAt}{formatTime(n.startedAt, prefs.time.value, start, days)}{/if}
+          {#if b}<span class="track"><i style:left="{b.left}%" style:width="{b.width}%"></i></span>{/if}
+        </span>
+        <span class="num">{took(n.startedAt, n.finishedAt)}</span>
+        <span class="num" class:err={!!n.exitCode && n.exitCode !== '0'}>{n.exitCode ?? ''}</span>
+        {@render counts(step, step?.filter)}
+      </div>
+      {#if failed(n.phase) && (n.type === 'Pod' || n.type === 'Retry')}
+        <div class="why" style:padding-left="calc({depth * 14}px + var(--s-3))">
+          {n.message ?? 'Failed'}{#if step && step.firstError >= 0 && firstErrors[step.firstError]}<span class="muted">{' · first error: '}</span><button type="button" class="first" onclick={() => onjump(step.firstError)}>{firstErrors[step.firstError]}</button>{/if}
+        </div>
+      {/if}
+    {/each}
+    {#if run && logOnly.length}<p class="sub">In the log, not in the status</p>{/if}
+    {#each logOnly as st (st.name)}
+      {@const b = bar(st.from, st.to)}
+      <div class="row" class:tree={!!run} class:failed={st.errors > 0}>
+        <span class="name"><button type="button" class="label" title="Go to its first entry{st.pods > 1 ? ` · ${st.pods} pods` : ''}" onclick={() => onjump(st.first)}>{st.name}</button></span>
+        {#if run}<span></span>{/if}
+        <span class="when">
+          {#if st.from}{formatTime(st.from, prefs.time.value, start, days)}{/if}
+          {#if b}<span class="track"><i style:left="{b.left}%" style:width="{b.width}%"></i></span>{/if}
+        </span>
+        <span class="num" class:live={lastLive === st.name}>{lastLive === st.name ? 'running' : st.from && st.to ? formatSpan(t(st.to) - t(st.from)) : '—'}</span>
+        {#if run}<span></span>{/if}
+        {@render counts(st, term('step', st.name))}
+      </div>
+    {/each}
+  </div>
+</div>
+
+<style>
+  .steps {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    overflow: hidden;
+  }
+  .wf {
+    margin: 0;
+    padding: var(--s-2) var(--s-3);
+    font-size: var(--fs-sm);
+    color: var(--fg-1);
+    border-bottom: 1px solid var(--border);
+  }
+  .list {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+  }
+  .row {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(140px, 1fr) 90px 80px 120px auto;
+    gap: var(--s-3);
+    align-items: center;
+    padding: 3px var(--s-3);
+    font-size: var(--fs-sm);
+    border-bottom: 1px solid var(--border);
+  }
+  .row.tree {
+    grid-template-columns: minmax(0, 1.2fr) 80px minmax(140px, 1fr) 80px 44px 70px 110px auto;
+  }
+  .head {
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-semibold);
+    color: var(--fg-2);
+  }
+  .name {
+    display: flex;
+    align-items: baseline;
+    gap: var(--s-2);
+    min-width: 0;
+    font-family: var(--font-mono);
+  }
+  .label {
+    min-width: 0;
+    padding: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: left;
+    color: var(--fg-0);
+    background: none;
+    border: none;
+  }
+  button.label:hover {
+    text-decoration: underline;
+  }
+  .quiet span.label {
+    color: var(--fg-1);
+  }
+  .failed .label {
+    color: var(--err);
+    font-weight: var(--fw-semibold);
+  }
+  .type {
+    font-family: var(--font-ui);
+    font-size: var(--fs-xs);
+    color: var(--fg-2);
+  }
+  .phase {
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-semibold);
+  }
+  .phase.err,
+  .err {
+    color: var(--err);
+    font-weight: var(--fw-semibold);
+  }
+  .phase.ok {
+    color: var(--ok);
+  }
+  .phase.run {
+    color: var(--info);
+  }
+  .phase.muted,
+  .muted {
+    color: var(--fg-2);
+    font-weight: var(--fw-regular);
+  }
+  .when {
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--fg-1);
+    white-space: nowrap;
+  }
+  .track {
+    position: relative;
+    flex: 1;
+    min-width: 40px;
+    height: 6px;
+    background: var(--bg-3);
+    border-radius: 3px;
+  }
+  .track i {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    background: var(--accent);
+    border-radius: 3px;
+  }
+  /* Still running (the status says so): the bar runs on to the log's end. */
+  .running .track i {
+    background: repeating-linear-gradient(-45deg, var(--info) 0 4px, transparent 4px 7px);
+  }
+  .fold {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    color: var(--fg-2);
+    background: none;
+    border: none;
+    border-radius: var(--r-sm);
+  }
+  .fold:hover {
+    color: var(--fg-0);
+    background: var(--bg-3);
+  }
+  .fold-space {
+    flex: none;
+    width: 16px;
+  }
+  .failed .track i {
+    background: var(--err);
+  }
+  .num {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .warn {
+    color: var(--warn);
+  }
+  .live {
+    color: var(--info);
+  }
+  .why {
+    padding: 2px var(--s-3) 6px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--err);
+    border-bottom: 1px solid var(--border);
+  }
+  .first {
+    padding: 0;
+    font: inherit;
+    color: var(--fg-0);
+    text-align: left;
+    background: none;
+    border: none;
+  }
+  .first:hover {
+    text-decoration: underline;
+  }
+  .sub {
+    margin: 0;
+    padding: var(--s-3) var(--s-3) var(--s-1);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--fg-2);
+  }
+  .show {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-1);
+    padding: 2px var(--s-2);
+    font-size: var(--fs-xs);
+    color: var(--fg-1);
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+  }
+  .show:hover {
+    color: var(--fg-0);
+    border-color: var(--border-strong);
+  }
+</style>

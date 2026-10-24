@@ -194,7 +194,10 @@ Files over 8 MB are not listed or read.
   /argo/analyze` {kind: file|text, path|text, workflow, params, paramFile,
   overrides} → workflows and apps in scope, the chosen workflow resolved
   (nodes, edges, values in parts); `/yaml/hover|definition|analyze` also
-  resolve templateRef across the folder's Argo files.
+  resolve templateRef across the folder's Argo files. `POST
+  /argo/status` {text} → a run's step tree from `argo get -o yaml|json`
+  (nodes in tree order with phase, times, exit code, message and each
+  pod's name), for the Log viewer; nothing is kept.
   CI: `POST /ci/analyze` {path, params, overrides} → stages, jobs
   (steps, matrix, effective config with origins), edges, includes,
   problems; `/yaml/hover|definition|analyze` follow includes and
@@ -216,7 +219,8 @@ Files over 8 MB are not listed or read.
   (matches, context, gaps, folded output and repeats; highlight bits),
   the chart and the scrollbar markers; `GET
   /logs/{id}/entries/{n}?before=&after=` → the entry in full and the
-  entries around it; `POST /logs/{id}/fields|groups|export|compare`
+  entries around it; `GET /files/stat?path=` (size and time at any size, for
+  following a log); `POST /logs/{id}/fields|groups|lanes|export|compare`
   (export: text, ndjson or csv of the matches; compare {other}: how
   this log differs from another held one, 410 `{other: true}` when
   that one is gone); `DELETE /logs/{id}`. A query that can't be read

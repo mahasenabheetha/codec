@@ -279,6 +279,17 @@ func TestLogsFromWorkspace(t *testing.T) {
 		}
 	}
 
+	// The size and time of a file, for following it as it grows.
+	code, v = send(s, "GET", "/api/v2/files/stat?path=run.log", "", "")
+	if code != 200 || v["size"] != float64(len(apiLog)) || v["modTime"].(float64) <= 0 {
+		t.Errorf("stat: %d %v", code, v)
+	}
+	for p, want := range map[string]int{"../x.log": 403, "nope.log": 404, "sub": 422} {
+		if code, _ := send(s, "GET", "/api/v2/files/stat?path="+p, "", ""); code != want {
+			t.Errorf("stat %s: %d", p, code)
+		}
+	}
+
 	// A folder file and a dropped one together, in form data.
 	var b bytes.Buffer
 	mw := multipart.NewWriter(&b)
@@ -328,6 +339,31 @@ func TestLogsCompare(t *testing.T) {
 	}
 	if code, _ := send(s, "POST", "/api/v2/logs/"+failed+"/compare", "application/json", `{}`); code != 400 {
 		t.Errorf("nothing to compare with: %d", code)
+	}
+}
+
+func TestLogLanes(t *testing.T) {
+	s := New(testOptions(false))
+	defer s.Close()
+	id := openLog(t, s, [][2]string{{"a.log", apiLog}, {"b.log", apiLog}})
+	code, v := send(s, "POST", "/api/v2/logs/"+id+"/lanes", "application/json", `{"q":"","buckets":60}`)
+	if code != 200 || v["by"] != "source" || len(v["lanes"].([]any)) != 2 {
+		t.Errorf("%d %v", code, v)
+	}
+	if code, _ := send(s, "POST", "/api/v2/logs/"+id+"/lanes", "application/json", `{"q":"\"open"}`); code != 422 {
+		t.Errorf("bad query: %d", code)
+	}
+}
+
+func TestArgoStatus(t *testing.T) {
+	s := New(testOptions(false))
+	defer s.Close()
+	code, v := send(s, "POST", "/api/v2/argo/status", "application/json", `{"text":"status:\n  phase: Failed\n  nodes:\n    w: {id: w, name: w, type: Steps, phase: Failed}\n"}`)
+	if code != 200 || v["name"] != "w" || v["phase"] != "Failed" || len(v["nodes"].([]any)) != 1 {
+		t.Errorf("%d %v", code, v)
+	}
+	if code, _ := send(s, "POST", "/api/v2/argo/status", "application/json", `{"text":"kind: Pod"}`); code != 422 {
+		t.Errorf("not a status: %d", code)
 	}
 }
 

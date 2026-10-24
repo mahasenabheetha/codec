@@ -21,6 +21,7 @@ import {
   type LogRow,
   type LogSource,
 } from '../../lib/api/logs'
+import type { ArgoRun } from '../../lib/api/argo'
 import { persisted } from '../../lib/stores/persist.svelte'
 import { toast } from '../../lib/stores/toast.svelte'
 
@@ -37,6 +38,8 @@ export const prefs = {
   /** Entries shown around each match, and how repeated lines fold. */
   context: persisted<number>('logs.context', 0),
   repeats: persisted<RepeatMode>('logs.repeats', 'exact'),
+  /** Over time: entries by level, or a lane per step or source. */
+  chart: persisted<'levels' | 'lanes'>('logs.chart', 'levels'),
 }
 
 export type RepeatMode = 'off' | 'exact' | 'similar'
@@ -119,6 +122,14 @@ export class LogViewer {
   /** An entry to show when the tab is next in front (from another tab). */
   want = $state<number | null>(null)
   compare = $state.raw<Comparison | null>(null)
+  /** Following the tab's folder files as they grow (live follow). */
+  following = $state(false)
+  updatedAt = $state<Date | null>(null)
+  private refreshing = false
+  private refreshAgain = false
+
+  /** An Argo run's status, opened or pasted beside its log; memory only. */
+  status = $state.raw<{ run: ArgoRun; name: string } | null>(null)
 
   private gen = 0 // bumped per query, so late pages of an old one are dropped
   private asked = new Set<number>()
@@ -207,6 +218,40 @@ export class LogViewer {
     }
   }
 
+  /** Files from the open folder only: those can be read again as they grow. */
+  get followable(): boolean {
+    return this.sources.length > 0 && this.sources.every((s) => s.kind === 'path')
+  }
+
+  /** Read the tab's folder files again (they grew), keeping the query,
+   *  view, pins and selection: an entry keeps its place as a file grows.
+   *  Changes while a read is under way are read once it ends. */
+  async refresh() {
+    if (!this.followable || !this.opened) return
+    if (this.refreshing) {
+      this.refreshAgain = true
+      return
+    }
+    this.refreshing = true
+    try {
+      const o = await openLogs(this.sources)
+      const old = this.opened?.id
+      this.opened = o
+      this.updatedAt = new Date()
+      if (old) closeLog(old).catch(() => {})
+      this.loadFieldKeys().catch(() => {})
+      await this.run(this.applied)
+    } catch (e) {
+      if (!isAbort(e)) this.error = e instanceof Error ? e.message : String(e)
+    } finally {
+      this.refreshing = false
+      if (this.refreshAgain) {
+        this.refreshAgain = false
+        this.refresh()
+      }
+    }
+  }
+
   remove(i: number) {
     const rest = this.sources.filter((_, j) => j !== i)
     if (rest.length) this.open(rest)
@@ -246,7 +291,9 @@ export class LogViewer {
 
   close() {
     this.ctrl?.abort()
+    this.following = false
     this.compare = null
+    this.status = null
     if (this.id) closeLog(this.id).catch(() => {})
     this.sources = []
     this.opened = null

@@ -419,6 +419,22 @@ func (w *Workspace) wrapErr(p string, err error) error {
 
 // validPath accepts slash-separated relative paths that stay inside
 // the root lexically; os.Root then guards against symlink escapes.
+// Stat reports a file's size and change time through the root, whatever
+// its size: the Log viewer follows a log as it grows past what is listed.
+func (w *Workspace) Stat(p string) (size int64, mod time.Time, err error) {
+	if err := validPath(p); err != nil {
+		return 0, time.Time{}, err
+	}
+	info, err := w.dir.Stat(filepath.FromSlash(p))
+	if err != nil {
+		return 0, time.Time{}, w.wrapErr(p, err)
+	}
+	if info.IsDir() {
+		return 0, time.Time{}, ErrNotFile
+	}
+	return info.Size(), info.ModTime(), nil
+}
+
 func validPath(p string) error {
 	if p == "" || !fs.ValidPath(p) || strings.ContainsAny(p, `\:`) {
 		return ErrOutside

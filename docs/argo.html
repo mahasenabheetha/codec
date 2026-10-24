@@ -90,6 +90,7 @@
   <li><strong>DAGs</strong> follow <code>dependencies</code> and <code>depends</code> expressions. Edges are labelled with the condition (<code>Failed</code>, <code>Succeeded</code>, <code>AnySucceeded</code>…), and each task says in words when it runs.</li>
   <li><strong><code>when</code> conditions</strong> are evaluated once their values are known; a step that wouldn't run is drawn dashed as "skipped with these values".</li>
   <li>Click a step for its details: the template with the values filled in, where each value came from, and links to the YAML. Nested templates can be drilled into.</li>
+  <li><strong>Coloured by a run</strong>: when a <a href="logs.html#argo">Log viewer</a> tab holds a run's status (<strong>Workflow status…</strong>), the graph shows how each step went — green, red, running, or never ran — with how long it took; a retry's attempts and a loop's items count as their step. The run that fits the workflow best is picked; another can be chosen. A step's details say its phase, exit code and Argo's message, and <strong>Open its log</strong> shows its entries in that tab.</li>
 </ul>
 
 <h2 id="editor">In the editor<a class="anchor" href="#editor">#</a></h2>

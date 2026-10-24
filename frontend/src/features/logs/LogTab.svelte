@@ -14,6 +14,7 @@
   import SplitPane from '../../lib/components/SplitPane.svelte'
   import Tabs from '../../lib/components/Tabs.svelte'
   import Toggle from '../../lib/components/Toggle.svelte'
+  import { statFile } from '../../lib/api/workspace'
   import { exportLog, logGroups } from '../../lib/api/logs'
   import { shortcut } from '../../lib/stores/shortcuts.svelte'
   import { toast } from '../../lib/stores/toast.svelte'
@@ -22,6 +23,7 @@
   import { count, formatTime, formatWhen } from './format'
   import LogChart from './LogChart.svelte'
   import LogCompare from './LogCompare.svelte'
+  import LogLanes from './LogLanes.svelte'
   import LogDetail from './LogDetail.svelte'
   import LogFields from './LogFields.svelte'
   import LogGroups from './LogGroups.svelte'
@@ -29,6 +31,8 @@
   import HighlightRules from './HighlightRules.svelte'
   import LogOverview from './LogOverview.svelte'
   import LogPins from './LogPins.svelte'
+  import LogSteps from './LogSteps.svelte'
+  import StatusPicker from './StatusPicker.svelte'
   import { maskSecrets } from './mask'
   import QueryInput from './QueryInput.svelte'
   import { logTabs, prefs, provideViewer, sourceName, type LogViewer, type RepeatMode, type TimeMode } from './viewer.svelte'
@@ -48,7 +52,7 @@
 
   let queryField = $state<HTMLInputElement>()
   let list = $state<LogList>()
-  let tab = $state<'entries' | 'errors' | 'fields' | 'pins' | 'compare'>('entries')
+  let tab = $state<'entries' | 'steps' | 'errors' | 'fields' | 'pins' | 'compare'>('entries')
   let columnFilter = $state('')
   let comparePicker = $state(false)
 
@@ -62,6 +66,44 @@
   $effect(() => {
     if (tab === 'compare' && !viewer.compare) tab = 'entries'
   })
+  // Live follow: once a second, ask whether the followed folder files
+  // changed (size or time, at any size, so a log past what the Explorer
+  // lists still follows); read them again when they did, and stay at the
+  // end if the list was there, like tail -f.
+  $effect(() => {
+    if (!viewer.following) return
+    const paths = viewer.sources.flatMap((src) => (src.kind === 'path' ? [src.path] : []))
+    const c = new AbortController()
+    let seen = ''
+    let busy = false
+    const tickFollow = async () => {
+      if (busy) return
+      busy = true
+      try {
+        const now = (await Promise.all(paths.map((p) => statFile(p, c.signal)))).map((st) => `${st.size}:${st.modTime}`).join(',')
+        if (seen && now !== seen) {
+          const tail = !list || list.atEnd()
+          await viewer.refresh()
+          if (tail && viewer.rowCount) {
+            await tick()
+            list?.reveal(viewer.rowCount - 1)
+          }
+        }
+        seen = now
+      } catch {
+        // gone or unreadable for now: try again next time
+      } finally {
+        busy = false
+      }
+    }
+    tickFollow()
+    const timer = setInterval(tickFollow, 1000)
+    return () => {
+      clearInterval(timer)
+      c.abort()
+    }
+  })
+
   // An entry another tab asked to show (from a comparison).
   $effect(() => {
     const i = viewer.want
@@ -215,6 +257,9 @@
   const start = $derived(s?.from ? new Date(s.from).getTime() : 0)
   const days = $derived(!!s?.from && !!s?.to && new Date(s.to).getTime() - start > 86_400_000)
   const ranged = $derived(!!viewer.applied.from || !!viewer.applied.to)
+  // Lanes need several steps or sources to tell apart.
+  const lanesOffered = $derived((s?.steps?.length ?? 0) > 1 || (s?.sources?.length ?? 0) > 1)
+  const lanesShown = $derived(lanesOffered && prefs.chart.value === 'lanes' && (s?.timed ?? 0) > 0)
   const fieldsShown = $derived((viewer.fieldKeys ?? []).filter((k) => k.toLowerCase().includes(columnFilter.toLowerCase())))
 
   toolShortcuts(() => active, {
@@ -257,6 +302,19 @@
         </span>
       {/each}
       <span class="spacer"></span>
+      {#if viewer.followable}
+        <Toggle
+          checked={viewer.following}
+          label="Follow"
+          title="Read the file again as it grows (argo logs --follow > run.log), staying at the end if you are there"
+          onchange={(on) => {
+            viewer.following = on
+            if (on) viewer.refresh()
+          }}
+        />
+        {#if viewer.following && viewer.updatedAt}<span class="muted live">{`updated ${viewer.updatedAt.toLocaleTimeString()}`}</span>{/if}
+      {/if}
+      {#if s.steps?.length || viewer.status}<StatusPicker onread={() => (tab = 'steps')} />{/if}
       <Popover side="bottom" align="end" bind:open={comparePicker}>
         {#snippet trigger(props)}
           <Button {...props} size="sm" variant="ghost" icon={GitCompareArrows}>Compare with…</Button>
@@ -299,6 +357,7 @@
         fieldKeys={viewer.fieldKeys ?? []}
         fieldValues={viewer.fieldValues}
         sources={(s.sources ?? []).map((x) => x.value)}
+        steps={(s.steps ?? []).map((x) => x.name)}
         history={logTabs.history}
         onsubmit={() => viewer.run()}
         onclear={() => {
@@ -378,6 +437,18 @@
           </div>
         </div>
       </Popover>
+      {#if s.timed > 0 && lanesOffered}
+        <span class="label" title="Entries over time by level, or a lane per step or source">Chart</span>
+        <SegmentedControl
+          label="Chart"
+          options={[
+            { value: 'levels', label: 'Levels' },
+            { value: 'lanes', label: s.steps?.length ? 'Steps' : 'Sources' },
+          ]}
+          value={prefs.chart.value}
+          onchange={(v: 'levels' | 'lanes') => (prefs.chart.value = v)}
+        />
+      {/if}
       {#if s.timed > 0}
         <span class="label">Time</span>
         <SegmentedControl
@@ -413,6 +484,8 @@
 
     {#if s.timed === 0}
       <p class="notime">No times were found in this log, so there is no chart over time; the entries are in the order they were written. If its lines do start with a time, send the shape of one so codec learns it.</p>
+    {:else if lanesShown}
+      <LogLanes {start} onjump={jump} />
     {:else if viewer.histogram?.buckets.length}
       <LogChart histogram={viewer.histogram} mode={prefs.time.value} {start} onrange={(a, b) => viewer.setRange(a, b)} />
     {/if}
@@ -422,6 +495,7 @@
       label="Views"
       tabs={[
         { value: 'entries', label: 'Entries', count: viewer.total },
+        ...(s.steps?.length || viewer.status ? [{ value: 'steps' as const, label: 'Steps', count: viewer.status ? viewer.status.run.nodes.filter((n) => n.type === 'Pod').length : s.steps!.length }] : []),
         { value: 'errors', label: 'Errors', count: s.groups },
         { value: 'fields', label: 'Fields' },
         { value: 'pins', label: 'Pins', count: viewer.pins.length },
@@ -429,7 +503,9 @@
       ]}
     />
     <div class="main">
-      {#if tab === 'errors'}
+      {#if tab === 'steps'}
+        <LogSteps onjump={jump} onshow={() => (tab = 'entries')} />
+      {:else if tab === 'errors'}
         <LogGroups onjump={jump} onshow={() => (tab = 'entries')} />
       {:else if tab === 'fields'}
         <LogFields onshow={() => (tab = 'entries')} />
@@ -547,6 +623,9 @@
   }
   .muted {
     color: var(--fg-2);
+  }
+  .live {
+    font-size: var(--fs-xs);
   }
   .main {
     flex: 1;

@@ -66,3 +66,7 @@ export const getTree = () => request<FileTree>('GET', '/api/v2/files/tree')
 
 export const getContent = (path: string) =>
   request<FileContent>('GET', '/api/v2/files/content?path=' + encodeURIComponent(path))
+
+/** A file's size and change time (Unix ms), at any size. */
+export const statFile = (path: string, signal?: AbortSignal) =>
+  request<{ size: number; modTime: number }>('GET', '/api/v2/files/stat?path=' + encodeURIComponent(path), undefined, signal)

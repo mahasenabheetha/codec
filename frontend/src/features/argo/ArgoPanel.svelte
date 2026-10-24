@@ -40,6 +40,11 @@
   } from '../../lib/api/argo'
   import { workspace } from '../workspace/workspace.svelte'
   import { helmNav } from '../helm/helm.svelte'
+  import { layout } from '../../lib/stores/layout.svelte'
+  import { logTabs } from '../logs/viewer.svelte'
+  import { findInLog, runFit, runOf, type RunOf } from '../logs/steps'
+  import { term } from '../logs/terms'
+  import { formatSpan } from '../logs/format'
   import ProblemItem from '../lint/ProblemItem.svelte'
 
   // A workflow as it would run: pick a workflow, set its parameters,
@@ -134,15 +139,62 @@
     return out
   })
 
+  // A run of this workflow, from a Log viewer tab with its status: the
+  // graph is coloured by how each step went. The tab whose run has the
+  // most of this workflow's step names is picked; another can be chosen.
+  const runs = $derived(logTabs.list.filter((v) => v.status).map((v) => ({ viewer: v, run: v.status!.run })))
+  let runPick = $state<number | null>(null) // a tab's key; null: the best fit
+  const runChoice = $derived.by(() => {
+    if (!runs.length || !result) return null
+    if (runPick === 0) return null // "none"
+    const picked = runs.find((r) => r.viewer.key === runPick)
+    if (picked) return picked
+    const names = result.nodes.map((n) => n.name)
+    let best = null
+    let fit = 0
+    for (const r of runs) {
+      const f = runFit(r.run, names)
+      if (f > fit) [best, fit] = [r, f]
+    }
+    return best
+  })
+  const ran = (n: ArgoNode): RunOf | undefined => (runChoice ? runOf(runChoice.run, n.name) : undefined)
+  const statusOf = (r: RunOf | undefined) => {
+    if (!r) return runChoice ? ('never' as const) : undefined
+    if (r.phase === 'Failed' || r.phase === 'Error') return 'failed' as const
+    if (r.phase === 'Succeeded') return 'ok' as const
+    if (r.phase === 'Running' || r.phase === 'Pending') return 'changed' as const
+    return 'never' as const // Skipped, Omitted
+  }
+  const tookOf = (r: RunOf | undefined) => (r?.from && r.to ? formatSpan(new Date(r.to).getTime() - new Date(r.from).getTime()) : r?.from ? 'running' : '')
+
   const graphNodes = $derived(
-    (kids.length ? kids : container ? [container] : []).map((n) => ({
-      id: n.id,
-      label: n.name,
-      sub: [n.ref || (n.template !== n.name ? n.template : ''), n.type, n.when?.result === 'false' ? 'skipped' : ''].filter(Boolean).join(' · '),
-      group: typeGroup(n),
-      missing: !!n.error || n.when?.result === 'false',
-    })),
+    (kids.length ? kids : container ? [container] : []).map((n) => {
+      const r = ran(n)
+      return {
+        id: n.id,
+        label: n.name,
+        sub: [n.ref || (n.template !== n.name ? n.template : ''), n.type, n.when?.result === 'false' ? 'skipped' : '', r ? `${r.phase} ${tookOf(r)}`.trim() : '']
+          .filter(Boolean)
+          .join(' · '),
+        group: typeGroup(n),
+        missing: !!n.error || n.when?.result === 'false',
+        status: statusOf(r),
+      }
+    }),
   )
+
+  /** Open the selected step's entries in its run's Log viewer tab. */
+  function openLog(n: ArgoNode) {
+    const c = runChoice
+    if (!c) return
+    const steps = c.viewer.opened?.summary.steps ?? []
+    const r = ran(n)
+    const f = r?.nodes.map((rn) => findInLog(steps, rn)).find(Boolean)
+    logTabs.select(c.viewer)
+    c.viewer.follow(f ? f.filter : term('step', n.name))
+    layout.openTool('logs')
+  }
   const graphEdges = $derived((container?.edges ?? []).map((e) => ({ from: e.from, to: e.to, label: e.label })))
   const legend = [
     { group: 'workload', label: 'Container / script' },
@@ -398,6 +450,17 @@
             {/each}
             {#if loading}<span class="muted">Resolving…</span>{/if}
           </nav>
+          {#if runs.length}
+            <div class="runbar">
+              <label for="argo-run">Coloured by the run</label>
+              <select id="argo-run" value={runPick ?? -1} onchange={(e) => (runPick = +e.currentTarget.value < 0 ? null : +e.currentTarget.value)}>
+                <option value={-1}>Best fit{runChoice && runPick === null ? `: ${runChoice.run.name}` : ''}</option>
+                {#each runs as r (r.viewer.key)}<option value={r.viewer.key}>{r.run.name} ({r.run.phase ?? '?'}) · {r.viewer.title}</option>{/each}
+                <option value={0}>None</option>
+              </select>
+              {#if runChoice}<span class="muted">from the Log viewer tab {runChoice.viewer.title}</span>{/if}
+            </div>
+          {/if}
           <div class="graph">
             <Graph nodes={graphNodes} edges={graphEdges} label="Steps and tasks of {container?.name ?? 'the workflow'}" {legend} onselect={select} />
           </div>
@@ -434,7 +497,20 @@
               {#if selected.outputs?.length}<dt>Outputs</dt><dd class="mono">{selected.outputs.join(', ')}</dd>{/if}
               {#if selected.error}<dt>Problem</dt><dd class="err">{selected.error}</dd>{/if}
               {#if selected.note}<dt>Note</dt><dd>{selected.note}</dd>{/if}
+              {#if runChoice}
+                {@const r = ran(selected)}
+                <dt>In the run</dt>
+                <dd>
+                  {#if r}
+                    <span class="res {statusOf(r) === 'failed' ? 'false' : statusOf(r) === 'ok' ? 'true' : ''}">{r.phase}</span>{#if tookOf(r)}<span class="muted">{` · ${tookOf(r)}`}</span>{/if}{#if r.exitCode}<span class="muted">{` · exit ${r.exitCode}`}</span>{/if}{#if r.nodes.length > 1}<span class="muted">{` · ${r.nodes.length} nodes (attempts or items)`}</span>{/if}
+                    {#if r.message}<div class="err">{r.message}</div>{/if}
+                  {:else}<span class="muted">didn't run</span>{/if}
+                </dd>
+              {/if}
             </dl>
+            {#if runChoice && ran(selected)}
+              <Button size="sm" variant="ghost" onclick={() => openLog(selected)}>Open its log <ChevronRight size={12} strokeWidth={2} /></Button>
+            {/if}
             {#if selected.children?.length && selected.id !== containerId}
               <Button size="sm" variant="ghost" onclick={() => openContainer(selected.id)}>
                 Show its {selected.children.length} {selected.type === 'dag' ? 'tasks' : 'steps'} <ChevronRight size={12} strokeWidth={2} />
@@ -770,6 +846,22 @@
   }
   .muted {
     color: var(--fg-2);
+  }
+  .runbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s-2);
+    padding: var(--s-1) 0;
+    font-size: var(--fs-sm);
+    color: var(--fg-1);
+  }
+  dd .err {
+    color: var(--err);
+  }
+  .runbar select {
+    height: var(--control-h-sm);
+    max-width: 360px;
   }
   .graph {
     flex: 1;

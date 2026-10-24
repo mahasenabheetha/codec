@@ -248,6 +248,9 @@ type Summary struct {
 	Stacks     int            `json:"stacks"`     // entries with a stack trace
 	Groups     int            `json:"groups"`     // error groups
 	Gaps       []Gap          `json:"gaps,omitempty"`
+	// An Argo run's workflows and steps, in the order the steps start.
+	Workflows []string   `json:"workflows,omitempty"`
+	Steps     []StepStat `json:"steps,omitempty"`
 }
 
 // Count is a value and how often it occurs.
@@ -301,6 +304,7 @@ func (l *Log) summarize() {
 		slices.SortFunc(s.Sources, func(a, b Count) int { return cmp.Or(b.Count-a.Count, strings.Compare(a.Value, b.Value)) })
 	}
 	s.Gaps = l.gaps()
+	s.Workflows, s.Steps = l.workflows, l.stepStats()
 	l.summary = s
 }
 
@@ -376,20 +380,11 @@ func (l *Log) Histogram(ids []uint32, from, to time.Time, maxBuckets int) Histog
 		to = l.summary.To
 	}
 	h := Histogram{}
-	if from.IsZero() || to.Before(from) || maxBuckets < 1 {
+	start, step, n, ok := l.timeBuckets(from, to, maxBuckets)
+	if !ok {
 		l.each(ids, func(i int) { h.Untimed++ })
 		return h
 	}
-	span := to.Sub(from)
-	step := histSteps[len(histSteps)-1]
-	for _, s := range histSteps {
-		if span/s < time.Duration(maxBuckets) {
-			step = s
-			break
-		}
-	}
-	start := from.Truncate(step)
-	n := int(to.Sub(start)/step) + 1
 	h.From, h.StepMs, h.Buckets = start, step.Milliseconds(), make([][7]int, n)
 	s0, st := start.UnixNano(), int64(step)
 	l.each(ids, func(i int) {

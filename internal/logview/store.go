@@ -31,6 +31,8 @@ type Log struct {
 	strIDs  map[string]uint32
 	groups  []groupKey // error groups by fingerprint; a row's group is index+1
 	summary Summary
+	// Argo runs: the workflows named, nil when the log isn't one.
+	workflows []string
 
 	msgOnce sync.Once // every entry's fingerprint, for comparing runs
 	msg     *msgIndex
@@ -55,8 +57,10 @@ type row struct {
 	source  uint32 // index into Log.strs
 	group   uint32 // error group + 1, for warnings and worse
 	extra   uint32 // index + 1 into Log.extras
+	step    uint32 // Argo step, into Log.strs; 0 when none
 	level   Level
 	format  Format
+	argo    bool // a line of Argo's executor (init and wait containers)
 	message string
 	raw     string
 }
@@ -119,6 +123,7 @@ func Build(files []File, opt BuildOptions) (*Log, error) {
 	if len(files) > 1 {
 		l.merge()
 	}
+	l.steps()
 	l.groups = g.keys
 	l.summarize()
 	return l, nil

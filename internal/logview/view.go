@@ -133,6 +133,9 @@ func (l *Log) withContext(ids []uint32, c int) []ViewRow {
 // or stack trace.
 func (l *Log) plain(i uint32) bool {
 	r := &l.rows[i]
+	if r.argo {
+		return true // Argo's own lines are output to the run's steps
+	}
 	if r.format != Text || r.level != LevelNone {
 		return false
 	}

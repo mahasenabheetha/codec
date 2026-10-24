@@ -30,6 +30,26 @@ export interface LogSummary {
   stacks: number
   groups: number
   gaps?: { after: number; from: string; to: string; seconds: number }[]
+  /** An Argo run: its workflows and steps, in the order the steps start. */
+  workflows?: string[]
+  steps?: LogStep[]
+}
+
+/** Counts over some entries (internal/logview/argo.go Tally). */
+export interface LogTally {
+  entries: number
+  errors: number
+  warnings: number
+  from?: string
+  to?: string
+  first: number // the first entry
+  firstError: number // the first error or worse; -1 when none
+}
+
+export interface LogStep extends LogTally {
+  name: string
+  pods: number
+  podStats?: (LogTally & { name: string })[] // each pod on its own, the first 50
 }
 
 export interface LogOpened {
@@ -47,6 +67,7 @@ export interface LogRow {
   time?: string
   level?: Level
   source?: string
+  step?: string // an Argo run's step
   message: string
   more?: boolean
   format: string
@@ -117,6 +138,7 @@ export interface LogEntry {
   lines: number
   format: string
   source?: string
+  step?: string
   time?: string
   level?: Level
   rawLevel?: string
@@ -232,6 +254,20 @@ export function logEntry(id: string, n: number, around = 0, signal?: AbortSignal
 
 export function logFields(id: string, req: LogQuery & { top?: number }, signal?: AbortSignal): Promise<{ total: number; fields: FieldStat[] }> {
   return request('POST', base(id) + '/fields', req, signal)
+}
+
+/** A lane per Argo step or per source over time (internal/logview/lanes.go). */
+export interface LogLanes {
+  by: 'step' | 'source'
+  from?: string
+  stepMs: number
+  n: number
+  lanes: { name: string; entries: number; errors: number; cells: [number, number, number, number, number][] }[] // bucket, entries, warnings, errors, entry
+  more?: number
+}
+
+export function logLanes(id: string, req: LogQuery & { buckets: number }, signal?: AbortSignal): Promise<LogLanes> {
+  return request('POST', base(id) + '/lanes', req, signal)
 }
 
 export function logGroups(id: string, req: LogQuery, signal?: AbortSignal): Promise<{ groups: LogGroup[] }> {

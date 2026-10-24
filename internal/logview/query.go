@@ -165,12 +165,13 @@ const (
 	pFormat
 	pFile
 	pGroup
+	pStep
 )
 
 var pseudoNames = map[string]pseudo{
 	"level": pLevel, "message": pMessage, "msg": pMessage, "source": pSource, "logger": pLogger,
 	"caller": pCaller, "error": pError, "err": pError, "stack": pStack, "trace": pTrace,
-	"format": pFormat, "file": pFile, "group": pGroup,
+	"format": pFormat, "file": pFile, "group": pGroup, "step": pStep,
 }
 
 // fieldNode matches a field's value.
@@ -275,6 +276,8 @@ func (n *fieldNode) matchPseudo(l *Log, r *row) bool {
 		s = r.format.String()
 	case pFile:
 		s = l.Files[r.file].Name
+	case pStep:
+		s = l.strs[r.step]
 	case pGroup:
 		return r.group != 0 && (n.val.any || n.val.isNum && float64(r.group) == n.val.num)
 	}

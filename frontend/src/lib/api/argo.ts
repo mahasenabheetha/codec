@@ -126,3 +126,32 @@ export interface ArgoScope {
 
 export const analyzeArgo = (scope: ArgoScope, signal?: AbortSignal) =>
   request<ArgoAnalysis>('POST', '/api/v2/argo/analyze', scope, signal)
+
+/** A workflow run's status (internal/argo/status.go): its step tree. */
+export interface ArgoRun {
+  name: string
+  phase?: string
+  startedAt?: string
+  finishedAt?: string
+  message?: string
+  nodes: ArgoRunNode[] // tree order, each after its parent
+}
+
+export interface ArgoRunNode {
+  id: string
+  name: string
+  displayName: string
+  type: string // Pod, Steps, StepGroup, DAG, TaskGroup, Retry, Skipped, Suspend
+  template?: string
+  phase?: string // Pending, Running, Succeeded, Failed, Error, Skipped, Omitted
+  startedAt?: string
+  finishedAt?: string
+  message?: string
+  exitCode?: string
+  pod?: string
+  depth: number
+}
+
+/** Read `argo get <wf> -o yaml|json` output; 422 when it holds no status. */
+export const readArgoStatus = (text: string, signal?: AbortSignal) =>
+  request<ArgoRun>('POST', '/api/v2/argo/status', { text }, signal)

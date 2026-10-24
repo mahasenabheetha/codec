@@ -99,6 +99,24 @@ type argoResponse struct {
 	Error     string            `json:"error,omitempty"`
 }
 
+// POST /api/v2/argo/status {text}: a workflow's status, as `argo get
+// <wf> -o yaml|json` prints it, read into its step tree for the Log
+// viewer. Nothing is kept: the tab holds the result.
+func (s *Server) handleArgoStatus(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Text string `json:"text"`
+	}
+	if !decode(w, r, &req) {
+		return
+	}
+	run, err := argo.ReadStatus([]byte(req.Text))
+	if err != nil {
+		writeError(w, http.StatusUnprocessableEntity, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, run)
+}
+
 // POST /api/v2/argo/analyze {kind, path|text, workflow, params…}
 func (s *Server) handleArgoAnalyze(w http.ResponseWriter, r *http.Request) {
 	var req argoScope

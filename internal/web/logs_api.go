@@ -370,6 +370,7 @@ type logRow struct {
 	Time    string            `json:"time,omitempty"`
 	Level   string            `json:"level,omitempty"`
 	Source  string            `json:"source,omitempty"`
+	Step    string            `json:"step,omitempty"` // an Argo run's step
 	Message string            `json:"message"`
 	More    bool              `json:"more,omitempty"` // the message goes on (more lines, or cut)
 	Format  string            `json:"format"`
@@ -437,7 +438,7 @@ func cut(s string, n int) (string, bool) {
 
 func row(l *logview.Log, i int, cols []string) logRow {
 	e := l.Entry(i)
-	r := logRow{I: i, File: l.File(i), Line: e.Line, Level: e.Level.String(), Source: e.Source,
+	r := logRow{I: i, File: l.File(i), Line: e.Line, Level: e.Level.String(), Source: e.Source, Step: l.Step(i),
 		Format: e.Format.String(), Stack: e.Stack != ""}
 	if e.Lines > 1 {
 		r.Lines = e.Lines
@@ -609,6 +610,7 @@ type entryView struct {
 	Lines    int          `json:"lines"`
 	Format   string       `json:"format"`
 	Source   string       `json:"source,omitempty"`
+	Step     string       `json:"step,omitempty"`
 	Time     string       `json:"time,omitempty"`
 	Level    string       `json:"level,omitempty"`
 	RawLevel string       `json:"rawLevel,omitempty"`
@@ -645,7 +647,7 @@ func (s *Server) handleLogEntry(w http.ResponseWriter, r *http.Request) {
 	}
 	e := h.log.Entry(n)
 	v := entryView{I: n, File: h.log.Files[h.log.File(n)].Name, Line: e.Line, Lines: e.Lines, Format: e.Format.String(),
-		Source: e.Source, Level: e.Level.String(), RawLevel: e.RawLevel, Message: e.Message, Logger: e.Logger,
+		Source: e.Source, Step: h.log.Step(n), Level: e.Level.String(), RawLevel: e.RawLevel, Message: e.Message, Logger: e.Logger,
 		Caller: e.Caller, Error: e.Error, Stack: e.Stack, TraceID: e.TraceID, Fields: []entryField{}, Raw: e.Raw}
 	if !e.Time.IsZero() {
 		v.Time = e.Time.Format(time.RFC3339Nano)
@@ -718,6 +720,28 @@ func (s *Server) handleLogGroups(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, struct {
 		Groups []logview.Group `json:"groups"`
 	}{groups[:min(len(groups), 1000)]})
+}
+
+// POST /api/v2/logs/{id}/lanes {q, from, to, buckets}: the matching
+// entries over time, a lane per Argo step or per source.
+func (s *Server) handleLogLanes(w http.ResponseWriter, r *http.Request) {
+	h := s.held(w, r)
+	if h == nil {
+		return
+	}
+	var req struct {
+		logQuery
+		Buckets int `json:"buckets"`
+	}
+	if !decode(w, r, &req) {
+		return
+	}
+	m, err := h.matches(req.logQuery)
+	if err != nil {
+		writeQueryError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, h.log.Lanes(m.IDs, min(max(req.Buckets, 1), 500)))
 }
 
 // POST /api/v2/logs/{id}/export {q, from, to, format, columns}: the

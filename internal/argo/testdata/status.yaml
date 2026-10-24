@@ -1,0 +1,89 @@
+# A made-up `argo get release-qx7vb -o yaml`, trimmed: a DAG whose
+# deploy task was retried and failed, so notify never ran.
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  name: release-qx7vb
+  namespace: ci
+spec:
+  entrypoint: main
+status:
+  phase: Failed
+  startedAt: "2026-10-24T08:00:00Z"
+  finishedAt: "2026-10-24T08:00:30Z"
+  message: child 'release-qx7vb-1730227342' failed
+  nodes:
+    release-qx7vb:
+      id: release-qx7vb
+      name: release-qx7vb
+      displayName: release-qx7vb
+      type: DAG
+      templateName: main
+      phase: Failed
+      startedAt: "2026-10-24T08:00:00Z"
+      finishedAt: "2026-10-24T08:00:30Z"
+      children: [release-qx7vb-3895212012, release-qx7vb-1159383735]
+    release-qx7vb-3895212012:
+      id: release-qx7vb-3895212012
+      name: release-qx7vb.fetch
+      displayName: fetch
+      type: Pod
+      templateName: fetch-sources
+      phase: Succeeded
+      startedAt: "2026-10-24T08:00:00Z"
+      finishedAt: "2026-10-24T08:00:05Z"
+      outputs: {exitCode: "0"}
+      children: [release-qx7vb-1159383735]
+    release-qx7vb-1159383735:
+      id: release-qx7vb-1159383735
+      name: release-qx7vb.migrate
+      displayName: migrate
+      type: Pod
+      templateRef: {name: db-tools, template: migrate-db}
+      phase: Succeeded
+      startedAt: "2026-10-24T08:00:05Z"
+      finishedAt: "2026-10-24T08:00:14Z"
+      outputs: {exitCode: "0"}
+      children: [release-qx7vb-2846027566]
+    release-qx7vb-2846027566:
+      id: release-qx7vb-2846027566
+      name: release-qx7vb.deploy
+      displayName: deploy
+      type: Retry
+      templateName: deploy-app
+      phase: Failed
+      message: No more retries left
+      startedAt: "2026-10-24T08:00:14Z"
+      finishedAt: "2026-10-24T08:00:29Z"
+      children: [release-qx7vb-1730227342, release-qx7vb-0612155937]
+    release-qx7vb-1730227342:
+      id: release-qx7vb-1730227342
+      name: release-qx7vb.deploy(0)
+      displayName: deploy(0)
+      type: Pod
+      templateName: deploy-app
+      phase: Failed
+      message: Error (exit code 1)
+      startedAt: "2026-10-24T08:00:14Z"
+      finishedAt: "2026-10-24T08:00:21Z"
+      outputs: {exitCode: "1"}
+    release-qx7vb-0612155937:
+      id: release-qx7vb-0612155937
+      name: release-qx7vb.deploy(1)
+      displayName: deploy(1)
+      type: Pod
+      templateName: deploy-app
+      phase: Failed
+      message: "OOMKilled (exit code 137)"
+      startedAt: "2026-10-24T08:00:22Z"
+      finishedAt: "2026-10-24T08:00:29Z"
+      outputs: {exitCode: "137"}
+      children: [release-qx7vb-4001290177]
+    release-qx7vb-4001290177:
+      id: release-qx7vb-4001290177
+      name: release-qx7vb.notify
+      displayName: notify
+      type: Pod
+      templateName: notify
+      phase: Omitted
+      message: "omitted: depends condition not met"

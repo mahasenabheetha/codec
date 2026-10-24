@@ -259,6 +259,26 @@ func (s *Server) handleContent(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// GET /api/v2/files/stat?path=: a file's size and change time, at any
+// size; the Log viewer polls it to follow a log as it grows.
+func (s *Server) handleStat(w http.ResponseWriter, r *http.Request) {
+	ws := s.current()
+	if ws == nil {
+		writeError(w, http.StatusConflict, "no folder is open")
+		return
+	}
+	size, mod, err := ws.Stat(r.URL.Query().Get("path"))
+	if err != nil {
+		he := readError(err)
+		writeError(w, he.status, he.msg)
+		return
+	}
+	writeJSON(w, http.StatusOK, struct {
+		Size    int64 `json:"size"`
+		ModTime int64 `json:"modTime"` // Unix milliseconds
+	}{size, mod.UnixMilli()})
+}
+
 // OpenSample writes the sample workspace to codec's cache folder (never
 // a repository) and opens it like any folder.
 func (s *Server) OpenSample() error {
