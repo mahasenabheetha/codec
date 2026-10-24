@@ -30,6 +30,20 @@ export interface LogSummary {
   stacks: number
   groups: number
   gaps?: { after: number; from: string; to: string; seconds: number }[]
+  /** An Argo run: its workflows and steps, in the order the steps start. */
+  workflows?: string[]
+  steps?: LogStep[]
+}
+
+export interface LogStep {
+  name: string
+  pods: number
+  entries: number
+  errors: number
+  warnings: number
+  from?: string
+  to?: string
+  first: number // its first entry
 }
 
 export interface LogOpened {
@@ -47,6 +61,7 @@ export interface LogRow {
   time?: string
   level?: Level
   source?: string
+  step?: string // an Argo run's step
   message: string
   more?: boolean
   format: string
@@ -117,6 +132,7 @@ export interface LogEntry {
   lines: number
   format: string
   source?: string
+  step?: string
   time?: string
   level?: Level
   rawLevel?: string

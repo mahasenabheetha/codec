@@ -29,6 +29,7 @@
   import HighlightRules from './HighlightRules.svelte'
   import LogOverview from './LogOverview.svelte'
   import LogPins from './LogPins.svelte'
+  import LogSteps from './LogSteps.svelte'
   import { maskSecrets } from './mask'
   import QueryInput from './QueryInput.svelte'
   import { logTabs, prefs, provideViewer, sourceName, type LogViewer, type RepeatMode, type TimeMode } from './viewer.svelte'
@@ -48,7 +49,7 @@
 
   let queryField = $state<HTMLInputElement>()
   let list = $state<LogList>()
-  let tab = $state<'entries' | 'errors' | 'fields' | 'pins' | 'compare'>('entries')
+  let tab = $state<'entries' | 'steps' | 'errors' | 'fields' | 'pins' | 'compare'>('entries')
   let columnFilter = $state('')
   let comparePicker = $state(false)
 
@@ -299,6 +300,7 @@
         fieldKeys={viewer.fieldKeys ?? []}
         fieldValues={viewer.fieldValues}
         sources={(s.sources ?? []).map((x) => x.value)}
+        steps={(s.steps ?? []).map((x) => x.name)}
         history={logTabs.history}
         onsubmit={() => viewer.run()}
         onclear={() => {
@@ -422,6 +424,7 @@
       label="Views"
       tabs={[
         { value: 'entries', label: 'Entries', count: viewer.total },
+        ...(s.steps?.length ? [{ value: 'steps' as const, label: 'Steps', count: s.steps.length }] : []),
         { value: 'errors', label: 'Errors', count: s.groups },
         { value: 'fields', label: 'Fields' },
         { value: 'pins', label: 'Pins', count: viewer.pins.length },
@@ -429,7 +432,9 @@
       ]}
     />
     <div class="main">
-      {#if tab === 'errors'}
+      {#if tab === 'steps'}
+        <LogSteps onjump={jump} onshow={() => (tab = 'entries')} />
+      {:else if tab === 'errors'}
         <LogGroups onjump={jump} onshow={() => (tab = 'entries')} />
       {:else if tab === 'fields'}
         <LogFields onshow={() => (tab = 'entries')} />

@@ -153,7 +153,7 @@
           <dt>Level</dt>
           <dd><span>{entry.level}{#if entry.rawLevel && entry.rawLevel !== entry.level}<span class="muted"> ({entry.rawLevel})</span>{/if}</span><ValueActions key="level" value={entry.level} /></dd>
         {/if}
-        {#each [['source', 'Source', entry.source], ['logger', 'Logger', entry.logger], ['caller', 'Caller', entry.caller], ['trace', 'Trace', entry.traceId]] as [key, label, v] (key)}
+        {#each [['step', 'Step', entry.step], ['source', 'Source', entry.source], ['logger', 'Logger', entry.logger], ['caller', 'Caller', entry.caller], ['trace', 'Trace', entry.traceId]] as [key, label, v] (key)}
           {#if v}<dt>{label}</dt><dd><span>{v}</span><ValueActions key={key!} value={v} /></dd>{/if}
         {/each}
         <dt>From</dt>

@@ -102,7 +102,7 @@
 <tr><td><code>a OR b</code>, <code>(a OR b) c</code>, <code>level:(error OR fatal)</code></td><td>either one; parentheses group</td></tr>
 </tbody>
 </table>
-<p>Short names reach the core fields whatever the log calls them: <code>level</code>, <code>message</code>, <code>source</code>, <code>logger</code>, <code>caller</code>, <code>error</code>, <code>stack</code>, <code>trace</code>, <code>format</code>, <code>file</code>. Any other name is a field (<code>http.response.status_code</code>, or <code>log.level</code> for the level as written). A field the log doesn't have is pointed out; with <code>:</code> it is searched as text instead, so <code>http://…</code> works.</p>
+<p>Short names reach the core fields whatever the log calls them: <code>level</code>, <code>message</code>, <code>source</code>, <code>step</code>, <code>logger</code>, <code>caller</code>, <code>error</code>, <code>stack</code>, <code>trace</code>, <code>format</code>, <code>file</code>. Any other name is a field (<code>http.response.status_code</code>, or <code>log.level</code> for the level as written). A field the log doesn't have is pointed out; with <code>:</code> it is searched as text instead, so <code>http://…</code> works.</p>
 
 <h2 id="chart">Entries over time<a class="anchor" href="#chart">#</a></h2>
 <p>The chart counts the matching entries over time, stacked by level. Drag across it to keep only that time range; the range's chip clears it.</p>
@@ -128,6 +128,9 @@
 <h2 id="errors">Errors and fields<a class="anchor" href="#errors">#</a></h2>
 <p><strong>Errors</strong> lists the warnings and errors of the matching entries grouped by message (numbers, IDs, UUIDs and quoted values don't split a group), most frequent first, with when they started and stopped and how many sources had them. Click one for its first entry; <strong>Show</strong> filters to it (<code>group:3</code>).</p>
 <p><strong>Fields</strong> lists every field of the matching entries: how often it is there, its most common values (click one to filter to it) and, for numbers, the minimum, median, 95th percentile, maximum and mean.</p>
+
+<h2 id="argo">Argo runs<a class="anchor" href="#argo">#</a></h2>
+<p>An Argo workflow's log is read step by step. An entry's step is its <code>argo_step_name</code> field when it has one, what the other entries of its pod said, or else the pod's name, which Argo makes <code>&lt;workflow&gt;-&lt;template&gt;-&lt;number&gt;</code>; plain lines with no pod take the step of the entry before them. The list shows the step in place of the pod (the pod on hover), <code>step:deploy</code> filters to one, and <strong>Steps</strong> lists them in the order they started: when each ran, how long it took, its entries, errors and warnings, failed ones in red. Lines of Argo's own executor (its init and wait containers) count as output and fold with it.</p>
 
 <h2 id="pins">Pins<a class="anchor" href="#pins">#</a></h2>
 <p>Pin the entries that matter while you investigate: <kbd>P</kbd> on the selected row, the pin at the start of a row, or <strong>Pin</strong> in the entry. <strong>Pins</strong> lists them in time order with a note each; <kbd>[</kbd> and <kbd>]</kbd> go from pin to pin, and the strip beside the scrollbar marks them. <strong>Copy as text</strong> or <strong>Copy as Markdown</strong> gives a short report — time, level, source, message and your notes — for a ticket or a chat, with likely secrets masked. Pins are kept in the tab's memory only; they are cleared when files are added to or removed from the tab.</p>

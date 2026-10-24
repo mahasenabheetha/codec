@@ -248,6 +248,9 @@ type Summary struct {
 	Stacks     int            `json:"stacks"`     // entries with a stack trace
 	Groups     int            `json:"groups"`     // error groups
 	Gaps       []Gap          `json:"gaps,omitempty"`
+	// An Argo run's workflows and steps, in the order the steps start.
+	Workflows []string   `json:"workflows,omitempty"`
+	Steps     []StepStat `json:"steps,omitempty"`
 }
 
 // Count is a value and how often it occurs.
@@ -301,6 +304,7 @@ func (l *Log) summarize() {
 		slices.SortFunc(s.Sources, func(a, b Count) int { return cmp.Or(b.Count-a.Count, strings.Compare(a.Value, b.Value)) })
 	}
 	s.Gaps = l.gaps()
+	s.Workflows, s.Steps = l.workflows, l.stepStats()
 	l.summary = s
 }
 

@@ -17,13 +17,14 @@
     fieldKeys: string[]
     fieldValues: Map<string, string[]>
     sources: string[]
+    steps?: string[] // an Argo run's, for step:
     history: string[] // recent queries, newest first
     onsubmit: () => void
     onclear: () => void
     field?: HTMLInputElement
   }
 
-  let { value = $bindable(), invalid = false, fieldKeys, fieldValues, sources, history, onsubmit, onclear, field = $bindable() }: Props = $props()
+  let { value = $bindable(), invalid = false, fieldKeys, fieldValues, sources, steps = [], history, onsubmit, onclear, field = $bindable() }: Props = $props()
 
   interface Item {
     label: string // what the row shows
@@ -36,6 +37,7 @@
     ['level', 'trace, debug, info, warn, error, fatal'],
     ['message', 'the message'],
     ['source', 'pod, container or file'],
+    ['step', 'an Argo run’s step'],
     ['error', 'the error'],
     ['logger', 'the logger'],
     ['trace', 'the trace ID'],
@@ -52,6 +54,7 @@
   function valuesFor(key: string): string[] {
     if (key === 'level') return levelNames
     if (key === 'source') return sources
+    if (key === 'step') return steps
     if (key === 'format') return ['ecs', 'json', 'logfmt', 'klog', 'text']
     const exact = fieldValues.get(key)
     if (exact) return exact
@@ -199,7 +202,7 @@
             </li>
           {/each}
         </ul>
-        <p class="muted">Short names: level, message, source, logger, caller, error, stack, trace, file. Any other name is a field. Next to any value in an entry, the funnel buttons add it for you.</p>
+        <p class="muted">Short names: level, message, source, step, logger, caller, error, stack, trace, file. Any other name is a field. Next to any value in an entry, the funnel buttons add it for you.</p>
       </div>
     </Popover>
   </div>

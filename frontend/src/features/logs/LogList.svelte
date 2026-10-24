@@ -30,6 +30,8 @@
   const days = $derived(!!s?.from && !!s?.to && new Date(s.to).getTime() - start > 86_400_000)
   const timed = $derived((s?.timed ?? 0) > 0)
   const many = $derived((s?.sources?.length ?? 0) > 1)
+  // An Argo run names its steps: the column shows the step, the pod on hover.
+  const steps = $derived(!!s?.steps?.length)
   const cols = $derived(viewer.columns)
   const wrap = $derived(prefs.lines.value === 'wrap')
   const terms = $derived(textTerms(viewer.applied.q))
@@ -130,7 +132,7 @@
         <div class="head row" role="row">
           {#if timed}<span>Time</span>{/if}
           <span>Level</span>
-          {#if many}<span>Source</span>{/if}
+          {#if many}<span>{steps ? 'Step' : 'Source'}</span>{/if}
           {#each cols as c (c)}<span class="col" title={c}>{c}</span>{/each}
           <span>Message <span class="hint">· click a row for the whole entry</span></span>
         </div>
@@ -166,7 +168,7 @@
               >
                 {#if timed}<span class="time">{formatTime(r.time, prefs.time.value, start, days)}</span>{/if}
                 <span class="level">{r.level || ''}</span>
-                {#if many}<span class="src" title={r.source}>{r.source ?? ''}</span>{/if}
+                {#if many}<span class="src" title={r.source}>{(steps && r.step) || r.source || ''}</span>{/if}
                 {#each cols as c (c)}<span class="col" title={r.cols?.[c]}>{@render text(r.cols?.[c] ?? '')}</span>{/each}
                 {#if r.kind === 'output'}
                   <span class="msg">

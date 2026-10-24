@@ -6,6 +6,14 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Log viewer: an Argo run is read step by step. Steps come from the
+  `argo_step_name` field, the pod's other entries or its name; the list
+  shows the step in place of the pod, `step:` filters by it, and a Steps
+  tab lists each step with when it ran, how long it took, its entries,
+  errors and warnings. Argo's executor lines fold with the output.
+
 ## [3.1.1] - 2026-10-24
 
 Fixes from a review and stabilisation pass: static checks, fuzz tests
