@@ -167,6 +167,7 @@ func (s *Server) routes() http.Handler {
 	mux.HandleFunc("GET /api/v2/logs/{id}/entries/{n}", s.handleLogEntry)
 	mux.HandleFunc("POST /api/v2/logs/{id}/fields", s.handleLogFields)
 	mux.HandleFunc("POST /api/v2/logs/{id}/groups", s.handleLogGroups)
+	mux.HandleFunc("POST /api/v2/logs/{id}/lanes", s.handleLogLanes)
 	mux.HandleFunc("POST /api/v2/logs/{id}/export", s.handleLogExport)
 	mux.HandleFunc("POST /api/v2/logs/{id}/compare", s.handleLogCompare)
 	mux.HandleFunc("DELETE /api/v2/logs/{id}", s.handleLogDelete)

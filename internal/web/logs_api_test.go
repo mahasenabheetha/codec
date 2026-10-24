@@ -331,6 +331,19 @@ func TestLogsCompare(t *testing.T) {
 	}
 }
 
+func TestLogLanes(t *testing.T) {
+	s := New(testOptions(false))
+	defer s.Close()
+	id := openLog(t, s, [][2]string{{"a.log", apiLog}, {"b.log", apiLog}})
+	code, v := send(s, "POST", "/api/v2/logs/"+id+"/lanes", "application/json", `{"q":"","buckets":60}`)
+	if code != 200 || v["by"] != "source" || len(v["lanes"].([]any)) != 2 {
+		t.Errorf("%d %v", code, v)
+	}
+	if code, _ := send(s, "POST", "/api/v2/logs/"+id+"/lanes", "application/json", `{"q":"\"open"}`); code != 422 {
+		t.Errorf("bad query: %d", code)
+	}
+}
+
 func TestArgoStatus(t *testing.T) {
 	s := New(testOptions(false))
 	defer s.Close()

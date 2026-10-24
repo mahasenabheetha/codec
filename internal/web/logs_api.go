@@ -722,6 +722,28 @@ func (s *Server) handleLogGroups(w http.ResponseWriter, r *http.Request) {
 	}{groups[:min(len(groups), 1000)]})
 }
 
+// POST /api/v2/logs/{id}/lanes {q, from, to, buckets}: the matching
+// entries over time, a lane per Argo step or per source.
+func (s *Server) handleLogLanes(w http.ResponseWriter, r *http.Request) {
+	h := s.held(w, r)
+	if h == nil {
+		return
+	}
+	var req struct {
+		logQuery
+		Buckets int `json:"buckets"`
+	}
+	if !decode(w, r, &req) {
+		return
+	}
+	m, err := h.matches(req.logQuery)
+	if err != nil {
+		writeQueryError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, h.log.Lanes(m.IDs, min(max(req.Buckets, 1), 500)))
+}
+
 // POST /api/v2/logs/{id}/export {q, from, to, format, columns}: the
 // matching entries as a file: "text" (the lines as read), "ndjson"
 // (one object per entry, in the common shape) or "csv" (time, level,

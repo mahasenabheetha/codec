@@ -1,4 +1,6 @@
 <script lang="ts">
+  import ChevronDown from '@lucide/svelte/icons/chevron-down'
+  import ChevronRight from '@lucide/svelte/icons/chevron-right'
   import FunnelPlus from '@lucide/svelte/icons/funnel-plus'
   import type { ArgoRunNode } from '../../lib/api/argo'
   import { logEntry, type LogStep, type LogTally } from '../../lib/api/logs'
@@ -68,6 +70,38 @@
     return out
   })
   const matched = $derived(new Set(rows.map((r) => r.step?.step).filter(Boolean)))
+
+  // Folding: a node with steps under it starts open when one of them
+  // failed or is still running (or it is the workflow's own node), else
+  // folded; a click flips it.
+  const running = (phase = '') => phase === 'Running' || phase === 'Pending'
+  let flipped = $state<Set<string>>(new Set())
+  const tree = $derived.by(() => {
+    const info = rows.map((r, k) => {
+      let kids = 0
+      let hot = failed(r.n.phase) || running(r.n.phase)
+      for (let j = k + 1; j < rows.length && rows[j].depth > r.depth; j++) {
+        kids++
+        hot ||= failed(rows[j].n.phase) || running(rows[j].n.phase)
+      }
+      const opened = r.depth === 0 || hot
+      return { ...r, kids, open: kids > 0 && (flipped.has(r.n.id) ? !opened : opened) }
+    })
+    const shown: typeof info = []
+    let hideBelow = Infinity
+    for (const r of info) {
+      if (r.depth > hideBelow) continue
+      hideBelow = r.kids && !r.open ? r.depth : Infinity
+      shown.push(r)
+    }
+    return shown
+  })
+  function flip(id: string) {
+    const f = new Set(flipped)
+    if (f.has(id)) f.delete(id)
+    else f.add(id)
+    flipped = f
+  }
   const logOnly = $derived(run ? steps.filter((st) => !matched.has(st)) : steps)
 
   const failed = (phase = '') => phase === 'Failed' || phase === 'Error'
@@ -119,16 +153,21 @@
     <span>Step</span>{#if run}<span>Phase</span>{/if}<span>When</span><span>Took</span>{#if run}<span>Exit</span>{/if}<span>Entries</span><span>Errors</span><span></span>
   </div>
   <div class="list">
-    {#each rows as { n, depth, step } (n.id)}
+    {#each tree as { n, depth, step, kids, open } (n.id)}
       {@const b = bar(n.startedAt, n.finishedAt)}
-      <div class="row tree" class:failed={failed(n.phase)} class:quiet={n.type !== 'Pod'}>
+      <div class="row tree" class:failed={failed(n.phase)} class:quiet={n.type !== 'Pod'} class:running={running(n.phase)}>
         <span class="name" style:padding-left="{depth * 14}px">
+          {#if kids}
+            <button type="button" class="fold" aria-expanded={open} aria-label="{open ? 'Fold' : 'Open'} {n.displayName}" onclick={() => flip(n.id)}>
+              {#if open}<ChevronDown size={12} />{:else}<ChevronRight size={12} />{/if}
+            </button>
+          {:else}<span class="fold-space"></span>{/if}
           {#if step}
-            <button type="button" title="Go to its first entry{n.pod ? ` · pod ${n.pod}` : ''}" onclick={() => onjump(step.first)}>{n.displayName}</button>
+            <button type="button" class="label" title="Go to its first entry{n.pod ? ` · pod ${n.pod}` : ''}" onclick={() => onjump(step.first)}>{n.displayName}</button>
           {:else}
-            <span title={n.type === 'Pod' ? 'Nothing in the log for this step' : n.type}>{n.displayName}</span>
+            <span class="label" title={n.type === 'Pod' ? 'Nothing in the log for this step' : n.type}>{n.displayName}</span>
           {/if}
-          {#if n.type !== 'Pod'}<span class="type">{n.type}</span>{/if}
+          {#if n.type !== 'Pod'}<span class="type">{n.type}{kids && !open ? ` · ${kids} inside` : ''}</span>{/if}
         </span>
         <span class="phase {tone(n.phase)}">{n.phase ?? ''}</span>
         <span class="when">
@@ -149,7 +188,7 @@
     {#each logOnly as st (st.name)}
       {@const b = bar(st.from, st.to)}
       <div class="row" class:tree={!!run} class:failed={st.errors > 0}>
-        <span class="name"><button type="button" title="Go to its first entry{st.pods > 1 ? ` · ${st.pods} pods` : ''}" onclick={() => onjump(st.first)}>{st.name}</button></span>
+        <span class="name"><button type="button" class="label" title="Go to its first entry{st.pods > 1 ? ` · ${st.pods} pods` : ''}" onclick={() => onjump(st.first)}>{st.name}</button></span>
         {#if run}<span></span>{/if}
         <span class="when">
           {#if st.from}{formatTime(st.from, prefs.time.value, start, days)}{/if}
@@ -210,8 +249,7 @@
     min-width: 0;
     font-family: var(--font-mono);
   }
-  .name > button,
-  .name > span:first-child {
+  .label {
     min-width: 0;
     padding: 0;
     overflow: hidden;
@@ -222,14 +260,13 @@
     background: none;
     border: none;
   }
-  .name > button:hover {
+  button.label:hover {
     text-decoration: underline;
   }
-  .quiet .name > span:first-child {
+  .quiet span.label {
     color: var(--fg-1);
   }
-  .failed .name > button,
-  .failed .name > span:first-child {
+  .failed .label {
     color: var(--err);
     font-weight: var(--fw-semibold);
   }
@@ -281,6 +318,30 @@
     bottom: 0;
     background: var(--accent);
     border-radius: 3px;
+  }
+  /* Still running (the status says so): the bar runs on to the log's end. */
+  .running .track i {
+    background: repeating-linear-gradient(-45deg, var(--info) 0 4px, transparent 4px 7px);
+  }
+  .fold {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    color: var(--fg-2);
+    background: none;
+    border: none;
+    border-radius: var(--r-sm);
+  }
+  .fold:hover {
+    color: var(--fg-0);
+    background: var(--bg-3);
+  }
+  .fold-space {
+    flex: none;
+    width: 16px;
   }
   .failed .track i {
     background: var(--err);

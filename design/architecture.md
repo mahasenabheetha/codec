@@ -219,7 +219,7 @@ Files over 8 MB are not listed or read.
   (matches, context, gaps, folded output and repeats; highlight bits),
   the chart and the scrollbar markers; `GET
   /logs/{id}/entries/{n}?before=&after=` → the entry in full and the
-  entries around it; `POST /logs/{id}/fields|groups|export|compare`
+  entries around it; `POST /logs/{id}/fields|groups|lanes|export|compare`
   (export: text, ndjson or csv of the matches; compare {other}: how
   this log differs from another held one, 410 `{other: true}` when
   that one is gone); `DELETE /logs/{id}`. A query that can't be read

@@ -22,6 +22,7 @@
   import { count, formatTime, formatWhen } from './format'
   import LogChart from './LogChart.svelte'
   import LogCompare from './LogCompare.svelte'
+  import LogLanes from './LogLanes.svelte'
   import LogDetail from './LogDetail.svelte'
   import LogFields from './LogFields.svelte'
   import LogGroups from './LogGroups.svelte'
@@ -217,6 +218,9 @@
   const start = $derived(s?.from ? new Date(s.from).getTime() : 0)
   const days = $derived(!!s?.from && !!s?.to && new Date(s.to).getTime() - start > 86_400_000)
   const ranged = $derived(!!viewer.applied.from || !!viewer.applied.to)
+  // Lanes need several steps or sources to tell apart.
+  const lanesOffered = $derived((s?.steps?.length ?? 0) > 1 || (s?.sources?.length ?? 0) > 1)
+  const lanesShown = $derived(lanesOffered && prefs.chart.value === 'lanes' && (s?.timed ?? 0) > 0)
   const fieldsShown = $derived((viewer.fieldKeys ?? []).filter((k) => k.toLowerCase().includes(columnFilter.toLowerCase())))
 
   toolShortcuts(() => active, {
@@ -382,6 +386,18 @@
           </div>
         </div>
       </Popover>
+      {#if s.timed > 0 && lanesOffered}
+        <span class="label" title="Entries over time by level, or a lane per step or source">Chart</span>
+        <SegmentedControl
+          label="Chart"
+          options={[
+            { value: 'levels', label: 'Levels' },
+            { value: 'lanes', label: s.steps?.length ? 'Steps' : 'Sources' },
+          ]}
+          value={prefs.chart.value}
+          onchange={(v: 'levels' | 'lanes') => (prefs.chart.value = v)}
+        />
+      {/if}
       {#if s.timed > 0}
         <span class="label">Time</span>
         <SegmentedControl
@@ -417,6 +433,8 @@
 
     {#if s.timed === 0}
       <p class="notime">No times were found in this log, so there is no chart over time; the entries are in the order they were written. If its lines do start with a time, send the shape of one so codec learns it.</p>
+    {:else if lanesShown}
+      <LogLanes {start} onjump={jump} />
     {:else if viewer.histogram?.buckets.length}
       <LogChart histogram={viewer.histogram} mode={prefs.time.value} {start} onrange={(a, b) => viewer.setRange(a, b)} />
     {/if}

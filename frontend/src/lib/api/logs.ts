@@ -256,6 +256,20 @@ export function logFields(id: string, req: LogQuery & { top?: number }, signal?:
   return request('POST', base(id) + '/fields', req, signal)
 }
 
+/** A lane per Argo step or per source over time (internal/logview/lanes.go). */
+export interface LogLanes {
+  by: 'step' | 'source'
+  from?: string
+  stepMs: number
+  n: number
+  lanes: { name: string; entries: number; errors: number; cells: [number, number, number, number, number][] }[] // bucket, entries, warnings, errors, entry
+  more?: number
+}
+
+export function logLanes(id: string, req: LogQuery & { buckets: number }, signal?: AbortSignal): Promise<LogLanes> {
+  return request('POST', base(id) + '/lanes', req, signal)
+}
+
 export function logGroups(id: string, req: LogQuery, signal?: AbortSignal): Promise<{ groups: LogGroup[] }> {
   return request('POST', base(id) + '/groups', req, signal)
 }

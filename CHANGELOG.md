@@ -19,6 +19,11 @@ All notable changes to codec are documented here. The format follows
   times and exit code, steps that never logged too, and why a failed
   step failed: Argo's message and its first logged error. Pods are
   matched to the log by name, so a retry's attempts each show their own.
+  The tree folds, with the parts that failed or still run open; running
+  steps show a striped bar to the end of the log.
+- Log viewer: lanes, a second chart over time with a lane per source
+  (per step in an Argo run): when each logged and where its warnings
+  and errors fall; a cell goes to its entry.
 
 ## [3.1.1] - 2026-10-24
 

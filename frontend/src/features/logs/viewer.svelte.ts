@@ -38,6 +38,8 @@ export const prefs = {
   /** Entries shown around each match, and how repeated lines fold. */
   context: persisted<number>('logs.context', 0),
   repeats: persisted<RepeatMode>('logs.repeats', 'exact'),
+  /** Over time: entries by level, or a lane per step or source. */
+  chart: persisted<'levels' | 'lanes'>('logs.chart', 'levels'),
 }
 
 export type RepeatMode = 'off' | 'exact' | 'similar'

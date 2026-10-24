@@ -380,20 +380,11 @@ func (l *Log) Histogram(ids []uint32, from, to time.Time, maxBuckets int) Histog
 		to = l.summary.To
 	}
 	h := Histogram{}
-	if from.IsZero() || to.Before(from) || maxBuckets < 1 {
+	start, step, n, ok := l.timeBuckets(from, to, maxBuckets)
+	if !ok {
 		l.each(ids, func(i int) { h.Untimed++ })
 		return h
 	}
-	span := to.Sub(from)
-	step := histSteps[len(histSteps)-1]
-	for _, s := range histSteps {
-		if span/s < time.Duration(maxBuckets) {
-			step = s
-			break
-		}
-	}
-	start := from.Truncate(step)
-	n := int(to.Sub(start)/step) + 1
 	h.From, h.StepMs, h.Buckets = start, step.Milliseconds(), make([][7]int, n)
 	s0, st := start.UnixNano(), int64(step)
 	l.each(ids, func(i int) {
