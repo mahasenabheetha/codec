@@ -415,3 +415,14 @@ Settled unless the user reopens them. Add new ones at the bottom:
     the same way. The comparison is worked out on the server from the
     two held logs (40 ms to fingerprint 100k entries, once; 5 ms to
     compare) and lives in the tab's memory (2026-10-23).
+89. Argo runs in the Log viewer (3.2.0, on 87): an entry's step is its
+    argo_step_name, else its pod's, else the pod's name; a run's status
+    (`argo get`) is matched to the log by the pod names Argo makes
+    (`<wf>-<template>-<fnv32a of the node name>`, older runs the node
+    ID), else by step name, so a retry's attempts are told apart. Live
+    follow polls the files' size and time once a second rather than
+    relying on the watcher: the folder index skips files over 8 MB,
+    which a followed log soon is, and polling also works on mounts. A
+    followed log is read again whole, not appended: simple and still
+    fast (100k entries in about 0.25 s). Statuses stay in the tab's
+    memory (19) (2026-10-24).

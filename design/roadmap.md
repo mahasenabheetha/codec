@@ -242,7 +242,7 @@ why, including steps that failed before they logged.
 | T3 | Steps and lanes | Step tree with failed steps expanded; one lane per source (pod, step, service) over time; a log that stops mid-run shows its last steps as still running | Done: the status tree folds (open where something failed or runs, a chevron flips it, a folded node says how many it holds); Running and Pending steps show a striped bar to the log's end; `Log.Lanes` (a lane per step, else per source, on the histogram's buckets, a red cell's entry its error) and `POST /logs/{id}/lanes`; Chart: Levels / Steps (or Sources) as a preference; a cell goes to its entry, a name filters. Without a status, a log that stops mid-run can't tell a running step from a finished one; live follow (T4) is where that shows |
 | T4 | Live follow | A log file in the open folder followed as it grows (codec's file watching), e.g. `argo logs --follow > run.log` | Done: Follow for tabs of folder files; `GET /files/stat` polled once a second (the watcher's index skips files over 8 MB, which a followed log soon is, and polling also works on mounts); `refresh()` reads the files again keeping query, view, pins and selection, stays at the end if the list was there; the last step to log shows as running without a status. Checked in a test build: lines appended from outside arrived in about two seconds |
 | T5 | Argo graph coloured by a run | When the open folder has the workflow, its graph in the Argo view is coloured by the run's step results, with durations; a node opens its step's log; docs (`argo.html`) | Done: the Argo view takes runs from Log viewer tabs with a status (best fit by step names, or picked); `runOf` rolls a step's attempts and items up; Graph's run states (ok, failed, changed for running, never); phase and time in the node, phase, exit code and message in its details; Open its log filters the tab to the step (by pod, else name) and switches to it; `logs/steps.ts` shared with the Steps tab |
-| — | Release | Full checks; CHANGELOG cut as 3.2.0 | |
+| — | Release | Full checks; CHANGELOG cut as 3.2.0 | Full checks passed (vet, all Go tests, staticcheck, govulncheck apart from the local Go, frontend build, svelte-check; a fuzz target for the status parser); docs pass (logs, Argo, README, docs home); CHANGELOG cut as 3.2.0 |
 
 ### v3.3.0 — Markdown preview
 Agreed 2026-10-05 (decision 84). READMEs and docs in a repository are
@@ -307,6 +307,7 @@ The rest of "Next", picked up when it fits.
 
 | Version | Items |
 |---|---|
+| 3.2.0 | Argo runs in the Log viewer: steps, the run's status as a step tree, lanes, live follow; the Argo graph coloured by a run |
 | 3.1.1 | Review and stabilisation: static checks, fuzz tests of every parser, race detector, staticcheck and govulncheck in CI; releases on the newest Go patch |
 | 3.1.0 | Log viewer: structured logs of any common format, filtered, charted and read; several logs in tabs, folds, highlights, pins and two runs compared |
 | 3.0.0 | Desktop app for Windows (Wails v3): own window, tray, start at login, system folder dialog, "Open with" for YAML; per-user installer without admin rights and a portable exe |

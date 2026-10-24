@@ -6,6 +6,13 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+## [3.2.0] - 2026-10-24
+
+Argo workflows in the Log viewer: a run read step by step, beside its
+status from `argo get` (the whole step tree, steps that never logged,
+why a step failed), lanes over time, and a log followed as it grows.
+The Argo view colours a workflow's graph by the run.
+
 ### Added
 
 - Log viewer: an Argo run is read step by step. Steps come from the
@@ -24,12 +31,12 @@ All notable changes to codec are documented here. The format follows
 - Log viewer: Follow reads a log file from the open folder again as it
   grows (`argo logs --follow > run.log`), keeping the search, view and
   pins and staying at the end; it checks every second, at any size.
-- Argo view: a workflow's graph is coloured by a run whose status a Log
-  viewer tab holds: each step's result and duration, Argo's message in
-  its details, and Open its log.
 - Log viewer: lanes, a second chart over time with a lane per source
   (per step in an Argo run): when each logged and where its warnings
   and errors fall; a cell goes to its entry.
+- Argo view: a workflow's graph is coloured by a run whose status a Log
+  viewer tab holds: each step's result and duration, Argo's message in
+  its details, and Open its log.
 
 ## [3.1.1] - 2026-10-24
 
@@ -657,7 +664,8 @@ First tagged release: codec as it stood before the 2.0 work began.
 - Release pipeline: pushing a `v*` tag publishes binaries for Linux,
   Windows and macOS (amd64/arm64) to GitHub Releases via GoReleaser.
 
-[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v3.1.1...HEAD
+[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v3.2.0...HEAD
+[3.2.0]: https://github.com/mahasenabheetha/codec/compare/v3.1.1...v3.2.0
 [3.1.1]: https://github.com/mahasenabheetha/codec/compare/v3.1.0...v3.1.1
 [3.1.0]: https://github.com/mahasenabheetha/codec/compare/v3.0.0...v3.1.0
 [3.0.0]: https://github.com/mahasenabheetha/codec/compare/v2.4.1...v3.0.0
