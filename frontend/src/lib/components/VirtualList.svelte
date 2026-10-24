@@ -127,6 +127,21 @@
       measure()
       await tick()
     }
+    // Rows measured on the way (those around the target, drawn for the
+    // first time after a fresh list) can still move it: correct by where
+    // the row really is, until it stays put.
+    for (let pass = 0; pass < 4; pass++) {
+      if (i < first || i >= last) break
+      const el = list.children[i - first + (first > 0 ? 1 : 0)] as HTMLElement | undefined // after the spacer, if any
+      if (!el) break
+      const r = el.getBoundingClientRect()
+      const s = scroller.getBoundingClientRect()
+      const want = align === 'start' ? s.top : align === 'center' ? s.top + (s.height - r.height) / 2 : r.top < s.top ? s.top : r.bottom > s.bottom ? s.bottom - r.height : r.top
+      if (Math.abs(r.top - want) < 2) break
+      scroller.scrollTop += r.top - want
+      measure()
+      await tick()
+    }
   }
 </script>
 

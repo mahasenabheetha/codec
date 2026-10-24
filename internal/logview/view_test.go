@@ -111,6 +111,19 @@ func TestRowAt(t *testing.T) {
 	if got := l.RowAt(nil, 3); got != -1 {
 		t.Errorf("empty view: %d", got)
 	}
+
+	// A fold of one pod's output crossed by 80 other pods' single lines:
+	// its last entry is 160 rows on, and still found in the fold.
+	var b strings.Builder
+	for k := range 80 {
+		fmt.Fprintf(&b, "pod-a-1111111111: a %d\npod-x%02d-2222222222: x\n", k, k)
+	}
+	l = buildText(t, b.String())
+	all, _ := l.Match("", time.Time{}, time.Time{})
+	rows = l.View(all, ViewOptions{Output: true})
+	if rows[0].Kind != RowOutput || l.RowAt(rows, 158) != 0 {
+		t.Errorf("fold %+v; RowAt(158) = %d", rows[0], l.RowAt(rows, 158))
+	}
 }
 
 func TestMarkers(t *testing.T) {
@@ -121,14 +134,18 @@ func TestMarkers(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	m := l.Markers(rows, 9, []*Filter{nil, rule}, []uint32{8})
+	m, at := l.Markers(rows, 9, []*Filter{nil, rule}, []uint32{8})
 	want := []uint8{0, 0, 0, 0, MarkError, MarkWarn | MarkRule<<1, MarkWarn | MarkRule<<1, MarkWarn | MarkRule<<1, MarkPin}
 	if fmt.Sprint(m) != fmt.Sprint(want) {
 		t.Errorf("got %v\nwant %v", m, want)
 	}
-	// Fewer buckets than rows: each holds what its rows hold.
-	if m := l.Markers(rows, 3, nil, nil); fmt.Sprint(m) != fmt.Sprint([]uint8{0, MarkError | MarkWarn, MarkWarn}) {
-		t.Errorf("3 buckets: %v", m)
+	if fmt.Sprint(at) != "[-1 -1 -1 -1 4 5 6 7 8]" {
+		t.Errorf("rows %v", at)
+	}
+	// Fewer buckets than rows: each holds what its rows hold, and a mark
+	// goes to its bucket's first error, not wherever a click falls.
+	if m, at := l.Markers(rows, 3, nil, nil); fmt.Sprint(m) != fmt.Sprint([]uint8{0, MarkError | MarkWarn, MarkWarn}) || fmt.Sprint(at) != "[-1 4 6]" {
+		t.Errorf("3 buckets: %v at %v", m, at)
 	}
 	if _, err := l.Filter(`"open`); err == nil {
 		t.Error("a bad rule compiled")

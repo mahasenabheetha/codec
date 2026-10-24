@@ -35,12 +35,6 @@ func (c *helmCache) put(key string, r *helm.Result) {
 	c.last[key] = r
 }
 
-func (c *helmCache) get(key string) *helm.Result {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	return c.last[key]
-}
-
 // chartView is one chart for the Helm view's picker.
 type chartView struct {
 	Path       string                        `json:"path"` // workspace-relative; "." = root

@@ -111,6 +111,23 @@
     list?.reveal(pos)
   }
 
+  // Opening or closing the entry panel moves the list into or out of the
+  // split view, where it is drawn anew from the top: bring the row back.
+  async function selectRow(i: number, pos: number, last?: number) {
+    const moving = viewer.selected === null
+    viewer.select(i, pos, last)
+    if (!moving) return
+    await tick()
+    list?.reveal(pos)
+  }
+  async function closeEntry() {
+    const pos = viewer.selectedPos
+    viewer.select(null)
+    if (pos === null) return
+    await tick()
+    list?.reveal(pos)
+  }
+
   /** Pin or unpin the selected entry. */
   function pinSelected() {
     const i = viewer.selected
@@ -204,7 +221,7 @@
     run: () => viewer.run(),
     copy: () => copySummary(),
     clear: () => {
-      if (viewer.selected !== null) viewer.select(null)
+      if (viewer.selected !== null) closeEntry()
       else if (viewer.input) viewer.input = ''
     },
   })
@@ -424,11 +441,11 @@
         <EmptyState icon={Search} title="Nothing matches" description="Change the query or the time range." />
       {:else if viewer.selected !== null}
         <SplitPane id="logs" initial={0.62} min={260}>
-          {#snippet first()}<LogList bind:this={list} onselect={(i, pos, last) => viewer.select(i, pos, last)} />{/snippet}
-          {#snippet second()}<LogDetail index={viewer.selected!} onclose={() => viewer.select(null)} onpick={(i) => jump(i)} />{/snippet}
+          {#snippet first()}<LogList bind:this={list} onselect={selectRow} />{/snippet}
+          {#snippet second()}<LogDetail index={viewer.selected!} onclose={closeEntry} onpick={(i) => jump(i)} />{/snippet}
         </SplitPane>
       {:else}
-        <LogList bind:this={list} onselect={(i, pos, last) => viewer.select(i, pos, last)} />
+        <LogList bind:this={list} onselect={selectRow} />
       {/if}
     </div>
   </div>

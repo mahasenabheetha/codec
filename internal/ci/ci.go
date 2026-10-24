@@ -12,7 +12,6 @@ package ci
 
 import (
 	"cmp"
-	"errors"
 	"fmt"
 	"io/fs"
 	"path"
@@ -436,9 +435,6 @@ func (o Options) load(p string) ([]byte, *yamlkit.File, error) {
 func (o Options) repoPath(p string) string {
 	return strings.TrimPrefix(path.Join(o.Root, strings.TrimPrefix(p, "/")), "/")
 }
-
-// missing reports whether err means "the file isn't there".
-func missing(err error) bool { return errors.Is(err, fs.ErrNotExist) }
 
 func plural(n int, word string) string {
 	if n == 1 {

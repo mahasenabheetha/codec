@@ -519,7 +519,8 @@ type entriesResponse struct {
 	AtRow           *int               `json:"atRow,omitempty"`
 	Entries         []logRow           `json:"entries"`
 	Histogram       *logview.Histogram `json:"histogram,omitempty"`
-	Markers         []int              `json:"markers,omitempty"` // a logview.Mark* bit set per bucket
+	Markers         []int              `json:"markers,omitempty"`    // a logview.Mark* bit set per bucket
+	MarkerRows      []int              `json:"markerRows,omitempty"` // per bucket, the row its mark stands for; -1 for none
 	HighlightErrors []string           `json:"highlightErrors,omitempty"`
 }
 
@@ -581,7 +582,9 @@ func (s *Server) handleLogEntries(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		// As numbers: a []uint8 would be written as base64.
-		for _, m := range h.log.Markers(rows, min(req.Markers, 1000), rules, pins) {
+		marks, at := h.log.Markers(rows, min(req.Markers, 1000), rules, pins)
+		resp.MarkerRows = at
+		for _, m := range marks {
 			resp.Markers = append(resp.Markers, int(m))
 		}
 	}

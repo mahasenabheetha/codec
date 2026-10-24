@@ -263,7 +263,7 @@ func at(tool string, f *provider.File, pos yamlkit.Pos, opts Options) *target {
 			t.kind, t.name = "job", str
 		case len(keys) >= 3 && has(1, "needs") && str != "" && (last == "#" || last == "job"):
 			t.kind, t.name = "job", str
-		case last == "#" && doc.NodeAt(path[:len(path)-1]).Tag == "!reference" && path[len(path)-1].Index == 0:
+		case last == "#" && isRef(doc.NodeAt(path[:len(path)-1])) && path[len(path)-1].Index == 0:
 			t.kind, t.name = "job", str
 		case has(0, "include") && (last == "local" || last == "#") && str != "" && !isURL(str):
 			t.kind, t.name = "file", opts.repoPath(str)

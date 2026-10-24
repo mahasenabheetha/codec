@@ -137,7 +137,6 @@ type analyzer struct {
 	read       map[string]*yamlkit.Node
 	playRoles  map[string]bool   // roles already run in the current play
 	reqs       map[string]string // requirements files, read once
-	depth      int
 }
 
 // Analyze reads file (content is its text).

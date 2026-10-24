@@ -37,22 +37,6 @@ func newLineIndex(src []byte) *lineIndex {
 
 func (li *lineIndex) lines() int { return len(li.starts) }
 
-// line returns the text of a 1-based line without its line ending.
-func (li *lineIndex) line(n int) string {
-	if n < 1 || n > len(li.starts) {
-		return ""
-	}
-	start := li.starts[n-1]
-	end := len(li.src)
-	if n < len(li.starts) {
-		end = li.starts[n] - 1 // drop \n
-	}
-	if end > start && li.src[end-1] == '\r' {
-		end-- // drop \r of CRLF
-	}
-	return string(li.src[start:end])
-}
-
 // pos converts a byte offset into a Pos.
 func (li *lineIndex) pos(offset int) Pos {
 	offset = max(0, min(offset, len(li.src)))

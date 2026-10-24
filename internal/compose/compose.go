@@ -818,9 +818,7 @@ func (a *analyzer) service(name string, n *yamlkit.Node) Service {
 	} else if s.Mode == "" {
 		s.Networks = []string{"default"}
 	}
-	for _, f := range envFiles(n.Get("env_file")) {
-		s.EnvFiles = append(s.EnvFiles, f)
-	}
+	s.EnvFiles = append(s.EnvFiles, envFiles(n.Get("env_file"))...)
 	for _, pr := range pairs(n.Get("environment")) {
 		s.Env = append(s.Env, KV{Name: pr.Key.Value, Value: text(pr.Value)})
 	}

@@ -6,6 +6,42 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+## [3.1.1] - 2026-10-24
+
+Fixes from a review and stabilisation pass: static checks, fuzz tests
+of every parser and a review of the server and the Log viewer. CI now
+also runs the race detector, staticcheck and govulncheck.
+
+### Fixed
+
+- Hovering over some unfinished lists in a CI pipeline file failed.
+- Format YAML no longer hands back text that doesn't read as YAML (a
+  map used as a key: it now says it can't), fails on a file of only
+  comments, or drops an empty document only when run a second time.
+- A neat copy of an object whose metadata had only a comment left after
+  the server fields came out as invalid YAML; the comment now stays on
+  the `metadata: {}` line.
+- A problem could be underlined from the wrong place in files with
+  stacked tags or templates inside a value over several lines.
+- Log viewer: a log codec had let go of (idle for an hour, or codec
+  restarted) was sent again once for every page being fetched at that
+  moment, holding several copies of a big log; it is now sent once.
+- Log viewer: going to an entry inside a fold of one source's output
+  could fail when lines from many other sources crossed the fold.
+- Log viewer: a click on a mark beside the scrollbar went to wherever
+  in its stretch of the list the click fell, often far from the error;
+  it now goes to the entry the mark stands for and selects it. The box
+  showing where you are now lines up with the marks.
+- Log viewer: selecting an entry (which opens it beside the list) or
+  closing it threw the list back to the top; it keeps its place, and a
+  jump far down the list lands on the entry, not a few rows off.
+
+### Security
+
+- Releases are built with the newest Go patch release. They were built
+  with whatever Go the build machine had, which could lag behind its
+  security fixes (2.4.1 was built with Go 1.27.1, for one).
+
 ## [3.1.0] - 2026-10-23
 
 A Log viewer: structured logs of any common format read into one
@@ -596,7 +632,8 @@ First tagged release: codec as it stood before the 2.0 work began.
 - Release pipeline: pushing a `v*` tag publishes binaries for Linux,
   Windows and macOS (amd64/arm64) to GitHub Releases via GoReleaser.
 
-[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v3.1.0...HEAD
+[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v3.1.1...HEAD
+[3.1.1]: https://github.com/mahasenabheetha/codec/compare/v3.1.0...v3.1.1
 [3.1.0]: https://github.com/mahasenabheetha/codec/compare/v3.0.0...v3.1.0
 [3.0.0]: https://github.com/mahasenabheetha/codec/compare/v2.4.1...v3.0.0
 [2.4.1]: https://github.com/mahasenabheetha/codec/compare/v2.4.0...v2.4.1

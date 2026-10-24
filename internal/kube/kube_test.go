@@ -145,6 +145,10 @@ status: {}
 	if string(out) != want {
 		t.Errorf("got\n%s", out)
 	}
+	// Found by FuzzNeat: metadata emptied keeps its comment on its line.
+	if out, err := Neat([]byte("kind: X\nmetadata: # note\n  uid: 1\n")); err != nil || string(out) != "kind: X\nmetadata: {} # note\n" {
+		t.Errorf("emptied metadata: %q, %v", out, err)
+	}
 	if _, err := Neat([]byte("a: {{ .Values.x }}")); err == nil {
 		t.Error("templates must be refused")
 	}

@@ -223,12 +223,12 @@ fixes only, as a patch release.
 
 | # | Task | Main parts | Status |
 |---|---|---|---|
-| T1 | Static checks | `staticcheck`, `govulncheck`, `go test -race`, `npm audit`; the useful ones join CI | |
-| T2 | Fuzz tests | Every parser (YAML tools, logs, Ansible logs, encoders, cron, regex), for crashes and hangs | |
-| T3 | Browser tests | Playwright against the sample workspace: open a folder, the main views, Compare, tools, settings; in CI | |
-| T4 | Review by area | Separate reviewers (a workflow, under 10 at a time): Go engines; server, API and security; frontend; desktop app and installer; release workflow; docs against behaviour; each finding verified before it is reported | |
-| T5 | Fixes | Each with a regression test | |
-| — | Release | Full checks; CHANGELOG cut as 3.1.1 | |
+| T1 | Static checks | `staticcheck`, `govulncheck`, `go test -race`, `npm audit`; the useful ones join CI | Done: staticcheck 2026.2.2 found 10 (dead code in ansible, ci, web and yamlkit; a loop in compose; four API test lines that never checked the status), all fixed; govulncheck 1.9.0 found GO-2026-6809 (`crypto/x509`, fixed in Go 1.27.3): releases took whatever Go the runner had (2.4.1's binary says 1.27.1), so CI and release now ask for `stable` with `check-latest` (the `golang.org/x/crypto` openpgp advisory is not reached); `npm audit` found nothing; CI on Linux now runs the race detector, staticcheck and govulncheck (pinned); npm stays with Dependabot. No C compiler here, so the race detector first runs in CI |
+| T2 | Fuzz tests | Every parser (YAML tools, logs, Ansible logs, encoders, cron, regex), for crashes and hangs | Done: 12 new fuzz targets beside the 6 there were: FuzzWorkbench (the editor's detection, analysis, lint, hover, definition and completion over mutated sample files), the YAML parser and formatter, paths, cron, smart paste, base64, hex, URLs, diffs, jq queries, Argo expressions, Neat; each run 1–5 min. Found and fixed: a nil dereference in CI hover; parser ranges ending before they start (stacked tags, templates in multi-line scalars; now clamped in `Parse`); Format returning text it can't read back (map keys), failing on comment-only text and dropping empty documents only on a second pass; Neat writing `metadata: # c` then `{}`, and odd anchors it can't write (now refused). Failing inputs kept in `testdata/fuzz` |
+| T3 | Browser tests | Playwright against the sample workspace: open a folder, the main views, Compare, tools, settings; in CI | Skipped (2026-10-24): the user chose not to add Playwright; UI checks stay manual (the browser pane) |
+| T4 | Review by area | Separate reviewers (a workflow, under 10 at a time): Go engines; server, API and security; frontend; desktop app and installer; release workflow; docs against behaviour; each finding verified before it is reported | Done as one lean pass instead of a workflow (the user's choice, 2026-10-24), over the riskiest areas. Server and security: the Host, token and Origin checks and the folder guard (`os.Root`) hold; v1 `/api/transform` needs no token but reads no files. Log viewer API: request values bounded, caches locked. Found: the browser re-sent an expired log once per page being fetched (several copies held); `RowAt` looked back only 64 rows for a fold. Desktop, release workflow and docs were not reviewed |
+| T5 | Fixes | Each with a regression test | Done with T4: one shared re-send of an expired log (checked in a test build: two pages found it gone, one re-send), and `RowAt` looks back all the way (a test with a fold crossed by 80 sources fails on the old code). Then, from the user's report: the scrollbar marks went to where a click fell in a bucket of up to hundreds of rows (now `Markers` returns the row each mark stands for: the first error, else pin, highlight, warning); selecting or closing an entry redrew the list from the top (the list moves into or out of the split view; the row is brought back); `scrollToIndex` corrects by the row's real position; the where-box is placed by rows like the marks. Checked in a test build: four marks from either state each selected their error, on screen |
+| — | Release | Full checks; CHANGELOG cut as 3.1.1 | Full checks passed (vet, all Go tests, staticcheck, govulncheck with the local Go 1.27.2 aside, frontend build, svelte-check); docs pass (the developer docs' two new rows); CHANGELOG cut as 3.1.1 |
 
 ### v3.2.0 — Argo workflows and live follow
 Agreed 2026-10-22 (decision 87). Built on the Log viewer: an Argo run
@@ -307,6 +307,7 @@ The rest of "Next", picked up when it fits.
 
 | Version | Items |
 |---|---|
+| 3.1.1 | Review and stabilisation: static checks, fuzz tests of every parser, race detector, staticcheck and govulncheck in CI; releases on the newest Go patch |
 | 3.1.0 | Log viewer: structured logs of any common format, filtered, charted and read; several logs in tabs, folds, highlights, pins and two runs compared |
 | 3.0.0 | Desktop app for Windows (Wails v3): own window, tray, start at login, system folder dialog, "Open with" for YAML; per-user installer without admin rights and a portable exe |
 | 2.4.0 | Light theme: System, Dark and Light in Settings and the palette |

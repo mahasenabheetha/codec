@@ -108,6 +108,8 @@ export class LogViewer {
   highlightErrors = $state.raw<string[]>([])
   /** A picture of the whole view, for beside the scrollbar. */
   markers = $state.raw<number[]>([])
+  /** Per marker, the row a click on it goes to. */
+  markerRows: number[] = []
   /** Rows in the view: matches, context, gaps and folds. */
   rowCount = $state(0)
   /** Entries pinned while investigating, in log order; memory only. */
@@ -173,21 +175,34 @@ export class LogViewer {
     }
   }
 
-  /** Read the same sources again (the server no longer holds the log). */
-  private async reopen() {
-    const o = await openLogs(this.sources)
-    this.opened = o
+  /** Read the same sources again (the server no longer holds the log).
+   *  Requests that find it gone together share one re-send, so a big log
+   *  isn't uploaded and held once per page being fetched. */
+  private reopening: Promise<void> | null = null
+  private reopen(): Promise<void> {
+    const sources = this.sources
+    this.reopening ??= openLogs(sources)
+      .then((o) => {
+        if (this.sources === sources) this.opened = o // files changed meanwhile: keep the new log
+        else closeLog(o.id).catch(() => {})
+      })
+      .finally(() => {
+        this.reopening = null
+      })
+    return this.reopening
   }
 
   /** Run fn with the log's id, sending the log again once if it expired
    *  (a 410 that mine says is about this log, when fn uses two). */
   async withLog<T>(fn: (id: string) => Promise<T>, mine: (e: ApiError) => boolean = () => true): Promise<T> {
-    if (!this.id) throw new Error('no log is open')
+    const id = this.id
+    if (!id) throw new Error('no log is open')
     try {
-      return await fn(this.id)
+      return await fn(id)
     } catch (e) {
       if (!(e instanceof ApiError && e.status === 410 && mine(e)) || !this.sources.length) throw e
-      await this.reopen()
+      // Another request may have sent it again already.
+      if (this.id === id) await this.reopen()
       return fn(this.id!)
     }
   }
@@ -253,6 +268,7 @@ export class LogViewer {
     this.total = 0
     this.rowCount = 0
     this.markers = []
+    this.markerRows = []
     this.histogram = null
   }
 
@@ -313,7 +329,10 @@ export class LogViewer {
     const gen = this.gen
     this.withLog((id) => logEntries(id, { ...this.base(), limit: 1, markers: MARKERS }))
       .then((p) => {
-        if (gen === this.gen) this.markers = p.markers ?? []
+        if (gen === this.gen) {
+          this.markers = p.markers ?? []
+          this.markerRows = p.markerRows ?? []
+        }
       })
       .catch(() => {})
   }
@@ -361,6 +380,7 @@ export class LogViewer {
       this.levelCounts = page.levels
       this.warnings = page.warnings ?? []
       this.markers = page.markers ?? []
+      this.markerRows = page.markerRows ?? []
       this.highlightErrors = page.highlightErrors ?? []
       if (page.histogram) this.histogram = page.histogram
     }

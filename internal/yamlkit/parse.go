@@ -46,10 +46,37 @@ func Parse(content []byte) *File {
 	results := make([]chunkResult, len(chunks))
 	eachChunk(len(chunks), func(i int) { results[i] = p.parseChunk(chunks[i], i) })
 	for _, r := range results {
+		if r.doc != nil {
+			clampRanges(r.doc.Root, li, len(src))
+		}
 		f.Docs = append(f.Docs, r.doc)
 		f.Diagnostics = append(f.Diagnostics, r.diags...)
 	}
 	return f
+}
+
+// clampRanges keeps every node's range in order and within the text.
+// Positions come from the tokenizer's view of masked templates and
+// odd tags, which can put an end before its start (found by fuzzing);
+// ranges only mark text, so a short one is safe where that isn't.
+func clampRanges(n *Node, li *lineIndex, size int) {
+	if n == nil {
+		return
+	}
+	r := &n.Range
+	if r.End.Offset > size {
+		r.End = li.pos(size)
+	}
+	if r.Start.Offset > r.End.Offset {
+		r.Start = r.End
+	}
+	for _, p := range n.Pairs {
+		clampRanges(p.Key, li, size)
+		clampRanges(p.Value, li, size)
+	}
+	for _, it := range n.Items {
+		clampRanges(it, li, size)
+	}
 }
 
 // parallelDocs is the document count from which Parse spreads documents
@@ -382,6 +409,11 @@ func (c *converter) node(n ast.Node) *Node {
 		}
 		inner.Tag = v.Start.Value
 		inner.Range.Start = c.pos(v.Start)
+		// A tag over an implicit null ("!!str !x 0:") may be placed
+		// before the tag; the node covers at least its tag.
+		if inner.Range.End.Offset < inner.Range.Start.Offset {
+			inner.Range.End = c.tokenEnd(v.Start)
+		}
 		return inner
 	case *ast.LiteralNode:
 		return c.literal(v)
