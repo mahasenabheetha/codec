@@ -58,21 +58,56 @@
 
   const span = (r: LogRow) => (r.time && r.lastTime ? formatSpan(new Date(r.lastTime).getTime() - new Date(r.time).getTime()) : '')
 
-  // Where the list is scrolled, for the box on the marker strip.
+  // Where the list is scrolled, for the box on the marker strip: the
+  // rows on screen, as a share of all rows, the way the marks are placed
+  // (by pixels, wrapped rows of other heights would put the box apart
+  // from the marks of the rows in it).
   let view = $state({ top: 0, height: 1 })
   function onscroll() {
     const el = scroller
-    if (!el || !el.scrollHeight) return
-    view = { top: el.scrollTop / el.scrollHeight, height: el.clientHeight / el.scrollHeight }
+    if (!el || !viewer.rowCount) return
+    const head = el.querySelector('.head')
+    const top = head ? head.getBoundingClientRect().bottom : el.getBoundingClientRect().top // below the sticky header
+    const bottom = el.getBoundingClientRect().bottom
+    let first = -1
+    let last = -1
+    for (const r of el.querySelectorAll<HTMLElement>('[data-pos]')) {
+      const b = r.getBoundingClientRect()
+      if (b.bottom <= top || b.top >= bottom) continue
+      const pos = Number(r.dataset.pos)
+      if (first < 0) first = pos
+      last = pos
+    }
+    if (first < 0) return
+    view = { top: first / viewer.rowCount, height: (last - first + 1) / viewer.rowCount }
   }
   $effect(() => {
     void viewer.rowCount
     onscroll()
   })
-  function jump(e: MouseEvent) {
+  // A click on (or within a few pixels of) a mark goes to the row the
+  // mark stands for, and selects it; one marker covers many rows of a
+  // long list, so the clicked height alone lands rows away. Elsewhere,
+  // the click goes to that height. The row is fetched before scrolling,
+  // so its real height doesn't move the list after.
+  async function jump(e: MouseEvent) {
     const box = (e.currentTarget as HTMLElement).getBoundingClientRect()
-    const pos = Math.floor(((e.clientY - box.top) / box.height) * viewer.rowCount)
-    list?.scrollToIndex(Math.max(0, Math.min(viewer.rowCount - 1, pos)), 'center')
+    const y = e.clientY - box.top
+    const n = viewer.markers.length
+    let target = -1
+    for (let d = 0; d <= 4 && target < 0; d++) {
+      for (const yy of [y - d, y + d]) {
+        const b = Math.floor((yy / box.height) * n)
+        if (b >= 0 && b < n && viewer.markers[b] && (viewer.markerRows[b] ?? -1) >= 0) {
+          target = viewer.markerRows[b]
+          break
+        }
+      }
+    }
+    const pos = target >= 0 ? target : Math.max(0, Math.min(viewer.rowCount - 1, Math.floor((y / box.height) * viewer.rowCount)))
+    const r = await viewer.rowAsync(pos)
+    await list?.scrollToIndex(pos, 'center')
+    if (target >= 0 && r && r.kind !== 'gap') onselect(r.i, pos, r.lastI ?? r.i)
   }
   // A marker's colour: errors first, then pins, highlights, warnings.
   function tone(m: number): string {
@@ -110,9 +145,9 @@
           {#snippet row(pos)}
             {@const r = viewer.rowAt(pos)}
             {#if !r}
-              <div class="row placeholder" aria-hidden="true"><span class="bar"></span></div>
+              <div class="row placeholder" aria-hidden="true" data-pos={pos}><span class="bar"></span></div>
             {:else if r.kind === 'gap'}
-              <div class="row gap" role="row" title="Entries the query doesn't match, between the ones shown with their context">
+              <div class="row gap" role="row" data-pos={pos} title="Entries the query doesn't match, between the ones shown with their context">
                 <span>⋯ {count(r.n ?? 0)} {r.n === 1 ? 'entry' : 'entries'}</span>
               </div>
             {:else}
@@ -126,6 +161,7 @@
                 class:hl={rule >= 0}
                 style:--hl={rule >= 0 ? ruleTones[rule] : null}
                 role="row"
+                data-pos={pos}
                 onclick={() => pick(r, pos)}
               >
                 {#if timed}<span class="time">{formatTime(r.time, prefs.time.value, start, days)}</span>{/if}

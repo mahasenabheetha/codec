@@ -108,6 +108,8 @@ export class LogViewer {
   highlightErrors = $state.raw<string[]>([])
   /** A picture of the whole view, for beside the scrollbar. */
   markers = $state.raw<number[]>([])
+  /** Per marker, the row a click on it goes to. */
+  markerRows: number[] = []
   /** Rows in the view: matches, context, gaps and folds. */
   rowCount = $state(0)
   /** Entries pinned while investigating, in log order; memory only. */
@@ -266,6 +268,7 @@ export class LogViewer {
     this.total = 0
     this.rowCount = 0
     this.markers = []
+    this.markerRows = []
     this.histogram = null
   }
 
@@ -326,7 +329,10 @@ export class LogViewer {
     const gen = this.gen
     this.withLog((id) => logEntries(id, { ...this.base(), limit: 1, markers: MARKERS }))
       .then((p) => {
-        if (gen === this.gen) this.markers = p.markers ?? []
+        if (gen === this.gen) {
+          this.markers = p.markers ?? []
+          this.markerRows = p.markerRows ?? []
+        }
       })
       .catch(() => {})
   }
@@ -374,6 +380,7 @@ export class LogViewer {
       this.levelCounts = page.levels
       this.warnings = page.warnings ?? []
       this.markers = page.markers ?? []
+      this.markerRows = page.markerRows ?? []
       this.highlightErrors = page.highlightErrors ?? []
       if (page.histogram) this.histogram = page.histogram
     }

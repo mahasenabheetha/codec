@@ -300,36 +300,49 @@ const (
 
 // Markers sums a view into buckets (a picture of the whole list): the
 // worst level, the highlight rules matched and the pins in each. A fold
-// is marked by its first entry.
-func (l *Log) Markers(rows []ViewRow, buckets int, rules []*Filter, pins []uint32) []uint8 {
+// is marked by its first entry. at holds, per bucket, the row its mark
+// stands for: the first error in it, else the first pin, highlight or
+// warning (the order the strip colours them), so a click on a mark goes
+// to that row rather than to wherever in the bucket it fell; -1 when
+// the bucket has no mark.
+func (l *Log) Markers(rows []ViewRow, buckets int, rules []*Filter, pins []uint32) (marks []uint8, at []int) {
 	if buckets <= 0 || len(rows) == 0 {
-		return nil
+		return nil, nil
 	}
 	buckets = min(buckets, len(rows))
-	out := make([]uint8, buckets)
-	at := func(pos int) int { return pos * buckets / len(rows) }
+	marks, at = make([]uint8, buckets), make([]int, buckets)
+	best := make([]int8, buckets) // the priority of the row in at
+	for b := range at {
+		at[b] = -1
+	}
+	bucket := func(pos int) int { return pos * buckets / len(rows) }
+	mark := func(pos int, m uint8, prio int8) {
+		b := bucket(pos)
+		marks[b] |= m
+		if prio > best[b] || prio == best[b] && pos < at[b] {
+			best[b], at[b] = prio, pos
+		}
+	}
 	for pos, r := range rows {
 		if r.Kind == RowGap {
 			continue
 		}
-		var m uint8
 		switch lv := l.rows[r.I].level; {
 		case lv >= Error:
-			m |= MarkError
+			mark(pos, MarkError, 4)
 		case lv == Warn:
-			m |= MarkWarn
+			mark(pos, MarkWarn, 1)
 		}
 		for k, f := range rules[:min(len(rules), 4)] {
 			if f != nil && f.Match(int(r.I)) {
-				m |= MarkRule << k
+				mark(pos, MarkRule<<k, 2)
 			}
 		}
-		out[at(pos)] |= m
 	}
 	for _, p := range pins {
 		if pos := l.RowAt(rows, p); pos >= 0 {
-			out[at(pos)] |= MarkPin
+			mark(pos, MarkPin, 3)
 		}
 	}
-	return out
+	return marks, at
 }

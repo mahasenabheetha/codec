@@ -99,6 +99,8 @@ export interface EntriesPage {
   entries: LogRow[]
   histogram?: Histogram
   markers?: number[]
+  /** Per marker, the row its mark stands for; -1 where there is none. */
+  markerRows?: number[]
   highlightErrors?: string[]
 }
 
