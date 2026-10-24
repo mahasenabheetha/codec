@@ -13,6 +13,12 @@ All notable changes to codec are documented here. The format follows
   shows the step in place of the pod, `step:` filters by it, and a Steps
   tab lists each step with when it ran, how long it took, its entries,
   errors and warnings. Argo's executor lines fold with the output.
+- Log viewer: Workflow status… adds a run's status (`argo get -o
+  yaml|json` or `kubectl get wf`, opened or pasted) beside its log. The
+  Steps tab then shows the whole step tree with each node's phase,
+  times and exit code, steps that never logged too, and why a failed
+  step failed: Argo's message and its first logged error. Pods are
+  matched to the log by name, so a retry's attempts each show their own.
 
 ## [3.1.1] - 2026-10-24
 

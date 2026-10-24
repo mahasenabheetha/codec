@@ -75,6 +75,18 @@ ALTER DATABASE x
 		t.Errorf("no prefixes: %q %q %q %s", l.Step(0), l.Step(1), l.Step(2), stepsOf(l))
 	}
 
+	// Two pods of one template (a retry's attempts): one step, and what
+	// each pod logged on its own.
+	l = buildText(t, `wf-bcdfg-deploy-1111111: {"level":"info","msg":"try"}
+wf-bcdfg-deploy-1111111: {"level":"error","msg":"pull failed"}
+wf-bcdfg-deploy-2222222: {"level":"info","msg":"try again"}
+`)
+	st := l.Summary().Steps
+	if len(st) != 1 || st[0].Pods != 2 || len(st[0].PodStats) != 2 || st[0].PodStats[0].Errors != 1 || st[0].PodStats[0].FirstErr != 1 ||
+		st[0].PodStats[1].Errors != 0 || st[0].PodStats[1].FirstErr != -1 || st[0].PodStats[1].First != 2 {
+		t.Errorf("pods: %+v", st)
+	}
+
 	// Not Argo: no steps.
 	l = buildFixtures(t, "ecs.log")
 	if l.Summary().Steps != nil || l.Summary().Workflows != nil || l.Step(0) != "" {

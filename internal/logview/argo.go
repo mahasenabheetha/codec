@@ -20,16 +20,55 @@ const (
 	workflowKey = "argo_workflow_name"
 )
 
-// StepStat is one step of an Argo run, over the whole log.
+// StepStat is one step of an Argo run, over the whole log, and each of
+// its pods (a retry's attempts, a loop's items) on its own.
 type StepStat struct {
-	Name     string    `json:"name"`
-	Pods     int       `json:"pods"` // sources that logged it
+	Name string `json:"name"`
+	Pods int    `json:"pods"` // sources that logged it
+	Tally
+	PodStats []PodStat `json:"podStats,omitempty"` // the first 50
+}
+
+// PodStat is what one pod (one source) of a step logged.
+type PodStat struct {
+	Name string `json:"name"`
+	Tally
+}
+
+// Tally counts some entries.
+type Tally struct {
 	Entries  int       `json:"entries"`
 	Errors   int       `json:"errors"` // error or worse
 	Warnings int       `json:"warnings"`
 	From     time.Time `json:"from,omitzero"`
 	To       time.Time `json:"to,omitzero"`
-	First    int       `json:"first"` // its first entry
+	First    int       `json:"first"`      // the first entry
+	FirstErr int       `json:"firstError"` // the first error or worse; -1 when none
+}
+
+func (t *Tally) add(i int, r *row) {
+	if t.Entries == 0 {
+		t.First, t.FirstErr = i, -1
+	}
+	t.Entries++
+	switch {
+	case r.level >= Error:
+		if t.Errors == 0 {
+			t.FirstErr = i
+		}
+		t.Errors++
+	case r.level == Warn:
+		t.Warnings++
+	}
+	if r.time != 0 {
+		tm := time.Unix(0, r.time).UTC()
+		if t.From.IsZero() || tm.Before(t.From) {
+			t.From = tm
+		}
+		if tm.After(t.To) {
+			t.To = tm
+		}
+	}
 }
 
 // Step is entry i's Argo step; "" when the log isn't an Argo run.
@@ -170,13 +209,14 @@ func (l *Log) steps() {
 	}
 }
 
-// stepStats sums the entries by step, in the order the steps start.
+// stepStats sums the entries by step, and by pod within it, in the
+// order the steps start.
 func (l *Log) stepStats() []StepStat {
 	if l.workflows == nil {
 		return nil
 	}
 	by := map[uint32]*StepStat{}
-	pods := map[uint32]map[uint32]bool{}
+	pods := map[uint32]map[uint32]int{} // step → source → index in PodStats, -1 past the cap
 	for i := range l.rows {
 		r := &l.rows[i]
 		if r.step == 0 {
@@ -184,28 +224,25 @@ func (l *Log) stepStats() []StepStat {
 		}
 		s := by[r.step]
 		if s == nil {
-			s = &StepStat{Name: l.strs[r.step], First: i}
+			s = &StepStat{Name: l.strs[r.step]}
 			by[r.step] = s
-			pods[r.step] = map[uint32]bool{}
+			pods[r.step] = map[uint32]int{}
 		}
-		s.Entries++
-		switch {
-		case r.level >= Error:
-			s.Errors++
-		case r.level == Warn:
-			s.Warnings++
+		s.add(i, r)
+		if r.source == 0 {
+			continue
 		}
-		if r.source != 0 {
-			pods[r.step][r.source] = true
-		}
-		if r.time != 0 {
-			t := time.Unix(0, r.time).UTC()
-			if s.From.IsZero() || t.Before(s.From) {
-				s.From = t
+		k, ok := pods[r.step][r.source]
+		if !ok {
+			k = -1
+			if len(s.PodStats) < 50 {
+				k = len(s.PodStats)
+				s.PodStats = append(s.PodStats, PodStat{Name: l.strs[r.source]})
 			}
-			if t.After(s.To) {
-				s.To = t
-			}
+			pods[r.step][r.source] = k
+		}
+		if k >= 0 {
+			s.PodStats[k].add(i, r)
 		}
 	}
 	out := make([]StepStat, 0, len(by))

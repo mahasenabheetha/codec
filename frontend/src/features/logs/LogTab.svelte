@@ -30,6 +30,7 @@
   import LogOverview from './LogOverview.svelte'
   import LogPins from './LogPins.svelte'
   import LogSteps from './LogSteps.svelte'
+  import StatusPicker from './StatusPicker.svelte'
   import { maskSecrets } from './mask'
   import QueryInput from './QueryInput.svelte'
   import { logTabs, prefs, provideViewer, sourceName, type LogViewer, type RepeatMode, type TimeMode } from './viewer.svelte'
@@ -258,6 +259,7 @@
         </span>
       {/each}
       <span class="spacer"></span>
+      {#if s.steps?.length || viewer.status}<StatusPicker onread={() => (tab = 'steps')} />{/if}
       <Popover side="bottom" align="end" bind:open={comparePicker}>
         {#snippet trigger(props)}
           <Button {...props} size="sm" variant="ghost" icon={GitCompareArrows}>Compare with…</Button>
@@ -424,7 +426,7 @@
       label="Views"
       tabs={[
         { value: 'entries', label: 'Entries', count: viewer.total },
-        ...(s.steps?.length ? [{ value: 'steps' as const, label: 'Steps', count: s.steps.length }] : []),
+        ...(s.steps?.length || viewer.status ? [{ value: 'steps' as const, label: 'Steps', count: viewer.status ? viewer.status.run.nodes.filter((n) => n.type === 'Pod').length : s.steps!.length }] : []),
         { value: 'errors', label: 'Errors', count: s.groups },
         { value: 'fields', label: 'Fields' },
         { value: 'pins', label: 'Pins', count: viewer.pins.length },

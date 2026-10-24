@@ -21,6 +21,7 @@ import {
   type LogRow,
   type LogSource,
 } from '../../lib/api/logs'
+import type { ArgoRun } from '../../lib/api/argo'
 import { persisted } from '../../lib/stores/persist.svelte'
 import { toast } from '../../lib/stores/toast.svelte'
 
@@ -119,6 +120,8 @@ export class LogViewer {
   /** An entry to show when the tab is next in front (from another tab). */
   want = $state<number | null>(null)
   compare = $state.raw<Comparison | null>(null)
+  /** An Argo run's status, opened or pasted beside its log; memory only. */
+  status = $state.raw<{ run: ArgoRun; name: string } | null>(null)
 
   private gen = 0 // bumped per query, so late pages of an old one are dropped
   private asked = new Set<number>()
@@ -247,6 +250,7 @@ export class LogViewer {
   close() {
     this.ctrl?.abort()
     this.compare = null
+    this.status = null
     if (this.id) closeLog(this.id).catch(() => {})
     this.sources = []
     this.opened = null

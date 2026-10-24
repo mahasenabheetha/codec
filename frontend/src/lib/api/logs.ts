@@ -35,15 +35,21 @@ export interface LogSummary {
   steps?: LogStep[]
 }
 
-export interface LogStep {
-  name: string
-  pods: number
+/** Counts over some entries (internal/logview/argo.go Tally). */
+export interface LogTally {
   entries: number
   errors: number
   warnings: number
   from?: string
   to?: string
-  first: number // its first entry
+  first: number // the first entry
+  firstError: number // the first error or worse; -1 when none
+}
+
+export interface LogStep extends LogTally {
+  name: string
+  pods: number
+  podStats?: (LogTally & { name: string })[] // each pod on its own, the first 50
 }
 
 export interface LogOpened {

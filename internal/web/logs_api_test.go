@@ -331,6 +331,18 @@ func TestLogsCompare(t *testing.T) {
 	}
 }
 
+func TestArgoStatus(t *testing.T) {
+	s := New(testOptions(false))
+	defer s.Close()
+	code, v := send(s, "POST", "/api/v2/argo/status", "application/json", `{"text":"status:\n  phase: Failed\n  nodes:\n    w: {id: w, name: w, type: Steps, phase: Failed}\n"}`)
+	if code != 200 || v["name"] != "w" || v["phase"] != "Failed" || len(v["nodes"].([]any)) != 1 {
+		t.Errorf("%d %v", code, v)
+	}
+	if code, _ := send(s, "POST", "/api/v2/argo/status", "application/json", `{"text":"kind: Pod"}`); code != 422 {
+		t.Errorf("not a status: %d", code)
+	}
+}
+
 func TestLogStore(t *testing.T) {
 	st := newLogStore()
 	st.idle = 20 * time.Millisecond

@@ -156,6 +156,7 @@ func (s *Server) routes() http.Handler {
 	mux.HandleFunc("POST /api/v2/k8s/analyze", s.handleK8sAnalyze)
 	mux.HandleFunc("POST /api/v2/k8s/neat", s.handleK8sNeat)
 	mux.HandleFunc("POST /api/v2/argo/analyze", s.handleArgoAnalyze)
+	mux.HandleFunc("POST /api/v2/argo/status", s.handleArgoStatus)
 	mux.HandleFunc("POST /api/v2/ci/analyze", s.handleCIAnalyze)
 	mux.HandleFunc("POST /api/v2/compose/analyze", s.handleComposeAnalyze)
 	mux.HandleFunc("POST /api/v2/ansible/analyze", s.handleAnsibleAnalyze)

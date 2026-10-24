@@ -194,7 +194,10 @@ Files over 8 MB are not listed or read.
   /argo/analyze` {kind: file|text, path|text, workflow, params, paramFile,
   overrides} → workflows and apps in scope, the chosen workflow resolved
   (nodes, edges, values in parts); `/yaml/hover|definition|analyze` also
-  resolve templateRef across the folder's Argo files.
+  resolve templateRef across the folder's Argo files. `POST
+  /argo/status` {text} → a run's step tree from `argo get -o yaml|json`
+  (nodes in tree order with phase, times, exit code, message and each
+  pod's name), for the Log viewer; nothing is kept.
   CI: `POST /ci/analyze` {path, params, overrides} → stages, jobs
   (steps, matrix, effective config with origins), edges, includes,
   problems; `/yaml/hover|definition|analyze` follow includes and
