@@ -173,21 +173,34 @@ export class LogViewer {
     }
   }
 
-  /** Read the same sources again (the server no longer holds the log). */
-  private async reopen() {
-    const o = await openLogs(this.sources)
-    this.opened = o
+  /** Read the same sources again (the server no longer holds the log).
+   *  Requests that find it gone together share one re-send, so a big log
+   *  isn't uploaded and held once per page being fetched. */
+  private reopening: Promise<void> | null = null
+  private reopen(): Promise<void> {
+    const sources = this.sources
+    this.reopening ??= openLogs(sources)
+      .then((o) => {
+        if (this.sources === sources) this.opened = o // files changed meanwhile: keep the new log
+        else closeLog(o.id).catch(() => {})
+      })
+      .finally(() => {
+        this.reopening = null
+      })
+    return this.reopening
   }
 
   /** Run fn with the log's id, sending the log again once if it expired
    *  (a 410 that mine says is about this log, when fn uses two). */
   async withLog<T>(fn: (id: string) => Promise<T>, mine: (e: ApiError) => boolean = () => true): Promise<T> {
-    if (!this.id) throw new Error('no log is open')
+    const id = this.id
+    if (!id) throw new Error('no log is open')
     try {
-      return await fn(this.id)
+      return await fn(id)
     } catch (e) {
       if (!(e instanceof ApiError && e.status === 410 && mine(e)) || !this.sources.length) throw e
-      await this.reopen()
+      // Another request may have sent it again already.
+      if (this.id === id) await this.reopen()
       return fn(this.id!)
     }
   }

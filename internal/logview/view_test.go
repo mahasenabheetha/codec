@@ -111,6 +111,19 @@ func TestRowAt(t *testing.T) {
 	if got := l.RowAt(nil, 3); got != -1 {
 		t.Errorf("empty view: %d", got)
 	}
+
+	// A fold of one pod's output crossed by 80 other pods' single lines:
+	// its last entry is 160 rows on, and still found in the fold.
+	var b strings.Builder
+	for k := range 80 {
+		fmt.Fprintf(&b, "pod-a-1111111111: a %d\npod-x%02d-2222222222: x\n", k, k)
+	}
+	l = buildText(t, b.String())
+	all, _ := l.Match("", time.Time{}, time.Time{})
+	rows = l.View(all, ViewOptions{Output: true})
+	if rows[0].Kind != RowOutput || l.RowAt(rows, 158) != 0 {
+		t.Errorf("fold %+v; RowAt(158) = %d", rows[0], l.RowAt(rows, 158))
+	}
 }
 
 func TestMarkers(t *testing.T) {

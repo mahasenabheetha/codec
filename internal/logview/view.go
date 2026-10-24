@@ -243,8 +243,10 @@ func (l *Log) RowAt(rows []ViewRow, i uint32) int {
 		}
 	}
 	// Rows start in entry order, but folds of different sources overlap:
-	// look back from the last row starting at or before i.
-	for k := lo - 1; k >= 0 && k >= lo-64; k-- {
+	// look back from the last row starting at or before i. All the way:
+	// a fold's run of output may be crossed by many other sources' lines,
+	// and this runs once per request.
+	for k := lo - 1; k >= 0; k-- {
 		if l.holds(rows[k], i) {
 			return k
 		}

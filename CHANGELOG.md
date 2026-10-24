@@ -17,6 +17,11 @@ All notable changes to codec are documented here. The format follows
   the `metadata: {}` line.
 - A problem could be underlined from the wrong place in files with
   stacked tags or templates inside a value over several lines.
+- Log viewer: a log codec had let go of (idle for an hour, or codec
+  restarted) was sent again once for every page being fetched at that
+  moment, holding several copies of a big log; it is now sent once.
+- Log viewer: going to an entry inside a fold of one source's output
+  could fail when lines from many other sources crossed the fold.
 
 ### Security
 
