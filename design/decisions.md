@@ -426,3 +426,16 @@ Settled unless the user reopens them. Add new ones at the bottom:
     followed log is read again whole, not appended: simple and still
     fast (100k entries in about 0.25 s). Statuses stay in the tab's
     memory (19) (2026-10-24).
+90. Utilities round two, split by theme into 3.4.0 (network and text
+    tools), 3.6.0 (JSON and table tools) and 3.7.0 (generators and
+    checks), with the update check (85) between them as 3.5.0: it is
+    small and an installed copy otherwise stays old unnoticed. Small
+    local tools in the style of 2.3.0 (78–80), nothing stored (19), each
+    group engine first, then UI, Smart paste learning each group's
+    shapes in its own release. They extend what exists where they can
+    (JSON, Time, Encode & hash) and add Network, Text & data and Make
+    under Utilities. curl ⇄ fetch only, no camera for the QR reader,
+    YAML ⇄ JSON lives in the JSON tool rather than a tool of its own,
+    and the checksum tool streams a dropped file through the server
+    without keeping it. The QR library is the only new dependency and is
+    agreed before it is added (2026-10-25).

@@ -261,7 +261,29 @@ toolbar shows them rendered, in the browser UI and the desktop app.
 Later: Mermaid diagrams (loaded only when a file has one); side by side
 with scroll sync.
 
-### v3.4.0 — Update check
+### v3.4.0 — Network and text tools
+Agreed 2026-10-25 (decision 90): the first of three releases of small
+local tools in the style of 2.3.0, split so each is a whole. This one is
+the daily-use half and mostly small: addresses, HTTP, text and time.
+Each engine is a Go package with an API route, a CLI command where the
+CLI makes sense and a fuzz target for what it parses; nothing a tool is
+given is stored (19). New Utilities sub-tabs: **Network** (CIDR, IP,
+URL, HTTP) and **Text & data** (text diff, case and names; the JSON and
+CSV tools join it in 3.6.0).
+
+| # | Task | Main parts | Status |
+|---|---|---|---|
+| T1 | Utilities frame | Sub-tab groups Network and Text & data in `lib/tools.ts`, rail entries, palette and Home entries; placeholders until each tool lands | |
+| T2 | Network: engine + API + CLI | `internal/netutil`: CIDR (network, broadcast, first and last host, mask, wildcard, host count, contains, split into subnets, overlap between a list of ranges; IPv4 and IPv6); IP converter (integer, hex, binary, IPv6 expand and shorten, v4-mapped); URL parse and build (parts, query as editable pairs, rebuilt URL; builds on `encode.ParseURL`); `POST /api/v2/net/{kind}`; `codec cidr`, `codec ip`, `codec url` gains `build`; test vectors, a fuzz target | |
+| T3 | Network: UI | CIDR, IP and URL sub-tabs; a list of ranges with overlaps marked; the query-parameter table; docs | |
+| T4 | HTTP: engine + API + CLI + UI | curl ⇄ fetch only: method, URL, headers, `-d`/`--data*` (JSON, form), `-u`, cookies, `--compressed` and `-L` noted; shell quoting, `$'…'` and line continuations read; what can't be converted (`-F` files, `@file`, proxies) said in words; status lookup (code, name, meaning, usual cause, whether to retry; searchable); `internal/httpkit`, `codec curl`, `codec http status`; a fuzz target for the curl reader | |
+| T5 | Text diff | UI over `internal/textdiff`: two boxes or dropped files, side by side and unified, word-level marks inside changed lines, ignore whitespace and case, next and previous change | |
+| T6 | Case and names | Camel, Pascal, snake, kebab, CONSTANT, dot, Title (acronyms kept) with the Kubernetes name (DNS-1123 label, 63 characters), environment-variable name and Helm release name rules; engine, API, UI; `codec case` | |
+| T7 | Time zones and timestamp formats | In the Time tool: a zone converter (a time in any zone shown in several at once, DST aware, an overlap strip for working hours) and a formats sheet (one instant as RFC 3339, RFC 2822, ISO week and ordinal date, Unix s, ms, µs and ns, and Go, Java, Python, .NET and JavaScript format strings, each with Copy); builds on `internal/timeutil` | |
+| T8 | Smart paste | Recognises a CIDR, an IP and a `curl` command and offers the tool; no bare-number guesses; `codec.DetectUtility` and `codec auto` follow | |
+| — | Release | Full checks; a fuzz run of the new parsers; docs (`tools.html`); CHANGELOG cut as 3.4.0 | |
+
+### v3.5.0 — Update check
 Agreed 2026-10-06 (decision 85). Wails has no updater and codec never
 looks for new versions, so an installed copy stays old until the user
 notices a release. codec can ask GitHub for the latest release and say
@@ -272,11 +294,45 @@ when a newer one exists; updating stays the installer run over the top
 |---|---|---|---|
 | T1 | Check: engine + API + CLI | `internal/update`: latest release from the GitHub API (pre-releases only when running one), semver compare with `internal/version`, 5 s timeout, at most once a day (result cached in the config dir), dev builds never check; `updates.check` setting, off by default; `GET /api/v2/update`; `codec version --check`; tests against a fake server | |
 | T2 | Notice in the UI | Settings → General: "Check for updates" switch and "Check now"; "codec X.Y.Z is available" in the footer with a link to the release (the system browser in the desktop app), dismissable per version; tray menu entry in the desktop app; docs (settings, security: the second network use, troubleshooting) | |
-| — | Release | Full checks; CHANGELOG cut as 3.4.0 | |
+| — | Release | Full checks; CHANGELOG cut as 3.5.0 | |
 
 Later, after SignPath signing: "Update now" (download the installer,
 verify it against the release checksums, run it silently, restart);
 a winget package published by the release workflow.
+
+### v3.6.0 — JSON and table tools
+Agreed 2026-10-25 (decision 90). The two heavier tools: working with
+structured data pasted from anywhere. The JSON tool grows sub-tabs and
+YAML ⇄ JSON lives in it (a paste in one gives the other); CSV and TSV
+join Text & data.
+
+| # | Task | Main parts | Status |
+|---|---|---|---|
+| T1 | JSON tools: engine + API | `internal/jsonkit` over the existing scanner: JSON ⇄ YAML (key order kept), JSONC and JSON5 read, sort keys, flatten to paths and back, a diff by path (added, removed, changed, type changed), infer a JSON Schema from samples, jq filter (the query engine is there), large input read without a tree; `codec json` gains the subcommands; a fuzz target | |
+| T2 | JSON tools: UI | The JSON tool grows sub-tabs: Format, Tree (search, copy a value's path, fold), Convert (JSON ⇄ YAML), Diff, Paths, Schema, Query; the tool is named JSON & YAML in the rail and palette; docs | |
+| T3 | CSV and TSV | `internal/table`: delimiter and header guessed (override), quotes and embedded newlines; viewer with a windowed table (sort, filter, column types and counts); converts to JSON (typed or all text), Markdown table, YAML and TSV/CSV, and a JSON array of objects back to CSV; `codec csv`; a fuzz target | |
+| T4 | Smart paste | Recognises CSV or TSV and JSON5 or JSONC, and offers the tool | |
+| — | Release | Full checks; a fuzz run of the new parsers; a review pass over the engines and the UI; docs; CHANGELOG cut as 3.6.0 | |
+
+### v3.7.0 — Generators and checks
+Agreed 2026-10-25 (decision 90). Things that make something: checksums,
+identifiers, passwords, test data, QR codes and colours. Nothing made is
+stored. The QR library is the one new dependency of the three releases
+and is agreed before it is added.
+
+| # | Task | Main parts | Status |
+|---|---|---|---|
+| T1 | Checksum and UUID | In Encode & hash: **Checksum** (hash a dropped file, or a file in the open folder, streamed on the server and never kept; compare with an expected value pasted as hex, base64 or a `sha256sum` line, or verify several files against a `checksums.txt`); **UUID** (v4, v7, v5 and v3 from a namespace and name, parse one for version, variant and time, bulk up to 1000, formats) | |
+| T2 | Password generator | Rules: length, classes with a minimum each, exclude ambiguous or chosen characters, presets such as "14+ characters, 4 classes"; a passphrase mode with an embedded word list (the EFF list is CC-BY, so its attribution goes in the docs); entropy shown; `crypto/rand` with no modulo bias; shown once, never stored; `codec secret` gains the rules | |
+| T3 | Test data and lorem | `internal/fake`: lorem ipsum (words, sentences, paragraphs), and rows of fake data (names, emails on reserved example domains, IPs from documentation ranges, UUIDs, dates, numbers, choices) from columns you pick, as JSON, NDJSON, CSV, YAML or SQL `INSERT`; a seed for repeatable output; `codec fake` | |
+| T4 | QR code | Generator (text, URL, Wi-Fi, TOTP URI; error correction level; PNG and SVG to save) and reader (an image dropped or pasted, decoded in the browser; no camera); browser-only | |
+| T5 | Colour | HEX, RGB, HSL, HSV and a CSS name; WCAG contrast ratio with AA and AAA; a picker and shades; browser-only arithmetic | |
+| T6 | Smart paste | Recognises a UUID or ULID and a hex colour and offers the tool | |
+| — | Release | Full checks; a fuzz run of the new parsers; a review pass; docs (`tools.html`, `security.html`: nothing generated is stored); CHANGELOG cut as 3.7.0 | |
+
+Later: Terraform plan viewer; certificate and CSR decoder; semver and
+version-constraint tester; chmod and umask calculator; Kubernetes
+quantity converter; a "Copy as…" menu (JSON path, `yq`, `kubectl patch`).
 
 ### Later
 The rest of "Next", picked up when it fits.
