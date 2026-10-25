@@ -261,7 +261,39 @@ toolbar shows them rendered, in the browser UI and the desktop app.
 Later: Mermaid diagrams (loaded only when a file has one); side by side
 with scroll sync.
 
-### v3.4.0 — Update check
+### v3.4.0 — Utilities, round two
+Agreed 2026-10-25 (decision 90). More of what 2.3.0 started: small tools
+that take something pasted (or dropped) and give back something useful,
+all local, none storing anything (19). Some extend a tool that exists
+(JSON, Time, Encode & hash); the rest are new sub-tabs under Utilities:
+**Network** (CIDR, IP, URL, HTTP), **Text & data** (CSV and TSV, text
+diff, case and names) and **Make** (test data, QR code, colour). Each
+engine is a Go package with an API route and a CLI command where the
+CLI makes sense, and a fuzz target for what it parses; tools that are
+only arithmetic on the page (colour, QR drawing) stay in the browser.
+
+| # | Task | Main parts | Status |
+|---|---|---|---|
+| T1 | Utilities frame | Sub-tab groups Network, Text & data and Make in `lib/tools.ts`, rail entries, palette and Home entries; placeholders until each tool lands | |
+| T2 | Network: engine + API + CLI | `internal/netutil`: CIDR (network, broadcast, first and last host, mask, wildcard, host count, contains, split into subnets, overlap between a list of ranges; IPv4 and IPv6); IP converter (integer, hex, binary, IPv6 expand and shorten, v4-mapped); URL parse and build (parts, query as editable pairs, rebuilt URL; builds on `encode.ParseURL`); `POST /api/v2/net/{kind}`; `codec cidr`, `codec ip`, `codec url` gains `build`; test vectors, a fuzz target | |
+| T3 | Network: UI | CIDR, IP and URL sub-tabs; a list of ranges with overlaps marked; the query-parameter table; docs | |
+| T4 | HTTP: engine + API + CLI + UI | curl ↔ fetch only: method, URL, headers, `-d`/`--data*` (JSON, form), `-u`, cookies, `--compressed` and `-L` noted; shell quoting, `$'…'` and line continuations read; what can't be converted (`-F` files, `@file`, proxies) said in words; status lookup (code, name, meaning, usual cause, whether to retry; searchable); `internal/httpkit`, `codec curl`, `codec http status`; a fuzz target for the curl reader | |
+| T5 | JSON tools: engine + API | `internal/jsonkit` over the existing scanner: JSON ⇄ YAML (key order kept), JSONC and JSON5 read, sort keys, flatten to paths and back, a diff by path (added, removed, changed, type changed), infer a JSON Schema from samples, jq filter (the query engine is there), large input read without a tree; `codec json` gains the subcommands; a fuzz target | |
+| T6 | JSON tools: UI | The JSON tool grows sub-tabs: Format, Tree (search, copy a value's path, fold), Convert (JSON ⇄ YAML), Diff, Paths, Schema, Query; the Smart paste JSON result links to them; docs | |
+| T7 | CSV and TSV | `internal/table`: delimiter and header guessed (override), quotes and embedded newlines; viewer with a windowed table (sort, filter, column types and counts); converts to JSON (typed or all text), Markdown table, YAML and TSV/CSV, and JSON array of objects back to CSV; `codec csv`; a fuzz target | |
+| T8 | Text diff, case and names | Text diff UI over `internal/textdiff`: two boxes or dropped files, side by side and unified, word-level marks inside changed lines, ignore whitespace and case, next and previous change; case converter (camel, Pascal, snake, kebab, CONSTANT, dot, Title; acronyms kept) with the Kubernetes name (DNS-1123 label, 63 characters), environment-variable name and Helm release name rules; `codec case` | |
+| T9 | Time zones and timestamp formats | In the Time tool: a zone converter (a time in any zone shown in several at once, DST aware, an overlap strip for working hours) and a formats sheet (one instant as RFC 3339, RFC 2822, ISO week and ordinal date, Unix s, ms, µs and ns, and Go, Java, Python, .NET and JavaScript format strings, each with Copy); builds on `internal/timeutil` | |
+| T10 | Checksum, UUID and passwords | In Encode & hash: **Checksum** (hash a dropped file, or a file in the open folder, streamed on the server and never kept; compare with an expected value pasted as hex, base64 or a `sha256sum` line, or verify several files against a `checksums.txt`); **UUID** (v4, v7, v5 and v3 from a namespace and name, parse one for version, variant and time, bulk up to 1000, formats); **password generator** with rules (length, classes with a minimum each, exclude ambiguous or chosen characters, presets such as "14+ characters, 4 classes", a passphrase mode with an embedded word list, entropy shown; `crypto/rand` with no modulo bias; shown once, never stored) | |
+| T11 | Test data and lorem | `internal/fake`: lorem ipsum (words, sentences, paragraphs), and rows of fake data (names, emails on reserved example domains, IPs from documentation ranges, UUIDs, dates, numbers, choices) from columns you pick, as JSON, NDJSON, CSV, YAML or SQL `INSERT`; a seed for repeatable output; `codec fake` | |
+| T12 | QR code and colour | QR generator (text, URL, Wi-Fi, TOTP URI; error correction level; PNG and SVG to save) and reader (an image dropped or pasted, decoded in the browser; no camera); colour converter (HEX, RGB, HSL, HSV, a CSS name), WCAG contrast ratio with AA and AAA, a picker and shades. Browser-only; the QR library is the one new dependency and is agreed first | |
+| T13 | Smart paste | Recognises a CIDR or IP, a UUID or ULID, a hex colour, a `curl` command, CSV or TSV, and offers the tool; no bare-number guesses; `codec.DetectUtility` and `codec auto` follow | |
+| — | Release | Full checks; a fuzz run of each new parser; a review pass (engines, API and CLI, frontend) with fixes and regression tests; docs (`tools.html` per group, `security.html`: nothing generated is stored); CHANGELOG cut as 3.4.0 | |
+
+Later: Terraform plan viewer; certificate and CSR decoder; semver and
+version-constraint tester; chmod and umask calculator; Kubernetes
+quantity converter; a "Copy as…" menu (JSON path, `yq`, `kubectl patch`).
+
+### v3.5.0 — Update check
 Agreed 2026-10-06 (decision 85). Wails has no updater and codec never
 looks for new versions, so an installed copy stays old until the user
 notices a release. codec can ask GitHub for the latest release and say
@@ -272,7 +304,7 @@ when a newer one exists; updating stays the installer run over the top
 |---|---|---|---|
 | T1 | Check: engine + API + CLI | `internal/update`: latest release from the GitHub API (pre-releases only when running one), semver compare with `internal/version`, 5 s timeout, at most once a day (result cached in the config dir), dev builds never check; `updates.check` setting, off by default; `GET /api/v2/update`; `codec version --check`; tests against a fake server | |
 | T2 | Notice in the UI | Settings → General: "Check for updates" switch and "Check now"; "codec X.Y.Z is available" in the footer with a link to the release (the system browser in the desktop app), dismissable per version; tray menu entry in the desktop app; docs (settings, security: the second network use, troubleshooting) | |
-| — | Release | Full checks; CHANGELOG cut as 3.4.0 | |
+| — | Release | Full checks; CHANGELOG cut as 3.5.0 | |
 
 Later, after SignPath signing: "Update now" (download the installer,
 verify it against the release checksums, run it silently, restart);
