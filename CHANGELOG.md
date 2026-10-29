@@ -6,6 +6,13 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Find in the output of the encode and decode tools (Smart paste, JSON,
+  Base64 and the others): a Find button or Ctrl+F over the output; every
+  match is marked, with a count and Enter for the next, Shift+Enter for
+  the previous.
+
 ## [3.2.0] - 2026-10-24
 
 Argo workflows in the Log viewer: a run read step by step, beside its
