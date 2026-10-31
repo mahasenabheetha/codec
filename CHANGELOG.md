@@ -6,6 +6,14 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+## [3.7.0] - 2026-10-31
+
+Structured data from anywhere: JSON & YAML with seven views of one
+document (format JSONC and JSON5, a tree with paths, conversion, a diff
+by path, flattened paths, an inferred schema, jq), CSV and TSV as a
+table, and work tabs in Smart paste, Base64, Compare, JSON & YAML and
+the Ansible log, so several pastes, documents or logs stay open at once.
+
 ### Added
 
 - `codec json` reads JSONC and JSON5 as well as JSON (pretty and min
@@ -48,6 +56,9 @@ All notable changes to codec are documented here. The format follows
 - JSON & YAML has tabs too: several documents open at once, each with
   its own inputs (Diff's sides, the Query filter…) and the view it was
   left on; Kubernetes-shaped documents name their tab (Deployment/api).
+- A new tab takes the lowest free number: close Paste 1 of three and
+  the next is Paste 1 again, not Paste 4 (every tool with tabs); a
+  pasted log in the Log viewer no longer repeats a number in use.
 
 ## [3.6.0] - 2026-10-31
 
@@ -893,7 +904,8 @@ First tagged release: codec as it stood before the 2.0 work began.
 - Release pipeline: pushing a `v*` tag publishes binaries for Linux,
   Windows and macOS (amd64/arm64) to GitHub Releases via GoReleaser.
 
-[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v3.6.0...HEAD
+[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v3.7.0...HEAD
+[3.7.0]: https://github.com/mahasenabheetha/codec/compare/v3.6.0...v3.7.0
 [3.6.0]: https://github.com/mahasenabheetha/codec/compare/v3.5.0...v3.6.0
 [3.5.0]: https://github.com/mahasenabheetha/codec/compare/v3.4.0...v3.5.0
 [3.4.0]: https://github.com/mahasenabheetha/codec/compare/v3.3.0...v3.4.0
