@@ -2,7 +2,7 @@
 // window (cmd/codec-desktop), which the server marks with a meta tag.
 // Desktop-only features go through here, each with a browser fallback,
 // so the web UI never depends on them.
-import { pickFolder as pickFolderAPI, setWindowTheme } from './api/desktop'
+import { openURL, pickFolder as pickFolderAPI, setWindowTheme } from './api/desktop'
 
 export const desktop = document.querySelector('meta[name="codec-desktop"]') !== null
 
@@ -15,4 +15,13 @@ export function windowTheme(theme: 'dark' | 'light') {
  *  cancelled, or null in a browser (use codec's own folder browser). */
 export function pickFolder(title: string, start = ''): Promise<string> | null {
   return desktop ? pickFolderAPI(title, start) : null
+}
+
+/** Open a web or mail link outside codec: the system browser in the
+ *  desktop app (its window would otherwise open a bare popup), a new tab
+ *  in a browser. */
+export function openLink(url: string): Promise<void> {
+  if (desktop) return openURL(url)
+  window.open(url, '_blank', 'noopener,noreferrer')
+  return Promise.resolve()
 }

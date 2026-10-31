@@ -144,6 +144,14 @@
   <li><strong>Documents</strong> — multi-document files get a document switcher, and the outline groups by document.</li>
 </ul>
 
+<h3 id="markdown">Markdown preview<a class="anchor" href="#markdown">#</a></h3>
+<p><code>.md</code> files have a <strong>Source / Preview</strong> switch in the file toolbar (also "Show Markdown preview" in the palette). Preview shows the file rendered the way GitHub does: headings, tables, task lists, strikethrough, and YAML, JSON and shell code blocks coloured as in the editor. It renders what is in the editor, so what-if edits show too. Settings → General → Open Markdown as picks which view new tabs start in.</p>
+<ul>
+  <li><strong>Links</strong> — a heading link scrolls; a link to another file opens it in a tab (and scrolls to its heading when that tab is in Preview); a folder link shows it in the explorer. Web and mail links open in your browser.</li>
+  <li><strong>Images</strong> — images in the open folder show (PNG, JPEG, GIF, WebP, SVG, up to 10 MB). Images from the internet stay hidden until you click <strong>Load images</strong>, because loading one tells that server the file was opened; the choice lasts for the file until codec closes.</li>
+  <li><strong>Safe by design</strong> — a README in a cloned repository can contain anything, so raw HTML shows as text and nothing in the file can run: no scripts, event handlers, frames or forms, and links never take codec off its own page.</li>
+</ul>
+
 <h2 id="whatif">What-if edits<a class="anchor" href="#whatif">#</a></h2>
 <p>You can type in any file. The change affects only what codec shows: the analysis, and every lens that reads the file — a Helm render picks up an edited values file or template, a Compose view an edited override, an Argo graph an edited template. Nothing is written to disk.</p>
 <ul>

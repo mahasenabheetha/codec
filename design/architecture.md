@@ -175,6 +175,10 @@ Files over 8 MB are not listed or read.
   Editor calls (`/yaml/analyze|hover|definition|complete|path`,
   `/files/diff`) take `{path, content?, line, col}`; no content = the file
   on disk. Requests are cancelled via `r.Context()` when the editor moves on.
+  `GET /files/image?path=` serves an image in the folder to the Markdown
+  preview (png, jpeg, gif, webp, svg; the bytes must match the extension;
+  10 MB; `Content-Security-Policy: sandbox`); the UI fetches it with the
+  token, cleans SVG with DOMPurify and shows a blob URL [84].
   Helm: `GET /helm/charts`, `POST /helm/render` {chart, values[], set[],
   overrides{path: content}, release, namespace, kubeVersion} (→ the
   render; `schemasPending` = schema findings still to come, ask again),
@@ -275,4 +279,6 @@ Implemented in `internal/web/security.go`; every route passes the guard.
   survives restarts) in a Wails window. A second launch hands its path
   to the first (`Server.OpenPath`, the `open-file` event). Desktop-only
   routes under `/api/v2/desktop/` exist only when `web.Options.Desktop`
-  is set. Built with `scripts/desktop.sh`; see releases.md.
+  is set; `POST /desktop/open-url` {url} opens an http, https or mailto
+  link in the system browser (a WebView2 `window.open` would open a bare
+  popup). Built with `scripts/desktop.sh`; see releases.md.

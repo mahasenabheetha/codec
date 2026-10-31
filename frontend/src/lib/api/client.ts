@@ -91,6 +91,25 @@ export async function requestBlob(path: string, body: unknown): Promise<Blob> {
   return res.blob()
 }
 
+/** GET that returns bytes (an image), with errors handled as request(). */
+export async function getBlob(path: string, signal?: AbortSignal): Promise<Blob> {
+  const headers: Record<string, string> = {}
+  if (token) headers['X-Codec-Token'] = token
+  let res: Response
+  try {
+    res = await fetch(path, { headers, signal })
+  } catch (e) {
+    if (isAbort(e)) throw e
+    throw new ApiError(0, 'Cannot reach the codec server. Is `codec serve` still running?')
+  }
+  if (!res.ok) {
+    const data = await res.json().catch(() => null)
+    if (res.status === 401 && data?.code === 'stale-token') connection.restarted = true
+    throw new ApiError(res.status, data?.error ?? `${res.status} ${res.statusText}`)
+  }
+  return res.blob()
+}
+
 /** POST a raw body (a dropped file, pasted text) that is too big to
  *  wrap in JSON; the reply is JSON, with errors handled as request(). */
 export async function postRaw<T>(path: string, body: Blob | string, signal?: AbortSignal): Promise<T> {

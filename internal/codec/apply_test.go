@@ -40,6 +40,40 @@ func TestApply(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name:  "decode JSON as it is",
+			mode:  ModeB64Decode,
+			input: "eyJhIjoxLCJiIjpbMSwyXX0=", // {"a":1,"b":[1,2]}
+			want:  `{"a":1,"b":[1,2]}`,
+		},
+		{
+			name:  "decode JSON pretty",
+			mode:  ModeB64Decode,
+			input: "eyJhIjoxLCJiIjpbMSwyXX0=",
+			opts:  Options{PrettyJSON: true},
+			want:  "{\n  \"a\": 1,\n  \"b\": [\n    1,\n    2\n  ]\n}",
+		},
+		{
+			name:  "pretty keeps big numbers exact",
+			mode:  ModeB64Decode,
+			input: "eyJpZCI6MTIzNDU2Nzg5MDEyMzQ1Njc4OTB9", // {"id":12345678901234567890}
+			opts:  Options{PrettyJSON: true},
+			want:  "{\n  \"id\": 12345678901234567890\n}",
+		},
+		{
+			name:  "pretty leaves text that is not JSON",
+			mode:  ModeB64Decode,
+			input: "e25vdCBqc29u", // {not json
+			opts:  Options{PrettyJSON: true},
+			want:  "{not json",
+		},
+		{
+			name:  "pretty leaves a bare number",
+			mode:  ModeB64Decode,
+			input: "NDI=", // 42
+			opts:  Options{PrettyJSON: true},
+			want:  "42",
+		},
+		{
 			name:  "pretty",
 			mode:  ModeJSONPretty,
 			input: `{"a":1}`,

@@ -1,9 +1,11 @@
 <script lang="ts">
   import { onDestroy, untrack } from 'svelte'
   import { EditorView } from '@codemirror/view'
+  import BookOpen from '@lucide/svelte/icons/book-open'
   import Boxes from '@lucide/svelte/icons/boxes'
   import ChevronDown from '@lucide/svelte/icons/chevron-down'
   import ChevronRight from '@lucide/svelte/icons/chevron-right'
+  import Code from '@lucide/svelte/icons/code'
   import Copy from '@lucide/svelte/icons/copy'
   import Eraser from '@lucide/svelte/icons/eraser'
   import CopyPlus from '@lucide/svelte/icons/copy-plus'
@@ -28,6 +30,7 @@
   import EmptyState from '../../lib/components/EmptyState.svelte'
   import IconButton from '../../lib/components/IconButton.svelte'
   import Popover from '../../lib/components/Popover.svelte'
+  import SegmentedControl from '../../lib/components/SegmentedControl.svelte'
   import Select from '../../lib/components/Select.svelte'
   import SplitPane from '../../lib/components/SplitPane.svelte'
   import Tabs from '../../lib/components/Tabs.svelte'
@@ -38,10 +41,11 @@
   import { neat } from '../../lib/api/k8s'
   import { toast } from '../../lib/stores/toast.svelte'
   import { copyText } from '../../lib/utils/clipboard'
-  import { activeEditor, editorLink, editorNames, editorNav, lensOpen, openIn, openSessions, type ExternalEditor } from '../editor/active.svelte'
+  import { activeEditor, editorLink, editorNames, editorNav, lensOpen, markdownView, openIn, openSessions, type ExternalEditor } from '../editor/active.svelte'
   import { charts, helmNav } from '../helm/helm.svelte'
   import { comparison, queries } from '../compare/compare.svelte'
   import { applyAnalysis, offsetOf, yamlIntel } from '../editor/intel'
+  import MarkdownPreview from '../markdown/MarkdownPreview.svelte'
   import Outline from '../editor/Outline.svelte'
   import Problems from '../editor/Problems.svelte'
   import { FileSession, type SymbolRef } from '../editor/session.svelte'
@@ -75,6 +79,11 @@
   // An Argo workflow or application in a raw Helm template: shown on the render.
   const argoKinds = ['Workflow', 'WorkflowTemplate', 'ClusterWorkflowTemplate', 'CronWorkflow', 'Sensor', 'Application', 'ApplicationSet']
   const argoDoc = $derived(session.analysis?.docs.find((d) => argoKinds.includes(d.name?.split('/')[0] ?? ''))?.name)
+  // Markdown shows as source or rendered; the editor stays underneath,
+  // so switching keeps the cursor, the scroll and any what-if edits.
+  const markdown = $derived(session.disk?.lang === 'markdown')
+  let mdView = $state<'source' | 'preview'>(markdownView.value)
+  const previewing = $derived(markdown && mdView === 'preview')
   const lines = $derived(session.buffer ? session.buffer.split('\n').length - (session.buffer.endsWith('\n') ? 1 : 0) : 0)
 
   // Load on open, and again whenever the watcher reports a change.
@@ -188,6 +197,7 @@
   function jump(from: Pos, to?: Pos) {
     const view = cv?.getView()
     if (!view) return
+    mdView = 'source'
     const a = offsetOf(view.state.doc, from)
     const b = to ? Math.max(a, offsetOf(view.state.doc, to)) : a
     view.dispatch({ selection: { anchor: a, head: b }, effects: EditorView.scrollIntoView(a, { y: 'center' }) })
@@ -235,6 +245,13 @@
       { id: 'file.copy-path', title: 'Copy path', group: 'File', icon: Link, run: () => copyPath(false) },
       { id: 'file.copy-full-path', title: 'Copy full path', group: 'File', icon: Copy, run: () => copyPath(true) },
       { id: 'file.reveal', title: 'Reveal in explorer', group: 'File', icon: LocateFixed, run: () => ((layout.explorerOpen = true), ws.reveal(path)) },
+      ...(markdown
+        ? [
+            mdView === 'source'
+              ? { id: 'file.md-preview', title: 'Show Markdown preview', group: 'File', icon: BookOpen, keywords: ['render', 'readme'], run: () => (mdView = 'preview') }
+              : { id: 'file.md-source', title: 'Show Markdown source', group: 'File', icon: Code, keywords: ['edit', 'raw'], run: () => (mdView = 'source') },
+          ]
+        : []),
       { id: 'file.panel', title: 'Toggle outline and problems', group: 'File', icon: PanelRight, keywords: ['lens', 'side panel'], run: () => (lensOpen.value = !lensOpen.value) },
       ...(session.dirty
         ? [
@@ -289,6 +306,16 @@
     {/if}
     {#if updated}<span class="updated" role="status"><RefreshCw size={12} strokeWidth={2} /> Updated from disk</span>{/if}
     <div class="spacer"></div>
+    {#if markdown}
+      <SegmentedControl
+        label="Markdown view"
+        bind:value={mdView}
+        options={[
+          { value: 'source', label: 'Source', icon: Code, title: 'The Markdown text, editable' },
+          { value: 'preview', label: 'Preview', icon: BookOpen, title: 'Rendered; shows what-if edits too' },
+        ]}
+      />
+    {/if}
     {#if docItems.length > 1}
       <div class="docs">
         <Select
@@ -397,14 +424,17 @@
       </EmptyState>
     {:else if session.disk}
       {#snippet editor()}
-        <CodeView
-          bind:this={cv}
-          bind:value={session.buffer}
-          syncDelay={100}
-          label={path}
-          language={editorLang(session.disk!.lang, kind)}
-          extensions={session.isYAML ? intel : []}
-        />
+        <div class="source" class:hidden={previewing}>
+          <CodeView
+            bind:this={cv}
+            bind:value={session.buffer}
+            syncDelay={100}
+            label={path}
+            language={editorLang(session.disk!.lang, kind)}
+            extensions={session.isYAML ? intel : []}
+          />
+        </div>
+        {#if previewing}<MarkdownPreview text={session.buffer} {path} {active} />{/if}
       {/snippet}
       {#if lensOpen.value}
         <SplitPane id="file-lens" initial={0.74} min={220}>
@@ -591,6 +621,16 @@
     min-height: 0;
     display: flex;
     flex-direction: column;
+  }
+  .source {
+    flex: 1;
+    min-height: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  .source.hidden {
+    display: none;
   }
   .lens {
     height: 100%;

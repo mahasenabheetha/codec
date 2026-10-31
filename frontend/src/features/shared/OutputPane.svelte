@@ -2,6 +2,7 @@
   import type { Component, Snippet } from 'svelte'
   import ArrowLeftRight from '@lucide/svelte/icons/arrow-left-right'
   import Copy from '@lucide/svelte/icons/copy'
+  import Search from '@lucide/svelte/icons/search'
   import CodeView from '../../lib/components/CodeView.svelte'
   import IconButton from '../../lib/components/IconButton.svelte'
   import Button from '../../lib/components/Button.svelte'
@@ -10,6 +11,7 @@
   import { copyText } from '../../lib/utils/clipboard'
   import Pane from './Pane.svelte'
   import ErrorBanner from './ErrorBanner.svelte'
+  import FindBar from './FindBar.svelte'
   import { displayLanguage, sizeLabel } from './detect'
   import type { TransformState } from './transform.svelte'
 
@@ -39,8 +41,32 @@
   }: Props = $props()
 
   const language = $derived(displayLanguage(session.output))
+
+  // Find in the output: the button, or Ctrl+F while the pointer is over
+  // the output or focus is inside it (elsewhere Ctrl+F stays the
+  // browser's, and a code editor's own).
+  let code = $state<CodeView>()
+  let finding = $state(false)
+  let over = $state(false)
+  let pane = $state<HTMLDivElement>()
+  const canFind = $derived(!!session.result && !view)
+  $effect(() => {
+    if (!canFind) finding = false
+  })
+  $effect(() => {
+    const onkey = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey) || e.shiftKey || e.altKey || e.key.toLowerCase() !== 'f' || !canFind) return
+      if (!over && !pane?.contains(document.activeElement)) return
+      e.preventDefault()
+      finding = true
+    }
+    window.addEventListener('keydown', onkey)
+    return () => window.removeEventListener('keydown', onkey)
+  })
 </script>
 
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div class="out" bind:this={pane} onpointerenter={() => (over = true)} onpointerleave={() => (over = false)}>
 <Pane title="Output">
   {#snippet meta()}
     {#if badges}{@render badges()}{/if}
@@ -57,6 +83,9 @@
         disabled={!session.output}
         onclick={onswap}
       />
+    {/if}
+    {#if canFind}
+      <IconButton icon={Search} label="Find in the output" shortcut="Ctrl+F" size="sm" active={finding} onclick={() => (finding = !finding)} />
     {/if}
     <IconButton
       icon={Copy}
@@ -76,7 +105,8 @@
     {#if view}
       <div class="rich">{@render view(session.result)}</div>
     {:else}
-      <CodeView value={session.output} label="Output" {language} readonly wrap />
+      {#if finding}<FindBar find={(q, d) => code?.find(q, d) ?? { count: 0, index: 0 }} text={session.output} onclose={() => (finding = false)} />{/if}
+      <CodeView bind:this={code} value={session.output} label="Output" {language} readonly wrap />
     {/if}
   {:else if !session.error}
     <EmptyState icon={emptyIcon} title={emptyTitle} description={emptyDescription}>
@@ -84,8 +114,12 @@
     </EmptyState>
   {/if}
 </Pane>
+</div>
 
 <style>
+  .out {
+    display: contents;
+  }
   .rich {
     flex: 1;
     min-height: 0;

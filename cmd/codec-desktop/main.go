@@ -66,6 +66,8 @@ type desktop struct {
 
 func (d *desktop) SetTheme(dark bool) { setFrameTheme(d.win, dark) }
 
+func (d *desktop) OpenURL(u string) error { return d.app.Browser.OpenURL(u) }
+
 func (d *desktop) PickFolder(title, start string) (string, error) {
 	dlg := d.app.Dialog.OpenFile().
 		CanChooseDirectories(true).

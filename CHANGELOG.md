@@ -6,6 +6,38 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+## [3.3.0] - 2026-10-31
+
+Markdown preview: READMEs and docs in a repository read rendered, as on
+GitHub, with links between files and the repository's own images, and
+nothing in a file able to run. Also find in tool outputs, and Base64
+decode pretty-prints JSON, as it said it did.
+
+### Added
+
+- Find in the output of the encode and decode tools (Smart paste, JSON,
+  Base64 and the others): a Find button or Ctrl+F over the output; every
+  match is marked, with a count and Enter for the next, Shift+Enter for
+  the previous.
+- Markdown preview: a Source / Preview switch on `.md` files (also in the
+  palette) shows them rendered, GitHub-flavoured with tables, task lists
+  and strikethrough, in both themes. It renders the editor's text, so
+  what-if edits show. The file is treated as untrusted: raw HTML shows as
+  text, nothing in it can run. A link to another file opens it in a
+  codec tab (with its #heading when that file shows its preview), a
+  folder link shows it in the explorer, web links open in the browser
+  (the system browser in the desktop app). Images in the folder show;
+  remote images stay blocked until "Load images", since loading them
+  tells another server the file was opened. YAML, JSON and shell code
+  blocks are coloured as in the editor. Settings → General → Open
+  Markdown as picks Source or Preview for new tabs.
+
+### Fixed
+
+- Base64 decode pretty-prints decoded JSON, as its description and smart
+  paste always did; a Pretty JSON toggle (on by default) shows the exact
+  bytes when off.
+
 ## [3.2.0] - 2026-10-24
 
 Argo workflows in the Log viewer: a run read step by step, beside its
@@ -664,7 +696,8 @@ First tagged release: codec as it stood before the 2.0 work began.
 - Release pipeline: pushing a `v*` tag publishes binaries for Linux,
   Windows and macOS (amd64/arm64) to GitHub Releases via GoReleaser.
 
-[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v3.2.0...HEAD
+[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v3.3.0...HEAD
+[3.3.0]: https://github.com/mahasenabheetha/codec/compare/v3.2.0...v3.3.0
 [3.2.0]: https://github.com/mahasenabheetha/codec/compare/v3.1.1...v3.2.0
 [3.1.1]: https://github.com/mahasenabheetha/codec/compare/v3.1.0...v3.1.1
 [3.1.0]: https://github.com/mahasenabheetha/codec/compare/v3.0.0...v3.1.0

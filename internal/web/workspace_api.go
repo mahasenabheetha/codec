@@ -1,6 +1,7 @@
 package web
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -9,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -277,6 +279,67 @@ func (s *Server) handleStat(w http.ResponseWriter, r *http.Request) {
 		Size    int64 `json:"size"`
 		ModTime int64 `json:"modTime"` // Unix milliseconds
 	}{size, mod.UnixMilli()})
+}
+
+// maxImage caps an image the Markdown preview shows.
+const maxImage = 10 << 20
+
+// imageTypes are the images the preview may show, by extension; the
+// bytes must agree (SVG is text, so it is checked for an <svg> element).
+var imageTypes = map[string]string{
+	".png":  "image/png",
+	".jpg":  "image/jpeg",
+	".jpeg": "image/jpeg",
+	".gif":  "image/gif",
+	".webp": "image/webp",
+	".svg":  "image/svg+xml",
+}
+
+// GET /api/v2/files/image?path=: an image inside the open folder, for
+// the Markdown preview (decision 84). Images only, through the root like
+// every read; the UI fetches it with the token and shows it as a blob.
+func (s *Server) handleImage(w http.ResponseWriter, r *http.Request) {
+	ws := s.current()
+	if ws == nil {
+		writeError(w, http.StatusConflict, "no folder is open")
+		return
+	}
+	p := r.URL.Query().Get("path")
+	typ, ok := imageTypes[strings.ToLower(path.Ext(p))]
+	if !ok {
+		writeError(w, http.StatusUnsupportedMediaType, "not an image")
+		return
+	}
+	data, err := ws.ReadLog(p, maxImage) // through the root, a size cap, binary allowed
+	if errors.Is(err, workspace.ErrOverLimit) {
+		writeError(w, http.StatusRequestEntityTooLarge, p+" is over 10 MB")
+		return
+	}
+	if err != nil {
+		he := readError(err)
+		writeError(w, he.status, he.msg)
+		return
+	}
+	if !isImage(typ, data) {
+		writeError(w, http.StatusUnsupportedMediaType, p+" is not a "+strings.TrimPrefix(typ, "image/")+" image")
+		return
+	}
+	h := w.Header()
+	h.Set("Content-Type", typ)
+	h.Set("Cache-Control", "no-store")
+	// Opened on its own, an SVG must not run anything.
+	h.Set("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; sandbox")
+	w.Write(data)
+}
+
+// isImage reports whether data really is an image of type typ.
+func isImage(typ string, data []byte) bool {
+	if typ == "image/svg+xml" {
+		head := bytes.ToLower(data[:min(len(data), 4096)])
+		return bytes.Contains(head, []byte("<svg"))
+	}
+	got := http.DetectContentType(data)
+	return got == typ
 }
 
 // OpenSample writes the sample workspace to codec's cache folder (never

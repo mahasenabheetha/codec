@@ -252,11 +252,11 @@ toolbar shows them rendered, in the browser UI and the desktop app.
 
 | # | Task | Main parts | Status |
 |---|---|---|---|
-| T1 | Safe rendering | `marked` (GitHub-flavoured: tables, task lists, strikethrough) and `DOMPurify`; raw HTML off, scripts and event handlers stripped; renders the editor's text, so what-if edits show; tests with hostile Markdown | |
-| T2 | Preview in the file view | Source / Preview switch in `FileView.svelte` toolbar and the palette; styles for headings, lists, tables, quotes and code in both themes; heading anchors | |
-| T3 | Links and images | A link to another file opens it in a codec tab, `#heading` scrolls, external links open in the system browser; images inside the workspace through a read-only route (images only, inside the root); remote images blocked with "Load images" | |
-| T4 | Code blocks and setting | YAML, JSON and shell blocks highlighted with the editor's highlighter; Settings → Editor: open Markdown as Preview or Source; docs (`workspace.html`, settings) | |
-| — | Release | Full checks; CHANGELOG cut as 3.3.0 | |
+| T1 | Safe rendering | `marked` (GitHub-flavoured: tables, task lists, strikethrough) and `DOMPurify`; raw HTML off, scripts and event handlers stripped; renders the editor's text, so what-if edits show; tests with hostile Markdown | Done: `features/markdown/render.ts`, `renderMarkdown(src)`; marked 18.1.1 and DOMPurify 3.4.17, pinned; raw HTML shown as text; DOMPurify strips scripts, handlers, unsafe links, frames, forms and styles; task boxes disabled, links get `rel=noopener noreferrer`, image addresses moved to `data-src` so nothing loads (for T3). 28 cases in `render.cases.ts` with `check()`, which reads the parsed elements; all pass in the browser (dev server console); a renderer that sanitises nothing fails 19. No frontend test runner yet: running them in CI needs a DOM library such as jsdom |
+| T2 | Preview in the file view | Source / Preview switch in `FileView.svelte` toolbar and the palette; styles for headings, lists, tables, quotes and code in both themes; heading anchors | Done: `MarkdownPreview.svelte`; a Source / Preview `SegmentedControl` in the file toolbar for lang `markdown`, Show Markdown preview / source in the palette; the editor stays mounted under the preview (cursor, scroll and what-if edits kept), and a jump to a position switches back to Source. Heading ids as GitHub makes them (`user-content-` prefix via DOMPurify, so no id can shadow a page global), a `#` anchor on hover. The app routes by URL hash, so the preview takes every link click: `#heading` scrolls, http(s) and mailto open a new window, file links wait for T3. 31 cases pass; checked by hand in a test build (dark and light, what-if, palette, hostile HTML inert) |
+| T3 | Links and images | A link to another file opens it in a codec tab, `#heading` scrolls, external links open in the system browser; images inside the workspace through a read-only route (images only, inside the root); remote images blocked with "Load images" | Done: `links.ts` resolves links and images against the file's folder (a leading / against the open folder, nothing above it, other schemes ignored); a file link opens its tab and hands over a #heading for when that file's preview shows, a folder link reveals it, a missing one says so. `GET /api/v2/files/image` (images only, bytes checked, 10 MB, sandbox CSP), fetched with the token and shown as blob URLs, SVG cleaned with DOMPurify first. Remote images counted and held back behind a "Load images" bar, allowed per file until codec closes (never stored). Web links through `platform.openLink`: a new tab in the browser, `POST /api/v2/desktop/open-url` (http, https, mailto only) to the system browser in the desktop app. Go tests for both routes; 17 link cases with `check()`; checked by hand in a test build. The desktop link opening is not tried yet |
+| T4 | Code blocks and setting | YAML, JSON and shell blocks highlighted with the editor's highlighter; Settings → Editor: open Markdown as Preview or Source; docs (`workspace.html`, settings) | Done: the editor's tag colours moved to `lib/components/syntax.ts`, one list for CodeView's `HighlightStyle` and `highlightTo` (lezer `highlightCode` with `syn-*` classes, text nodes and spans only); yaml/yml, json/jsonc and sh/shell/bash/zsh/console blocks, others stay plain. "Open Markdown as" in Settings → General (where the editor settings are), `markdownView` persisted like `lensOpen`. Docs: workspace.html Markdown preview, settings.html, CHANGELOG |
+| — | Release | Full checks; CHANGELOG cut as 3.3.0 | Full checks passed (gofmt, vet, all Go tests, staticcheck, frontend build, svelte-check, the 31 Markdown and 17 link cases); govulncheck and the race detector left to CI (no vulnerability database offline, no C compiler here); docs pass (workspace, settings, tools, README, docs home); decision 92; CHANGELOG cut as 3.3.0. Also in this release: find in tool outputs, Base64 decode pretty-printing JSON |
 
 Later: Mermaid diagrams (loaded only when a file has one); side by side
 with scroll sync.
@@ -283,18 +283,28 @@ CSV tools join it in 3.6.0).
 | T8 | Smart paste | Recognises a CIDR, an IP and a `curl` command and offers the tool; no bare-number guesses; `codec.DetectUtility` and `codec auto` follow | |
 | — | Release | Full checks; a fuzz run of the new parsers; docs (`tools.html`); CHANGELOG cut as 3.4.0 | |
 
-### v3.5.0 — Update check
+### v3.5.0 — Update check and focus timer
 Agreed 2026-10-06 (decision 85). Wails has no updater and codec never
 looks for new versions, so an installed copy stays old until the user
 notices a release. codec can ask GitHub for the latest release and say
 when a newer one exists; updating stays the installer run over the top
 (it replaces the install in place and keeps settings).
 
+The release also holds a small focus timer (decision 91, 2026-10-31):
+a Pomodoro clock and an eye-break reminder, so long days at the screen
+get rests. Both add a Settings section, and both are small.
+
 | # | Task | Main parts | Status |
 |---|---|---|---|
 | T1 | Check: engine + API + CLI | `internal/update`: latest release from the GitHub API (pre-releases only when running one), semver compare with `internal/version`, 5 s timeout, at most once a day (result cached in the config dir), dev builds never check; `updates.check` setting, off by default; `GET /api/v2/update`; `codec version --check`; tests against a fake server | |
 | T2 | Notice in the UI | Settings → General: "Check for updates" switch and "Check now"; "codec X.Y.Z is available" in the footer with a link to the release (the system browser in the desktop app), dismissable per version; tray menu entry in the desktop app; docs (settings, security: the second network use, troubleshooting) | |
+| T3 | Focus timer and break reminders | Frontend only, no new dependency, off until switched on in Settings → Focus & breaks. `features/focus/focus.svelte.ts`: one store, phase (focus, break, off) and an `endsAt` timestamp, the time left worked out from the clock so a throttled window or a sleeping laptop can't make it drift, a long-expired timer offering a new session instead of a stale alert. **Pomodoro** (focus 25, break 5, a long break of 15 every fourth round; lengths are settings; auto-start or wait) and an **eye break** (every 20 minutes, a 20-second look-away; the lengths are settings); any break resets the eye timer, so the two never fire together. A status-bar widget (icon and countdown, a popover with start, pause, skip, reset and snooze 5 minutes), palette commands (Start focus, Take a break now, Snooze). A break card in the corner with a CSS breathing circle (in 4 s, out 4 s) and the countdown, still under "reduce motion"; a soft two-note chime made with Web Audio (no files; volume and mute; the Start click unlocks audio); the countdown in the window title while it runs. Same code in the browser UI and the desktop app. Only the chosen lengths are remembered (`persisted`), never the running timer or any history; docs (`settings.html`, `shortcuts.html`, a short page on the timer); to check by hand in both apps, including a minimised desktop window and a background browser tab (late by up to a minute) | |
 | — | Release | Full checks; CHANGELOG cut as 3.5.0 | |
+
+Later for the timer: a system notification and a tray entry in the
+desktop app (needs a look at what Wails offers), the Windows idle time
+for a nudge across all apps; for now a system-wide tool such as
+Stretchly or Workrave covers other applications.
 
 Later, after SignPath signing: "Update now" (download the installer,
 verify it against the release checksums, run it silently, restart);
@@ -363,6 +373,7 @@ The rest of "Next", picked up when it fits.
 
 | Version | Items |
 |---|---|
+| 3.3.0 | Markdown preview: rendered safely, links between files, the repository's images, code coloured as in the editor; find in tool outputs |
 | 3.2.0 | Argo runs in the Log viewer: steps, the run's status as a step tree, lanes, live follow; the Argo graph coloured by a run |
 | 3.1.1 | Review and stabilisation: static checks, fuzz tests of every parser, race detector, staticcheck and govulncheck in CI; releases on the newest Go patch |
 | 3.1.0 | Log viewer: structured logs of any common format, filtered, charted and read; several logs in tabs, folds, highlights, pins and two runs compared |

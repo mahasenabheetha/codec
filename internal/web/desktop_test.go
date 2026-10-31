@@ -1,6 +1,7 @@
 package web
 
 import (
+	"encoding/json"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -123,6 +124,7 @@ type fakeDesktop struct {
 	asked  [2]string
 
 	settings DesktopSettings
+	opened   []string
 }
 
 func (f *fakeDesktop) SetTheme(dark bool) { f.dark = append(f.dark, dark) }
@@ -137,6 +139,41 @@ func (f *fakeDesktop) Settings() (DesktopSettings, error) { return f.settings, n
 func (f *fakeDesktop) SetSettings(st DesktopSettings) error {
 	f.settings = st
 	return nil
+}
+
+func (f *fakeDesktop) OpenURL(u string) error {
+	f.opened = append(f.opened, u)
+	return nil
+}
+
+func TestDesktopOpenURL(t *testing.T) {
+	fake := &fakeDesktop{}
+	opts := testOptions(false)
+	opts.Desktop = fake
+	s := New(opts)
+	for _, tt := range []struct {
+		url  string
+		code int
+	}{
+		{"https://example.com/docs?a=1#x", http.StatusNoContent},
+		{"http://example.com", http.StatusNoContent},
+		{"mailto:someone@example.com", http.StatusNoContent},
+		{"file:///C:/Windows/System32/calc.exe", http.StatusBadRequest},
+		{"vscode://file/C:/x", http.StatusBadRequest},
+		{"javascript:alert(1)", http.StatusBadRequest},
+		{`C:\Windows\notepad.exe`, http.StatusBadRequest},
+		{"https:///nohost", http.StatusBadRequest},
+		{"mailto:", http.StatusBadRequest},
+		{"", http.StatusBadRequest},
+	} {
+		body, _ := json.Marshal(map[string]string{"url": tt.url})
+		if rec := call(s, "POST", "/api/v2/desktop/open-url", "127.0.0.1:8769", s.Token(), "", string(body)); rec.Code != tt.code {
+			t.Errorf("%q: status = %d, want %d (%s)", tt.url, rec.Code, tt.code, rec.Body)
+		}
+	}
+	if len(fake.opened) != 3 {
+		t.Errorf("opened %q, want the three good links", fake.opened)
+	}
 }
 
 func TestDesktopSettings(t *testing.T) {

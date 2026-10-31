@@ -12,6 +12,11 @@ export async function pickFolder(title: string, start: string): Promise<string> 
   return (await request<{ path: string }>('POST', '/api/v2/desktop/pick-folder', { title, start })).path
 }
 
+/** Open a web or mail link in the system browser or mail app. */
+export function openURL(url: string): Promise<void> {
+  return request('POST', '/api/v2/desktop/open-url', { url })
+}
+
 export interface DesktopSettings {
   startAtLogin: boolean
   keepInTray: boolean

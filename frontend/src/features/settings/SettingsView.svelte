@@ -14,7 +14,7 @@
   import { desktop } from '../../lib/platform'
   import { getDesktopSettings, setDesktopSettings, type DesktopSettings } from '../../lib/api/desktop'
   import { comparison } from '../compare/compare.svelte'
-  import { editorNames, lensOpen, openIn, type ExternalEditor } from '../editor/active.svelte'
+  import { editorNames, lensOpen, markdownView, openIn, type ExternalEditor } from '../editor/active.svelte'
   import { lint } from '../lint/lint.svelte'
   import LintSections from './LintSections.svelte'
   import SettingRow from './SettingRow.svelte'
@@ -153,6 +153,16 @@
         </SettingRow>
         <SettingRow title="Outline and problems panel" description="Show the side panel in file tabs. Toggle it per tab from the editor toolbar too.">
           <Toggle checked={lensOpen.value} label={lensOpen.value ? 'Shown' : 'Hidden'} onchange={(on) => (lensOpen.value = on)} />
+        </SettingRow>
+        <SettingRow title="Open Markdown as" description="How .md files open. Switch per tab with Source / Preview in the file toolbar.">
+          <SegmentedControl
+            options={[
+              { value: 'source', label: 'Source' },
+              { value: 'preview', label: 'Preview' },
+            ]}
+            bind:value={markdownView.value}
+            label="Open Markdown as"
+          />
         </SettingRow>
       </SettingSection>
 
