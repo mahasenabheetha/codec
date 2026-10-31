@@ -95,6 +95,9 @@
   --act-run: var(--hue-violet);
   --tint-tool: 0%;
   --tint-action: 0%;
+  /* Fills, pills and edges in the tool's colour: the selected sub-tab and
+     rail entry, a line along the top of a card. */
+  --tint-fill: 0%;
 
   /* Editor surfaces (CodeMirror) */
   --editor-active-line: rgb(255 255 255 / 0.025);
@@ -330,6 +333,7 @@
   --hue-cyan: #7ccbe4;
   --tint-tool: 100%;
   --tint-action: 100%;
+  --tint-fill: 100%;
 
   --shadow-pop: 0 10px 30px rgb(8 8 20 / 0.45), 0 0 0 1px var(--border-strong);
   --overlay: rgb(10 10 24 / 0.5);

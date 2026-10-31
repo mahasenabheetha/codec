@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { hueVar, viewHue } from '../../lib/tools'
   import FileSearch from '@lucide/svelte/icons/file-search'
   import Play from '@lucide/svelte/icons/play'
   import Button from '../../lib/components/Button.svelte'
@@ -60,7 +61,7 @@
   }
 </script>
 
-<div class="query" class:inactive={!active}>
+<div class="query hued" class:inactive={!active} style:--tool={hueVar(viewHue.query)}>
   <header>
     <div class="expr">
       <textarea

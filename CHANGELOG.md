@@ -17,9 +17,17 @@ All notable changes to codec are documented here. The format follows
   "Use the Dusk theme" in the palette): soft and colourful, for long
   days. A muted blue-violet ground, off-white text at about 10:1 rather
   than Dark's 16:1, pastel colours of one lightness; each tool's icon,
-  header and main button in its own colour, and Copy, Clear, Open, Run
-  and other actions in theirs. With System, "When the system is dark"
+  header, main button and selected tab (a soft pill) in its own colour,
+  a soft glow on the selected sidebar entry, a thin coloured line on
+  result cards, and Copy, Clear, Open, Run and other actions in their
+  own colours. With System, "When the system is dark"
   picks Dark or Dusk. Dark and Light are unchanged.
+
+### Fixed
+
+- Settings: a setting's description no longer shrinks to one word a
+  line when the page is narrow (beside the explorer); the control moves
+  below it instead.
 
 ### Changed
 

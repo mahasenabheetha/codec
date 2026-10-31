@@ -190,6 +190,12 @@
   .item.hued.selected :global(svg) {
     color: var(--tool-accent);
   }
+  /* Where the theme shows tool colours, the selected entry glows softly
+     in its hue. */
+  .item.hued.selected {
+    background: color-mix(in oklab, var(--tool-accent-soft) var(--tint-fill), var(--bg-3));
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--tool-accent) calc(var(--tint-fill) * 0.3), transparent);
+  }
   .bottom {
     display: flex;
     flex-direction: column;

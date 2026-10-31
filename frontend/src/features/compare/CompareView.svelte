@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { hueVar, viewHue } from '../../lib/tools'
   import { untrack } from 'svelte'
   import ArrowLeftRight from '@lucide/svelte/icons/arrow-left-right'
   import CircleCheck from '@lucide/svelte/icons/circle-check'
@@ -107,7 +108,7 @@
   }
 </script>
 
-<div class="compare" class:inactive={!active}>
+<div class="compare hued" class:inactive={!active} style:--tool={hueVar(viewHue.compare)}>
   <header>
     <span class="tool-label">Compare as</span>
     <SegmentedControl

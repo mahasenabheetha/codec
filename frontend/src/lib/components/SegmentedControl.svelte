@@ -84,9 +84,11 @@
   button:hover:not(.checked) {
     color: var(--fg-0);
   }
+  /* A soft pill in the tool's colour where the theme shows it (Dusk),
+     today's grey otherwise (decision 94). */
   button.checked {
-    color: var(--fg-0);
-    background: var(--bg-3);
-    box-shadow: 0 0 0 1px var(--border-strong);
+    color: color-mix(in oklab, var(--tool-accent, var(--accent)) var(--tint-fill), var(--fg-0));
+    background: color-mix(in oklab, var(--tool-accent-soft, var(--accent-soft)) var(--tint-fill), var(--bg-3));
+    box-shadow: 0 0 0 1px color-mix(in oklab, var(--tool-accent, var(--accent)) calc(var(--tint-fill) * 0.4), var(--border-strong));
   }
 </style>

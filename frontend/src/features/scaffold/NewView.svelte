@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { hueVar, viewHue } from '../../lib/tools'
   import Copy from '@lucide/svelte/icons/copy'
   import Download from '@lucide/svelte/icons/download'
   import FilePlus from '@lucide/svelte/icons/file-plus'
@@ -162,7 +163,7 @@
   const problems = $derived<Diagnostic[]>(analysis?.diagnostics ?? [])
 </script>
 
-<div class="new" class:inactive={!active}>
+<div class="new hued" class:inactive={!active} style:--tool={hueVar(viewHue.new)}>
   <aside class="starters">
     <div class="filter"><SearchInput bind:value={filter} placeholder="Filter starters…" label="Filter starters" /></div>
     {#if nf.loadError}

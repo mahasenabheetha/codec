@@ -96,8 +96,11 @@ value in each theme block (Dusk may inherit Dark's).
   action uses, so colour never suggests a problem that isn't there.
 
 How much of the first two a theme shows is `--tint-tool` and
-`--tint-action`: `0%` in Dark and Light, which keeps them exactly as
-they were. Never use a `--hue-*` or `--act-*` token directly; go through
+`--tint-action`, and `--tint-fill` for fills drawn in the tool's colour
+(the selected sub-tab as a soft pill, the selected rail entry's glow, a
+line along the top of a `Pane`): `0%` in Dark and Light, which keeps
+them exactly as they were, `100%` in Dusk. Workspace views (Compare,
+Query, New, Problems) are `.hued` too, with their `viewHue`. Never use a `--hue-*` or `--act-*` token directly; go through
 the roles, so a theme can turn them up or down in one place.
 
 Never hard-code a colour, size or font in a component. A new token is a

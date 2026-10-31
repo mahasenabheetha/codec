@@ -67,7 +67,7 @@
     color: var(--fg-0);
   }
   button.selected {
-    color: var(--fg-0);
+    color: color-mix(in oklab, var(--tool-accent, var(--accent)) var(--tint-fill), var(--fg-0));
   }
   button.selected::after {
     content: '';

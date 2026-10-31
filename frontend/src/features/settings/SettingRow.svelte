@@ -25,15 +25,19 @@
 </div>
 
 <style>
+  /* The control moves under the text when both don't fit, rather than
+     squeezing the text to a word a line (the page can be narrow beside
+     the explorer, whatever the window's width). */
   .row {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: var(--s-4);
     padding: var(--s-3) 0;
     border-top: 1px solid var(--border);
   }
   .label {
-    flex: 1;
+    flex: 1 1 16rem;
     display: flex;
     flex-direction: column;
     gap: 2px;
@@ -50,10 +54,5 @@
     align-items: center;
     gap: var(--s-2);
     flex-shrink: 0;
-  }
-  @media (max-width: 720px) {
-    .row {
-      flex-wrap: wrap;
-    }
   }
 </style>
