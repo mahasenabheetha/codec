@@ -59,6 +59,14 @@ them.
 - Compare and Text diff: next and previous change (arrows, or Alt+↓ and
   Alt+↑ in the diff).
 
+### Fixed
+
+- `scripts/dev.sh` and `scripts/desktop.sh` no longer empty
+  `frontend/node_modules` when `npm ci` fails (a registry that can't be
+  reached): they reinstall only when `package-lock.json`'s content
+  changes, not its timestamp, and put the old packages back if the
+  install fails.
+
 ## [3.3.0] - 2026-10-31
 
 Markdown preview: READMEs and docs in a repository read rendered, as on
