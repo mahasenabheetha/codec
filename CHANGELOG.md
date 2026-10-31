@@ -8,6 +8,13 @@ All notable changes to codec are documented here. The format follows
 
 ### Added
 
+- `codec json` reads JSONC and JSON5 as well as JSON (pretty and min
+  write them as JSON; `--sort` sorts keys) and gains `yaml`,
+  `from-yaml`, `flatten`, `unflatten`, `diff` (by path, exit code 2 when
+  different), `schema` (inferred from samples or JSON Lines), `query`
+  (jq) and `stats` (counts in large files, read as a stream). The
+  JSON & YAML tool in the app follows.
+
 - Tabs in Smart paste, Base64 and Compare, like the Log viewer's: keep
   several pastes or comparisons open at once, each with its own input,
   options and result. New with + or Alt+T, close with ×, a middle click
