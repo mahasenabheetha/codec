@@ -5,16 +5,15 @@
 #   scripts/dev.sh ui [port]    build, serve, and start the hot-reload UI dev server
 set -euo pipefail
 cd "$(dirname "$0")/.."
+# shellcheck source=scripts/frontend-deps.sh
+. scripts/frontend-deps.sh
 
 bin=./codec-dev
 [[ "$(go env GOOS)" == windows ]] && bin=./codec-dev.exe
 port="${2:-8766}"
 
 build() {
-  # Reinstall frontend deps only when the lockfile changed since the last install.
-  if [[ frontend/package-lock.json -nt frontend/node_modules/.package-lock.json ]]; then
-    npm --prefix frontend ci
-  fi
+  frontend_deps # scripts/frontend-deps.sh: only when the lockfile changed, never empties node_modules
   npm --prefix frontend run build
   go build -o "$bin" ./cmd/codec
   echo "built $bin — $("$bin" version)"

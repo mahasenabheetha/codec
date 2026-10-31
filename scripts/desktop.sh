@@ -6,6 +6,8 @@
 # needs NSIS 3: makensis on PATH, or MAKENSIS=/path/to/makensis.exe.
 set -euo pipefail
 cd "$(dirname "$0")/.."
+# shellcheck source=scripts/frontend-deps.sh
+. scripts/frontend-deps.sh
 
 wails=github.com/wailsapp/wails/v3/cmd/wails3@$(go list -m -f '{{.Version}}' github.com/wailsapp/wails/v3)
 out=dist/desktop
@@ -18,11 +20,9 @@ else
 fi
 mkdir -p "$out"
 
-# 1. The UI, embedded in the binary (reinstall packages only when the
-#    lockfile changed, as scripts/dev.sh does).
-if [[ frontend/package-lock.json -nt frontend/node_modules/.package-lock.json ]]; then
-  npm --prefix frontend ci
-fi
+# 1. The UI, embedded in the binary (packages reinstalled only when the
+#    lockfile changed; see scripts/frontend-deps.sh).
+frontend_deps
 npm --prefix frontend run build
 
 # 2. Windows resources: icon, version details, manifest. Go links any

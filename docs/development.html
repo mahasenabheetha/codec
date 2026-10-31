@@ -71,6 +71,7 @@ cd codec
 npm --prefix frontend ci           <span class="c"># once: UI dependencies</span>
 scripts/dev.sh run                 <span class="c"># build the UI and the binary, serve on :8766</span>
 scripts/dev.sh ui                  <span class="c"># the same, plus a hot-reloading UI on :5173</span></code></pre>
+<p><code>dev.sh</code> and <code>desktop.sh</code> run <code>npm ci</code> again only when <code>package-lock.json</code>'s content changes (a branch switch that rewrites it doesn't count). If the install fails, say the registry can't be reached, they put back the packages you had and carry on with a warning, so <code>node_modules</code> is never left empty.</p>
 <div class="table-wrap"><table>
   <tr><th>Task</th><th>Command</th></tr>
   <tr><td>Vet and test one package</td><td><code>go vet ./... &amp;&amp; go test ./internal/lint/...</code></td></tr>
