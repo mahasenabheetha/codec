@@ -130,7 +130,7 @@
         <Button icon={FilePlus} onclick={() => pick(true)} title="Add logs to this tab; they are merged by time">Add to this tab…</Button>
       {/if}
       <Button icon={ClipboardPaste} onclick={() => (pasteOpen = true)}>Paste…</Button>
-      <Button variant="primary" icon={FileUp} onclick={() => pick(false)} title="Each opening is a tab of its own; several files at once are merged by time">Open logs…</Button>
+      <Button variant="primary" icon={FileUp} tone="open" onclick={() => pick(false)} title="Each opening is a tab of its own; several files at once are merged by time">Open logs…</Button>
     {/snippet}
     {#snippet body()}
       {#if !logTabs.list.length}
@@ -140,7 +140,7 @@
             title="Read structured logs"
             description="ECS and other JSON (slog, zap, logrus, zerolog…), logfmt, klog and plain text with stack traces, as argo logs, kubectl logs, containers or CI print them. Open or drop one or more files (merged by time), or paste with Ctrl+V; each log you open gets a tab. Nothing is stored."
           >
-            <Button variant="primary" icon={FileUp} onclick={() => pick(false)}>Open logs…</Button>
+            <Button variant="primary" icon={FileUp} tone="open" onclick={() => pick(false)}>Open logs…</Button>
             <Button icon={ClipboardPaste} onclick={() => (pasteOpen = true)}>Paste a log…</Button>
             <Button variant="ghost" onclick={() => openPasted(samples.logs, false, 'Sample')}>Try a sample</Button>
           </EmptyState>
@@ -157,7 +157,7 @@
                 <button type="button" class="close" aria-label="Close {v.title}" title="Close this log" onclick={() => logTabs.close(v)}><X size={12} /></button>
               </div>
             {/each}
-            <IconButton icon={Plus} label="Open logs in a new tab" size="sm" onclick={() => pick(false)} />
+            <IconButton icon={Plus} tone="add" label="Open logs in a new tab" size="sm" onclick={() => pick(false)} />
           </div>
           {#each logTabs.list as v (v.key)}
             <div class="tab-body" class:hidden={v !== cur}>

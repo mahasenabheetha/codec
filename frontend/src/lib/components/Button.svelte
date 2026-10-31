@@ -1,18 +1,22 @@
 <script lang="ts">
   import type { Component, Snippet } from 'svelte'
   import type { HTMLButtonAttributes } from 'svelte/elements'
+  import type { Tone } from './tone'
 
   interface Props extends HTMLButtonAttributes {
     variant?: 'primary' | 'secondary' | 'ghost'
     size?: 'sm' | 'md'
     icon?: Component
+    /** What kind of action this is; themes that show colour tint the icon
+     *  (not on a primary button, whose fill already stands out). */
+    tone?: Tone
     children?: Snippet
   }
 
-  let { variant = 'secondary', size = 'md', icon: Icon, children, type = 'button', ...rest }: Props = $props()
+  let { variant = 'secondary', size = 'md', icon: Icon, tone, children, type = 'button', ...rest }: Props = $props()
 </script>
 
-<button {type} class="btn {variant} {size}" {...rest}>
+<button {type} class="btn {variant} {size}" class:toned={!!tone} style:--act={tone && `var(--act-${tone})`} {...rest}>
   {#if Icon}<Icon size={size === 'sm' ? 14 : 15} strokeWidth={1.75} />{/if}
   {#if children}<span>{@render children()}</span>{/if}
 </button>
@@ -46,12 +50,18 @@
     cursor: default;
   }
 
+  .toned:not(.primary, :disabled) :global(svg) {
+    color: color-mix(in oklab, var(--act) var(--tint-action), currentColor);
+  }
+
+  /* Inside a tool, the tool's accent (the plain accent unless the theme
+     shows tool colours). */
   .primary {
-    background: var(--accent);
+    background: var(--tool-accent, var(--accent));
     color: var(--accent-fg);
   }
   .primary:hover:not(:disabled) {
-    background: var(--accent-hover);
+    background: var(--tool-accent-hover, var(--accent-hover));
   }
 
   .secondary {

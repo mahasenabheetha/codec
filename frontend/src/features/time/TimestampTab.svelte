@@ -116,7 +116,7 @@
               <dt>{r.label}</dt>
               <dd>
                 <code>{r.value}</code>
-                <IconButton icon={Copy} label="Copy {r.label}" size="sm" onclick={() => copyText(r.value, r.label)} />
+                <IconButton icon={Copy} tone="copy" label="Copy {r.label}" size="sm" onclick={() => copyText(r.value, r.label)} />
               </dd>
             </div>
           {/each}

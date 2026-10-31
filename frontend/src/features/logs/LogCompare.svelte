@@ -141,7 +141,7 @@
     <span class="title">This run compared with
       <button type="button" class="tablink" disabled={!open} title="Go to its tab" onclick={() => open && logTabs.select(other)}>{name}</button></span>
     <span class="spacer"></span>
-    {#if d}<Button size="sm" icon={ClipboardCopy} onclick={copy}>Copy as text</Button>{/if}
+    {#if d}<Button size="sm" icon={ClipboardCopy} tone="copy" onclick={copy}>Copy as text</Button>{/if}
     {#if open}<Button size="sm" variant="ghost" icon={RefreshCw} disabled={c.loading} onclick={() => viewer.compareWith(other)}>Compare again</Button>{/if}
     <Button size="sm" variant="ghost" icon={X} onclick={() => (viewer.compare = null)}>Stop comparing</Button>
   </div>

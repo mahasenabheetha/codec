@@ -3,6 +3,7 @@
   import type { HTMLButtonAttributes } from 'svelte/elements'
   import Tooltip from './Tooltip.svelte'
   import { chain } from '../utils/events'
+  import type { Tone } from './tone'
 
   // Square icon-only button. `label` is both the accessible name and
   // the tooltip, so an icon button can never ship unlabeled.
@@ -13,9 +14,11 @@
     size?: 'sm' | 'md'
     active?: boolean
     side?: 'top' | 'right' | 'bottom' | 'left'
+    /** What kind of action this is; themes that show colour tint the icon. */
+    tone?: Tone
   }
 
-  let { icon: Icon, label, shortcut, size = 'md', active = false, side = 'bottom', disabled, onclick, ...rest }: Props = $props()
+  let { icon: Icon, label, shortcut, size = 'md', active = false, side = 'bottom', tone, disabled, onclick, ...rest }: Props = $props()
 </script>
 
 <Tooltip text={label} {shortcut} {side}>
@@ -26,6 +29,8 @@
       type="button"
       class="icon-btn {size}"
       class:active
+      class:toned={!!tone}
+      style:--act={tone && `var(--act-${tone})`}
       aria-label={label}
       {disabled}
       onclick={chain(props.onclick, onclick)}
@@ -57,6 +62,9 @@
   .icon-btn:hover:not(:disabled) {
     background: var(--bg-3);
     color: var(--fg-0);
+  }
+  .icon-btn.toned:not(.active, :disabled) :global(svg) {
+    color: color-mix(in oklab, var(--act) var(--tint-action), currentColor);
   }
   .icon-btn.active {
     color: var(--accent);

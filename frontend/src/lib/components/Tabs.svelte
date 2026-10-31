@@ -55,7 +55,7 @@
     display: inline-flex;
     align-items: center;
     gap: var(--s-2);
-    height: 32px;
+    height: calc(var(--control-h) + 4px);
     padding: 0;
     font-size: var(--fs-md);
     font-weight: var(--fw-medium);
@@ -67,7 +67,7 @@
     color: var(--fg-0);
   }
   button.selected {
-    color: var(--fg-0);
+    color: color-mix(in oklab, var(--tool-accent, var(--accent)) var(--tint-fill), var(--fg-0));
   }
   button.selected::after {
     content: '';
@@ -76,7 +76,7 @@
     right: 0;
     bottom: -1px;
     height: 2px;
-    background: var(--accent);
+    background: var(--tool-accent, var(--accent));
     border-radius: 2px 2px 0 0;
   }
   .count {

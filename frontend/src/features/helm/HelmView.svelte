@@ -230,7 +230,7 @@
         </form>
       </Popover>
       {#if session.profile}
-        <IconButton icon={Trash} label="Delete profile {session.profile}" size="sm" onclick={() => session.deleteProfile(session.profile)} />
+        <IconButton icon={Trash} tone="clear" label="Delete profile {session.profile}" size="sm" onclick={() => session.deleteProfile(session.profile)} />
       {/if}
     </div>
     <div class="spacer"></div>

@@ -202,7 +202,7 @@
           findField,
           findMarks,
           syntaxHighlighting(highlightStyle), // colours from the tokens (syntax.ts)
-          themeConf.of(editorTheme(untrack(() => theme.resolved) === 'dark')),
+          themeConf.of(editorTheme(untrack(() => theme.dark))),
           keymap.of([...editorKeymap, ...historyKeymap, ...searchKeymap, ...foldKeymap]),
           langConf.of(langExt(init.language)),
           readonlyConf.of(readonlyExt(init.readonly)),
@@ -272,7 +272,7 @@
   })
 
   $effect(() => {
-    const dark = theme.resolved === 'dark'
+    const dark = theme.dark
     view?.dispatch({ effects: themeConf.reconfigure(editorTheme(dark)) })
   })
 

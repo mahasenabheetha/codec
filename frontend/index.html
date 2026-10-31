@@ -11,10 +11,17 @@
       // theme store (lib/stores/theme.svelte.ts) takes over once loaded.
       try {
         var p = JSON.parse(localStorage.getItem('codec:theme') || '"dark"')
-        if (p === 'system') p = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
-        document.documentElement.dataset.theme = p === 'light' ? 'light' : 'dark'
+        var d = JSON.parse(localStorage.getItem('codec:darkStyle') || '"dark"')
+        if (p === 'system') p = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : d
+        document.documentElement.dataset.theme = p === 'light' || p === 'dusk' || p === 'midnight' ? p : 'dark'
       } catch (e) {
         document.documentElement.dataset.theme = 'dark'
+      }
+      // The interface size, likewise (lib/stores/size.svelte.ts).
+      try {
+        document.documentElement.dataset.size = JSON.parse(localStorage.getItem('codec:size') || '"comfortable"')
+      } catch (e) {
+        document.documentElement.dataset.size = 'comfortable'
       }
     </script>
     <link rel="icon" href="/favicon.ico" sizes="32x32" />

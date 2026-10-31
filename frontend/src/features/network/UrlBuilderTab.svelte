@@ -93,7 +93,7 @@
     {/if}
     <Pane title="URL" grow={false}>
       {#snippet actions()}
-        <IconButton icon={Copy} label="Copy the URL" shortcut="Alt+C" size="sm" disabled={!url} onclick={copy} />
+        <IconButton icon={Copy} tone="copy" label="Copy the URL" shortcut="Alt+C" size="sm" disabled={!url} onclick={copy} />
       {/snippet}
       {#if build.error}
         <ErrorBanner error={build.error} />
@@ -118,7 +118,7 @@
     <Pane title="Query parameters" grow={false}>
       {#snippet meta()}<span class="meta">{parts.query.length}</span>{/snippet}
       {#snippet actions()}
-        <IconButton icon={Plus} label="Add a parameter" size="sm" onclick={addParam} />
+        <IconButton icon={Plus} tone="add" label="Add a parameter" size="sm" onclick={addParam} />
       {/snippet}
       {#if parts.query.length}
         <div class="params">

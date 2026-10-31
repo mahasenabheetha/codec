@@ -90,7 +90,7 @@
                   <p class="fixed">
                     <span>Use</span>
                     <code>{c.fixed}</code>
-                    <IconButton icon={Copy} label="Copy {c.fixed}" size="sm" onclick={() => copyText(c.fixed!, c.rule)} />
+                    <IconButton icon={Copy} tone="copy" label="Copy {c.fixed}" size="sm" onclick={() => copyText(c.fixed!, c.rule)} />
                   </p>
                 {/if}
               </li>

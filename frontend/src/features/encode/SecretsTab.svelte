@@ -167,7 +167,7 @@
         {/if}
       {/snippet}
       {#snippet actions()}
-        <IconButton icon={Copy} label={values.length > 1 ? 'Copy all' : 'Copy'} shortcut="Alt+C" size="sm" disabled={!values.length} onclick={copy} />
+        <IconButton icon={Copy} tone="copy" label={values.length > 1 ? 'Copy all' : 'Copy'} shortcut="Alt+C" size="sm" disabled={!values.length} onclick={copy} />
       {/snippet}
       {#if job.error}
         <ErrorBanner error={job.error} />
@@ -177,7 +177,7 @@
           {#each values as v, i (i)}
             <li>
               <code>{v.value}</code>
-              <IconButton icon={Copy} label="Copy" size="sm" onclick={() => copyText(v.value, kindName)} />
+              <IconButton icon={Copy} tone="copy" label="Copy" size="sm" onclick={() => copyText(v.value, kindName)} />
             </li>
           {/each}
         </ul>

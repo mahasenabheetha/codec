@@ -6,6 +6,43 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+## [3.5.0] - 2026-10-31
+
+Comfort: bigger icons and controls with an Interface size setting, and
+two soft, colourful dark themes, Dusk and Midnight, where each tool and
+each kind of action has its own colour. Dark and Light look as before.
+
+### Added
+
+- Interface size in Settings → General and the palette: Compact,
+  Comfortable or Large. Comfortable is the new default, with bigger
+  icons (16 and 18 px instead of 14 and 16) and taller buttons and rail
+  entries; Compact keeps the old sizes.
+
+- Dusk, a third theme beside Dark and Light (Settings → General, and
+  "Use the Dusk theme" in the palette): soft and colourful, for long
+  days. A muted blue-violet ground, off-white text at about 10:1 rather
+  than Dark's 16:1, pastel colours of one lightness; each tool's icon,
+  header, main button and selected tab (a soft pill) in its own colour,
+  a soft glow on the selected sidebar entry, a thin coloured line on
+  result cards, and Copy, Clear, Open, Run and other actions in their
+  own colours. Dark and Light are unchanged.
+- Midnight, a fourth theme: Dusk's colours for icons, buttons, tabs and
+  text on a deep navy background ("Use the Midnight theme" in the
+  palette). With System, "When the system is dark" picks Dark, Dusk or
+  Midnight.
+
+### Fixed
+
+- Settings: a setting's description no longer shrinks to one word a
+  line when the page is narrow (beside the explorer); the control moves
+  below it instead.
+
+### Changed
+
+- Copy in output panes and Clear in input panes show a word beside the
+  icon, so they are easier to find and to hit.
+
 ## [3.4.0] - 2026-10-31
 
 Network and text tools under Utilities: CIDR ranges and overlaps, IP
@@ -757,7 +794,8 @@ First tagged release: codec as it stood before the 2.0 work began.
 - Release pipeline: pushing a `v*` tag publishes binaries for Linux,
   Windows and macOS (amd64/arm64) to GitHub Releases via GoReleaser.
 
-[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v3.4.0...HEAD
+[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v3.5.0...HEAD
+[3.5.0]: https://github.com/mahasenabheetha/codec/compare/v3.4.0...v3.5.0
 [3.4.0]: https://github.com/mahasenabheetha/codec/compare/v3.3.0...v3.4.0
 [3.3.0]: https://github.com/mahasenabheetha/codec/compare/v3.2.0...v3.3.0
 [3.2.0]: https://github.com/mahasenabheetha/codec/compare/v3.1.1...v3.2.0

@@ -72,6 +72,33 @@
   --brand-terraform: #9b8cff;
   --brand-json: var(--syn-number);
 
+  /* Colour roles (decision 94). Each tool has a hue and each action a
+     tone; --tint-tool and --tint-action say how much of them a theme
+     shows: 0% in Dark and Light, which keeps today's look, more in Dusk.
+     Components never use a hue directly: an element of a tool takes the
+     .hued class (global.css) and reads --tool-accent, --tool-accent-soft
+     and --tool-icon; IconButton and Button take a tone. Status colours
+     keep their own hues, so a tool's colour never reads as an error. */
+  --hue-indigo: #9aa5f5;
+  --hue-violet: #b9a2f0;
+  --hue-pink: #ee9fc8;
+  --hue-peach: #f2b28e;
+  --hue-lime: #b5d68a;
+  --hue-teal: #7fd1c1;
+  --hue-cyan: #82c8e6;
+  --act-copy: var(--hue-cyan);
+  --act-clear: var(--hue-pink);
+  --act-save: var(--hue-lime);
+  --act-swap: var(--hue-peach);
+  --act-open: var(--hue-indigo);
+  --act-add: var(--hue-teal);
+  --act-run: var(--hue-violet);
+  --tint-tool: 0%;
+  --tint-action: 0%;
+  /* Fills, pills and edges in the tool's colour: the selected sub-tab and
+     rail entry, a line along the top of a card. */
+  --tint-fill: 0%;
+
   /* Editor surfaces (CodeMirror) */
   --editor-active-line: rgb(255 255 255 / 0.025);
   --editor-selection: rgb(122 162 255 / 0.16);
@@ -117,8 +144,12 @@
   --rail-expanded: 220px;
   --tabbar-h: 38px;
   --statusbar-h: 26px;
-  --control-h: 28px;
-  --control-h-sm: 24px;
+  /* Interface size (decision 94): Comfortable here, Compact and Large
+     below. Icons keep the size written in the code (the Compact one) and
+     grow by --icon-scale (global.css). */
+  --icon-scale: 1.125;
+  --control-h: 32px;
+  --control-h-sm: 28px;
 
   /* Elevation (popovers and dialogs only) */
   --shadow-pop: 0 8px 28px rgb(0 0 0 / 0.45), 0 0 0 1px var(--border-strong);
@@ -140,6 +171,18 @@
  * text colour is at least 4.5:1 on --bg-0 to --bg-3 and on its own
  * -soft background; logos at least 3:1 on --bg-1.
  */
+/* Interface sizes other than Comfortable. */
+:root[data-size='compact'] {
+  --icon-scale: 1;
+  --control-h: 28px;
+  --control-h-sm: 24px;
+}
+:root[data-size='large'] {
+  --icon-scale: 1.25;
+  --control-h: 36px;
+  --control-h-sm: 32px;
+}
+
 :root[data-theme='light'] {
   color-scheme: light;
 
@@ -209,4 +252,110 @@
 
   --shadow-pop: 0 8px 28px rgb(20 28 45 / 0.14), 0 0 0 1px var(--border-strong);
   --overlay: rgb(20 28 45 / 0.35);
+}
+
+:root[data-theme='dusk'],
+:root[data-theme='midnight'] {
+  color-scheme: dark;
+
+  /* Dusk (decision 94): soft and colourful. A muted blue-violet ground,
+     off-white text at about 10:1 rather than 16:1, pastel colours of one
+     lightness. Made in OKLCH; checked by scripts/contrast.mjs. */
+  --bg-0: #1c1d2a;
+  --bg-1: #202130;
+  --bg-2: #252636;
+  --bg-3: #2d2f41;
+  --bg-4: #36384e;
+
+  --border: #323446;
+  --border-strong: #43465d;
+
+  --fg-0: #d5d6e4;
+  --fg-1: #adb0c3;
+  --fg-2: #9da0b6;
+
+  --accent: #acb1f0;
+  --accent-hover: #bcc2fb;
+  --accent-soft: rgb(172 177 240 / 0.16);
+  --accent-fg: #1c1d2a;
+
+  --ok: #7cc98d;
+  --ok-soft: rgb(124 201 141 / 0.14);
+  --warn: #d4af5d;
+  --warn-soft: rgb(212 175 93 / 0.14);
+  --err: #f59693;
+  --err-soft: rgb(245 150 147 / 0.14);
+  --err-border: rgb(245 150 147 / 0.4);
+  --info: #72bcf9;
+  --info-soft: rgb(114 188 249 / 0.14);
+
+  --syn-key: #a5bdf2;
+  --syn-string: #aed09c;
+  --syn-number: #e7b18c;
+  --syn-bool: #caade1;
+  --syn-comment: #9497ab;
+  --syn-anchor: #89cdc3;
+  --syn-tag: #dcc188;
+  --syn-expr-tpl: #e6c58f;
+  --syn-expr-tpl-bg: rgb(230 197 143 / 0.09);
+  --syn-expr-rt: #e8a7cb;
+  --syn-expr-rt-bg: rgb(232 167 203 / 0.09);
+
+  --diff-add-bg: rgb(124 201 141 / 0.13);
+  --diff-del-bg: rgb(245 150 147 / 0.13);
+  --diff-chg-bg: rgb(212 175 93 / 0.12);
+  --diff-add-strong: rgb(124 201 141 / 0.36);
+  --diff-del-strong: rgb(245 150 147 / 0.36);
+
+  --brand-kubernetes: #88abea;
+  --brand-helm: #9ca5ea;
+  --brand-argo: #e1957a;
+  --brand-github: #79b0e8;
+  --brand-gitlab: #e09675;
+  --brand-azure: #6db3e4;
+  --brand-ansible: #e3918e;
+  --brand-docker: #67b5e1;
+  --brand-terraform: #af9ee4;
+
+  --editor-active-line: rgb(255 255 255 / 0.03);
+  --editor-selection: rgb(172 177 240 / 0.18);
+  --editor-selection-focused: rgb(172 177 240 / 0.28);
+  --editor-selection-match: rgb(172 177 240 / 0.13);
+  --editor-search-match: rgb(212 175 93 / 0.24);
+  --editor-search-match-current: rgb(212 175 93 / 0.45);
+
+  /* The tool hues and action tones, shown in full. */
+  --hue-indigo: #a8bcf5;
+  --hue-violet: #c6b2ed;
+  --hue-pink: #e1a9d4;
+  --hue-peach: #ebae8d;
+  --hue-lime: #b1c88b;
+  --hue-teal: #7ad0c5;
+  --hue-cyan: #7ccbe4;
+  --tint-tool: 100%;
+  --tint-action: 100%;
+  --tint-fill: 100%;
+
+  --shadow-pop: 0 10px 30px rgb(8 8 20 / 0.45), 0 0 0 1px var(--border-strong);
+  --overlay: rgb(10 10 24 / 0.5);
+}
+
+/* Midnight (decision 95): Dusk's colours on a deep navy ground. Only the
+   surfaces, borders and main text differ; everything else is Dusk's. */
+:root[data-theme='midnight'] {
+  --bg-0: #0a1628;
+  --bg-1: #0d1b2e;
+  --bg-2: #111f35;
+  --bg-3: #192941;
+  --bg-4: #21334e;
+
+  --border: #1e2e46;
+  --border-strong: #2d405d;
+
+  --fg-0: #cbcfdc;
+
+  --accent-fg: #0a1628;
+
+  --shadow-pop: 0 10px 30px rgb(2 6 16 / 0.55), 0 0 0 1px var(--border-strong);
+  --overlay: rgb(2 6 16 / 0.55);
 }

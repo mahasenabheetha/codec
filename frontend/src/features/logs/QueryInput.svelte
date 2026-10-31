@@ -181,7 +181,7 @@
       onblur={() => setTimeout(() => (open = false), 120)}
       {onkeydown}
     />
-    {#if value}<IconButton icon={X} label="Clear the search" size="sm" onclick={onclear} />{/if}
+    {#if value}<IconButton icon={X} tone="clear" label="Clear the search" size="sm" onclick={onclear} />{/if}
     <Popover side="bottom" align="end">
       {#snippet trigger(props)}
         <IconButton {...props} icon={CircleHelp} label="How to search" size="sm" />

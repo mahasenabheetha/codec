@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { hueVar, viewHue } from '../../lib/tools'
   import Copy from '@lucide/svelte/icons/copy'
   import Download from '@lucide/svelte/icons/download'
   import FilePlus from '@lucide/svelte/icons/file-plus'
@@ -162,7 +163,7 @@
   const problems = $derived<Diagnostic[]>(analysis?.diagnostics ?? [])
 </script>
 
-<div class="new" class:inactive={!active}>
+<div class="new hued" class:inactive={!active} style:--tool={hueVar(viewHue.new)}>
   <aside class="starters">
     <div class="filter"><SearchInput bind:value={filter} placeholder="Filter starters…" label="Filter starters" /></div>
     {#if nf.loadError}
@@ -254,11 +255,11 @@
       </div>
       <div class="toolbar">
         {#if nf.active >= 0}
-          <Button size="sm" icon={Copy} onclick={() => copyText(text, file?.path ?? 'File')}>Copy</Button>
+          <Button size="sm" icon={Copy} tone="copy" onclick={() => copyText(text, file?.path ?? 'File')}>Copy</Button>
         {:else}
-          <Button size="sm" icon={Copy} onclick={() => copyText(chart?.manifest ?? '', 'Rendered manifest')}>Copy</Button>
+          <Button size="sm" icon={Copy} tone="copy" onclick={() => copyText(chart?.manifest ?? '', 'Rendered manifest')}>Copy</Button>
         {/if}
-        <Button size="sm" variant={multi ? 'primary' : 'secondary'} icon={Download} onclick={download}>{multi ? `Download ${nf.files.length} files (.zip)` : 'Download .zip'}</Button>
+        <Button size="sm" variant={multi ? 'primary' : 'secondary'} icon={Download} tone="save" onclick={download}>{multi ? `Download ${nf.files.length} files (.zip)` : 'Download .zip'}</Button>
         <span class="muted note">
           {#if nf.busy}Rendering…{:else if nf.edited}What-if edits · changing the form starts over{:else}Checked with lint and schemas · edit freely, nothing is saved{/if}
         </span>

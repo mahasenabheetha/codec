@@ -47,6 +47,9 @@
     padding: 0 var(--s-2) 0 var(--s-3);
     border-bottom: 1px solid var(--border);
     background: var(--bg-1);
+    /* A thin line in the tool's colour along the top, where the theme
+       shows it (Dusk); none otherwise. */
+    box-shadow: inset 0 2px 0 color-mix(in oklab, var(--tool-accent, var(--accent)) calc(var(--tint-fill) * 0.7), transparent);
   }
   h2 {
     font-size: var(--fs-sm);

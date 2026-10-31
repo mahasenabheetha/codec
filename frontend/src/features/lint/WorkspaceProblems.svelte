@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { hueVar, viewHue } from '../../lib/tools'
   import ChevronDown from '@lucide/svelte/icons/chevron-down'
   import ChevronRight from '@lucide/svelte/icons/chevron-right'
   import CircleCheck from '@lucide/svelte/icons/circle-check'
@@ -73,7 +74,7 @@
   }
 </script>
 
-<div class="problems-view" class:inactive={!active}>
+<div class="problems-view hued" class:inactive={!active} style:--tool={hueVar(viewHue.problems)}>
   <header>
     <div class="title">
       <h1>Workspace problems</h1>
@@ -89,7 +90,7 @@
       {/if}
     </div>
     <Button variant="ghost" size="sm" icon={Settings} onclick={() => layout.open(settingsRoute)}>Settings</Button>
-    <Button variant="primary" size="sm" icon={Play} disabled={!workspace.info?.open || lint.running} onclick={() => lint.runWorkspace()}>
+    <Button variant="primary" size="sm" icon={Play} tone="run" disabled={!workspace.info?.open || lint.running} onclick={() => lint.runWorkspace()}>
       {lint.running ? 'Checking…' : lint.results ? 'Check again' : 'Lint workspace'}
     </Button>
   </header>

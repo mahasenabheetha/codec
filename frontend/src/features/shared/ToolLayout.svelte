@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Snippet } from 'svelte'
-  import type { ToolDef } from '../../lib/tools'
+  import { hueVar, type ToolDef } from '../../lib/tools'
   import SplitPane from '../../lib/components/SplitPane.svelte'
 
   // Standard tool page: title + toolbar, then input and output panes side
@@ -18,7 +18,7 @@
   let { tool, controls, actions, input, output, body }: Props = $props()
 </script>
 
-<div class="tool">
+<div class="tool hued" style:--tool={hueVar(tool.hue)}>
   <header class="toolbar">
     <div class="title">
       <span class="icon"><tool.icon size={16} strokeWidth={1.75} /></span>
@@ -62,8 +62,8 @@
     place-items: center;
     width: 26px;
     height: 26px;
-    color: var(--accent);
-    background: var(--accent-soft);
+    color: var(--tool-accent);
+    background: var(--tool-accent-soft);
     border-radius: var(--r-md);
   }
   h1 {

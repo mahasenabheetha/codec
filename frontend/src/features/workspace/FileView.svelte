@@ -300,7 +300,7 @@
       <span class="whatif" title="Edits here are never saved to disk">
         <Badge tone="warn">What-if</Badge>
         <IconButton icon={RotateCcw} label="Reset to disk" size="sm" onclick={() => session.reset()} />
-        <IconButton icon={Copy} label="Copy content" size="sm" onclick={() => copyText(liveText(), 'Content')} />
+        <IconButton icon={Copy} tone="copy" label="Copy content" size="sm" onclick={() => copyText(liveText(), 'Content')} />
         <IconButton icon={FileDiff} label="Copy diff (for git apply)" size="sm" onclick={copyDiff} />
       </span>
     {/if}
@@ -373,11 +373,11 @@
       {/if}
       {#if kind === 'kubernetes'}
         <IconButton icon={Boxes} label="Kubernetes resources in this folder" size="sm" onclick={() => layout.open(k8sRoute(dirOf(path)))} />
-        <IconButton icon={Eraser} label="Copy without cluster noise (neat)" size="sm" onclick={copyNeat} />
+        <IconButton icon={Eraser} tone="copy" label="Copy without cluster noise (neat)" size="sm" onclick={copyNeat} />
       {/if}
       <span class="open-in">
         <IconButton
-          icon={ExternalLink}
+          icon={ExternalLink} tone="open"
           label="Open in {editorNames[openIn.value]} at line {session.cursor.line}"
           size="sm"
           onclick={() => openExternal(openIn.value)}
@@ -401,7 +401,7 @@
       {/if}
       <IconButton icon={LocateFixed} label="Reveal in explorer" size="sm" onclick={() => ((layout.explorerOpen = true), ws.reveal(path))} />
       <IconButton icon={Link} label="Copy path" size="sm" onclick={() => copyPath(false)} />
-      <IconButton icon={Copy} label="Copy full path" size="sm" onclick={() => copyPath(true)} />
+      <IconButton icon={Copy} tone="copy" label="Copy full path" size="sm" onclick={() => copyPath(true)} />
       <IconButton icon={PanelRight} label="Outline and problems" size="sm" active={lensOpen.value} onclick={() => (lensOpen.value = !lensOpen.value)} />
     </div>
   </header>

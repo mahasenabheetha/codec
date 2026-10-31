@@ -188,7 +188,7 @@
   {#snippet body()}
     <LineInput bind:value={expr} bind:field label="Cron expression" invalid={!!job.error} onclear={clear} placeholder="*/15 2-6 * * 1-5">
       {#snippet actions()}
-        <IconButton icon={Copy} label="Copy expression" shortcut="Alt+C" size="sm" disabled={!expr.trim()} onclick={copy} />
+        <IconButton icon={Copy} tone="copy" label="Copy expression" shortcut="Alt+C" size="sm" disabled={!expr.trim()} onclick={copy} />
       {/snippet}
       <ol class="cells" aria-label="The five fields">
         {#each cells as c (c.name)}

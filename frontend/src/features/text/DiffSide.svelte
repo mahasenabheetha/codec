@@ -4,6 +4,7 @@
   import FolderOpen from '@lucide/svelte/icons/folder-open'
   import CodeView from '../../lib/components/CodeView.svelte'
   import IconButton from '../../lib/components/IconButton.svelte'
+  import Button from '../../lib/components/Button.svelte'
   import { toast } from '../../lib/stores/toast.svelte'
   import Pane from '../shared/Pane.svelte'
   import { sizeLabel } from '../shared/detect'
@@ -58,9 +59,9 @@
   <Pane {title}>
     {#snippet meta()}{name ? `${name} · ` : ''}{sizeLabel(value)}{/snippet}
     {#snippet actions()}
-      <IconButton icon={FolderOpen} label="Open a file" size="sm" onclick={() => picker?.click()} />
+      <IconButton icon={FolderOpen} tone="open" label="Open a file" size="sm" onclick={() => picker?.click()} />
       <IconButton icon={ClipboardPaste} label="Paste from clipboard" size="sm" onclick={paste} />
-      <IconButton icon={Eraser} label="Clear" size="sm" disabled={!value} onclick={() => ((value = ''), (name = ''))} />
+      <Button icon={Eraser} tone="clear" variant="ghost" size="sm" title="Clear this side" disabled={!value} onclick={() => ((value = ''), (name = ''))}>Clear</Button>
     {/snippet}
     <CodeView bind:value label={title} {placeholder} wrap />
   </Pane>

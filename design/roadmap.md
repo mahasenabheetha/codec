@@ -269,7 +269,7 @@ Each engine is a Go package with an API route, a CLI command where the
 CLI makes sense and a fuzz target for what it parses; nothing a tool is
 given is stored (19). New Utilities sub-tabs: **Network** (CIDR, IP,
 URL, HTTP) and **Text & data** (text diff, case and names; the JSON and
-CSV tools join it in 3.6.0).
+CSV tools join it in 3.7.0, decision 94).
 
 | # | Task | Main parts | Status |
 |---|---|---|---|
@@ -284,7 +284,35 @@ CSV tools join it in 3.6.0).
 | T9 | Smart paste | Recognises a CIDR, an IP and a `curl` command and offers the tool; no bare-number guesses; `codec.DetectUtility` and `codec auto` follow | Done: `networkUtility` in `codec.DetectUtility`: a CIDR only as address/length, an IP only written as one (dotted IPv4, or with colons), a curl command only when it starts with `curl` and has one URL with a real host (`curl is a tool` is left alone); summaries from netutil and httpkit, notes as comments. Smart paste labels and "Open in CIDR / IP / HTTP"; the three Network tabs take the hand-over. `codec auto` gained the Utilities detection it never had (all kinds, before JSON, as the web route does), naming the command that does more |
 | — | Release | Full checks; a fuzz run of the new parsers; docs (`tools.html`); CHANGELOG cut as 3.4.0 | Full checks passed (gofmt, vet, all Go tests, staticcheck, frontend build, svelte-check); govulncheck and the race detector left to CI (no vulnerability database offline, no C compiler here); a fuzz run of the seven new targets (netutil details, IP, overlaps; httpkit curl, fetch; names checks; encode URL build) came back clean; docs pass (tools, CLI, compare, README, docs home); decision 93; CHANGELOG cut as 3.4.0 |
 
-### v3.5.0 — Update check and focus timer
+### v3.5.0 — Comfort: bigger controls and the Dusk theme
+Agreed 2026-10-31 (decision 94), asked for by the user: some icons are
+too small (Copy, Clear), and they want a colourful dark theme that is
+easy on the eyes, not high contrast, next to today's Dark and Light,
+which stay exactly as they are. Every colour and size is already a
+token (81), so this is new tokens, a setting for size, a third token
+set and a pass over the views.
+
+**Dusk**, the new theme: a muted blue-violet background instead of
+near-black, soft off-white text rather than bright white (body text
+around 9–11:1 instead of Dark's 16:1; muted text still at least
+4.5:1), and pastel colours, light and low in saturation, so they read
+as colour without glare. No pure white, no neon. Colour carries
+meaning in three separate roles, and the status hues are never borrowed:
+a **tool hue** (each tool has one; its rail icon, tabs and main button
+use it), an **action tone** (Copy, Clear, Download, Swap, Open, Add,
+Run each have one) and the **status colours** (error, warning, OK,
+info), so a pink tab never reads as an error.
+
+| # | Task | Main parts | Status |
+|---|---|---|---|
+| T1 | Colour roles as tokens | A `hue` per tool in `lib/tools.ts`, set as `--tool` on its rail entry, header and tabs; action tones (`--act-copy`, `--act-clear`, `--act-save`, `--act-swap`, `--act-open`, `--act-add`, `--act-run`) and a `tone` prop on `IconButton` and `Button`, given to the existing actions; in Dark and Light every new token resolves to today's colour, so nothing looks different yet | Done: seven pastel hues (`--hue-*`); a hue on every tool and on the rail's workspace views (`viewHue`); a `.hued` class works out `--tool-accent`, `-hover`, `-soft` and `--tool-icon` from `--tool` with `color-mix`, so the values are known where the tool sets its hue; tool pages, rail entries and Home cards use it, as do primary buttons and tab underlines inside a tool. Seven action tones (`--act-*`, drawn from the same hues; statuses keep theirs) and a `tone` prop on `IconButton` and `Button`, given to 62 existing buttons (copy, clear, save, swap, open, add, run; a close × and zoom have none). `--tint-tool` and `--tint-action` are 0% in Dark and Light: the colours computed in the browser match the old ones, and set to 100% they show the hues. Colour roles in `design-language.md`. No CHANGELOG entry: nothing visible yet |
+| T2 | Interface size | Icon and control sizes as tokens (`--icon-sm`, `--icon-md`, `--control-h`, `--control-h-sm`) switched by a `data-size` attribute: Compact (today's 14/16 px icons), Comfortable (16/18 px, 28/32 px controls, the default) and Large; the icon sizes written into components (about 120) move to the tokens; Settings → General "Interface size", beside Theme, set before first paint like the theme; Copy, Clear and Download in output panes become icon-and-word buttons; docs (settings) | Done: `--icon-scale` and the control heights per `data-size` on `<html>` (Compact 1 / 28 / 24, Comfortable 1.125 / 32 / 28, Large 1.25 / 36 / 32); rather than rewriting the ~150 sizes in components, a rule per Lucide size in `global.css` scales every icon from its written size, rounded to whole pixels (14 → 16, 16 → 18 in Comfortable); rail entries and tab strips follow `--control-h`. `stores/size.svelte.ts`, the pre-paint script, Settings → General "Interface size" and palette commands. Copy in output panes (`OutputPane`, `TextOutput`) and Clear in `InputPane` and Text diff sides are ghost buttons with a word, the shortcut in their title (Download was already a word button). Checked in the browser at all three sizes; docs (settings), CHANGELOG |
+| T3 | Dusk palette and setting | `[data-theme='dusk']` in `tokens.css` (`color-scheme: dark`): surfaces, borders, text, accent, status, syntax, diff, expression tints, graph groups, logos, tool hues and action tones; contrast checked by a script against the rules above; Theme becomes System / Dark / Dusk / Light, and a "Dark style" choice (Dark or Dusk) for what System uses when the OS is dark; `index.html` applies it before first paint, the desktop title bar follows as dark; `design-language.md` gains the Dusk column | Done: the palette made in OKLCH (surfaces hue 280 at L 0.235–0.35, text L 0.88 / 0.76 / 0.71, hues L 0.80 C 0.085, statuses L 0.77 with more chroma), `fg-0` 10.3:1 on `bg-2`; `--tint-tool` and `--tint-action` at 100% here already, so the T3 build shows tool and action colours (T4 adds what only Dusk draws). `frontend/scripts/contrast.mjs` (`npm run contrast`) checks text, accent, statuses on their soft fills, syntax and logos in all three themes, and in Dusk the hues, dark text on a hue, and body text between 7:1 and 12:1; all pass. Theme store: Dusk, a persisted dark style for System, `theme.dark` for the editor and the desktop title bar; palette "Use the Dusk theme". `--tool-accent-soft` now takes the hue at 16% (`rgb(from …)`), not the full hue. Checked in the browser (Network, Home, an editor); Dark unchanged |
+| T4 | Colour in Dusk | What only Dusk turns on: the active tab a soft pill in the tool hue and the others a small hue dot, rail icons in their hue always (a soft glow when selected), action icons in their tone, primary buttons tinted with the tool hue, a thin hue edge on result cards; a pass over every view in all three themes and both sizes (editor, compare, graphs, lens views, tools, logs, dialogs, toasts); docs (`design.html`, `settings.html`, a Dusk screenshot) | Done: `--tint-fill` (0% in Dark and Light, 100% in Dusk) drives the selected `SegmentedControl` option as a soft pill in the tool's colour (sub-tabs everywhere, settings outside a tool in the accent), the selected `Tabs` label, the selected rail entry's glow and a 2 px line along the top of every `Pane`; `Toggle` uses the tool's accent. Compare, Query, New and Problems are `.hued` with their `viewHue`. No hue dots on the other tabs: in one tool they would all be one colour, noise rather than meaning. In Dark and Light the computed styles match the old ones (the new shadows are transparent). Pass in the browser: Network, Home, Settings, Compare, Log viewer with the sample, an editor, in Dusk; Light at Large; no hard-coded colours in any component. Found and fixed: setting descriptions shrank to a word a line beside the explorer (`SettingRow` now wraps by its own width). Docs (design language, CHANGELOG); no new screenshot (the docs' screenshots are Dark captures at 1400×820, left as they are) |
+| T5 | Midnight | Asked for 2026-10-31 after T4: the same icons and button colours as Dusk ("they are the best"), only a darker blue background; a fourth theme, also a dark style for System | Done: `:root[data-theme='midnight']` shares Dusk's block and overrides surfaces (navy, hue 258, L 0.20–0.32), borders, `--fg-0` (dimmed to stay under 12:1), `--accent-fg`, shadow and overlay; theme store, pre-paint, Settings (Theme and "When the system is dark"), palette "Use the Midnight theme". The contrast checker merges every block that names a theme and applies Dusk's rules to Midnight; all four themes pass. Checked in the browser (Network, Log viewer); docs (settings, design, design language), CHANGELOG, decision 95 |
+| — | Release | Full checks; CHANGELOG cut as 3.5.0 | Full checks passed (gofmt, vet, all Go tests, frontend build, svelte-check, the contrast check for all four themes); no Go code changed in this release, so no fuzz run; docs pass (README themes paragraph, docs home card, settings, design); CHANGELOG cut as 3.5.0 |
+
+### v3.6.0 — Update check and focus timer
 Agreed 2026-10-06 (decision 85). Wails has no updater and codec never
 looks for new versions, so an installed copy stays old until the user
 notices a release. codec can ask GitHub for the latest release and say
@@ -300,7 +328,7 @@ get rests. Both add a Settings section, and both are small.
 | T1 | Check: engine + API + CLI | `internal/update`: latest release from the GitHub API (pre-releases only when running one), semver compare with `internal/version`, 5 s timeout, at most once a day (result cached in the config dir), dev builds never check; `updates.check` setting, off by default; `GET /api/v2/update`; `codec version --check`; tests against a fake server | |
 | T2 | Notice in the UI | Settings → General: "Check for updates" switch and "Check now"; "codec X.Y.Z is available" in the footer with a link to the release (the system browser in the desktop app), dismissable per version; tray menu entry in the desktop app; docs (settings, security: the second network use, troubleshooting) | |
 | T3 | Focus timer and break reminders | Frontend only, no new dependency, off until switched on in Settings → Focus & breaks. `features/focus/focus.svelte.ts`: one store, phase (focus, break, off) and an `endsAt` timestamp, the time left worked out from the clock so a throttled window or a sleeping laptop can't make it drift, a long-expired timer offering a new session instead of a stale alert. **Pomodoro** (focus 25, break 5, a long break of 15 every fourth round; lengths are settings; auto-start or wait) and an **eye break** (every 20 minutes, a 20-second look-away; the lengths are settings); any break resets the eye timer, so the two never fire together. A status-bar widget (icon and countdown, a popover with start, pause, skip, reset and snooze 5 minutes), palette commands (Start focus, Take a break now, Snooze). A break card in the corner with a CSS breathing circle (in 4 s, out 4 s) and the countdown, still under "reduce motion"; a soft two-note chime made with Web Audio (no files; volume and mute; the Start click unlocks audio); the countdown in the window title while it runs. Same code in the browser UI and the desktop app. Only the chosen lengths are remembered (`persisted`), never the running timer or any history; docs (`settings.html`, `shortcuts.html`, a short page on the timer); to check by hand in both apps, including a minimised desktop window and a background browser tab (late by up to a minute) | |
-| — | Release | Full checks; CHANGELOG cut as 3.5.0 | |
+| — | Release | Full checks; CHANGELOG cut as 3.6.0 | |
 
 Later for the timer: a system notification and a tray entry in the
 desktop app (needs a look at what Wails offers), the Windows idle time
@@ -311,7 +339,7 @@ Later, after SignPath signing: "Update now" (download the installer,
 verify it against the release checksums, run it silently, restart);
 a winget package published by the release workflow.
 
-### v3.6.0 — JSON and table tools
+### v3.7.0 — JSON and table tools
 Agreed 2026-10-25 (decision 90). The two heavier tools: working with
 structured data pasted from anywhere. The JSON tool grows sub-tabs and
 YAML ⇄ JSON lives in it (a paste in one gives the other); CSV and TSV
@@ -323,9 +351,9 @@ join Text & data.
 | T2 | JSON tools: UI | The JSON tool grows sub-tabs: Format, Tree (search, copy a value's path, fold), Convert (JSON ⇄ YAML), Diff, Paths, Schema, Query; the tool is named JSON & YAML in the rail and palette; docs | |
 | T3 | CSV and TSV | `internal/table`: delimiter and header guessed (override), quotes and embedded newlines; viewer with a windowed table (sort, filter, column types and counts); converts to JSON (typed or all text), Markdown table, YAML and TSV/CSV, and a JSON array of objects back to CSV; `codec csv`; a fuzz target | |
 | T4 | Smart paste | Recognises CSV or TSV and JSON5 or JSONC, and offers the tool | |
-| — | Release | Full checks; a fuzz run of the new parsers; a review pass over the engines and the UI; docs; CHANGELOG cut as 3.6.0 | |
+| — | Release | Full checks; a fuzz run of the new parsers; a review pass over the engines and the UI; docs; CHANGELOG cut as 3.7.0 | |
 
-### v3.7.0 — Generators and checks
+### v3.8.0 — Generators and checks
 Agreed 2026-10-25 (decision 90). Things that make something: checksums,
 identifiers, passwords, test data, QR codes and colours. Nothing made is
 stored. The QR library is the one new dependency of the three releases
@@ -339,7 +367,7 @@ and is agreed before it is added.
 | T4 | QR code | Generator (text, URL, Wi-Fi, TOTP URI; error correction level; PNG and SVG to save) and reader (an image dropped or pasted, decoded in the browser; no camera); browser-only | |
 | T5 | Colour | HEX, RGB, HSL, HSV and a CSS name; WCAG contrast ratio with AA and AAA; a picker and shades; browser-only arithmetic | |
 | T6 | Smart paste | Recognises a UUID or ULID and a hex colour and offers the tool | |
-| — | Release | Full checks; a fuzz run of the new parsers; a review pass; docs (`tools.html`, `security.html`: nothing generated is stored); CHANGELOG cut as 3.7.0 | |
+| — | Release | Full checks; a fuzz run of the new parsers; a review pass; docs (`tools.html`, `security.html`: nothing generated is stored); CHANGELOG cut as 3.8.0 | |
 
 Later: Terraform plan viewer; certificate and CSR decoder; semver and
 version-constraint tester; chmod and umask calculator; Kubernetes
@@ -374,6 +402,7 @@ The rest of "Next", picked up when it fits.
 
 | Version | Items |
 |---|---|
+| 3.5.0 | Comfort: Interface size (Comfortable default, bigger icons), word buttons for Copy and Clear, the Dusk and Midnight themes with colour per tool and action, a contrast checker |
 | 3.4.0 | Network tool (CIDR and overlaps, IP, URL builder, curl ⇄ fetch, status codes), Text & data (text diff, case and names), time zones and formats, commit SHA placeholders, smart paste for them |
 | 3.3.0 | Markdown preview: rendered safely, links between files, the repository's images, code coloured as in the editor; find in tool outputs |
 | 3.2.0 | Argo runs in the Log viewer: steps, the run's status as a step tree, lanes, live follow; the Argo graph coloured by a run |

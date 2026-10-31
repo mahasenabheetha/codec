@@ -54,7 +54,7 @@
     transition: background var(--dur) var(--ease);
   }
   .track.on {
-    background: var(--accent);
+    background: var(--tool-accent, var(--accent));
   }
   .thumb {
     position: absolute;

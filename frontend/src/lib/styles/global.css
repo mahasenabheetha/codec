@@ -110,6 +110,74 @@ p {
   border: 0;
 }
 
+/* Something that belongs to a tool (a tool page, its rail entry, its
+   Home card) sets --tool to its hue and takes this class. The values are
+   worked out here, where --tool is known, and inherited by what is
+   inside; at --tint-tool 0% they are exactly the accent and the text
+   colour (decision 94). */
+.hued {
+  --tool-accent: color-mix(in oklab, var(--tool) var(--tint-tool), var(--accent));
+  --tool-accent-hover: color-mix(in oklab, var(--tool) var(--tint-tool), var(--accent-hover));
+  --tool-accent-soft: color-mix(in oklab, rgb(from var(--tool) r g b / 0.16) var(--tint-tool), var(--accent-soft));
+  --tool-icon: color-mix(in oklab, var(--tool) var(--tint-tool), currentColor);
+}
+
+/* Interface size: every Lucide icon grows from the size written in the
+   code by --icon-scale, rounded to whole pixels so strokes stay sharp.
+   CSS beats the width and height attributes the icon sets. */
+svg.lucide-icon[width='10'] {
+  width: round(calc(10px * var(--icon-scale)), 1px);
+  height: round(calc(10px * var(--icon-scale)), 1px);
+}
+svg.lucide-icon[width='11'] {
+  width: round(calc(11px * var(--icon-scale)), 1px);
+  height: round(calc(11px * var(--icon-scale)), 1px);
+}
+svg.lucide-icon[width='12'] {
+  width: round(calc(12px * var(--icon-scale)), 1px);
+  height: round(calc(12px * var(--icon-scale)), 1px);
+}
+svg.lucide-icon[width='13'] {
+  width: round(calc(13px * var(--icon-scale)), 1px);
+  height: round(calc(13px * var(--icon-scale)), 1px);
+}
+svg.lucide-icon[width='14'] {
+  width: round(calc(14px * var(--icon-scale)), 1px);
+  height: round(calc(14px * var(--icon-scale)), 1px);
+}
+svg.lucide-icon[width='15'] {
+  width: round(calc(15px * var(--icon-scale)), 1px);
+  height: round(calc(15px * var(--icon-scale)), 1px);
+}
+svg.lucide-icon[width='16'] {
+  width: round(calc(16px * var(--icon-scale)), 1px);
+  height: round(calc(16px * var(--icon-scale)), 1px);
+}
+svg.lucide-icon[width='17'] {
+  width: round(calc(17px * var(--icon-scale)), 1px);
+  height: round(calc(17px * var(--icon-scale)), 1px);
+}
+svg.lucide-icon[width='18'] {
+  width: round(calc(18px * var(--icon-scale)), 1px);
+  height: round(calc(18px * var(--icon-scale)), 1px);
+}
+svg.lucide-icon[width='20'] {
+  width: round(calc(20px * var(--icon-scale)), 1px);
+  height: round(calc(20px * var(--icon-scale)), 1px);
+}
+svg.lucide-icon[width='22'] {
+  width: round(calc(22px * var(--icon-scale)), 1px);
+  height: round(calc(22px * var(--icon-scale)), 1px);
+}
+svg.lucide-icon[width='24'] {
+  width: round(calc(24px * var(--icon-scale)), 1px);
+  height: round(calc(24px * var(--icon-scale)), 1px);
+}
+svg.lucide-icon[width='28'] {
+  width: round(calc(28px * var(--icon-scale)), 1px);
+  height: round(calc(28px * var(--icon-scale)), 1px);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

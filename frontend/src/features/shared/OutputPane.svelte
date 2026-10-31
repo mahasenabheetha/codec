@@ -76,7 +76,7 @@
   {#snippet actions()}
     {#if onswap}
       <IconButton
-        icon={ArrowLeftRight}
+        icon={ArrowLeftRight} tone="swap"
         label="Use output as input"
         shortcut="Alt+S"
         size="sm"
@@ -87,14 +87,16 @@
     {#if canFind}
       <IconButton icon={Search} label="Find in the output" shortcut="Ctrl+F" size="sm" active={finding} onclick={() => (finding = !finding)} />
     {/if}
-    <IconButton
+    <Button
       icon={Copy}
-      label="Copy output"
-      shortcut="Alt+C"
+      tone="copy"
+      variant="ghost"
       size="sm"
+      title="Copy output (Alt+C)"
+      aria-keyshortcuts="Alt+C"
       disabled={!session.output}
-      onclick={() => copyText(session.output)}
-    />
+      onclick={() => copyText(session.output)}>Copy</Button
+    >
   {/snippet}
 
   {#if session.error}

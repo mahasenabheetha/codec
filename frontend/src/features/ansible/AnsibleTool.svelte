@@ -149,8 +149,8 @@
 >
   <ToolLayout {tool}>
     {#snippet actions()}
-      <Button icon={FileUp} onclick={() => picker?.click()}>Open log file…</Button>
-      <Button variant="primary" icon={Play} onclick={run} disabled={logs.running || !!fileSource || !session.input.trim()} title={formatShortcut('Mod+Enter')}>Read log</Button>
+      <Button icon={FileUp} tone="open" onclick={() => picker?.click()}>Open log file…</Button>
+      <Button variant="primary" icon={Play} tone="run" onclick={run} disabled={logs.running || !!fileSource || !session.input.trim()} title={formatShortcut('Mod+Enter')}>Read log</Button>
     {/snippet}
     {#snippet input()}
       {#if fileSource}
@@ -162,7 +162,7 @@
             <span class="muted">{size(fileSource.size)} · read as a file, not stored</span>
           </div>
           <div class="file-actions">
-            <Button size="sm" icon={FileUp} onclick={() => picker?.click()}>Open another…</Button>
+            <Button size="sm" icon={FileUp} tone="open" onclick={() => picker?.click()}>Open another…</Button>
             <Button size="sm" variant="ghost" icon={X} onclick={clear}>Paste instead</Button>
           </div>
         </div>
@@ -188,7 +188,7 @@
           <EmptyState icon={ScrollText} title="Can't read this log" description={logs.error} />
         {:else}
           <EmptyState icon={ScrollText} title="Tasks, runs and failures appear here" description="One task: its status, probable cause and output. A whole log: every run, the first failure selected, each host's result, the recap and the output around Ansible.">
-            <Button icon={FileUp} onclick={() => picker?.click()}>Open log file…</Button>
+            <Button icon={FileUp} tone="open" onclick={() => picker?.click()}>Open log file…</Button>
             <Button variant="ghost" onclick={() => ((session.input = samples.ansibleLog), run())}>Try a whole log</Button>
             <Button variant="ghost" onclick={() => ((session.input = samples.ansible), run())}>Try one task</Button>
           </EmptyState>

@@ -76,6 +76,7 @@ scripts/dev.sh ui                  <span class="c"># the same, plus a hot-reload
   <tr><th>Task</th><th>Command</th></tr>
   <tr><td>Vet and test one package</td><td><code>go vet ./... &amp;&amp; go test ./internal/lint/...</code></td></tr>
   <tr><td>Type-check the UI</td><td><code>npm --prefix frontend run check</code></td></tr>
+  <tr><td>Check the themes' colour contrast (after changing <code>tokens.css</code>)</td><td><code>npm --prefix frontend run contrast</code></td></tr>
   <tr><td>Build the UI (embedded by go build)</td><td><code>npm --prefix frontend run build</code></td></tr>
   <tr><td>Build the binary</td><td><code>go build -o codec ./cmd/codec</code></td></tr>
   <tr><td>Performance budgets</td><td><code>scripts/perf.sh</code></td></tr>

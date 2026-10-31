@@ -30,7 +30,7 @@ Linear or VS Code than to a marketing site.
 | Space | 4px scale: `--s-1 4` `--s-2 8` `--s-3 12` `--s-4 16` `--s-5 20` `--s-6 24` `--s-8 32` `--s-12 48` |
 | Radius | `--r-sm 4` inputs · `--r-md 6` buttons · `--r-lg 10` panels/dialogs · `--r-full` pills |
 | Type | `--font-ui` Inter, `--font-mono` JetBrains Mono (bundled, OFL). Sizes `--fs-xs 11` `-sm 12` `-md 13` (base) `-lg 14` `-xl 16` `-2xl 20` `-3xl 28`; line height 1.5 (code 1.55) |
-| Controls | `--control-h 28` · `--control-h-sm 24` · `--tabbar-h 38` · `--statusbar-h 26` · rail 48/220 |
+| Controls | Interface size (`data-size` on `<html>`): `--control-h` 28 / 32 / 36 and `--control-h-sm` 24 / 28 / 32 for Compact / Comfortable (default) / Large; Lucide icons keep the size written in code (the Compact one) and grow by `--icon-scale` 1 / 1.125 / 1.25, rounded to whole pixels (global.css), so write icon sizes for Compact · `--tabbar-h 38` · `--statusbar-h 26` · rail 48/220 |
 | Motion | `--dur 120ms`, `--ease`; none under `prefers-reduced-motion` |
 | Elevation | `--shadow-pop` for popovers and dialogs only; depth otherwise comes from surface steps |
 | Layers | `--z-sticky 10` `--z-popover 50` `--z-dialog 60` `--z-toast 70` |
@@ -57,9 +57,58 @@ colours only; space, type, layout and motion are shared:
 | Syntax | key `#0550ae` · string `#1f6f2b` · number `#a64d00` · bool/null `#7c3fd1` · comment `#626b7a` · anchor `#0b7268` · tag `#8a5d00` · template `#875400` · run time `#b0246f` |
 | Logos | official colours where they reach 3:1 on `--bg-1`; Helm `#3346c9` and Argo `#d9592b` adjusted |
 
-Both themes meet the same rules: text ≥ 4.5:1 on `--bg-0`…`--bg-3` and
+Dusk (`:root[data-theme='dusk']`, decision 94) is the soft, colourful
+dark theme, made in OKLCH so its colours share one lightness:
+
+| Group | Dusk values |
+|---|---|
+| Surfaces | `--bg-0 #1c1d2a` · `--bg-1 #202130` · `--bg-2 #252636` · `--bg-3 #2d2f41` · `--bg-4 #36384e` (blue-violet, hue 280) |
+| Borders | `--border #323446` · `--border-strong #43465d` |
+| Text | `--fg-0 #d5d6e4` (10.3:1 on bg-2, Dark is 16:1) · `--fg-1 #adb0c3` · `--fg-2 #9da0b6` |
+| Accent | `--accent #acb1f0` periwinkle · `--accent-fg` is `--bg-0` |
+| Status | `--ok #7cc98d` · `--warn #d4af5d` · `--err #f59693` · `--info #72bcf9` (L 0.77, more chroma than the hues) |
+| Hues | indigo `#a8bcf5` · violet `#c6b2ed` · pink `#e1a9d4` · peach `#ebae8d` · lime `#b1c88b` · teal `#7ad0c5` · cyan `#7ccbe4` (L 0.80, C 0.085); `--tint-tool` and `--tint-action` 100% |
+| Syntax | key `#a5bdf2` · string `#aed09c` · number `#e7b18c` · bool `#caade1` · comment `#9497ab` · anchor `#89cdc3` · tag `#dcc188` |
+
+Midnight (decision 95) is Dusk on deep navy: it shares Dusk's block and
+overrides only the surfaces (`--bg-0 #0a1628` · `--bg-1 #0d1b2e` ·
+`--bg-2 #111f35` · `--bg-3 #192941` · `--bg-4 #21334e`, hue 258 with more
+chroma), the borders (`#1e2e46`, `#2d405d`), `--fg-0 #cbcfdc` (a touch
+dimmer, to stay under 12:1 on the darker ground), `--accent-fg`, the
+shadow and the overlay.
+
+Dusk's and Midnight's text stays between 7:1 and 12:1 on their surfaces: readable, never
+glaring. `npm --prefix frontend run contrast` (`frontend/scripts/contrast.mjs`)
+checks every rule here for all three themes.
+
+All themes meet the same rules: text ≥ 4.5:1 on `--bg-0`…`--bg-3` and
 on its own `-soft` background, logos ≥ 3:1. A new colour token gets a
-value in both blocks.
+value in each theme block (Dusk may inherit Dark's).
+
+**Colour roles** (decision 94). Colour has three jobs, kept apart:
+
+- **Tool hue.** Each tool and workspace view has one (`hue` in
+  `lib/tools.ts`, `viewHue` for the rail's views), from `--hue-indigo`,
+  `-violet`, `-pink`, `-peach`, `-lime`, `-teal`, `-cyan`. What belongs to
+  the tool (its page, rail entry, Home card) sets `--tool` to
+  `hueVar(hue)` and takes the `.hued` class, which works out
+  `--tool-accent`, `--tool-accent-hover`, `--tool-accent-soft` and
+  `--tool-icon` for everything inside. Shared components read
+  `var(--tool-accent, var(--accent))`, so they work outside a tool too.
+- **Action tone.** `tone` on `IconButton` and `Button`: `copy`, `clear`,
+  `save`, `swap`, `open`, `add`, `run` (`--act-*`). Only the icon takes
+  it, never on a primary button or a disabled one. A close or remove ×
+  has no tone.
+- **Status.** `--ok`, `--warn`, `--err`, `--info` keep hues no tool or
+  action uses, so colour never suggests a problem that isn't there.
+
+How much of the first two a theme shows is `--tint-tool` and
+`--tint-action`, and `--tint-fill` for fills drawn in the tool's colour
+(the selected sub-tab as a soft pill, the selected rail entry's glow, a
+line along the top of a `Pane`): `0%` in Dark and Light, which keeps
+them exactly as they were, `100%` in Dusk. Workspace views (Compare,
+Query, New, Problems) are `.hued` too, with their `viewHue`. Never use a `--hue-*` or `--act-*` token directly; go through
+the roles, so a theme can turn them up or down in one place.
 
 Never hard-code a colour, size or font in a component. A new token is a
 change to this file and `tokens.css` together.

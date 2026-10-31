@@ -66,8 +66,8 @@
       <span class="muted">{viewer.pins.length} {viewer.pins.length === 1 ? 'pin' : 'pins'} · in this tab only</span>
       <span class="spacer"></span>
       <Button size="sm" variant="ghost" onclick={() => viewer.clearPins()}>Unpin all</Button>
-      <Button size="sm" icon={ClipboardCopy} onclick={() => copy(false)}>Copy as text</Button>
-      <Button size="sm" icon={ClipboardCopy} onclick={() => copy(true)}>Copy as Markdown</Button>
+      <Button size="sm" icon={ClipboardCopy} tone="copy" onclick={() => copy(false)}>Copy as text</Button>
+      <Button size="sm" icon={ClipboardCopy} tone="copy" onclick={() => copy(true)}>Copy as Markdown</Button>
     </div>
     <ol class="list">
       {#each viewer.pins as p (p.i)}

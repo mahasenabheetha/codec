@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { hueVar, viewHue } from '../../lib/tools'
   import { untrack } from 'svelte'
   import ArrowLeftRight from '@lucide/svelte/icons/arrow-left-right'
   import CircleCheck from '@lucide/svelte/icons/circle-check'
@@ -107,7 +108,7 @@
   }
 </script>
 
-<div class="compare" class:inactive={!active}>
+<div class="compare hued" class:inactive={!active} style:--tool={hueVar(viewHue.compare)}>
   <header>
     <span class="tool-label">Compare as</span>
     <SegmentedControl
@@ -146,7 +147,7 @@
   <div class="sides">
     <SidePicker label="Left" bind:side={cmp.left} bind:whatIf={cmp.leftWhatIf} onchange={() => cmp.run()} onclear={() => cmp.clear('left')} replace={(s) => cmp.setSide('left', s)} />
     <SidePicker label="Right" bind:side={cmp.right} bind:whatIf={cmp.rightWhatIf} onchange={() => cmp.run()} onclear={() => cmp.clear('right')} replace={(s) => cmp.setSide('right', s)} />
-    <span class="swap"><IconButton icon={ArrowLeftRight} label="Swap sides" size="sm" onclick={() => cmp.swap()} /></span>
+    <span class="swap"><IconButton icon={ArrowLeftRight} tone="swap" label="Swap sides" size="sm" onclick={() => cmp.swap()} /></span>
   </div>
 
   {#if pasting}

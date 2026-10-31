@@ -190,7 +190,7 @@
               {#if split.result}<span class="meta">{groupDigits(split.result.count)} × /{splitTo}, {groupDigits(split.result.each.hosts)} hosts each</span>{/if}
             {/snippet}
             {#snippet actions()}
-              <IconButton icon={Copy} label="Copy the subnets" size="sm" disabled={!split.result} onclick={() => split.result && copyText(split.result.subnets.join('\n'), 'Subnets')} />
+              <IconButton icon={Copy} tone="copy" label="Copy the subnets" size="sm" disabled={!split.result} onclick={() => split.result && copyText(split.result.subnets.join('\n'), 'Subnets')} />
             {/snippet}
             <div class="split">
               <label>
