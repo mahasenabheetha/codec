@@ -478,3 +478,13 @@ Settled unless the user reopens them. Add new ones at the bottom:
     `internal/timeutil`; the overlap strip samples whole hours of the
     first zone. `codec auto` now runs the same utility detection as
     smart paste, which it had never done (2026-10-31).
+94. Comfort comes next, as 3.5.0 (asked for 2026-10-31): bigger icons
+    and controls through an Interface size setting (Comfortable is the
+    new default, Compact keeps the old sizes), and Dusk, a third theme
+    beside Dark and Light, which do not change. Dusk is colourful but
+    soft: lower contrast than Dark for long days (body text about
+    9–11:1, never under 4.5:1), pastel colours, no pure white. Colour
+    has three roles kept apart: a hue per tool, a tone per action and
+    the status colours. The later releases move up one: the update
+    check and focus timer (85, 91) become 3.6.0, the JSON and table
+    tools 3.7.0 and the generators 3.8.0 (90) (2026-10-31).
