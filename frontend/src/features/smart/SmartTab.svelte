@@ -45,6 +45,9 @@
     tsv: 'TSV → read as a table',
     jsonc: 'JSONC → written as JSON',
     json5: 'JSON5 → written as JSON',
+    uuid: 'UUID → read',
+    ulid: 'ULID → read',
+    colour: 'Hex colour → described',
     unknown: 'unrecognised',
   }
   // Where the full tool for a Utilities kind lives.
@@ -58,6 +61,8 @@
     http: 'Open in HTTP',
     table: 'Open in CSV & TSV',
     format: 'Open in JSON & YAML',
+    uuid: 'Open in UUID',
+    '': 'Open in Colour',
   }
   function openUtility() {
     const u = session.result?.utility

@@ -20,6 +20,9 @@ const kindName: Record<Kind, string> = {
   tsv: 'TSV',
   jsonc: 'JSONC',
   json5: 'JSON5',
+  uuid: 'UUID',
+  ulid: 'ULID',
+  colour: 'Colour',
   unknown: '',
 }
 

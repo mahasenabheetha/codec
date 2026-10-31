@@ -46,6 +46,11 @@ All notable changes to codec are documented here. The format follows
   with AA and AAA for text, large text and icons; a 50–950 scale of
   shades in OKLCH. All in the browser.
 
+- Smart paste (and `codec auto`) recognises a UUID or ULID, read for
+  its version and time with a button to open the UUID tab, and a hex
+  colour, with a button to open Colour. The UUID tab and
+  `codec uuid parse` read ULIDs too.
+
 ### Changed
 
 - The Secrets & UUID tab is now Secrets (secrets and placeholder commit

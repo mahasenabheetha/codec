@@ -112,6 +112,17 @@ func TestParseUUID(t *testing.T) {
 	if !info.Nil || info.Kind != "the nil UUID" {
 		t.Errorf("nil: %+v", info)
 	}
+	// The ULID spec's example: 01ARZ3NDEKTSV4RRFFQ69G5FAV, made at
+	// 2016-07-30T23:54:10.259Z.
+	info, err = ParseUUID("01arz3ndektsv4rrffq69g5fav")
+	if err != nil || info.ULID != "01ARZ3NDEKTSV4RRFFQ69G5FAV" || info.Time != "2016-07-30T23:54:10.259Z" || info.UUID != "01563e3a-b5d3-d676-4c61-efb99302bd5b" {
+		t.Errorf("ulid: %+v %v", info, err)
+	}
+	for _, bad := range []string{"81ARZ3NDEKTSV4RRFFQ69G5FAV", "01ARZ3NDEKTSV4RRFFQ69G5FAI", "01ARZ3NDEK"} {
+		if _, _, ok := ParseULID(bad); ok {
+			t.Errorf("%q read as a ULID", bad)
+		}
+	}
 	if _, err := ParseUUID("not-a-uuid"); err == nil {
 		t.Error("garbage parsed")
 	}

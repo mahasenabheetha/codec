@@ -9,6 +9,7 @@
   import SegmentedControl from '../../lib/components/SegmentedControl.svelte'
   import Select from '../../lib/components/Select.svelte'
   import { parseUUID, uuids, type UUIDInfo, type UUIDOptions } from '../../lib/api/encode'
+  import { handoff } from '../../lib/stores/handoff.svelte'
   import type { ToolDef } from '../../lib/tools'
   import { copyText } from '../../lib/utils/clipboard'
   import { formatShortcut } from '../../lib/utils/platform'
@@ -52,6 +53,11 @@
   })
   const generate = () => job.run(call())
 
+  // A UUID or ULID handed over by smart paste, read below.
+  $effect(() => {
+    const v = handoff.take('encode', 'uuid')
+    if (v !== null) untrack(() => (parsed.input = v))
+  })
   $effect(() => {
     const v = parsed.input.trim()
     untrack(() => parsed.schedule(v ? () => parseUUID(v) : null, 120))
@@ -67,9 +73,10 @@
   const rows = $derived(
     info
       ? [
-          { label: 'UUID', value: info.uuid },
-          { label: 'Version', value: info.version ? `${info.version} · ${info.kind}` : info.kind },
-          { label: 'Variant', value: info.variant },
+          { label: 'ULID', value: info.ulid },
+          { label: info.ulid ? 'As a UUID' : 'UUID', value: info.uuid },
+          { label: info.ulid ? 'Kind' : 'Version', value: info.version ? `${info.version} · ${info.kind}` : info.kind },
+          { label: 'Variant', value: info.ulid ? undefined : info.variant },
           { label: 'Made', value: info.time ? `${info.time} · ${new Date(info.time).toLocaleString()}` : undefined, copy: info.time },
           { label: 'Upper case', value: write(info.uuid, 'upper') },
           { label: 'No hyphens', value: write(info.uuid, 'plain') },

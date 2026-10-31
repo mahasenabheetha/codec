@@ -99,6 +99,8 @@ export interface UUIDInfo {
   time?: string
   nil?: boolean
   max?: boolean
+  /** Set when a ULID was read; uuid is then its 128 bits as a UUID. */
+  ulid?: string
 }
 export const parseUUID = (input: string) => post<UUIDInfo>('uuid', { op: 'parse', input })
 

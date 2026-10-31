@@ -263,7 +263,7 @@ At most 1000 at a time.`,
 
 var uuidParseCmd = &cobra.Command{
 	Use:   "parse <uuid>",
-	Short: "Show a UUID's version, variant and, for v1, v6 and v7, when it was made",
+	Short: "Show a UUID's version, variant and, for v1, v6 and v7, when it was made; a ULID is read too",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		info, err := encode.ParseUUID(args[0])
@@ -271,7 +271,11 @@ var uuidParseCmd = &cobra.Command{
 			return err
 		}
 		var b strings.Builder
-		fmt.Fprintf(&b, "uuid     %s\nversion  %d · %s\nvariant  %s", info.UUID, info.Version, info.Kind, info.Variant)
+		if info.ULID != "" {
+			fmt.Fprintf(&b, "ulid     %s\nas uuid  %s\nkind     %s", info.ULID, info.UUID, info.Kind)
+		} else {
+			fmt.Fprintf(&b, "uuid     %s\nversion  %d · %s\nvariant  %s", info.UUID, info.Version, info.Kind, info.Variant)
+		}
 		if info.Time != "" {
 			fmt.Fprintf(&b, "\ntime     %s", info.Time)
 		}

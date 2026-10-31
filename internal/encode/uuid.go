@@ -83,6 +83,8 @@ type UUIDInfo struct {
 	Time string `json:"time,omitempty"`
 	Nil  bool   `json:"nil,omitempty"` // all zeros
 	Max  bool   `json:"max,omitempty"` // all ones
+	// ULID is set when a ULID was read; UUID is then its bytes.
+	ULID string `json:"ulid,omitempty"`
 }
 
 var versionKinds = map[int]string{
@@ -96,9 +98,40 @@ var versionKinds = map[int]string{
 	8: "custom",
 }
 
+// crockford is the ULID alphabet (no I, L, O, U).
+const crockford = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
+
+// ParseULID reads a ULID: 26 Crockford base32 characters, a 48-bit
+// millisecond time then 80 random bits. ok is false for anything else.
+func ParseULID(s string) (b [16]byte, t time.Time, ok bool) {
+	s = strings.ToUpper(strings.TrimSpace(s))
+	if len(s) != 26 || s[0] > '7' {
+		return b, t, false
+	}
+	// 26 × 5 = 130 bits; the top two are zero (hence the first digit ≤ 7).
+	var hi, lo uint64 // the 128 bits, big-endian
+	for i := range 26 {
+		v := strings.IndexByte(crockford, s[i])
+		if v < 0 {
+			return b, t, false
+		}
+		hi = hi<<5 | lo>>59
+		lo = lo<<5 | uint64(v)
+	}
+	for i := range 8 {
+		b[i] = byte(hi >> (56 - 8*i))
+		b[8+i] = byte(lo >> (56 - 8*i))
+	}
+	ms := int64(hi >> 16)
+	return b, time.UnixMilli(ms).UTC(), true
+}
+
 // ParseUUID reads a UUID written any common way: with or without
-// hyphens, in braces, upper case, or as urn:uuid:.
+// hyphens, in braces, upper case, or as urn:uuid:; a ULID is read too.
 func ParseUUID(s string) (UUIDInfo, error) {
+	if b, t, ok := ParseULID(s); ok {
+		return UUIDInfo{UUID: uuid.UUID(b).String(), Kind: "ULID (time-ordered: milliseconds, random tail)", Variant: "ULID", Time: t.Format(time.RFC3339Nano), ULID: strings.ToUpper(strings.TrimSpace(s))}, nil
+	}
 	u, err := uuid.Parse(strings.TrimSpace(s))
 	if err != nil {
 		return UUIDInfo{}, fmt.Errorf("not a UUID: 32 hex digits, usually 8-4-4-4-12")
