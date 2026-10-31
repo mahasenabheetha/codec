@@ -180,7 +180,7 @@ set       spec.template.spec.containers[0].image=</span></code></pre>
 <h2 id="tools">Encode, decode, logs<a class="anchor" href="#tools">#</a></h2>
 <div class="table-wrap"><table>
   <tr><th>Command</th><th>What it does</th></tr>
-  <tr><td><code>auto [input]</code></td><td>Detect and transform; Ansible <code>-vv</code> logs are analysed</td></tr>
+  <tr><td><code>auto [input]</code></td><td>Detect and transform, as smart paste does; Ansible <code>-vv</code> logs are analysed; an epoch timestamp, URL-encoded text, a cron expression, a log, a CIDR range, an IP address or a curl command is summarised, naming the command that does more</td></tr>
   <tr><td><code>b64 encode|decode [text]</code></td><td><code>--url</code> for the URL-safe alphabet; decoding tolerates missing padding</td></tr>
   <tr><td><code>json pretty|min|validate [json]</code></td><td><code>--indent</code> for pretty; validate exits 1 with line and column</td></tr>
   <tr><td><code>jwt decode [token]</code></td><td>Header and claims; the signature is not verified</td></tr>

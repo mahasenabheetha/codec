@@ -41,6 +41,12 @@ All notable changes to codec are documented here. The format follows
   date and Unix s/ms/µs/ns, and gives the format string for common
   shapes in Go, Java, Python, .NET and JavaScript. On the command line:
   `codec time --in` and `codec time --formats`.
+- Smart paste recognises a CIDR range, an IP address and a curl
+  command, shows what it found and opens it in the Network tool (a bare
+  number is never taken for an address). `codec auto` now does what
+  smart paste does for every utility kind (timestamps, URL encoding,
+  cron, logs, ranges, addresses, curl), naming the command that does
+  more.
 - Compare and Text diff: next and previous change (arrows, or Alt+↓ and
   Alt+↑ in the diff).
 

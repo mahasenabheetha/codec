@@ -8,6 +8,7 @@
   import IconButton from '../../lib/components/IconButton.svelte'
   import SegmentedControl from '../../lib/components/SegmentedControl.svelte'
   import { cidrContains, cidrDetails, cidrSplit, groupDigits, overlaps, type Listed, type Overlap, type Range, type Subnets } from '../../lib/api/net'
+  import { handoff } from '../../lib/stores/handoff.svelte'
   import type { ToolDef } from '../../lib/tools'
   import { copyText } from '../../lib/utils/clipboard'
   import ErrorBanner from '../shared/ErrorBanner.svelte'
@@ -34,6 +35,15 @@
   $effect(() => {
     const input = job.input.trim()
     untrack(() => job.schedule(input ? () => cidrDetails(input) : null))
+  })
+  // A range handed over by smart paste.
+  $effect(() => {
+    const v = handoff.take('network', 'cidr')
+    if (v !== null)
+      untrack(() => {
+        mode = 'range'
+        job.input = v
+      })
   })
   const range = $derived(job.result?.range)
   const maxBits = $derived(range?.version === 6 ? 128 : 32)

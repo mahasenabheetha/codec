@@ -5,6 +5,7 @@
   import Button from '../../lib/components/Button.svelte'
   import EmptyState from '../../lib/components/EmptyState.svelte'
   import { ipInfo, type IPInfo } from '../../lib/api/net'
+  import { handoff } from '../../lib/stores/handoff.svelte'
   import type { ToolDef } from '../../lib/tools'
   import { copyText } from '../../lib/utils/clipboard'
   import ErrorBanner from '../shared/ErrorBanner.svelte'
@@ -24,6 +25,11 @@
   $effect(() => {
     const input = job.input.trim()
     untrack(() => job.schedule(input ? () => ipInfo(input) : null))
+  })
+  // An address handed over by smart paste.
+  $effect(() => {
+    const v = handoff.take('network', 'ip')
+    if (v !== null) untrack(() => (job.input = v))
   })
   const ip = $derived(job.result?.ip)
   const rows = $derived(

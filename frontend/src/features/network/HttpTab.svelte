@@ -7,6 +7,7 @@
   import EmptyState from '../../lib/components/EmptyState.svelte'
   import SegmentedControl from '../../lib/components/SegmentedControl.svelte'
   import { curlToFetch, fetchToCurl, statuses, type HTTPRequest, type HTTPStatus } from '../../lib/api/http'
+  import { handoff } from '../../lib/stores/handoff.svelte'
   import type { ToolDef } from '../../lib/tools'
   import { copyText } from '../../lib/utils/clipboard'
   import TextOutput from '../encode/TextOutput.svelte'
@@ -34,6 +35,15 @@
     untrack(() => {
       if (m !== 'status') job.schedule(input.trim() ? convert(m, input) : null, 250)
     })
+  })
+  // A curl command handed over by smart paste.
+  $effect(() => {
+    const v = handoff.take('network', 'http')
+    if (v !== null)
+      untrack(() => {
+        mode = 'curl'
+        job.input = v.replace(/^\$ /, '')
+      })
   })
   const req = $derived(job.result?.request)
 

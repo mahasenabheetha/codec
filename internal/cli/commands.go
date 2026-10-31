@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -139,14 +140,25 @@ var jwtDecodeCmd = &cobra.Command{
 var autoCmd = &cobra.Command{
 	Use:   "auto [input]",
 	Short: "Detect the input type and apply the obvious transformation",
-	Long: `auto detects what you pasted and does the right thing:
-JSON is encoded to base64, base64 is decoded (and pretty-printed if it
-contains JSON), and JWTs are expanded.`,
+	Long: `auto detects what you pasted and does the right thing, as smart paste
+does: JSON is encoded to base64, base64 is decoded (and pretty-printed
+if it contains JSON), and JWTs are expanded. An epoch timestamp,
+URL-encoded text, a cron expression, a log, a CIDR range, an IP address
+or a curl command is summarised, with the command that does more.`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		in, err := readInput(args)
 		if err != nil {
 			return err
+		}
+		// Utilities first: an epoch number is valid JSON too.
+		if u, ok := codec.DetectUtility(in, time.Now()); ok {
+			more := map[string]string{"epoch": "codec time", "url": "codec url decode", "cron": "codec cron", "cidr": "codec cidr", "ip": "codec ip", "curl": "codec curl"}[u.Kind]
+			if more != "" {
+				more = " (" + more + " does more)"
+			}
+			fmt.Fprintf(cmd.ErrOrStderr(), "detected: %s%s\n", u.Kind, more)
+			return emit(u.Summary)
 		}
 		out, kind, err := codec.Transform(in)
 		if err != nil {

@@ -36,6 +36,34 @@ func TestDetectUtility(t *testing.T) {
 	}
 }
 
+func TestDetectNetwork(t *testing.T) {
+	now := time.Date(2026, 2, 3, 12, 0, 0, 0, time.UTC)
+	for _, c := range []struct {
+		in, kind, tab, has string
+	}{
+		{"10.0.0.0/16", "cidr", "cidr", "Hosts      65534"},
+		{"2001:db8::/48", "cidr", "cidr", "documentation"},
+		{"192.168.1.77/26", "cidr", "cidr", "192.168.1.64/26"},
+		{"10.0.0.1", "ip", "ip", "Integer  167772161"},
+		{"2001:db8::1", "ip", "ip", "ip6.arpa"},
+		{"[::1]", "ip", "ip", "loopback"},
+		{"curl -X POST https://x.io -d a=1", "curl", "http", `method: "POST"`},
+		{"$ curl -k https://x.io", "curl", "http", "// note: fetch can't turn off certificate checks"},
+		{"curl 'https://x.io' \\\n  -H 'Accept: application/json'", "curl", "http", `"Accept": "application/json"`},
+	} {
+		u, ok := DetectUtility(c.in, now)
+		if !ok || u.Kind != c.kind || u.Tool != "network" || u.Tab != c.tab || !strings.Contains(u.Summary, c.has) {
+			t.Errorf("%q: %+v %v", c.in, u, ok)
+		}
+	}
+	// No guesses: numbers, versions, times and prose stay out.
+	for _, in := range []string{"167772161", "1.2.3", "v1.2.3.4", "12:30", "10:00:00", "999.1.1.1", "10.0.0.0/40", "curl is a tool", "curls", "a:b", "C:/Users", "Version 1.2.3.4 is out"} {
+		if u, ok := DetectUtility(in, now); ok && (u.Kind == "ip" || u.Kind == "cidr" || u.Kind == "curl") {
+			t.Errorf("%q detected as %s", in, u.Kind)
+		}
+	}
+}
+
 // Findings from the 2.3.0 review: what smart paste must leave alone.
 func TestDetectUtilityReview(t *testing.T) {
 	now := time.Date(2026, 2, 3, 12, 0, 0, 0, time.UTC)
