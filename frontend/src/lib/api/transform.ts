@@ -19,6 +19,8 @@ export interface TransformRequest {
   mode: Mode
   urlSafe?: boolean
   indent?: string
+  /** b64-decode: pretty-print decoded JSON. */
+  prettyJSON?: boolean
 }
 
 export interface AnsibleLine {

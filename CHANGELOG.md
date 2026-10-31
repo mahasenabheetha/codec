@@ -25,6 +25,12 @@ All notable changes to codec are documented here. The format follows
   blocks are coloured as in the editor. Settings → General → Open
   Markdown as picks Source or Preview for new tabs.
 
+### Fixed
+
+- Base64 decode pretty-prints decoded JSON, as its description and smart
+  paste always did; a Pretty JSON toggle (on by default) shows the exact
+  bytes when off.
+
 ## [3.2.0] - 2026-10-24
 
 Argo workflows in the Log viewer: a run read step by step, beside its

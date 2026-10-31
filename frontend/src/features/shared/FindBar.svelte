@@ -60,16 +60,18 @@
 </div>
 
 <style>
+  /* A compact bar on the right, like an editor's find widget. */
   .find {
     display: flex;
     align-items: center;
+    justify-content: flex-end;
     gap: var(--s-1);
     padding: var(--s-1) var(--s-2);
     background: var(--bg-1);
     border-bottom: 1px solid var(--border);
   }
   input {
-    flex: 1;
+    flex: 0 1 260px;
     min-width: 0;
     height: var(--control-h-sm);
     padding: 0 var(--s-2);

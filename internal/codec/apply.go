@@ -3,6 +3,7 @@ package codec
 import (
 	"errors"
 	"fmt"
+	"strings"
 )
 
 // Mode names one explicit transformation. Unlike Variant and Kind
@@ -34,6 +35,9 @@ var ErrUnknownMode = errors.New("unknown mode")
 type Options struct {
 	Variant Variant // base64 alphabet for the b64 modes
 	Indent  string  // indentation for json-pretty; "" means default
+	// PrettyJSON makes b64-decode pretty-print a decoded JSON object or
+	// array, as smart paste does; off returns the bytes exactly.
+	PrettyJSON bool
 }
 
 // Apply runs one explicit transformation. It is the single dispatch
@@ -59,6 +63,13 @@ func Apply(mode Mode, input string, opts Options) (string, Kind, error) {
 		raw, err := Decode(input, opts.Variant)
 		if err != nil {
 			return "", KindUnknown, err
+		}
+		if opts.PrettyJSON {
+			if s := strings.TrimSpace(string(raw)); strings.HasPrefix(s, "{") || strings.HasPrefix(s, "[") {
+				if pretty, err := PrettyJSON(s, ""); err == nil {
+					return pretty, KindJSON, nil
+				}
+			}
 		}
 		return string(raw), KindUnknown, nil
 

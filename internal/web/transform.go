@@ -22,6 +22,8 @@ type transformRequest struct {
 	Mode    string `json:"mode"`
 	URLSafe bool   `json:"urlSafe"`
 	Indent  string `json:"indent"` // json-pretty only; "" = two spaces
+	// PrettyJSON: b64-decode pretty-prints decoded JSON.
+	PrettyJSON bool `json:"prettyJSON"`
 }
 
 // transformResponse is what a successful transform returns. Output
@@ -68,7 +70,7 @@ func handleTransform(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	opts := codec.Options{Indent: req.Indent}
+	opts := codec.Options{Indent: req.Indent, PrettyJSON: req.PrettyJSON}
 	if req.URLSafe {
 		opts.Variant = codec.VariantURL
 	}

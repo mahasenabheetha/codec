@@ -21,10 +21,11 @@
   const session = new TransformState()
   let mode = $state<'b64-encode' | 'b64-decode'>('b64-encode')
   let urlSafe = $state(false)
+  let prettyJSON = $state(true)
   let editor = $state<CodeView>()
 
   const encoding = $derived(mode === 'b64-encode')
-  const options = () => ({ mode, urlSafe })
+  const options = () => ({ mode, urlSafe, prettyJSON: mode === 'b64-decode' && prettyJSON })
   liveTransform(session, options)
 
   const run = () => session.run(options())
@@ -49,6 +50,7 @@
     { id: 'base64.encode', title: 'Base64: Encode', group: 'Base64', run: () => (mode = 'b64-encode') },
     { id: 'base64.decode', title: 'Base64: Decode', group: 'Base64', run: () => (mode = 'b64-decode') },
     { id: 'base64.urlsafe', title: 'Base64: Toggle URL-safe alphabet', group: 'Base64', run: () => (urlSafe = !urlSafe) },
+    { id: 'base64.pretty', title: 'Base64: Toggle pretty JSON when decoding', group: 'Base64', run: () => (prettyJSON = !prettyJSON) },
     { id: 'base64.swap', title: 'Base64: Use output as input', group: 'Base64', shortcut: 'Alt+S', run: swap },
   ])
   toolStatus(() => active, () => {
@@ -69,6 +71,9 @@
       ]}
     />
     <Toggle label="URL-safe" bind:checked={urlSafe} title="Use - and _ instead of + and / (JWTs, URLs)" />
+    {#if !encoding}
+      <Toggle label="Pretty JSON" bind:checked={prettyJSON} title="Indent decoded JSON; off shows the bytes exactly as decoded" />
+    {/if}
   {/snippet}
   {#snippet actions()}
     <Button variant="primary" icon={Play} onclick={run} title={formatShortcut('Mod+Enter')}>
