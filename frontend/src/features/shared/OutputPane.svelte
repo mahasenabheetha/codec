@@ -87,14 +87,16 @@
     {#if canFind}
       <IconButton icon={Search} label="Find in the output" shortcut="Ctrl+F" size="sm" active={finding} onclick={() => (finding = !finding)} />
     {/if}
-    <IconButton
-      icon={Copy} tone="copy"
-      label="Copy output"
-      shortcut="Alt+C"
+    <Button
+      icon={Copy}
+      tone="copy"
+      variant="ghost"
       size="sm"
+      title="Copy output (Alt+C)"
+      aria-keyshortcuts="Alt+C"
       disabled={!session.output}
-      onclick={() => copyText(session.output)}
-    />
+      onclick={() => copyText(session.output)}>Copy</Button
+    >
   {/snippet}
 
   {#if session.error}

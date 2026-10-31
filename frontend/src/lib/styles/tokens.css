@@ -141,8 +141,12 @@
   --rail-expanded: 220px;
   --tabbar-h: 38px;
   --statusbar-h: 26px;
-  --control-h: 28px;
-  --control-h-sm: 24px;
+  /* Interface size (decision 94): Comfortable here, Compact and Large
+     below. Icons keep the size written in the code (the Compact one) and
+     grow by --icon-scale (global.css). */
+  --icon-scale: 1.125;
+  --control-h: 32px;
+  --control-h-sm: 28px;
 
   /* Elevation (popovers and dialogs only) */
   --shadow-pop: 0 8px 28px rgb(0 0 0 / 0.45), 0 0 0 1px var(--border-strong);
@@ -164,6 +168,18 @@
  * text colour is at least 4.5:1 on --bg-0 to --bg-3 and on its own
  * -soft background; logos at least 3:1 on --bg-1.
  */
+/* Interface sizes other than Comfortable. */
+:root[data-size='compact'] {
+  --icon-scale: 1;
+  --control-h: 28px;
+  --control-h-sm: 24px;
+}
+:root[data-size='large'] {
+  --icon-scale: 1.25;
+  --control-h: 36px;
+  --control-h-sm: 32px;
+}
+
 :root[data-theme='light'] {
   color-scheme: light;
 

@@ -11,6 +11,7 @@
   import { copyText } from '../../lib/utils/clipboard'
   import { toast } from '../../lib/stores/toast.svelte'
   import { theme, type ThemePref } from '../../lib/stores/theme.svelte'
+  import { uiSize, type UiSize } from '../../lib/stores/size.svelte'
   import { desktop } from '../../lib/platform'
   import { getDesktopSettings, setDesktopSettings, type DesktopSettings } from '../../lib/api/desktop'
   import { comparison } from '../compare/compare.svelte'
@@ -111,6 +112,11 @@
     { value: 'dark', label: 'Dark' },
     { value: 'light', label: 'Light' },
   ]
+  const sizes: { value: UiSize; label: string }[] = [
+    { value: 'compact', label: 'Compact' },
+    { value: 'comfortable', label: 'Comfortable' },
+    { value: 'large', label: 'Large' },
+  ]
   const editors = (Object.keys(editorNames) as ExternalEditor[]).map((e) => ({ value: e, label: editorNames[e] }))
 
   const folderText: Record<FolderID, { title: string; description: string }> = {
@@ -147,6 +153,9 @@
       <SettingSection id="general" title="General">
         <SettingRow title="Theme" description="System follows your operating system's light or dark setting.">
           <SegmentedControl options={themes} bind:value={theme.pref} label="Theme" />
+        </SettingRow>
+        <SettingRow title="Interface size" description="How big icons, buttons and other controls are. Compact is the size before 3.5.0.">
+          <SegmentedControl options={sizes} bind:value={uiSize.value} label="Interface size" />
         </SettingRow>
         <SettingRow title="Open files in" description={'The editor "Open in" buttons and problem links launch.'}>
           <SegmentedControl options={editors} bind:value={openIn.value} label="Open files in" />

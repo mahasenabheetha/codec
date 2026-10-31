@@ -55,7 +55,7 @@
     display: inline-flex;
     align-items: center;
     gap: var(--s-2);
-    height: 32px;
+    height: calc(var(--control-h) + 4px);
     padding: 0;
     font-size: var(--fs-md);
     font-weight: var(--fw-medium);

@@ -20,6 +20,7 @@
   import TextSearch from '@lucide/svelte/icons/text-search'
   import FilePlus from '@lucide/svelte/icons/file-plus'
   import CopyPlus from '@lucide/svelte/icons/copy-plus'
+  import Scaling from '@lucide/svelte/icons/scaling'
   import Settings2 from '@lucide/svelte/icons/settings-2'
   import Ship from '@lucide/svelte/icons/ship'
   import FlaskConical from '@lucide/svelte/icons/flask-conical'
@@ -27,6 +28,7 @@
   import SunMoon from '@lucide/svelte/icons/sun-moon'
   import Monitor from '@lucide/svelte/icons/monitor'
   import { theme } from './lib/stores/theme.svelte'
+  import { uiSize } from './lib/stores/size.svelte'
   import Rail from './lib/shell/Rail.svelte'
   import TabBar from './lib/shell/TabBar.svelte'
   import StatusBar from './lib/shell/StatusBar.svelte'
@@ -251,6 +253,13 @@
       icon: Monitor,
       run: () => (theme.pref = 'system'),
     },
+    ...(['compact', 'comfortable', 'large'] as const).map((s) => ({
+      id: 'view.size.' + s,
+      title: 'Interface size: ' + s[0].toUpperCase() + s.slice(1),
+      group: 'View',
+      icon: Scaling,
+      run: () => (uiSize.value = s),
+    })),
     {
       id: 'help.shortcuts',
       title: 'Keyboard shortcuts',

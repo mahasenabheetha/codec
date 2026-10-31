@@ -3,6 +3,7 @@
   import Eraser from '@lucide/svelte/icons/eraser'
   import CodeView, { type Language } from '../../lib/components/CodeView.svelte'
   import IconButton from '../../lib/components/IconButton.svelte'
+  import Button from '../../lib/components/Button.svelte'
   import { toast } from '../../lib/stores/toast.svelte'
   import Pane from './Pane.svelte'
   import { sizeLabel } from './detect'
@@ -35,14 +36,16 @@
   {#snippet meta()}{sizeLabel(session.input)}{/snippet}
   {#snippet actions()}
     <IconButton icon={ClipboardPaste} label="Paste from clipboard" size="sm" onclick={pasteFromClipboard} />
-    <IconButton
-      icon={Eraser} tone="clear"
-      label="Clear"
-      shortcut="Escape"
+    <Button
+      icon={Eraser}
+      tone="clear"
+      variant="ghost"
       size="sm"
+      title="Clear the input (Escape)"
+      aria-keyshortcuts="Escape"
       disabled={!session.input}
-      onclick={() => (onclear ? onclear() : session.clear())}
-    />
+      onclick={() => (onclear ? onclear() : session.clear())}>Clear</Button
+    >
   {/snippet}
   <CodeView bind:this={editor} bind:value={session.input} label="Input" {language} {placeholder} {onpaste} wrap />
 </Pane>

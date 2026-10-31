@@ -40,7 +40,7 @@
     {#if onswap}
       <IconButton icon={ArrowLeftRight} tone="swap" label="Use output as input" shortcut="Alt+S" size="sm" disabled={!output} onclick={onswap} />
     {/if}
-    <IconButton icon={Copy} tone="copy" label="Copy output" shortcut="Alt+C" size="sm" disabled={!output} onclick={() => copyText(output ?? '')} />
+    <Button icon={Copy} tone="copy" variant="ghost" size="sm" title="Copy output (Alt+C)" aria-keyshortcuts="Alt+C" disabled={!output} onclick={() => copyText(output ?? '')}>Copy</Button>
   {/snippet}
 
   {#if error}

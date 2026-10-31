@@ -30,7 +30,7 @@ Linear or VS Code than to a marketing site.
 | Space | 4px scale: `--s-1 4` `--s-2 8` `--s-3 12` `--s-4 16` `--s-5 20` `--s-6 24` `--s-8 32` `--s-12 48` |
 | Radius | `--r-sm 4` inputs · `--r-md 6` buttons · `--r-lg 10` panels/dialogs · `--r-full` pills |
 | Type | `--font-ui` Inter, `--font-mono` JetBrains Mono (bundled, OFL). Sizes `--fs-xs 11` `-sm 12` `-md 13` (base) `-lg 14` `-xl 16` `-2xl 20` `-3xl 28`; line height 1.5 (code 1.55) |
-| Controls | `--control-h 28` · `--control-h-sm 24` · `--tabbar-h 38` · `--statusbar-h 26` · rail 48/220 |
+| Controls | Interface size (`data-size` on `<html>`): `--control-h` 28 / 32 / 36 and `--control-h-sm` 24 / 28 / 32 for Compact / Comfortable (default) / Large; Lucide icons keep the size written in code (the Compact one) and grow by `--icon-scale` 1 / 1.125 / 1.25, rounded to whole pixels (global.css), so write icon sizes for Compact · `--tabbar-h 38` · `--statusbar-h 26` · rail 48/220 |
 | Motion | `--dur 120ms`, `--ease`; none under `prefers-reduced-motion` |
 | Elevation | `--shadow-pop` for popovers and dialogs only; depth otherwise comes from surface steps |
 | Layers | `--z-sticky 10` `--z-popover 50` `--z-dialog 60` `--z-toast 70` |

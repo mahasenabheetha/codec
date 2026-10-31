@@ -155,7 +155,7 @@
     align-items: center;
     gap: var(--s-3);
     width: 100%;
-    height: 32px;
+    height: calc(var(--control-h) + 4px);
     padding: 0 var(--s-2);
     font-size: var(--fs-md);
     color: var(--fg-1);

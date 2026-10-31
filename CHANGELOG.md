@@ -6,6 +6,18 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Interface size in Settings → General and the palette: Compact,
+  Comfortable or Large. Comfortable is the new default, with bigger
+  icons (16 and 18 px instead of 14 and 16) and taller buttons and rail
+  entries; Compact keeps the old sizes.
+
+### Changed
+
+- Copy in output panes and Clear in input panes show a word beside the
+  icon, so they are easier to find and to hit.
+
 ## [3.4.0] - 2026-10-31
 
 Network and text tools under Utilities: CIDR ranges and overlaps, IP
