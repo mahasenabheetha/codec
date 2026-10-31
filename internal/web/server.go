@@ -176,6 +176,7 @@ func (s *Server) routes() http.Handler {
 	mux.HandleFunc("POST /api/v2/encode/{kind}", s.handleEncode)
 	mux.HandleFunc("POST /api/v2/net/{kind}", s.handleNet)
 	mux.HandleFunc("POST /api/v2/http/{kind}", s.handleHTTP)
+	mux.HandleFunc("POST /api/v2/text/{kind}", s.handleText)
 	mux.HandleFunc("POST /api/v2/time/{kind}", s.handleTime)
 	mux.HandleFunc("POST /api/v2/regex", s.handleRegex)
 	mux.HandleFunc("GET /api/v2/scaffold/starters", s.handleStarters)

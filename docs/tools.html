@@ -119,12 +119,13 @@
   <li><strong>HTTP</strong> — <strong>curl → fetch</strong> turns a curl command (from a terminal, docs or your browser's <em>Copy as cURL</em>, quotes and line continuations included) into JavaScript <code>fetch</code>, a JSON body as <code>JSON.stringify</code> of the value; <strong>fetch → curl</strong> goes the other way. What can't be carried over (a file to attach, a proxy, <code>-k</code>, a variable in the fetch code) is said in a note under the result. Nothing is sent. <strong>Status codes</strong> explains a code, its usual cause and whether to retry; type a number, its first digits (5 for every 5xx) or words such as <em>gateway</em> or <em>rate limit</em>.</li>
   <li><strong>URL builder</strong> — paste a URL to fill in its parts and its query parameters as a table, or type them; change, add or remove parameters and copy the URL put back together, each part escaped as it needs.</li>
 </ul>
-<p>On the command line: <code>codec cidr</code>, <code>codec ip</code>, <code>codec url build</code>, <code>codec curl</code> and <code>codec http status</code> (see <a href="cli.html#network">CLI</a>).</p>
+<p>On the command line: <code>codec cidr</code>, <code>codec ip</code>, <code>codec url build</code>, <code>codec curl</code> and <code>codec http status</code> (see <a href="cli.html#network">CLI</a>), and <code>codec case</code> for Case &amp; names.</p>
 
 <h2 id="text">Text &amp; data<a class="anchor" href="#text">#</a></h2>
 <p>Under <strong>Utilities</strong>.</p>
 <ul>
   <li><strong>Text diff</strong> — two texts compared line by line: paste or type them, or drop a file on either side (or open one). Changed lines show side by side with the changed characters marked, or as a unified patch to copy; the arrows go from change to change. <strong>Ignore whitespace</strong> and <strong>Ignore case</strong> loosen what counts as a change, and the swap button turns the comparison round. For files in the open folder, Helm renders and YAML compared by meaning, use <a href="compare.html">Compare</a>.</li>
+  <li><strong>Case &amp; names</strong> — a name or phrase in camelCase, PascalCase, snake_case, kebab-case, CONSTANT_CASE, dot.case, Title, Sentence, lower and path case, each with Copy. Words split at separators and case changes, and acronyms stay whole: <em>getHTTPResponse</em> is get · HTTP · Response. <strong>Name rules</strong> checks it as a Kubernetes name (DNS-1123 label and subdomain), a label value, an environment variable and a Helm release name (53 characters at most), says what breaks each rule, and offers a name that passes.</li>
 </ul>
 
 <h2 id="time">Time<a class="anchor" href="#time">#</a></h2>

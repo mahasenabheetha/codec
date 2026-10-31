@@ -22,7 +22,9 @@ internal/
   yamlkit/            ENGINE YAML core: parse, positions, docs, detect,
                       outline, paths, format, convert, diagnostics,
                       semantic diff, layered merge with origins (CI, Compose)
-  names/              ENGINE "did you mean" (edit distance) for every lens
+  names/              ENGINE "did you mean" (edit distance) for every lens;
+                      a name in every case and the Kubernetes, Helm and
+                      env-var naming rules (Case & names)
   query/              ENGINE jq (gojq) over documents, results mapped to lines
   provider/           ENGINE provider interface + registry
   helm/               ENGINE Helm 4 SDK render + values provenance (from
@@ -183,6 +185,8 @@ Files over 8 MB are not listed or read.
   Network: `POST /net/{kind}` — `cidr` (details; `op` split with `prefix`,
   contains with `ip`), `overlaps` {lines}, `ip`, `url` (parse, build {parts});
   `POST /http/{curl,fetch,status}` {input} → {request, output} or {statuses}.
+  Text & data: `POST /text/case` {input} → {words, cases, checks}; Text diff
+  uses `POST /compare` with two paste sides.
   `GET /files/image?path=` serves an image in the folder to the Markdown
   preview (png, jpeg, gif, webp, svg; the bytes must match the extension;
   10 MB; `Content-Security-Policy: sandbox`); the UI fetches it with the

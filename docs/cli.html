@@ -211,6 +211,12 @@ set       spec.template.spec.containers[0].image=</span></code></pre>
   <tr><td><code>ip &lt;address&gt;</code></td><td>An address as decimal, hex and binary, IPv6 expanded, IPv4-mapped, and its reverse-DNS name; reads <code>167772161</code>, <code>0x0a000001</code> and <code>0b…</code> too. <code>--json</code></td></tr>
 </table></div>
 
+<h2 id="text">Text and names<a class="anchor" href="#text">#</a></h2>
+<div class="table-wrap"><table>
+  <tr><th>Command</th><th>What it does</th></tr>
+  <tr><td><code>case [text]</code></td><td>A name in camel, Pascal, snake, kebab, CONSTANT, dot, Title, Sentence, lower and path case (acronyms kept); <code>--to snake</code> prints one, for each line when piped; <code>--check</code> tests it against the Kubernetes name and label rules, an env-var name and a Helm release name, with a suggestion that passes (exit 2 when one fails). <code>--json</code></td></tr>
+</table></div>
+
 <h2 id="time">Time and cron<a class="anchor" href="#time">#</a></h2>
 <div class="table-wrap"><table>
   <tr><th>Command</th><th>What it does</th></tr>

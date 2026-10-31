@@ -28,7 +28,12 @@ All notable changes to codec are documented here. The format follows
   `codec http status`.
 - Text & data tool, under Utilities: **Text diff** compares two pasted
   or dropped texts, side by side with the changed words marked or as a
-  unified patch, ignoring whitespace or case if asked.
+  unified patch, ignoring whitespace or case if asked; **Case & names**
+  writes a name in every case (camel, Pascal, snake, kebab, CONSTANT and
+  more, acronyms kept) and checks it against the Kubernetes name and
+  label rules, an environment-variable name and a Helm release name,
+  offering a name that passes. On the command line: `codec case`
+  (`--to`, `--check`).
 - Compare and Text diff: next and previous change (arrows, or Alt+↓ and
   Alt+↑ in the diff).
 

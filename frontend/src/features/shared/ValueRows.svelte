@@ -30,13 +30,17 @@
 </dl>
 
 <style>
+  /* One label column for all rows, as wide as the longest label. */
   .rows {
+    display: grid;
+    grid-template-columns: minmax(90px, max-content) 1fr;
     margin: 0;
     padding: var(--s-2) var(--s-3);
   }
   .row {
+    grid-column: 1 / -1;
     display: grid;
-    grid-template-columns: minmax(120px, 180px) 1fr;
+    grid-template-columns: subgrid;
     align-items: center;
     gap: var(--s-3);
     padding: var(--s-1) 0;

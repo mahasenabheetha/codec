@@ -14,7 +14,7 @@
   import ToolTabs from '../shared/ToolTabs.svelte'
   import { TextJob } from '../shared/job.svelte'
   import { toolShortcuts, toolStatus } from '../shared/tool.svelte'
-  import Rows from './Rows.svelte'
+  import Rows from '../shared/ValueRows.svelte'
 
   let { tool, active }: { tool: ToolDef; active: boolean } = $props()
 
