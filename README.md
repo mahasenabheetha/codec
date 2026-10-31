@@ -109,6 +109,12 @@ or logs open at once, each with its own input and result. JSON & YAML
 reads JSONC and JSON5 too, and CSV or TSV opens as a table to sort,
 filter and convert; Smart paste recognises both and opens the tool.
 
+For the things you make: file checksums checked against what a download
+page lists, UUIDs (v4, v7, v5, v3), passwords and passphrases with their
+strength, made-up test data as JSON, CSV, YAML or SQL, QR codes for
+links, Wi-Fi and authenticators (made and read), and colours with their
+WCAG contrast. Nothing generated is stored.
+
 Under **Wellness**, Focus & breaks keeps long days healthier: a focus
 timer on a large ring (Classic 25/5, Deep work 50/10, Flow 90/20 or your
 own lengths), today's sessions on a timeline, and break reminders for
@@ -257,3 +263,8 @@ This project was developed as a hands-on Go learning journey by
 assistance from **Claude (Anthropic)** used as a pair-programming and
 teaching tool. Design decisions, code review, and explanations were
 AI-assisted; the learning was not.
+
+Passphrases use the [EFF large word list](https://www.eff.org/deeplinks/2016/07/new-wordlists-random-passphrases)
+by the Electronic Frontier Foundation, licensed under
+[CC BY 3.0 US](https://creativecommons.org/licenses/by/3.0/us/); it is
+embedded unchanged (`internal/encode/words`).

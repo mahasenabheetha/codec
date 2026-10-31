@@ -17,6 +17,37 @@ func FuzzDetectUtility(f *testing.F) {
 	})
 }
 
+// 3.8.0: UUIDs and ULIDs go to Encode & hash → UUID, hex colours to Colour.
+func TestDetectIDsAndColours(t *testing.T) {
+	now := time.Date(2026, 2, 3, 12, 0, 0, 0, time.UTC)
+	for _, c := range []struct{ in, kind, tool, tab, has string }{
+		{"017f22e2-79b0-7cc3-98c4-dc0c0c07398f", "uuid", "encode", "uuid", "Made     2022-02-22T19:22:22"},
+		{"{C232AB00-9414-11EC-B3C8-9F6BDECED846}", "uuid", "encode", "uuid", "Version  1"},
+		{"urn:uuid:2ed6657d-e927-568b-95e1-2665a8aea6a2", "uuid", "encode", "uuid", "name-based, SHA-1"},
+		{"01ARZ3NDEKTSV4RRFFQ69G5FAV", "ulid", "encode", "uuid", "2016-07-30T23:54:10.259Z"},
+		{"#4f46e5", "colour", "colour", "", "rgb(79, 70, 229)"},
+		{"#FFF", "colour", "colour", "", "hsl(0, 0%, 100%)"},
+		{"#4f46e580", "colour", "colour", "", "Alpha 0.50"},
+	} {
+		u, ok := DetectUtility(c.in, now)
+		if !ok || u.Kind != c.kind || u.Tool != c.tool || u.Tab != c.tab || !strings.Contains(u.Summary, c.has) {
+			t.Errorf("%q: %+v %v", c.in, u, ok)
+		}
+	}
+	for _, in := range []string{
+		"900150983cd24fb0d6963f7d28e17f72", // an MD5, not a UUID
+		"ABCDEFGHJKMNPQRSTVWXYZABCD",       // 26 letters: a word, not a ULID
+		"01234567890123456789012345",       // 26 digits
+		"#12345",                           // five hex digits
+		"4f46e5",                           // hex without #
+		"#hashtag",
+	} {
+		if u, ok := DetectUtility(in, now); ok && (u.Kind == "uuid" || u.Kind == "ulid" || u.Kind == "colour") {
+			t.Errorf("%q detected as %s", in, u.Kind)
+		}
+	}
+}
+
 // 3.7.0: JSONC and JSON5 go to JSON & YAML, CSV and TSV to Text & data.
 func TestDetectData(t *testing.T) {
 	now := time.Date(2026, 2, 3, 12, 0, 0, 0, time.UTC)

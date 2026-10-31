@@ -72,28 +72,12 @@ keep the UI consistent and polished. Work efficiently: read only what a
 task needs and run only the tests for packages touched (the full suite
 runs once, at step 4).
 
-### v3.8.0 — Generators and checks
-Agreed 2026-10-25 (decision 90). Things that make something: checksums,
-identifiers, passwords, test data, QR codes and colours. Nothing made is
-stored. The QR library is the one new dependency of the three releases
-and is agreed before it is added.
-
-| # | Task | Main parts | Status |
-|---|---|---|---|
-| T1 | Checksum and UUID | In Encode & hash: **Checksum** (hash a dropped file, or a file in the open folder, streamed on the server and never kept; compare with an expected value pasted as hex, base64 or a `sha256sum` line, or verify several files against a `checksums.txt`); **UUID** (v4, v7, v5 and v3 from a namespace and name, parse one for version, variant and time, bulk up to 1000, formats) | |
-| T2 | Password generator | Rules: length, classes with a minimum each, exclude ambiguous or chosen characters, presets such as "14+ characters, 4 classes"; a passphrase mode with an embedded word list (the EFF list is CC-BY, so its attribution goes in the docs); entropy shown; `crypto/rand` with no modulo bias; shown once, never stored; `codec secret` gains the rules | |
-| T3 | Test data and lorem | `internal/fake`: lorem ipsum (words, sentences, paragraphs), and rows of fake data (names, emails on reserved example domains, IPs from documentation ranges, UUIDs, dates, numbers, choices) from columns you pick, as JSON, NDJSON, CSV, YAML or SQL `INSERT`; a seed for repeatable output; `codec fake` | |
-| T4 | QR code | Generator (text, URL, Wi-Fi, TOTP URI; error correction level; PNG and SVG to save) and reader (an image dropped or pasted, decoded in the browser; no camera); browser-only | |
-| T5 | Colour | HEX, RGB, HSL, HSV and a CSS name; WCAG contrast ratio with AA and AAA; a picker and shades; browser-only arithmetic | |
-| T6 | Smart paste | Recognises a UUID or ULID and a hex colour and offers the tool | |
-| — | Release | Full checks; a fuzz run of the new parsers; a review pass; docs (`tools.html`, `security.html`: nothing generated is stored); CHANGELOG cut as 3.8.0 | |
-
-Later: Terraform plan viewer; certificate and CSR decoder; semver and
-version-constraint tester; chmod and umask calculator; Kubernetes
-quantity converter; a "Copy as…" menu (JSON path, `yq`, `kubectl patch`).
-
 ### Later
 The rest of "Next", picked up when it fits.
+
+Ideas from the 3.8.0 plan: Terraform plan viewer; certificate and CSR decoder; semver and
+version-constraint tester; chmod and umask calculator; Kubernetes
+quantity converter; a "Copy as…" menu (JSON path, `yq`, `kubectl patch`).
 
 ## Next
 
@@ -128,6 +112,7 @@ The rest of "Next", picked up when it fits.
 
 | Version | Items |
 |---|---|
+| 3.8.0 | Generators and checks: Checksum (files of any size against an expected value or a checksums file) and UUID (v4, v7, v5, v3, ULIDs read) tabs, a Password tab (rules or EFF passphrases, strength), Test data (made-up rows as JSON, CSV, YAML or SQL, lorem ipsum, seeds), a QR code tool (make and read; boombuler/barcode and gozxing), a Colour tool (formats, WCAG contrast, OKLCH shades); Smart paste for UUIDs, ULIDs and hex colours; brighter working hours with a hover column in Time zones |
 | 3.7.0 | Work tabs in Smart paste, Base64, Compare, JSON & YAML and the Ansible log (one shared strip, the Log viewer's); JSON & YAML (JSONC and JSON5 read, format, tree, convert, diff by path, paths, schema, jq; `internal/jsonkit`, `codec json`); CSV & TSV in Text & data (`internal/table`, a windowed table, conversions, `codec csv`); Smart paste recognises CSV, TSV, JSONC and JSON5 |
 | 3.6.0 | Wellness (focus timer with presets and custom lengths, Today, break reminders with full-window, card and toast breaks, breathing and stretch guides, chimes, status-bar widget, notifications, tray), an opt-in update check, find in tool inputs |
 | 3.5.0 | Comfort: Interface size (Comfortable default, bigger icons), word buttons for Copy and Clear, the Dusk and Midnight themes with colour per tool and action, a contrast checker |

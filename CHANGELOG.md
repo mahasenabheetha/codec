@@ -6,6 +6,70 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+## [3.8.0] - 2026-11-01
+
+Things that make something: file checksums checked against what a
+download page lists, UUIDs of every common version, passwords and
+passphrases with their strength, made-up test data and lorem ipsum, QR
+codes made and read, and colours with WCAG contrast. Nothing generated
+is stored.
+
+### Added
+
+- **Checksum**, a new tab in Encode & hash: files dropped, chosen or
+  picked from the open folder are hashed with every algorithm in one
+  pass, as a stream, any size, and checked against an expected value
+  (hex or base64) or a checksums file (sha256sum or BSD lines), with
+  the files it names checked in the open folder on request.
+  `codec checksum` prints sha256sum lines, `--expect` and `--check`.
+- **UUID** gets its own tab: versions 4, 7 (time-ordered), 5 and 3 (from
+  a namespace and name), up to 1000 at a time in five spellings, and a
+  UUID read for its version, variant and time. `codec uuid` gains
+  `--version`, `--ns`, `--name` and `codec uuid parse`.
+
+- **Password**, a new tab in Encode & hash: passwords by the rules a site
+  asks for (length, kinds of character with a minimum each, characters
+  to leave out, no look-alikes) or passphrases of random words from the
+  EFF large word list, with presets, the strength in bits counted for
+  the rules and how long guessing would take, and Hide for screen
+  sharing; shown once, never stored. `codec secret password` and
+  `codec secret passphrase`.
+
+- **Test data**, a new tab in Text & data: rows of made-up data from
+  columns you pick (names, emails, IPs, dates, numbers, choices…, with a
+  share left blank) as JSON, NDJSON, CSV, YAML or SQL INSERT, and lorem
+  ipsum; a seed repeats a run. Emails, IPs and phones use reserved
+  ranges. `codec fake rows` and `codec fake lorem`.
+
+- **QR code**, a new Utilities tool: make a code for text or a link, a
+  Wi-Fi login or an authenticator (TOTP) setup, at any error-correction
+  level, saved as PNG or SVG; read one from a dropped, pasted or chosen
+  image (any format the browser shows, light on dark too), with its
+  parts explained. `codec qr` draws a code in the terminal or saves it;
+  `codec qr read` reads one. Uses boombuler/barcode and gozxing (MIT).
+
+- **Colour**, a new Utilities tool: a colour written any common way
+  (hex, rgb, hsl, hsv, oklch or a CSS name, or picked) in every format
+  with its name or the nearest one; WCAG 2 contrast against a background
+  with AA and AAA for text, large text and icons; a 50–950 scale of
+  shades in OKLCH. All in the browser.
+
+- Smart paste (and `codec auto`) recognises a UUID or ULID, read for
+  its version and time with a button to open the UUID tab, and a hex
+  colour, with a button to open Colour. The UUID tab and
+  `codec uuid parse` read ULIDs too.
+
+### Changed
+
+- Time zones' working hours use brighter colours that stay apart in
+  every theme (teal for 9–17, peach for the edges of the day, lime when
+  everyone is at work), and pointing at an hour boxes that moment in
+  every zone and spells out each zone's time.
+- Copy buttons sit right after their value in Colour and in Encode &
+  hash (Password, Secrets, UUID, Hash, Checksum).
+- The Secrets & UUID tab is now Secrets (secrets and placeholder commit
+  SHAs); UUIDs moved to the UUID tab.
+
 ## [3.7.0] - 2026-10-31
 
 Structured data from anywhere: JSON & YAML with seven views of one
@@ -904,7 +968,8 @@ First tagged release: codec as it stood before the 2.0 work began.
 - Release pipeline: pushing a `v*` tag publishes binaries for Linux,
   Windows and macOS (amd64/arm64) to GitHub Releases via GoReleaser.
 
-[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v3.7.0...HEAD
+[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v3.8.0...HEAD
+[3.8.0]: https://github.com/mahasenabheetha/codec/compare/v3.7.0...v3.8.0
 [3.7.0]: https://github.com/mahasenabheetha/codec/compare/v3.6.0...v3.7.0
 [3.6.0]: https://github.com/mahasenabheetha/codec/compare/v3.5.0...v3.6.0
 [3.5.0]: https://github.com/mahasenabheetha/codec/compare/v3.4.0...v3.5.0

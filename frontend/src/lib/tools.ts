@@ -7,6 +7,7 @@ import Sparkles from '@lucide/svelte/icons/sparkles'
 import Binary from '@lucide/svelte/icons/binary'
 import Braces from '@lucide/svelte/icons/braces'
 import KeyRound from '@lucide/svelte/icons/key-round'
+import SquareAsterisk from '@lucide/svelte/icons/square-asterisk'
 import ScrollText from '@lucide/svelte/icons/scroll-text'
 import Logs from '@lucide/svelte/icons/logs'
 import Clock from '@lucide/svelte/icons/clock'
@@ -19,6 +20,8 @@ import Link from '@lucide/svelte/icons/link'
 import FileDigit from '@lucide/svelte/icons/file-digit'
 import FingerprintPattern from '@lucide/svelte/icons/fingerprint-pattern'
 import Dices from '@lucide/svelte/icons/dices'
+import FileCheck from '@lucide/svelte/icons/file-check'
+import IdCard from '@lucide/svelte/icons/id-card'
 import UserLock from '@lucide/svelte/icons/user-lock'
 import Regex from '@lucide/svelte/icons/regex'
 import Network from '@lucide/svelte/icons/network'
@@ -28,7 +31,11 @@ import Send from '@lucide/svelte/icons/send'
 import Type from '@lucide/svelte/icons/type'
 import Diff from '@lucide/svelte/icons/diff'
 import CaseSensitive from '@lucide/svelte/icons/case-sensitive'
+import Palette from '@lucide/svelte/icons/palette'
+import QrCode from '@lucide/svelte/icons/qr-code'
+import ScanQrCode from '@lucide/svelte/icons/scan-qr-code'
 import Sheet from '@lucide/svelte/icons/sheet'
+import TableProperties from '@lucide/svelte/icons/table-properties'
 import Leaf from '@lucide/svelte/icons/leaf'
 import Timer from '@lucide/svelte/icons/timer'
 import Eye from '@lucide/svelte/icons/eye'
@@ -196,7 +203,7 @@ export const tools: ToolDef[] = [
     id: 'encode',
     title: 'Encode & hash',
     group: 'Utilities',
-    description: 'URL and hex encoding, hashes, random secrets and htpasswd lines.',
+    description: 'URL and hex encoding, hashes and file checksums, passwords, random secrets, UUIDs and htpasswd lines.',
     icon: Hash,
     hue: 'pink',
     keywords: ['encode', 'hash'],
@@ -220,14 +227,35 @@ export const tools: ToolDef[] = [
         title: 'Hash',
         description: 'SHA-256, SHA-512, SHA-1 and MD5 of text, and HMAC with a key.',
         icon: FingerprintPattern,
-        keywords: ['sha256', 'sha512', 'sha1', 'md5', 'hmac', 'checksum', 'digest'],
+        keywords: ['sha256', 'sha512', 'sha1', 'md5', 'hmac', 'digest'],
+      },
+      {
+        id: 'checksum',
+        title: 'Checksum',
+        description: 'Checksums of files, of any size, checked against an expected value or a checksums file.',
+        icon: FileCheck,
+        keywords: ['checksum', 'sha256sum', 'verify', 'download', 'file hash', 'checksums.txt', 'integrity'],
+      },
+      {
+        id: 'password',
+        title: 'Password',
+        description: 'Passwords by the rules a site asks for, or passphrases of random words, with their strength.',
+        icon: SquareAsterisk,
+        keywords: ['password', 'passphrase', 'diceware', 'eff', 'generate', 'pin', 'strength', 'entropy'],
       },
       {
         id: 'secrets',
-        title: 'Secrets & UUID',
-        description: 'Random secrets by length and character set, UUIDs, and placeholder commit SHAs.',
+        title: 'Secrets',
+        description: 'Random secrets by length and character set, and placeholder commit SHAs.',
         icon: Dices,
-        keywords: ['random', 'password', 'generate', 'uuid', 'guid', 'token', 'commit', 'sha', 'git', 'placeholder'],
+        keywords: ['random', 'api key', 'generate', 'token', 'commit', 'sha', 'git', 'placeholder'],
+      },
+      {
+        id: 'uuid',
+        title: 'UUID',
+        description: 'UUIDs v4, v7, v5 and v3, up to 1000 at a time; read one for its version and time.',
+        icon: IdCard,
+        keywords: ['uuid', 'guid', 'v4', 'v7', 'v5', 'ulid', 'identifier'],
       },
       {
         id: 'htpasswd',
@@ -283,7 +311,7 @@ export const tools: ToolDef[] = [
     id: 'text',
     title: 'Text & data',
     group: 'Utilities',
-    description: 'Compare two texts, change the case of names, and read CSV or TSV as a table.',
+    description: 'Compare two texts, change the case of names, read CSV or TSV as a table, and make test data.',
     icon: Type,
     hue: 'violet',
     keywords: ['text'],
@@ -309,6 +337,13 @@ export const tools: ToolDef[] = [
         icon: Sheet,
         keywords: ['csv', 'tsv', 'table', 'spreadsheet', 'delimited', 'markdown table', 'json to csv'],
       },
+      {
+        id: 'fake',
+        title: 'Test data',
+        description: 'Rows of made-up data as JSON, CSV, YAML or SQL, and lorem ipsum; a seed repeats them.',
+        icon: TableProperties,
+        keywords: ['fake', 'mock', 'test data', 'seed', 'lorem', 'ipsum', 'placeholder', 'sql insert', 'faker'],
+      },
     ],
     load: () => import('../features/text/TextTool.svelte'),
   },
@@ -321,6 +356,42 @@ export const tools: ToolDef[] = [
     hue: 'peach',
     keywords: ['regexp', 'regular expression', 'pattern', 'match', 'replace'],
     load: () => import('../features/regex/RegexTool.svelte'),
+  },
+  {
+    id: 'qr',
+    title: 'QR code',
+    group: 'Utilities',
+    description: 'Make a QR code for a link, a Wi-Fi login or an authenticator, and read one from an image.',
+    icon: QrCode,
+    hue: 'cyan',
+    keywords: ['qr', 'barcode', 'scan', 'wifi', 'totp', 'otpauth'],
+    tabs: [
+      {
+        id: 'make',
+        title: 'Make',
+        description: 'Text, a link, a Wi-Fi login or an authenticator setup as a QR code, saved as PNG or SVG.',
+        icon: QrCode,
+        keywords: ['generate', 'create', 'wifi qr', 'totp qr', 'png', 'svg'],
+      },
+      {
+        id: 'read',
+        title: 'Read',
+        description: 'The text in a QR code from a dropped, pasted or chosen image.',
+        icon: ScanQrCode,
+        keywords: ['decode', 'scan', 'read qr', 'screenshot'],
+      },
+    ],
+    load: () => import('../features/qr/QrTool.svelte'),
+  },
+  {
+    id: 'colour',
+    title: 'Colour',
+    group: 'Utilities',
+    description: 'HEX, RGB, HSL, HSV, OKLCH and names; WCAG contrast with AA and AAA; a scale of shades.',
+    icon: Palette,
+    hue: 'lime',
+    keywords: ['color', 'colour', 'hex', 'rgb', 'hsl', 'oklch', 'contrast', 'wcag', 'a11y', 'palette', 'shades'],
+    load: () => import('../features/colour/ColourTool.svelte'),
   },
   {
     id: 'wellness',

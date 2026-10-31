@@ -12,7 +12,7 @@ export type Mode =
   | 'jwt'
   | 'ansible'
 
-export type Kind = 'json' | 'jwt' | 'base64' | 'ansible' | 'epoch' | 'url' | 'cron' | 'log' | 'cidr' | 'ip' | 'curl' | 'csv' | 'tsv' | 'jsonc' | 'json5' | 'unknown'
+export type Kind = 'json' | 'jwt' | 'base64' | 'ansible' | 'epoch' | 'url' | 'cron' | 'log' | 'cidr' | 'ip' | 'curl' | 'csv' | 'tsv' | 'jsonc' | 'json5' | 'uuid' | 'ulid' | 'colour' | 'unknown'
 
 export interface TransformRequest {
   input: string

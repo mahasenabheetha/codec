@@ -25,7 +25,11 @@ type encodeRequest struct {
 	Algorithms []string `json:"algorithms"`
 	// Secrets and UUIDs
 	Secret encode.SecretOptions `json:"secret"`
-	Count  int                  `json:"count"`
+	UUID   encode.UUIDOptions   `json:"uuid"`
+	// Passwords (op passphrase for words)
+	Rules  encode.PasswordOptions   `json:"rules"`
+	Phrase encode.PassphraseOptions `json:"phrase"`
+	Count  int                      `json:"count"`
 	// Commit SHA placeholders: sha1 (default), short or sha256.
 	Form string `json:"form"`
 	// htpasswd
@@ -35,7 +39,9 @@ type encodeRequest struct {
 	Line     string `json:"line"`
 }
 
-// POST /api/v2/encode/{kind}: url, hex, hash, secret, uuid, sha, htpasswd.
+// POST /api/v2/encode/{kind}: url, hex, hash, secret, uuid (make, or
+// op parse), password (op passphrase for words), sha, htpasswd, expected
+// (checksums to compare with).
 // Input and output are never kept (decision 19). Bad input is a 422
 // with the reason.
 func (s *Server) handleEncode(w http.ResponseWriter, r *http.Request) {
@@ -95,11 +101,43 @@ func (s *Server) handleEncode(w http.ResponseWriter, r *http.Request) {
 		}
 		writeJSON(w, http.StatusOK, map[string]any{"secrets": out})
 	case "uuid:":
-		out := make([]string, count)
-		for i := range out {
-			out[i] = encode.UUID()
+		out, err := encode.NewUUIDs(req.UUID, req.Count) // up to MaxUUIDs, not maxCount
+		if err != nil {
+			fail(err)
+			return
 		}
 		writeJSON(w, http.StatusOK, map[string]any{"uuids": out})
+	case "password:", "password:passphrase":
+		out := make([]encode.Password, 0, count)
+		for range count {
+			var p encode.Password
+			var err error
+			if req.Op == "passphrase" {
+				p, err = encode.NewPassphrase(req.Phrase)
+			} else {
+				p, err = encode.NewPassword(req.Rules)
+			}
+			if err != nil {
+				fail(err)
+				return
+			}
+			out = append(out, p)
+		}
+		writeJSON(w, http.StatusOK, map[string]any{"passwords": out})
+	case "uuid:parse":
+		info, err := encode.ParseUUID(req.Input)
+		if err != nil {
+			fail(err)
+			return
+		}
+		writeJSON(w, http.StatusOK, info)
+	case "expected:":
+		es, err := encode.ParseExpected(req.Input)
+		if err != nil {
+			fail(err)
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]any{"expected": es})
 	case "sha:":
 		out := make([]string, count)
 		for i := range out {

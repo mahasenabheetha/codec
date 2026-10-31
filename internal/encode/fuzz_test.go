@@ -2,6 +2,7 @@ package encode
 
 import (
 	"bytes"
+	"strings"
 	"testing"
 )
 
@@ -44,5 +45,29 @@ func FuzzParseURL(f *testing.F) {
 	}
 	f.Fuzz(func(t *testing.T, s string) {
 		ParseURL(s)
+	})
+}
+
+// FuzzParseExpected: any pasted text either fails or gives digests of a
+// supported size, in lower-case hex.
+func FuzzParseExpected(f *testing.F) {
+	for _, s := range []string{
+		"ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad  a.tar.gz",
+		"SHA256 (a) = ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+		"ungWv48Bz+pBQUDeXa4iI7ADYaOWF3qctBD/YfIAFa0=",
+		"# c\n900150983cd24fb0d6963f7d28e17f72 *b.zip",
+	} {
+		f.Add(s)
+	}
+	f.Fuzz(func(t *testing.T, s string) {
+		es, err := ParseExpected(s)
+		if err != nil {
+			return
+		}
+		for _, e := range es {
+			if byLength[len(e.Hex)/2] != e.Algorithm || strings.ToLower(e.Hex) != e.Hex {
+				t.Fatalf("%q gave %+v", s, e)
+			}
+		}
 	})
 }

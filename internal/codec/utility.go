@@ -2,7 +2,9 @@ package codec
 
 import (
 	"fmt"
+	"math"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 	"unicode"
@@ -97,6 +99,12 @@ func DetectUtility(s string, now time.Time) (*Utility, bool) {
 		return u, true
 	}
 	if u, ok := networkUtility(s); ok {
+		return u, true
+	}
+	if u, ok := idUtility(s); ok {
+		return u, true
+	}
+	if u, ok := colourUtility(s); ok {
 		return u, true
 	}
 	if u, ok := lenientJSON(s); ok {
@@ -325,4 +333,85 @@ func looksLikeCron(s string) bool {
 		}
 	}
 	return numeric >= 2
+}
+
+// uuidText is a UUID as people write it: hyphenated, maybe in braces or
+// as a URN. 32 bare hex digits are left alone (an MD5 looks the same).
+var uuidText = regexp.MustCompile(`(?i)^(?:urn:uuid:)?\{?[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\}?$`)
+
+// idUtility recognises a UUID or a ULID, for Encode & hash → UUID. A
+// ULID needs digits and letters both, so a 26-letter word isn't one.
+func idUtility(s string) (*Utility, bool) {
+	isULID := false
+	if !uuidText.MatchString(s) {
+		if _, _, ok := encode.ParseULID(s); !ok || !strings.ContainsAny(s, "0123456789") || strings.Trim(s, "0123456789") == "" {
+			return nil, false
+		}
+		isULID = true
+	}
+	info, err := encode.ParseUUID(s)
+	if err != nil {
+		return nil, false
+	}
+	var b strings.Builder
+	if isULID {
+		fmt.Fprintf(&b, "ULID %s\n\nUUID form  %s\nMade       %s", info.ULID, info.UUID, info.Time)
+	} else {
+		fmt.Fprintf(&b, "UUID %s\n\nVersion  %d · %s\nVariant  %s", info.UUID, info.Version, info.Kind, info.Variant)
+		if info.Time != "" {
+			fmt.Fprintf(&b, "\nMade     %s", info.Time)
+		}
+	}
+	kind := "uuid"
+	if isULID {
+		kind = "ulid"
+	}
+	return &Utility{Kind: kind, Tool: "encode", Tab: "uuid", Summary: b.String()}, true
+}
+
+// hexColour is a CSS hex colour; the # is required, since bare hex is
+// as likely a hash or a number.
+var hexColour = regexp.MustCompile(`(?i)^#(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$`)
+
+// colourUtility recognises a hex colour, for the Colour tool.
+func colourUtility(s string) (*Utility, bool) {
+	if !hexColour.MatchString(s) {
+		return nil, false
+	}
+	x := strings.ToLower(s[1:])
+	if len(x) <= 4 {
+		var full strings.Builder
+		for _, c := range x {
+			full.WriteRune(c)
+			full.WriteRune(c)
+		}
+		x = full.String()
+	}
+	var v [4]int
+	v[3] = 255
+	for i := 0; i*2 < len(x); i++ {
+		n, _ := strconv.ParseUint(x[i*2:i*2+2], 16, 8)
+		v[i] = int(n)
+	}
+	r, g, bl := float64(v[0])/255, float64(v[1])/255, float64(v[2])/255
+	mx, mn := max(r, g, bl), min(r, g, bl)
+	l := (mx + mn) / 2
+	h, sat := 0.0, 0.0
+	if d := mx - mn; d > 0 {
+		sat = d / (1 - math.Abs(2*l-1))
+		switch mx {
+		case r:
+			h = math.Mod((g-bl)/d+6, 6)
+		case g:
+			h = (bl-r)/d + 2
+		default:
+			h = (r-g)/d + 4
+		}
+		h *= 60
+	}
+	sum := fmt.Sprintf("Colour #%s\n\nRGB  rgb(%d, %d, %d)\nHSL  hsl(%.0f, %.0f%%, %.0f%%)", x[:6], v[0], v[1], v[2], h, sat*100, l*100)
+	if v[3] < 255 {
+		sum += fmt.Sprintf("\nAlpha %.2f", float64(v[3])/255)
+	}
+	return &Utility{Kind: "colour", Tool: "colour", Tab: "", Summary: sum}, true
 }
