@@ -21,6 +21,14 @@ All notable changes to codec are documented here. The format follows
   (JSON ⇄ YAML), Diff (two documents by path), Paths (flatten and back),
   Schema (inferred from samples or JSON Lines) and Query (jq). Tool
   outputs everywhere gain the find bar and JSON colouring.
+- **CSV & TSV**, a new tab in Text & data: delimited text as a table,
+  the delimiter and header row guessed (or chosen), quoted fields with
+  line breaks read; sort by a column, filter rows, see each column's
+  type and how many values are filled, empty and distinct. Convert to
+  JSON (typed by column, or all text), JSON Lines, YAML, a Markdown
+  table, CSV or TSV, and a JSON array of objects back to CSV. On the
+  command line: `codec csv info`, `codec csv to` and
+  `codec csv from-json`.
 
 - Tabs in Smart paste, Base64 and Compare, like the Log viewer's: keep
   several pastes or comparisons open at once, each with its own input,

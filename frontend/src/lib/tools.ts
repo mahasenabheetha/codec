@@ -28,6 +28,7 @@ import Send from '@lucide/svelte/icons/send'
 import Type from '@lucide/svelte/icons/type'
 import Diff from '@lucide/svelte/icons/diff'
 import CaseSensitive from '@lucide/svelte/icons/case-sensitive'
+import Sheet from '@lucide/svelte/icons/sheet'
 import Leaf from '@lucide/svelte/icons/leaf'
 import Timer from '@lucide/svelte/icons/timer'
 import Eye from '@lucide/svelte/icons/eye'
@@ -282,7 +283,7 @@ export const tools: ToolDef[] = [
     id: 'text',
     title: 'Text & data',
     group: 'Utilities',
-    description: 'Compare two texts, and change the case of names.',
+    description: 'Compare two texts, change the case of names, and read CSV or TSV as a table.',
     icon: Type,
     hue: 'violet',
     keywords: ['text'],
@@ -300,6 +301,13 @@ export const tools: ToolDef[] = [
         description: 'camelCase, snake_case, kebab-case and more, with Kubernetes, environment-variable and Helm name rules.',
         icon: CaseSensitive,
         keywords: ['camel', 'snake', 'kebab', 'pascal', 'constant', 'dns-1123', 'k8s name', 'env var'],
+      },
+      {
+        id: 'table',
+        title: 'CSV & TSV',
+        description: 'Delimited text as a table to sort and filter, with column types; converted to JSON, YAML, Markdown and back.',
+        icon: Sheet,
+        keywords: ['csv', 'tsv', 'table', 'spreadsheet', 'delimited', 'markdown table', 'json to csv'],
       },
     ],
     load: () => import('../features/text/TextTool.svelte'),
