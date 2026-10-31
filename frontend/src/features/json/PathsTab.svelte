@@ -10,16 +10,17 @@
   import InputPane from '../shared/InputPane.svelte'
   import ToolLayout from '../shared/ToolLayout.svelte'
   import ToolTabs from '../shared/ToolTabs.svelte'
-  import { Job, TextJob } from '../shared/job.svelte'
+  import { Job } from '../shared/job.svelte'
   import { toolShortcuts, toolStatus } from '../shared/tool.svelte'
-  import { jsonDoc, jsonPrefs, liveJob, sampleDoc } from './doc.svelte'
+  import { useJsonDoc, jsonPrefs, liveJob, sampleDoc } from './doc.svelte'
 
   // Every value as a path and value (.spec.replicas = 3), and back.
   let { tool, active }: { tool: ToolDef; active: boolean } = $props()
+  const jsonDoc = useJsonDoc()
 
   type Dir = 'flatten' | 'unflatten'
   let dir = $state<Dir>('flatten')
-  const lines = new TextJob<never>()
+  const lines = jsonDoc.lines
   const job = new Job<{ output: string; count?: number }>()
   let editor = $state<CodeView>()
   const src = $derived(dir === 'flatten' ? jsonDoc : lines)

@@ -9,18 +9,19 @@
   import InputPane from '../shared/InputPane.svelte'
   import ToolLayout from '../shared/ToolLayout.svelte'
   import ToolTabs from '../shared/ToolTabs.svelte'
-  import { Job, TextJob } from '../shared/job.svelte'
+  import { Job } from '../shared/job.svelte'
   import { toolCommands, toolShortcuts, toolStatus } from '../shared/tool.svelte'
-  import { jsonDoc, jsonPrefs, liveJob, sampleDoc } from './doc.svelte'
+  import { useJsonDoc, jsonPrefs, liveJob, sampleDoc } from './doc.svelte'
 
   // JSON ⇄ YAML, keeping key order. JSON → YAML reads the shared
   // document; YAML → JSON has its own input. Swap moves the result over
   // and turns the direction round.
   let { tool, active }: { tool: ToolDef; active: boolean } = $props()
+  const jsonDoc = useJsonDoc()
 
   type Dir = 'to-yaml' | 'to-json'
   let dir = $state<Dir>('to-yaml')
-  const yamlDoc = new TextJob<never>() // only its input is used
+  const yamlDoc = jsonDoc.yaml
   const job = new Job<{ output: string }>()
   let editor = $state<CodeView>()
   const src = $derived(dir === 'to-yaml' ? jsonDoc : yamlDoc)

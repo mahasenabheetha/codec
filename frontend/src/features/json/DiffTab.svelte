@@ -15,33 +15,32 @@
   import { Job } from '../shared/job.svelte'
   import { toolStatus } from '../shared/tool.svelte'
   import DiffSide from '../text/DiffSide.svelte'
-  import { liveJob } from './doc.svelte'
+  import { liveJob, useJsonDoc } from './doc.svelte'
 
   // Two JSON documents compared by path: what was added, removed,
   // changed, or changed type. Key order and formatting don't count;
   // numbers are compared by value.
   let { tool, active }: { tool: ToolDef; active: boolean } = $props()
 
-  let left = $state('')
-  let right = $state('')
+  const doc = useJsonDoc() // the sides are the work tab's (decision 98)
   let leftName = $state('')
   let rightName = $state('')
   const job = new Job<{ changes: Change[] }>()
 
   liveJob(() => active, job, () => {
-    const a = left
-    const b = right
+    const a = doc.left.input
+    const b = doc.right.input
     if (!a.trim() || !b.trim()) return null
     return () => diffJSON(a, b)
   })
 
   function swap() {
-    ;[left, right] = [right, left]
+    ;[doc.left.input, doc.right.input] = [doc.right.input, doc.left.input]
     ;[leftName, rightName] = [rightName, leftName]
   }
   function sample() {
-    left = '{\n  "name": "api",\n  "replicas": 2,\n  "ports": [80, 443],\n  "env": { "LOG": "info" }\n}'
-    right = '{\n  "name": "api",\n  "replicas": 3,\n  "ports": [80],\n  "env": { "LOG": "debug", "TRACE": true },\n  "port": "8080"\n}'
+    doc.left.input = '{\n  "name": "api",\n  "replicas": 2,\n  "ports": [80, 443],\n  "env": { "LOG": "info" }\n}'
+    doc.right.input = '{\n  "name": "api",\n  "replicas": 3,\n  "ports": [80],\n  "env": { "LOG": "debug", "TRACE": true },\n  "port": "8080"\n}'
   }
 
   const changes = $derived(job.result?.changes ?? [])
@@ -65,13 +64,13 @@
     <ToolTabs {tool} />
   {/snippet}
   {#snippet actions()}
-    <IconButton icon={ArrowLeftRight} tone="swap" label="Swap the sides" disabled={!left && !right} onclick={swap} />
+    <IconButton icon={ArrowLeftRight} tone="swap" label="Swap the sides" disabled={!doc.left.input && !doc.right.input} onclick={swap} />
   {/snippet}
   {#snippet body()}
     <div class="frame">
       <div class="sides">
-        <DiffSide title="Old" bind:value={left} bind:name={leftName} placeholder="Paste JSON, JSONC or JSON5, or drop a file" />
-        <DiffSide title="New" bind:value={right} bind:name={rightName} placeholder="…and the document to compare it with" />
+        <DiffSide title="Old" bind:value={doc.left.input} bind:name={leftName} placeholder="Paste JSON, JSONC or JSON5, or drop a file" />
+        <DiffSide title="New" bind:value={doc.right.input} bind:name={rightName} placeholder="…and the document to compare it with" />
       </div>
       <section class="result" aria-label="Differences">
         {#if job.error}

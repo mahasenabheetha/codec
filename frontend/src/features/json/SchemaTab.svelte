@@ -11,11 +11,12 @@
   import ToolTabs from '../shared/ToolTabs.svelte'
   import { Job } from '../shared/job.svelte'
   import { toolShortcuts, toolStatus } from '../shared/tool.svelte'
-  import { jsonDoc, jsonPrefs, liveJob, sampleDoc } from './doc.svelte'
+  import { useJsonDoc, jsonPrefs, liveJob, sampleDoc } from './doc.svelte'
 
   // A JSON Schema every sample fits: one document, several pasted one
   // after another, or JSON Lines.
   let { tool, active }: { tool: ToolDef; active: boolean } = $props()
+  const jsonDoc = useJsonDoc()
 
   const job = new Job<{ output: string; samples: number }>()
   let editor = $state<CodeView>()

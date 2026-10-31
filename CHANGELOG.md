@@ -45,6 +45,9 @@ All notable changes to codec are documented here. The format follows
 - The Ansible log tool has the same tabs: several logs open at once,
   each named after its file or playbook and red when it has failures;
   the playbook map colours from the current tab's log.
+- JSON & YAML has tabs too: several documents open at once, each with
+  its own inputs (Diff's sides, the Query filter…) and the view it was
+  left on; Kubernetes-shaped documents name their tab (Deployment/api).
 
 ## [3.6.0] - 2026-10-31
 

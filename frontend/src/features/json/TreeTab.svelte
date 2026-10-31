@@ -17,13 +17,14 @@
   import ToolTabs from '../shared/ToolTabs.svelte'
   import { Job } from '../shared/job.svelte'
   import { toolStatus } from '../shared/tool.svelte'
-  import { jsonDoc, liveJob, sampleDoc } from './doc.svelte'
+  import { useJsonDoc, liveJob, sampleDoc } from './doc.svelte'
   import JsonTree from './JsonTree.svelte'
 
   // The document as a tree you can fold, with the path of any value a
   // click away; a search lists every match by path. Input too big to
   // draw as a tree gets its counts instead.
   let { tool, active }: { tool: ToolDef; active: boolean } = $props()
+  const jsonDoc = useJsonDoc()
 
   const BIG = 2 << 20 // above this, counts instead of a tree
   interface TreeData {

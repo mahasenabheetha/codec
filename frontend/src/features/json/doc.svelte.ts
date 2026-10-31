@@ -1,12 +1,13 @@
 // State the JSON & YAML tabs share (3.7.0): the document pasted once and
 // looked at every way (Format, Tree, Paths, Schema, Query, and Convert
-// from JSON), and the formatting choices. The text is never stored (19);
+// from JSON), one per work tab (decision 98), and the formatting choices. The text is never stored (19);
 // the choices are display preferences.
-import { untrack } from 'svelte'
+import { getContext, setContext, untrack } from 'svelte'
 import { persisted } from '../../lib/stores/persist.svelte'
 import type { Job } from '../shared/job.svelte'
 
-class Doc {
+/** A text box's content. */
+export class Text {
   input = $state('')
 
   clear() {
@@ -14,8 +15,29 @@ class Doc {
   }
 }
 
-/** The shared document. */
-export const jsonDoc = new Doc()
+/** A work tab's texts: the document the sub-tabs share, and the inputs
+ *  of their own (Convert's YAML, Paths' lines, Diff's sides), kept here
+ *  so that closing the tab can offer Undo for any of them. */
+export class Doc extends Text {
+  yaml = new Text()
+  lines = new Text()
+  left = new Text()
+  right = new Text()
+
+  get hasText(): boolean {
+    return [this, this.yaml, this.lines, this.left, this.right].some((t) => !!t.input.trim())
+  }
+}
+
+// Each work tab (decision 98) is a document: its sub-tabs find it in
+// their context.
+const docKey = Symbol('json-doc')
+
+/** Give the sub-tabs below this component their document. */
+export const provideJsonDoc = (d: Doc) => setContext(docKey, d)
+
+/** The document of the work tab this sub-tab belongs to. */
+export const useJsonDoc = () => getContext<Doc>(docKey)
 
 export interface JsonPrefs {
   /** Indentation: two spaces, four, or a tab. */

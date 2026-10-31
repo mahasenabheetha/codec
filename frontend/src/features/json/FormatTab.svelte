@@ -10,7 +10,6 @@
   import Select from '../../lib/components/Select.svelte'
   import Toggle from '../../lib/components/Toggle.svelte'
   import { formatJSON, type Dialect } from '../../lib/api/json'
-  import { handoff } from '../../lib/stores/handoff.svelte'
   import type { ToolDef } from '../../lib/tools'
   import { copyText } from '../../lib/utils/clipboard'
   import { formatShortcut } from '../../lib/utils/platform'
@@ -23,10 +22,10 @@
   import { Job } from '../shared/job.svelte'
   import { sizeLabel } from '../shared/detect'
   import { toolCommands, toolShortcuts, toolStatus } from '../shared/tool.svelte'
-  import { untrack } from 'svelte'
-  import { jsonDoc, jsonPrefs, liveJob, sampleDoc } from './doc.svelte'
+  import { useJsonDoc, jsonPrefs, liveJob, sampleDoc } from './doc.svelte'
 
   let { tool, active }: { tool: ToolDef; active: boolean } = $props()
+  const jsonDoc = useJsonDoc()
 
   type Mode = 'pretty' | 'min' | 'validate'
   let mode = $state<Mode>('pretty')
@@ -43,15 +42,6 @@
     return () => formatJSON(input, { indent, sort })
   }
   liveJob(() => active, job, call)
-  // JSONC or JSON5 handed over by smart paste.
-  $effect(() => {
-    const v = handoff.take('json', 'format')
-    if (v !== null)
-      untrack(() => {
-        mode = 'pretty'
-        jsonDoc.input = v
-      })
-  })
 
   const run = () => job.run(call())
   const copy = () => copyText(job.result?.output ?? '')

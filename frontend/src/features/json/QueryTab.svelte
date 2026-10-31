@@ -13,11 +13,12 @@
   import ToolTabs from '../shared/ToolTabs.svelte'
   import { Job } from '../shared/job.svelte'
   import { toolShortcuts, toolStatus } from '../shared/tool.svelte'
-  import { jsonDoc, jsonPrefs, liveJob, sampleDoc } from './doc.svelte'
+  import { useJsonDoc, jsonPrefs, liveJob, sampleDoc } from './doc.svelte'
 
   // A jq filter over the document (gojq: no environment, 1000 results,
   // 5 seconds). Each result shows as JSON.
   let { tool, active }: { tool: ToolDef; active: boolean } = $props()
+  const jsonDoc = useJsonDoc()
 
   let expr = $state('.')
   let compact = $state(false)
