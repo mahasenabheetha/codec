@@ -35,10 +35,21 @@
     url: 'URL-encoded → decoded',
     cron: 'Cron expression → explained',
     log: 'Log → summarised',
+    cidr: 'CIDR range → described',
+    ip: 'IP address → converted',
+    curl: 'curl command → fetch',
     unknown: 'unrecognised',
   }
   // Where the full tool for a Utilities kind lives.
-  const openLabel: Record<string, string> = { timestamp: 'Open in Timestamp', url: 'Open in URL', cron: 'Open in Cron', viewer: 'Open in Log viewer' }
+  const openLabel: Record<string, string> = {
+    timestamp: 'Open in Timestamp',
+    url: 'Open in URL',
+    cron: 'Open in Cron',
+    viewer: 'Open in Log viewer',
+    cidr: 'Open in CIDR',
+    ip: 'Open in IP',
+    http: 'Open in HTTP',
+  }
   function openUtility() {
     const u = session.result?.utility
     if (u) handoff.send(u.tool, u.tab, session.input.trim())

@@ -16,9 +16,11 @@ import (
 // internal/timeutil and internal/cron.
 
 var (
-	timeZone string
-	timeJSON bool
-	cronRuns int
+	timeZone    string
+	timeJSON    bool
+	cronRuns    int
+	timeIn      []string
+	timeFormats bool
 )
 
 var timeCmd = &cobra.Command{
@@ -28,7 +30,7 @@ var timeCmd = &cobra.Command{
 and relative to now. An epoch number's unit is told by its size: up to 11
 digits are seconds, then milliseconds, microseconds and nanoseconds. A
 date without a zone is read in --zone.`,
-	Example: "  codec time\n  codec time 1770120309123\n  codec time '2026-02-03 13:05' --zone Europe/Stockholm",
+	Example: "  codec time\n  codec time 1770120309123\n  codec time '2026-02-03 13:05' --zone Europe/Stockholm\n  codec time 14:00 --zone Europe/Stockholm --in America/New_York,Asia/Kolkata\n  codec time --formats",
 	Args:    cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		loc, err := timeutil.Zone(timeZone)
@@ -36,6 +38,9 @@ date without a zone is read in --zone.`,
 			return err
 		}
 		now := time.Now()
+		if len(timeIn) > 0 || timeFormats {
+			return timeElsewhere(args, loc, now)
+		}
 		var st *timeutil.Stamp
 		if len(args) == 0 {
 			st = timeutil.Describe(now, "now", loc, now)
@@ -62,6 +67,47 @@ date without a zone is read in --zone.`,
 		tw.Flush()
 		return emit(strings.TrimRight(b.String(), "\n"))
 	},
+}
+
+// timeElsewhere answers --in (the moment in other zones) and --formats.
+func timeElsewhere(args []string, loc *time.Location, now time.Time) error {
+	in := ""
+	if len(args) > 0 {
+		in = args[0]
+	}
+	t, err := timeutil.Instant(in, loc, now)
+	if err != nil {
+		return err
+	}
+	if timeFormats {
+		fs := timeutil.Formats(t, loc)
+		if timeJSON {
+			return emitJSON(fs)
+		}
+		return emit(timeutil.FormatsText(fs))
+	}
+	zs, err := timeutil.Zones(t, append([]string{loc.String()}, timeIn...))
+	if err != nil {
+		return err
+	}
+	if timeJSON {
+		return emitJSON(zs)
+	}
+	var b strings.Builder
+	tw := tabwriter.NewWriter(&b, 0, 4, 2, ' ', 0)
+	for _, z := range zs {
+		day := ""
+		if z.DayShift != 0 {
+			day = fmt.Sprintf("(%+d day)", z.DayShift)
+		}
+		next := ""
+		if z.Next != nil {
+			next = "next: " + z.Next.Change + " on " + z.Next.At[:10]
+		}
+		fmt.Fprintf(tw, "%s\t%s %s\t%s %s\t%s\t%s\n", z.Zone, z.Date, z.Time, z.Abbr, z.Offset, day, next)
+	}
+	tw.Flush()
+	return emit(strings.TrimRight(b.String(), "\n"))
 }
 
 var cronCmd = &cobra.Command{
@@ -125,5 +171,7 @@ func init() {
 		c.Flags().BoolVar(&timeJSON, "json", false, "print as JSON")
 	}
 	cronCmd.Flags().IntVarP(&cronRuns, "count", "n", 10, "how many next runs to list")
+	timeCmd.Flags().StringSliceVar(&timeIn, "in", nil, "show the moment in these zones too (a bare 14:00 is today in --zone)")
+	timeCmd.Flags().BoolVar(&timeFormats, "formats", false, "write the moment in RFC 3339, RFC 2822, ISO week, Unix ms and the other standard formats")
 	rootCmd.AddCommand(timeCmd, cronCmd)
 }

@@ -6,6 +6,67 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+## [3.4.0] - 2026-10-31
+
+Network and text tools under Utilities: CIDR ranges and overlaps, IP
+addresses, a URL builder, curl ⇄ fetch and HTTP status codes; a text
+diff and a name in every case with the Kubernetes, Helm and env-var
+rules; time zones with a working-hours overlap and date formats for
+every language; placeholder commit SHAs; and smart paste for all of
+them.
+
+### Added
+
+- Secrets & UUID makes placeholder git commit ids: Commit SHA gives
+  random lowercase hex in the shape of a commit id, 40 characters, the
+  7-character short form, or 64 for SHA-256 repositories; also
+  `codec sha` (`--short`, `--sha256`, `-n`).
+- Network tool, under Utilities: **CIDR** shows a range in detail (IPv4
+  and IPv6: network, broadcast, hosts, mask, wildcard, the kind of
+  range), splits it into subnets and checks an address; **Overlaps**
+  marks the ranges of a list that share addresses, with their # names;
+  **IP** shows an address as integer, hex and binary, IPv6 expanded,
+  and its reverse-DNS name; **URL builder** takes a URL apart into
+  fields and a query table to edit, and puts it back together; **HTTP**
+  turns a curl command (browser "Copy as cURL" included) into fetch and
+  a fetch call into curl, saying in a note what can't be carried over,
+  and explains status codes with their usual cause and whether to
+  retry. On the command line: `codec cidr` (`--split`, `--contains`,
+  several ranges for overlaps), `codec ip`, `codec url build` (`--set`,
+  `--add`, `--del`), `codec curl` (`--from-fetch`) and
+  `codec http status`.
+- Text & data tool, under Utilities: **Text diff** compares two pasted
+  or dropped texts, side by side with the changed words marked or as a
+  unified patch, ignoring whitespace or case if asked; **Case & names**
+  writes a name in every case (camel, Pascal, snake, kebab, CONSTANT and
+  more, acronyms kept) and checks it against the Kubernetes name and
+  label rules, an environment-variable name and a Helm release name,
+  offering a name that passes. On the command line: `codec case`
+  (`--to`, `--check`).
+- Time tool: **Zones** shows a time in several zones at once (DST, a
+  day ahead or behind, the next clock change) with a strip of working
+  hours that marks when everyone is at work; **Formats** writes one
+  moment in RFC 3339, RFC 2822, ISO week and ordinal dates, the HTTP
+  date and Unix s/ms/µs/ns, and gives the format string for common
+  shapes in Go, Java, Python, .NET and JavaScript. On the command line:
+  `codec time --in` and `codec time --formats`.
+- Smart paste recognises a CIDR range, an IP address and a curl
+  command, shows what it found and opens it in the Network tool (a bare
+  number is never taken for an address). `codec auto` now does what
+  smart paste does for every utility kind (timestamps, URL encoding,
+  cron, logs, ranges, addresses, curl), naming the command that does
+  more.
+- Compare and Text diff: next and previous change (arrows, or Alt+↓ and
+  Alt+↑ in the diff).
+
+### Fixed
+
+- `scripts/dev.sh` and `scripts/desktop.sh` no longer empty
+  `frontend/node_modules` when `npm ci` fails (a registry that can't be
+  reached): they reinstall only when `package-lock.json`'s content
+  changes, not its timestamp, and put the old packages back if the
+  install fails.
+
 ## [3.3.0] - 2026-10-31
 
 Markdown preview: READMEs and docs in a repository read rendered, as on
@@ -696,7 +757,8 @@ First tagged release: codec as it stood before the 2.0 work began.
 - Release pipeline: pushing a `v*` tag publishes binaries for Linux,
   Windows and macOS (amd64/arm64) to GitHub Releases via GoReleaser.
 
-[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v3.3.0...HEAD
+[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v3.4.0...HEAD
+[3.4.0]: https://github.com/mahasenabheetha/codec/compare/v3.3.0...v3.4.0
 [3.3.0]: https://github.com/mahasenabheetha/codec/compare/v3.2.0...v3.3.0
 [3.2.0]: https://github.com/mahasenabheetha/codec/compare/v3.1.1...v3.2.0
 [3.1.1]: https://github.com/mahasenabheetha/codec/compare/v3.1.0...v3.1.1

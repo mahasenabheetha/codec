@@ -15,7 +15,7 @@ import (
 	"github.com/mahasenabheetha/codec/v2/internal/encode"
 )
 
-// The Encode & hash tool's commands: url, hex, hash, secret, uuid and
+// The Encode & hash tool's commands: url, hex, hash, secret, uuid, sha and
 // htpasswd. Logic lives in internal/encode.
 
 var (
@@ -28,6 +28,7 @@ var (
 	secretOpts                 encode.SecretOptions
 	secretSets                 []string
 	genCount                   int
+	shaShort, shaLong          bool
 	htCost                     int
 	htCheck                    string
 )
@@ -250,6 +251,37 @@ var uuidCmd = &cobra.Command{
 	},
 }
 
+var shaCmd = &cobra.Command{
+	Use:   "sha",
+	Short: "Generate placeholder git commit ids",
+	Long: `sha prints random lowercase hex in the shape of a git commit id, for
+placeholders in docs, tests and manifests: 40 characters (SHA-1, what
+almost every repository uses), 7 with --short, 64 with --sha256 for
+repositories made with --object-format=sha256. It names no real commit.`,
+	Example: "  codec sha\n  codec sha --short -n 5\n  codec sha --sha256",
+	Args:    cobra.NoArgs,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		form := "sha1"
+		switch {
+		case shaShort && shaLong:
+			return fmt.Errorf("--short and --sha256 don't go together")
+		case shaShort:
+			form = "short"
+		case shaLong:
+			form = "sha256"
+		}
+		lines := make([]string, min(max(genCount, 1), 10000))
+		for i := range lines {
+			s, err := encode.CommitSHA(form)
+			if err != nil {
+				return err
+			}
+			lines[i] = s
+		}
+		return emit(strings.Join(lines, "\n"))
+	},
+}
+
 var htpasswdCmd = &cobra.Command{
 	Use:   "htpasswd <user>",
 	Short: "Make a bcrypt user:hash line for basic auth, or check one",
@@ -359,12 +391,14 @@ func init() {
 	secretCmd.Flags().StringVar(&secretOpts.Format, "format", "text", "text, hex, base64 or base64url")
 	secretCmd.Flags().StringSliceVar(&secretSets, "sets", []string{"lower", "upper", "digits"}, "character sets for text: lower, upper, digits, symbols")
 	secretCmd.Flags().BoolVar(&secretOpts.NoAmbiguous, "no-ambiguous", false, "leave out I l 1 O 0 o")
-	for _, c := range []*cobra.Command{secretCmd, uuidCmd} {
+	shaCmd.Flags().BoolVar(&shaShort, "short", false, "the 7-character short form")
+	shaCmd.Flags().BoolVar(&shaLong, "sha256", false, "64 characters, as in SHA-256 repositories")
+	for _, c := range []*cobra.Command{secretCmd, uuidCmd, shaCmd} {
 		c.Flags().IntVarP(&genCount, "count", "n", 1, "how many to print")
 	}
 
 	htpasswdCmd.Flags().IntVar(&htCost, "cost", encode.DefaultCost, fmt.Sprintf("bcrypt cost, %d to %d (each step doubles the time)", encode.MinCost, encode.MaxCost))
 	htpasswdCmd.Flags().StringVar(&htCheck, "check", "", `check the password against this "user:hash" line`)
 
-	rootCmd.AddCommand(urlCmd, hexCmd, hashCmd, secretCmd, uuidCmd, htpasswdCmd)
+	rootCmd.AddCommand(urlCmd, hexCmd, hashCmd, secretCmd, uuidCmd, shaCmd, htpasswdCmd)
 }

@@ -111,6 +111,27 @@ func UUID() string {
 	return h[:8] + "-" + h[8:12] + "-" + h[12:16] + "-" + h[16:20] + "-" + h[20:]
 }
 
+// commitSHALengths are the hex lengths of a git object id: SHA-1 (what
+// almost every repository uses), its usual 7-character short form, and
+// SHA-256 repositories (git init --object-format=sha256).
+var commitSHALengths = map[string]int{"sha1": 40, "short": 7, "sha256": 64}
+
+// CommitSHA returns a random placeholder in the shape of a git commit
+// id: lowercase hex, 40 characters for form "sha1" (or ""), 7 for
+// "short", 64 for "sha256". It names no real commit.
+func CommitSHA(form string) (string, error) {
+	if form == "" {
+		form = "sha1"
+	}
+	n, ok := commitSHALengths[form]
+	if !ok {
+		return "", fmt.Errorf("unknown form %q (sha1, short, sha256)", form)
+	}
+	b := make([]byte, (n+1)/2)
+	rand.Read(b)
+	return hex.EncodeToString(b)[:n], nil
+}
+
 // pick is a uniform random index below n.
 func pick(n int) int {
 	v, err := rand.Int(rand.Reader, big.NewInt(int64(n)))

@@ -1,6 +1,7 @@
 package encode
 
 import (
+	"fmt"
 	"math"
 	"regexp"
 	"strings"
@@ -32,6 +33,35 @@ func TestURL(t *testing.T) {
 	}
 	if _, err := URLDecode("50%zz", false); err == nil || !strings.Contains(err.Error(), "character 3") {
 		t.Errorf("bad escape: %v", err)
+	}
+}
+
+func TestBuildURL(t *testing.T) {
+	for _, tt := range []struct {
+		parts URLParts
+		want  string
+	}{
+		{URLParts{Scheme: "https", Host: "x.io", Port: "8443", Path: "/a b/c", Query: []Param{{"q", "go lang"}, {"tag", "1"}, {"tag", "2&3"}}, Fragment: "top"}, "https://x.io:8443/a%20b/c?q=go+lang&tag=1&tag=2%263#top"},
+		{URLParts{Scheme: "http", Host: "::1", Port: "80", Path: "api"}, "http://[::1]:80/api"},
+		{URLParts{Scheme: "postgres", User: "app", Host: "db", Path: "/orders"}, "postgres://app@db/orders"},
+		{URLParts{Query: []Param{{"a", "1"}, {"", "x"}}}, "?a=1&=x"},
+		{URLParts{Host: "example.com"}, "//example.com"},
+	} {
+		got, err := BuildURL(tt.parts)
+		if err != nil || got != tt.want {
+			t.Errorf("%+v: %q (%v), want %q", tt.parts, got, err, tt.want)
+		}
+	}
+	for _, bad := range []URLParts{{Scheme: "1http", Host: "x"}, {Host: "x", Port: "99999"}, {Host: "x", Port: "web"}, {Port: "80"}, {User: "u"}} {
+		if got, err := BuildURL(bad); err == nil {
+			t.Errorf("%+v built as %q", bad, got)
+		}
+	}
+	// Parse and build again: the same parts.
+	in := "https://x.io:8080/search?q=a+b&tag=1&tag=2#r"
+	p, _ := ParseURL(in)
+	if out, _ := BuildURL(*p); out != in {
+		t.Errorf("round trip: %q", out)
 	}
 }
 
@@ -166,6 +196,26 @@ func TestUUID(t *testing.T) {
 			t.Fatalf("UUID %q", u)
 		}
 		seen[u] = true
+	}
+}
+
+func TestCommitSHA(t *testing.T) {
+	for form, n := range map[string]int{"": 40, "sha1": 40, "short": 7, "sha256": 64} {
+		re := regexp.MustCompile(fmt.Sprintf(`^[0-9a-f]{%d}$`, n))
+		seen := map[string]bool{}
+		for range 50 {
+			s, err := CommitSHA(form)
+			if err != nil || !re.MatchString(s) {
+				t.Fatalf("%q: %q, %v", form, s, err)
+			}
+			seen[s] = true
+		}
+		if n > 7 && len(seen) != 50 {
+			t.Errorf("%q: repeats in 50", form)
+		}
+	}
+	if _, err := CommitSHA("md5"); err == nil {
+		t.Error("unknown form accepted")
 	}
 }
 

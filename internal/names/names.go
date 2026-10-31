@@ -1,6 +1,9 @@
-// Package names suggests the name someone probably meant ("did you
-// mean"), for every lens that checks references by name: CI jobs,
-// Compose services, Ansible roles and handlers.
+// Package names works with names: it suggests the name someone probably
+// meant ("did you mean"), for every lens that checks references by name
+// (CI jobs, Compose services, Ansible roles and handlers), and for the
+// Case & names tool it writes a name in every case and checks it
+// against the naming rules of Kubernetes, Helm and environment
+// variables (case.go).
 package names
 
 import (

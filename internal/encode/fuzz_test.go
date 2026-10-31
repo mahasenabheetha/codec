@@ -21,6 +21,23 @@ func FuzzHex(f *testing.F) {
 	})
 }
 
+// FuzzBuildURL: query pairs of any text survive a build and a parse.
+func FuzzBuildURL(f *testing.F) {
+	f.Add("q", "a b&c=d", "tag", "")
+	f.Add("", "=", "%zz", "+")
+	f.Fuzz(func(t *testing.T, k1, v1, k2, v2 string) {
+		in := []Param{{k1, v1}, {k2, v2}}
+		s, err := BuildURL(URLParts{Query: in})
+		if err != nil {
+			t.Fatal(err)
+		}
+		p, err := ParseURL(s)
+		if err != nil || len(p.Query) != 2 || p.Query[0] != in[0] || p.Query[1] != in[1] {
+			t.Fatalf("%+v built as %q, parsed as %+v (%v)", in, s, p, err)
+		}
+	})
+}
+
 func FuzzParseURL(f *testing.F) {
 	for _, s := range []string{"https://u:p@host:8080/a/b?x=1&y=%20#frag", "/relative?q", "mailto:a@b", "http://[::1]:80/", "%zz"} {
 		f.Add(s)

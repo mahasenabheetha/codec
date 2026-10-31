@@ -180,7 +180,7 @@ set       spec.template.spec.containers[0].image=</span></code></pre>
 <h2 id="tools">Encode, decode, logs<a class="anchor" href="#tools">#</a></h2>
 <div class="table-wrap"><table>
   <tr><th>Command</th><th>What it does</th></tr>
-  <tr><td><code>auto [input]</code></td><td>Detect and transform; Ansible <code>-vv</code> logs are analysed</td></tr>
+  <tr><td><code>auto [input]</code></td><td>Detect and transform, as smart paste does; Ansible <code>-vv</code> logs are analysed; an epoch timestamp, URL-encoded text, a cron expression, a log, a CIDR range, an IP address or a curl command is summarised, naming the command that does more</td></tr>
   <tr><td><code>b64 encode|decode [text]</code></td><td><code>--url</code> for the URL-safe alphabet; decoding tolerates missing padding</td></tr>
   <tr><td><code>json pretty|min|validate [json]</code></td><td><code>--indent</code> for pretty; validate exits 1 with line and column</td></tr>
   <tr><td><code>jwt decode [token]</code></td><td>Header and claims; the signature is not verified</td></tr>
@@ -192,17 +192,35 @@ set       spec.template.spec.containers[0].image=</span></code></pre>
   <tr><th>Command</th><th>What it does</th></tr>
   <tr><td><code>url encode|decode [text]</code></td><td>Percent-encoding; <code>--whole</code> keeps a URL's structure, <code>--plus</code> treats a space as <code>+</code></td></tr>
   <tr><td><code>url parse [url]</code></td><td>A URL's parts and its query string as a table (<code>--json</code>); a bare <code>a=1&amp;b=2</code> works too</td></tr>
+  <tr><td><code>url build [url]</code></td><td>A URL from <code>--scheme</code>, <code>--host</code>, <code>--port</code>, <code>--path</code>, <code>--fragment</code>; given a URL, changes it: <code>--set key=value</code> replaces a parameter, <code>--add</code> adds one, <code>--del key</code> removes it</td></tr>
   <tr><td><code>hex encode|decode [text]</code></td><td><code>--upper</code>, <code>--sep :</code>; decoding accepts spaces, colons, <code>0x</code> and <code>\x</code></td></tr>
   <tr><td><code>hash [text]</code></td><td>SHA-256, SHA-384, SHA-512, SHA-1, MD5 of the exact bytes (<code>-a sha256</code> prints only that digest, <code>--base64</code>); <code>--hmac-key-env VAR</code> for HMACs</td></tr>
   <tr><td><code>secret</code></td><td>Random secrets: <code>--length</code>, <code>--sets lower,upper,digits,symbols</code>, <code>--format hex|base64|base64url</code>, <code>--no-ambiguous</code>, <code>-n</code></td></tr>
   <tr><td><code>uuid</code></td><td>Random UUIDs (version 4), <code>-n</code> for more than one</td></tr>
+  <tr><td><code>sha</code></td><td>Placeholder git commit ids: 40 lowercase hex characters, <code>--short</code> for 7, <code>--sha256</code> for 64; <code>-n</code> for more than one</td></tr>
   <tr><td><code>htpasswd &lt;user&gt;</code></td><td>A bcrypt <code>user:hash</code> line for basic auth; the password is asked for or piped in (<code>--cost</code>). <code>--check "&lt;line&gt;"</code> checks one, exit 2 when it doesn't match</td></tr>
+</table></div>
+
+<h2 id="network">Network<a class="anchor" href="#network">#</a></h2>
+<div class="table-wrap"><table>
+  <tr><th>Command</th><th>What it does</th></tr>
+  <tr><td><code>cidr &lt;range&gt;</code></td><td>A range in detail: network, broadcast, first and last host, mask, wildcard, address and host counts, and its kind (private, shared, documentation, public…), IPv4 and IPv6. A range is <code>address/length</code>, an IPv4 address and netmask, or one address. <code>--split 24</code> lists the subnets, <code>--contains &lt;ip&gt;</code> checks an address (exit 2 when outside), <code>--json</code></td></tr>
+  <tr><td><code>cidr &lt;range&gt; &lt;range&gt;…</code></td><td>Several ranges, as arguments or one per line on stdin (<code># comments</code> allowed): the pairs that overlap, exit 2 when any do</td></tr>
+  <tr><td><code>curl [command]</code></td><td>A curl command (argument or stdin; quotes, <code>$'…'</code> and line continuations read) printed as JavaScript <code>fetch</code>; <code>--from-fetch</code> reads a fetch call and prints curl. What can't be converted is said on stderr; nothing is sent. <code>--json</code></td></tr>
+  <tr><td><code>http status [code|words]</code></td><td>What a status code means, its usual cause and whether to retry; <code>5</code> lists every 5xx, words search (<code>gateway</code>, <code>rate limit</code>); nothing lists all</td></tr>
+  <tr><td><code>ip &lt;address&gt;</code></td><td>An address as decimal, hex and binary, IPv6 expanded, IPv4-mapped, and its reverse-DNS name; reads <code>167772161</code>, <code>0x0a000001</code> and <code>0b…</code> too. <code>--json</code></td></tr>
+</table></div>
+
+<h2 id="text">Text and names<a class="anchor" href="#text">#</a></h2>
+<div class="table-wrap"><table>
+  <tr><th>Command</th><th>What it does</th></tr>
+  <tr><td><code>case [text]</code></td><td>A name in camel, Pascal, snake, kebab, CONSTANT, dot, Title, Sentence, lower and path case (acronyms kept); <code>--to snake</code> prints one, for each line when piped; <code>--check</code> tests it against the Kubernetes name and label rules, an env-var name and a Helm release name, with a suggestion that passes (exit 2 when one fails). <code>--json</code></td></tr>
 </table></div>
 
 <h2 id="time">Time and cron<a class="anchor" href="#time">#</a></h2>
 <div class="table-wrap"><table>
   <tr><th>Command</th><th>What it does</th></tr>
-  <tr><td><code>time [epoch|date]</code></td><td>A moment in UTC, in <code>--zone</code>, as epoch seconds and milliseconds and relative to now; nothing means now. Epoch units are told by size (up to 11 digits are seconds, then ms, µs, ns)</td></tr>
+  <tr><td><code>time [epoch|date]</code></td><td>A moment in UTC, in <code>--zone</code>, as epoch seconds and milliseconds and relative to now; nothing means now. Epoch units are told by size (up to 11 digits are seconds, then ms, µs, ns). <code>--in America/New_York,Asia/Kolkata</code> shows it in other zones (offset, DST, day shift, next clock change; a bare <code>14:00</code> is today in <code>--zone</code>); <code>--formats</code> writes it in RFC 3339, RFC 2822, ISO week and ordinal dates, the HTTP date and Unix s, ms, µs and ns</td></tr>
   <tr><td><code>cron &lt;expression&gt;</code></td><td>Plain words, field by field, and the next runs (<code>-n</code>, <code>--zone</code>, UTC by default); <code>@daily</code>-style shortcuts and a <code>CRON_TZ=</code> prefix work; Quartz and Jenkins expressions are named as such. <code>--json</code> on both</td></tr>
 </table></div>
 

@@ -22,7 +22,9 @@ internal/
   yamlkit/            ENGINE YAML core: parse, positions, docs, detect,
                       outline, paths, format, convert, diagnostics,
                       semantic diff, layered merge with origins (CI, Compose)
-  names/              ENGINE "did you mean" (edit distance) for every lens
+  names/              ENGINE "did you mean" (edit distance) for every lens;
+                      a name in every case and the Kubernetes, Helm and
+                      env-var naming rules (Case & names)
   query/              ENGINE jq (gojq) over documents, results mapped to lines
   provider/           ENGINE provider interface + registry
   helm/               ENGINE Helm 4 SDK render + values provenance (from
@@ -58,9 +60,16 @@ internal/
                       traces joined to their entry, per source
   encode/             ENGINE Encode & hash tool: URL and hex encoding, digests and
                       HMAC, random secrets and UUIDs, bcrypt htpasswd lines
+  netutil/            ENGINE Network tool: CIDR details (IPv4/IPv6, range kinds),
+                      subnets, overlaps in a list; IP in other notations
+  httpkit/            ENGINE HTTP tab: curl read as a shell would (quotes, $'…',
+                      continuations) to fetch, a literal fetch call back to curl
+                      (own small JS reader), status codes; nothing is sent
   cron/               ENGINE standard cron: parse (dialects named), plain words,
                       next runs across DST, build from a form
-  timeutil/           ENGINE timestamps: epoch units by size, dates, zones, relative
+  timeutil/           ENGINE timestamps: epoch units by size, dates, zones, relative;
+                      one instant across zones (DST, next change, hours for
+                      the overlap strip), standard formats, language patterns
   regex/              ENGINE regex tester: Go RE2 and the Python/.NET/JS style
                       (dlclark/regexp2, time limit), replace, explain tree
   compose/            ENGINE Compose lens: files merged with the Compose rules and
@@ -175,6 +184,11 @@ Files over 8 MB are not listed or read.
   Editor calls (`/yaml/analyze|hover|definition|complete|path`,
   `/files/diff`) take `{path, content?, line, col}`; no content = the file
   on disk. Requests are cancelled via `r.Context()` when the editor moves on.
+  Network: `POST /net/{kind}` — `cidr` (details; `op` split with `prefix`,
+  contains with `ip`), `overlaps` {lines}, `ip`, `url` (parse, build {parts});
+  `POST /http/{curl,fetch,status}` {input} → {request, output} or {statuses}.
+  Text & data: `POST /text/case` {input} → {words, cases, checks}; Text diff
+  uses `POST /compare` with two paste sides.
   `GET /files/image?path=` serves an image in the folder to the Markdown
   preview (png, jpeg, gif, webp, svg; the bytes must match the extension;
   10 MB; `Content-Security-Policy: sandbox`); the UI fetches it with the

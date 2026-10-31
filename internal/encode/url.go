@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
 	"unicode/utf8"
 )
@@ -122,6 +123,44 @@ func ParseURL(s string) (*URLParts, error) {
 	}
 	return p, nil
 }
+
+// BuildURL puts parts back together, each escaped as its place needs;
+// the query keeps its order and repeats ("+" for a space, as forms send
+// it). Only a query gives "?a=1&b=2".
+func BuildURL(p URLParts) (string, error) {
+	if p.Scheme != "" && !schemeRE.MatchString(p.Scheme) {
+		return "", fmt.Errorf("%q is not a URL scheme", p.Scheme)
+	}
+	if p.Port != "" {
+		if n, err := strconv.Atoi(p.Port); err != nil || n < 0 || n > 65535 {
+			return "", fmt.Errorf("port %q is not a number from 0 to 65535", p.Port)
+		}
+		if p.Host == "" {
+			return "", errors.New("a port needs a host")
+		}
+	}
+	if p.User != "" && p.Host == "" {
+		return "", errors.New("a user needs a host")
+	}
+	u := url.URL{Scheme: p.Scheme, Path: p.Path, Fragment: p.Fragment, Host: p.Host}
+	if strings.Contains(p.Host, ":") && !strings.HasPrefix(p.Host, "[") {
+		u.Host = "[" + p.Host + "]" // IPv6
+	}
+	if p.Port != "" {
+		u.Host += ":" + p.Port
+	}
+	if p.User != "" {
+		u.User = url.User(p.User)
+	}
+	q := make([]string, len(p.Query))
+	for i, kv := range p.Query {
+		q[i] = url.QueryEscape(kv.Key) + "=" + url.QueryEscape(kv.Value)
+	}
+	u.RawQuery = strings.Join(q, "&")
+	return u.String(), nil
+}
+
+var schemeRE = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9+.-]*$`)
 
 // ParseQuery splits a query string into decoded pairs, keeping their
 // order and repeats ("+" is a space, as browsers send it).

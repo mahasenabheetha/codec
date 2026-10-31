@@ -56,6 +56,10 @@ export const hash = (input: string, key: string | null) => post<{ digests: Diges
 export const secrets = (secret: SecretOptions, count: number) => post<{ secrets: Secret[] }>('secret', { secret, count })
 export const uuids = (count: number) => post<{ uuids: string[] }>('uuid', { count })
 
+/** Placeholder git commit ids: 40 hex (sha1), 7 (short) or 64 (sha256). */
+export type SHAForm = 'sha1' | 'short' | 'sha256'
+export const commitSHAs = (form: SHAForm, count: number) => post<{ shas: string[] }>('sha', { form, count })
+
 export const htpasswd = (user: string, password: string, cost: number) =>
   post<{ line: string }>('htpasswd', { op: 'make', user, password, cost })
 export const htpasswdCheck = (line: string, password: string) =>

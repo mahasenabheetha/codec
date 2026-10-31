@@ -9,7 +9,7 @@
   import SegmentedControl from '../../lib/components/SegmentedControl.svelte'
   import Select from '../../lib/components/Select.svelte'
   import Toggle from '../../lib/components/Toggle.svelte'
-  import { secrets, uuids, type SecretOptions } from '../../lib/api/encode'
+  import { commitSHAs, secrets, uuids, type SecretOptions, type SHAForm } from '../../lib/api/encode'
   import type { ToolDef } from '../../lib/tools'
   import { copyText } from '../../lib/utils/clipboard'
   import { formatShortcut } from '../../lib/utils/platform'
@@ -24,7 +24,9 @@
 
   type Item = { value: string; bits?: number }
   const job = new Job<Item[]>()
-  let kind = $state<'secret' | 'uuid'>('secret')
+  let kind = $state<'secret' | 'uuid' | 'sha'>('secret')
+  let shaForm = $state<SHAForm>('sha1')
+  const kindName = $derived(kind === 'uuid' ? 'UUID' : kind === 'sha' ? 'Commit SHA' : 'Secret')
   let count = $state(1)
   const opts = $state<SecretOptions>({ length: 32, format: 'text', lower: true, upper: true, digits: true, symbols: false, noAmbiguous: false })
 
@@ -34,6 +36,10 @@
     const n = clamp(count, 1, 100)
     if (kind === 'secret' && noSet) return null
     if (kind === 'uuid') return () => uuids(n).then((r) => r.uuids.map((value) => ({ value })))
+    if (kind === 'sha') {
+      const form = shaForm
+      return () => commitSHAs(form, n).then((r) => r.shas.map((value) => ({ value })))
+    }
     const o = { ...opts, length: clamp(opts.length, 1, 1024) }
     return () => secrets(o, n).then((r) => r.secrets)
   }
@@ -46,7 +52,7 @@
 
   const values = $derived(job.result ?? [])
   const all = $derived(values.map((v) => v.value).join('\n'))
-  const copy = () => copyText(all, values.length > 1 ? 'Values' : kind === 'uuid' ? 'UUID' : 'Secret')
+  const copy = () => copyText(all, values.length > 1 ? 'Values' : kindName)
 
   function clamp(n: number, lo: number, hi: number) {
     return Math.min(hi, Math.max(lo, Math.round(Number(n) || lo)))
@@ -64,6 +70,7 @@
   toolStatus(() => active, () => {
     if (job.error) return { text: job.error.message, tone: 'err' }
     if (!values.length) return { text: 'Ready' }
+    if (kind === 'sha') return { text: `${values.length} commit SHA${values.length === 1 ? '' : 's'} · ${values[0].value.length} hex · placeholder`, tone: 'ok' }
     if (bits === undefined) return { text: `${values.length} UUID${values.length === 1 ? '' : 's'} · version 4`, tone: 'ok' }
     const s = strength(bits)
     return { text: `${values.length === 1 ? 'Secret' : values.length + ' secrets'} · ${bits} bits · ${s.label}`, tone: s.tone as 'ok' | 'warn' | 'err' }
@@ -88,9 +95,24 @@
             options={[
               { value: 'secret', label: 'Secret' },
               { value: 'uuid', label: 'UUID' },
+              { value: 'sha', label: 'Commit SHA', title: 'Placeholder git commit ids' },
             ]}
           />
         </div>
+        {#if kind === 'sha'}
+          <div class="row">
+            <span class="label">Length</span>
+            <SegmentedControl
+              label="Commit SHA length"
+              bind:value={shaForm}
+              options={[
+                { value: 'sha1', label: 'Full · 40', title: 'A full commit id (SHA-1), what almost every repository uses' },
+                { value: 'short', label: 'Short · 7', title: 'The short form git log --oneline shows' },
+                { value: 'sha256', label: 'SHA-256 · 64', title: 'Repositories made with --object-format=sha256' },
+              ]}
+            />
+          </div>
+        {/if}
         {#if kind === 'secret'}
           <div class="row">
             <span class="label">Format</span>
@@ -133,10 +155,11 @@
         <p class="hint">
           Made with the operating system's secure random source, on this machine. Nothing is stored.
           {#if kind === 'secret' && text}A text secret has at least one character of each chosen set.{/if}
+          {#if kind === 'sha'}Lowercase hex shaped like a git commit id, for placeholders; it names no real commit.{/if}
         </p>
       </div>
     </Pane>
-    <Pane title={kind === 'uuid' ? 'UUIDs' : 'Secrets'} grow={false}>
+    <Pane title={kind === 'uuid' ? 'UUIDs' : kind === 'sha' ? 'Commit SHAs' : 'Secrets'} grow={false}>
       {#snippet meta()}
         {#if bits !== undefined}
           {@const s = strength(bits)}
@@ -154,7 +177,7 @@
           {#each values as v, i (i)}
             <li>
               <code>{v.value}</code>
-              <IconButton icon={Copy} label="Copy" size="sm" onclick={() => copyText(v.value, kind === 'uuid' ? 'UUID' : 'Secret')} />
+              <IconButton icon={Copy} label="Copy" size="sm" onclick={() => copyText(v.value, kindName)} />
             </li>
           {/each}
         </ul>

@@ -10,17 +10,20 @@ import (
 
 	"github.com/mahasenabheetha/codec/v2/internal/cron"
 	"github.com/mahasenabheetha/codec/v2/internal/encode"
+	"github.com/mahasenabheetha/codec/v2/internal/httpkit"
 	"github.com/mahasenabheetha/codec/v2/internal/logview"
+	"github.com/mahasenabheetha/codec/v2/internal/netutil"
 	"github.com/mahasenabheetha/codec/v2/internal/timeutil"
 )
 
 // Utility is input that belongs to one of the Utilities tools: an epoch
-// number, URL-encoded text or a cron expression. Smart paste shows the
+// number, URL-encoded text, a cron expression, a CIDR range, an IP
+// address or a curl command. Smart paste shows the
 // summary and offers to open the tool on the right tab.
 type Utility struct {
-	Kind    string `json:"kind"` // epoch, url, cron, log
-	Tool    string `json:"tool"` // time, encode, logs
-	Tab     string `json:"tab"`  // timestamp, url, cron, viewer
+	Kind    string `json:"kind"` // epoch, url, cron, log, cidr, ip, curl
+	Tool    string `json:"tool"` // time, encode, logs, network
+	Tab     string `json:"tab"`  // timestamp, url, cron, viewer, cidr, ip, http
 	Summary string `json:"summary"`
 }
 
@@ -28,6 +31,10 @@ var (
 	// No leading zero: 0701234567 is a phone number, not 1992.
 	epochText = regexp.MustCompile(`^-?[1-9]\d{8,18}(\.\d+)?$`)
 	percentXX = regexp.MustCompile(`%[0-9A-Fa-f]{2}`)
+	// A range as address/length, IPv4 or IPv6; never a bare number.
+	cidrText = regexp.MustCompile(`^(?:\d{1,3}(?:\.\d{1,3}){3}|[0-9A-Fa-f:]*:[0-9A-Fa-f:.]*)/\d{1,3}$`)
+	// An address written as one: dotted IPv4 or with colons (IPv6).
+	ipText = regexp.MustCompile(`^(?:\d{1,3}(?:\.\d{1,3}){3}|\[?[0-9A-Fa-f:]*:[0-9A-Fa-f:.]*\]?)$`)
 	// One cron field: digits, * ? and , / - , month and day names, and
 	// the letters other dialects use (L W # H) — not words.
 	cronField = regexp.MustCompile(`(?i)^(?:[0-9*?#,/()-]|L|W|H|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|SUN|MON|TUE|WED|THU|FRI|SAT)+$`)
@@ -87,8 +94,66 @@ func DetectUtility(s string, now time.Time) (*Utility, bool) {
 		u.Summary = b.String()
 		return u, true
 	}
+	if u, ok := networkUtility(s); ok {
+		return u, true
+	}
 	if sum, ok := logSummary(s); ok {
 		return &Utility{Kind: "log", Tool: "logs", Tab: "viewer", Summary: sum}, true
+	}
+	return nil, false
+}
+
+// curlLike tells a curl command from a sentence that starts with
+// "curl": one URL, with a real host (a dot, localhost or an IPv6
+// address), and no stray words read as more URLs.
+func curlLike(r *httpkit.Request) bool {
+	for _, n := range r.Notes {
+		if strings.HasPrefix(n, "curl requests") {
+			return false
+		}
+	}
+	host := r.URL
+	if _, after, ok := strings.Cut(host, "://"); ok {
+		host = after
+	}
+	host, _, _ = strings.Cut(host, "/")
+	return strings.Contains(host, ".") || strings.HasPrefix(host, "localhost") || strings.HasPrefix(host, "[")
+}
+
+// networkUtility recognises a curl command, a CIDR range and an IP
+// address, for the Network tool.
+func networkUtility(s string) (*Utility, bool) {
+	cmd := strings.TrimPrefix(s, "$ ")
+	if low := strings.ToLower(cmd); strings.HasPrefix(low, "curl ") || strings.HasPrefix(low, "curl.exe ") || strings.HasPrefix(low, "curl\\") {
+		r, err := httpkit.ParseCurl(cmd)
+		if err != nil || !curlLike(r) {
+			return nil, false
+		}
+		sum := strings.TrimRight(r.Fetch(), "\n")
+		for _, n := range r.Notes {
+			sum += "\n// note: " + n
+		}
+		return &Utility{Kind: "curl", Tool: "network", Tab: "http", Summary: sum}, true
+	}
+	if cidrText.MatchString(s) {
+		r, err := netutil.Details(s)
+		if err != nil {
+			return nil, false
+		}
+		broadcast := ""
+		if r.Broadcast != "" {
+			broadcast = "\nBroadcast  " + r.Broadcast
+		}
+		sum := fmt.Sprintf("%s · IPv%d · %s\n\nNetwork    %s%s\nFirst host %s\nLast host  %s\nNetmask    %s\nHosts      %s", r.CIDR, r.Version, r.Kind, r.Network, broadcast, r.First, r.Last, r.Mask, r.Hosts)
+		return &Utility{Kind: "cidr", Tool: "network", Tab: "cidr", Summary: sum}, true
+	}
+	if ipText.MatchString(s) {
+		ip, err := netutil.ParseIP(s)
+		if err != nil {
+			return nil, false
+		}
+		sum := fmt.Sprintf("%s · IPv%d · %s\n\nInteger  %s\nHex      %s\nReverse  %s", ip.Address, ip.Version, ip.Kind, ip.Integer, ip.Hex, ip.Reverse)
+		return &Utility{Kind: "ip", Tool: "network", Tab: "ip", Summary: sum}, true
 	}
 	return nil, false
 }

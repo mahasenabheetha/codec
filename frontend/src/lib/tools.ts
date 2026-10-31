@@ -12,6 +12,8 @@ import Logs from '@lucide/svelte/icons/logs'
 import Clock from '@lucide/svelte/icons/clock'
 import CalendarClock from '@lucide/svelte/icons/calendar-clock'
 import CalendarSync from '@lucide/svelte/icons/calendar-sync'
+import CalendarCog from '@lucide/svelte/icons/calendar-cog'
+import Earth from '@lucide/svelte/icons/earth'
 import Hash from '@lucide/svelte/icons/hash'
 import Link from '@lucide/svelte/icons/link'
 import FileDigit from '@lucide/svelte/icons/file-digit'
@@ -19,6 +21,13 @@ import FingerprintPattern from '@lucide/svelte/icons/fingerprint-pattern'
 import Dices from '@lucide/svelte/icons/dices'
 import UserLock from '@lucide/svelte/icons/user-lock'
 import Regex from '@lucide/svelte/icons/regex'
+import Network from '@lucide/svelte/icons/network'
+import Waypoints from '@lucide/svelte/icons/waypoints'
+import Globe from '@lucide/svelte/icons/globe'
+import Send from '@lucide/svelte/icons/send'
+import Type from '@lucide/svelte/icons/type'
+import Diff from '@lucide/svelte/icons/diff'
+import CaseSensitive from '@lucide/svelte/icons/case-sensitive'
 
 /** A sub-tab of a tool; Home and the palette list it by its own name. */
 export interface ToolTab {
@@ -100,7 +109,7 @@ export const tools: ToolDef[] = [
     id: 'time',
     title: 'Time',
     group: 'Utilities',
-    description: 'Epoch timestamps and cron schedules in plain words.',
+    description: 'Epoch timestamps, time zones, date formats and cron schedules in plain words.',
     icon: Clock,
     keywords: ['date', 'time'],
     tabs: [
@@ -110,6 +119,20 @@ export const tools: ToolDef[] = [
         description: 'Epoch seconds or milliseconds to local, UTC and ISO time, and back.',
         icon: CalendarClock,
         keywords: ['epoch', 'unix', 'date', 'iso 8601', 'now'],
+      },
+      {
+        id: 'zones',
+        title: 'Zones',
+        description: 'A time in several zones at once, with DST, and where working hours overlap.',
+        icon: Earth,
+        keywords: ['time zone', 'timezone', 'convert', 'utc', 'dst', 'meeting', 'working hours', 'offset'],
+      },
+      {
+        id: 'formats',
+        title: 'Formats',
+        description: 'One moment as RFC 3339, RFC 2822, ISO week, Unix ms and more; format strings for Go, Java, Python, .NET and JavaScript.',
+        icon: CalendarCog,
+        keywords: ['format', 'rfc 3339', 'rfc 2822', 'iso 8601', 'strftime', 'layout', 'datetimeformatter', 'java', 'python', '.net'],
       },
       {
         id: 'cron',
@@ -153,9 +176,9 @@ export const tools: ToolDef[] = [
       {
         id: 'secrets',
         title: 'Secrets & UUID',
-        description: 'Random secrets by length and character set, and UUIDs.',
+        description: 'Random secrets by length and character set, UUIDs, and placeholder commit SHAs.',
         icon: Dices,
-        keywords: ['random', 'password', 'generate', 'uuid', 'guid', 'token'],
+        keywords: ['random', 'password', 'generate', 'uuid', 'guid', 'token', 'commit', 'sha', 'git', 'placeholder'],
       },
       {
         id: 'htpasswd',
@@ -166,6 +189,70 @@ export const tools: ToolDef[] = [
       },
     ],
     load: () => import('../features/encode/EncodeTool.svelte'),
+  },
+  {
+    id: 'network',
+    title: 'Network',
+    group: 'Utilities',
+    description: 'CIDR ranges, IP addresses, URLs and HTTP: subnets, conversions, curl and fetch.',
+    icon: Network,
+    keywords: ['network', 'ip', 'subnet'],
+    tabs: [
+      {
+        id: 'cidr',
+        title: 'CIDR',
+        description: 'A range in detail: network, broadcast, hosts and mask; split into subnets, and overlaps in a list of ranges.',
+        icon: Waypoints,
+        keywords: ['subnet', 'netmask', 'ipv4', 'ipv6', 'range', 'overlap', 'vnet', 'vpc'],
+      },
+      {
+        id: 'ip',
+        title: 'IP',
+        description: 'An address as integer, hex and binary; IPv6 expanded and shortened.',
+        icon: Binary,
+        keywords: ['address', 'ipv4', 'ipv6', 'integer', 'hex', 'binary'],
+      },
+      {
+        id: 'url',
+        title: 'URL builder',
+        description: 'A URL taken apart into its parts and query pairs, edited and put back together.',
+        icon: Globe,
+        keywords: ['url', 'query', 'parameters', 'build', 'parse'],
+      },
+      {
+        id: 'http',
+        title: 'HTTP',
+        description: 'curl to fetch and back, and what an HTTP status code means.',
+        icon: Send,
+        keywords: ['curl', 'fetch', 'status code', 'request', 'headers'],
+      },
+    ],
+    load: () => import('../features/network/NetworkTool.svelte'),
+  },
+  {
+    id: 'text',
+    title: 'Text & data',
+    group: 'Utilities',
+    description: 'Compare two texts, and change the case of names.',
+    icon: Type,
+    keywords: ['text'],
+    tabs: [
+      {
+        id: 'diff',
+        title: 'Text diff',
+        description: 'Two texts side by side or unified, with the changed words marked.',
+        icon: Diff,
+        keywords: ['diff', 'compare', 'difference', 'changes'],
+      },
+      {
+        id: 'case',
+        title: 'Case & names',
+        description: 'camelCase, snake_case, kebab-case and more, with Kubernetes, environment-variable and Helm name rules.',
+        icon: CaseSensitive,
+        keywords: ['camel', 'snake', 'kebab', 'pascal', 'constant', 'dns-1123', 'k8s name', 'env var'],
+      },
+    ],
+    load: () => import('../features/text/TextTool.svelte'),
   },
   {
     id: 'regex',
