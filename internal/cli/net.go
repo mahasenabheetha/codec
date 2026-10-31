@@ -112,7 +112,7 @@ func cidrOverlaps(lines []string) error {
 			if p.Relation == "same" {
 				verb = "is the same as"
 			}
-			fmt.Fprintf(&b, "%s %s %s\n", list[p.A].CIDR, verb, list[p.B].CIDR)
+			fmt.Fprintf(&b, "%s %s %s\n", named(list[p.A]), verb, named(list[p.B]))
 		}
 		if len(pairs) == 0 {
 			fmt.Fprintf(&b, "no overlaps in %d ranges\n", len(list))
@@ -225,6 +225,14 @@ func withoutKey(q []encode.Param, key string) []encode.Param {
 		}
 	}
 	return out
+}
+
+// named is a listed range with its comment, if it has one.
+func named(l netutil.Listed) string {
+	if l.Note != "" {
+		return l.CIDR + " (" + l.Note + ")"
+	}
+	return l.CIDR
 }
 
 // table prints name/value rows, leaving out empty values.

@@ -62,7 +62,7 @@
 <main>
 <article class="content">
 <h1>Everyday tools</h1>
-<p class="lead">The tools for the text you handle all day: smart paste, base64, JSON, JWT and Ansible logs, and under <strong>Utilities</strong> URL and hex encoding, hashes, secrets, htpasswd lines, timestamps, cron schedules and regular expressions. They work without an open folder, and nothing you paste is stored or sent anywhere.</p>
+<p class="lead">The tools for the text you handle all day: smart paste, base64, JSON, JWT and Ansible logs, and under <strong>Utilities</strong> URL and hex encoding, hashes, secrets, htpasswd lines, CIDR ranges and IP addresses, timestamps, cron schedules and regular expressions. They work without an open folder, and nothing you paste is stored or sent anywhere.</p>
 
 <figure>
   <img src="images/jwt.png" alt="The JWT tool: a token on the left, and on the right its validity, algorithm, claims table with expiry, header and signature" width="1400" height="820">
@@ -110,6 +110,15 @@
   <li><strong>htpasswd</strong> — a bcrypt <code>user:$2y$…</code> line for nginx ingress or Traefik basic auth, with the <code>kubectl</code> command to store it; <strong>Check</strong> tests a password against a line. The dice button suggests a strong password.</li>
 </ul>
 <p>Everything is computed on this machine from the operating system's secure random source where randomness is needed; nothing is stored. On the command line: <code>codec url</code>, <code>hex</code>, <code>hash</code>, <code>secret</code>, <code>uuid</code>, <code>sha</code> and <code>htpasswd</code> (see <a href="cli.html#encode">CLI</a>).</p>
+
+<h2 id="network">Network<a class="anchor" href="#network">#</a></h2>
+<p>Under <strong>Utilities</strong>. Everything is worked out on this machine: nothing is looked up on the network.</p>
+<ul>
+  <li><strong>CIDR</strong> — one range in detail, IPv4 or IPv6: network, broadcast, first and last host, netmask, wildcard, how many addresses and hosts, and what kind of range it is (private, shared carrier-grade NAT, documentation, link-local, public…). Type <code>10.0.0.0/16</code>, an address and netmask, or one address; <code>10.0.0.5/24</code> shows the range it is in. Split it into subnets of any length, and check whether an address is inside. <strong>Overlaps</strong> takes a list, one range per line with <code># names</code>, and marks the ranges that share addresses: the check to run before peering VNets or VPCs, or picking pod and service ranges.</li>
+  <li><strong>IP</strong> — an address as a decimal number, hex and binary, IPv6 written out in full, IPv4-mapped IPv6, and its reverse-DNS name. It reads numbers too: <code>167772161</code>, <code>0x0a000001</code>.</li>
+  <li><strong>URL builder</strong> — paste a URL to fill in its parts and its query parameters as a table, or type them; change, add or remove parameters and copy the URL put back together, each part escaped as it needs.</li>
+</ul>
+<p>On the command line: <code>codec cidr</code>, <code>codec ip</code> and <code>codec url build</code> (see <a href="cli.html#network">CLI</a>).</p>
 
 <h2 id="time">Time<a class="anchor" href="#time">#</a></h2>
 <p>Under <strong>Utilities</strong>, with two tabs. Each tab has its own time zone (type to pick one); Timestamp starts in this machine's zone, Cron in UTC, as GitHub Actions and Azure Pipelines run schedules.</p>

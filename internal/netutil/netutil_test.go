@@ -86,7 +86,7 @@ func TestOverlaps(t *testing.T) {
 		"10.0.0.0/8",
 		"2001:db8::/32",
 	})
-	if err != nil || len(list) != 8 || list[4].Error == "" || list[0].CIDR != "10.0.0.0/16" {
+	if err != nil || len(list) != 8 || list[4].Error == "" || list[0].CIDR != "10.0.0.0/16" || list[0].Note != "hub" {
 		t.Fatalf("list %+v (%v)", list, err)
 	}
 	want := map[Overlap]bool{

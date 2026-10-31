@@ -12,12 +12,16 @@ All notable changes to codec are documented here. The format follows
   random lowercase hex in the shape of a commit id, 40 characters, the
   7-character short form, or 64 for SHA-256 repositories; also
   `codec sha` (`--short`, `--sha256`, `-n`).
-- Command line: `codec cidr` shows a CIDR range in detail (IPv4 and
-  IPv6), lists its subnets (`--split`), checks an address
-  (`--contains`) and reports overlaps in a list of ranges; `codec ip`
-  shows an address as integer, hex and binary, IPv6 expanded, and its
-  reverse-DNS name; `codec url build` builds a URL or changes one
-  (`--set`, `--add`, `--del`). The Network tool in the UI follows.
+- Network tool, under Utilities: **CIDR** shows a range in detail (IPv4
+  and IPv6: network, broadcast, hosts, mask, wildcard, the kind of
+  range), splits it into subnets and checks an address; **Overlaps**
+  marks the ranges of a list that share addresses, with their # names;
+  **IP** shows an address as integer, hex and binary, IPv6 expanded,
+  and its reverse-DNS name; **URL builder** takes a URL apart into
+  fields and a query table to edit, and puts it back together. On the
+  command line: `codec cidr` (`--split`, `--contains`, several ranges
+  for overlaps), `codec ip` and `codec url build` (`--set`, `--add`,
+  `--del`).
 
 ## [3.3.0] - 2026-10-31
 

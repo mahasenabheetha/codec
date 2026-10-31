@@ -186,6 +186,7 @@ const MaxRanges = 1000
 // Listed is one line of a list of ranges.
 type Listed struct {
 	Input string `json:"input"`
+	Note  string `json:"note,omitempty"` // the line's # comment, a name such as "hub VNet"
 	CIDR  string `json:"cidr,omitempty"`
 	Error string `json:"error,omitempty"`
 }
@@ -206,7 +207,7 @@ func Overlaps(lines []string) ([]Listed, []Overlap, error) {
 	var list []Listed
 	var prefixes []netip.Prefix
 	for _, l := range lines {
-		l, _, _ = strings.Cut(l, "#")
+		l, note, _ := strings.Cut(l, "#")
 		l = strings.TrimSpace(l)
 		if l == "" {
 			continue
@@ -215,7 +216,7 @@ func Overlaps(lines []string) ([]Listed, []Overlap, error) {
 			return nil, nil, fmt.Errorf("compare at most %d ranges", MaxRanges)
 		}
 		p, err := ParsePrefix(l)
-		item := Listed{Input: l}
+		item := Listed{Input: l, Note: strings.TrimSpace(note)}
 		if err != nil {
 			item.Error = err.Error()
 		} else {
