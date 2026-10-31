@@ -12,6 +12,12 @@ All notable changes to codec are documented here. The format follows
   Base64 and the others): a Find button or Ctrl+F over the output; every
   match is marked, with a count and Enter for the next, Shift+Enter for
   the previous.
+- Markdown preview: a Source / Preview switch on `.md` files (also in the
+  palette) shows them rendered, GitHub-flavoured with tables, task lists
+  and strikethrough, in both themes. It renders the editor's text, so
+  what-if edits show. The file is treated as untrusted: raw HTML shows as
+  text, nothing in it can run, and images don't load yet. Links to
+  headings scroll; web links open in a new window.
 
 ## [3.2.0] - 2026-10-24
 

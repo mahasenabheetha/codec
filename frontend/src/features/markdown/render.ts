@@ -11,12 +11,32 @@ import DOMPurify, { type WindowLike } from 'dompurify'
 const escapes: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }
 const escape = (s: string) => s.replace(/[&<>"']/g, (c) => escapes[c])
 
+const unescapes: Record<string, string> = Object.fromEntries(Object.entries(escapes).map(([k, v]) => [v, k]))
+
+// Heading ids as GitHub makes them: the heading's text, lower case,
+// punctuation dropped, spaces as dashes, -1, -2… for repeats. DOMPurify
+// then prefixes user-content- (SANITIZE_NAMED_PROPS), so an id can't
+// shadow a page global; links to #slug find it through the prefix.
+let slugs = new Map<string, number>()
+function slug(html: string): string {
+  const text = html.replace(/<[^>]*>/g, '').replace(/&(amp|lt|gt|quot|#39);/g, (m) => unescapes[m])
+  const base = text.trim().toLowerCase().replace(/[^\p{L}\p{N}\s_-]/gu, '').replace(/\s/g, '-')
+  const n = slugs.get(base) ?? 0
+  slugs.set(base, n + 1)
+  return n ? `${base}-${n}` : base
+}
+
 const marked = new Marked({
   gfm: true,
   async: false,
   renderer: {
     // Raw HTML shows as the text it is, block or inline.
     html: ({ text, block }: Tokens.HTML | Tokens.Tag) => (block ? `<p>${escape(text.trim())}</p>\n` : escape(text)),
+    heading({ tokens, depth }: Tokens.Heading) {
+      const inner = this.parser.parseInline(tokens)
+      const id = slug(inner)
+      return `<h${depth} id="${id}">${inner}<a class="anchor" href="#${id}" aria-label="Link to this heading">#</a></h${depth}>\n`
+    },
   },
 })
 
@@ -45,6 +65,7 @@ function harden(node: Element) {
 
 const config = {
   USE_PROFILES: { html: true },
+  SANITIZE_NAMED_PROPS: true,
   FORBID_TAGS: ['style', 'form', 'button', 'select', 'textarea', 'iframe', 'object', 'embed', 'base', 'link', 'meta'],
   FORBID_ATTR: ['style', 'srcset', 'formaction', 'target'],
 }
@@ -56,5 +77,6 @@ const config = {
 export function renderMarkdown(src: string, win: WindowLike = globalThis.window): string {
   let p = purifiers.get(win)
   if (!p) purifiers.set(win, (p = purifier(win)))
+  slugs = new Map()
   return p.sanitize(marked.parse(src) as string, config) as string
 }

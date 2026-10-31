@@ -82,7 +82,10 @@ export const cases: Case[] = [
   { name: 'remote image', md: '![logo](https://example.com/logo.png)', has: ['data-src="https://example.com/logo.png"'] },
   { name: 'local image', md: '![d](docs/diagram.png)', has: ['data-src="docs/diagram.png"'] },
   // What should still work.
-  { name: 'heading and emphasis', md: '# Title\n\nSome *em* and **strong** and `code`.', has: ['<h1>Title</h1>', '<em>em</em>', '<strong>strong</strong>', '<code>code</code>'] },
+  { name: 'heading and emphasis', md: '# Title\n\nSome *em* and **strong** and `code`.', has: ['<h1 id="user-content-title">Title<a class="anchor" href="#title"', '<em>em</em>', '<strong>strong</strong>', '<code>code</code>'] },
+  { name: 'heading ids', md: '## Getting Started!\n\n## Getting Started\n\n### `npm` & *you*', has: ['id="user-content-getting-started"', 'id="user-content-getting-started-1"', 'id="user-content-npm--you"', 'href="#getting-started-1"'] },
+  { name: 'heading id cannot clobber', md: '# location\n\n# cookie', has: ['id="user-content-location"', 'id="user-content-cookie"'], not: [/id="location"/, /id="cookie"/] },
+  { name: 'heading with raw html', md: '# Hi <img src=x onerror=alert(1)>', has: ['&lt;img'] },
   { name: 'link', md: '[docs](https://example.com/docs)', has: ['href="https://example.com/docs"', 'rel="noopener noreferrer"'], not: [/target=/i] },
   { name: 'relative link', md: '[next](other.md#setup)', has: ['href="other.md#setup"'] },
   { name: 'table', md: '| a | b |\n|---|---|\n| 1 | 2 |', has: ['<table>', '<th>a</th>', '<td>2</td>'] },
