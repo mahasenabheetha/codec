@@ -12,6 +12,7 @@
   import ImageOff from '@lucide/svelte/icons/image-off'
   import Button from '../../lib/components/Button.svelte'
   import { getImage } from '../../lib/api/workspace'
+  import { highlightTo } from '../../lib/components/syntax'
   import { openLink } from '../../lib/platform'
   import { layout } from '../../lib/stores/layout.svelte'
   import { toast } from '../../lib/stores/toast.svelte'
@@ -79,6 +80,17 @@
       } else img.title = 'Not shown: only images in the open folder load'
     }
     blocked = n
+  })
+
+  // YAML, JSON and shell blocks coloured as in the editor; the code
+  // comes from the element's text, so nothing in it becomes markup.
+  $effect(() => {
+    void html
+    if (!el) return
+    for (const code of el.querySelectorAll('pre > code[class*="language-"]')) {
+      const lang = /(?:^|\s)language-(\S+)/.exec(code.className)?.[1]
+      if (lang) highlightTo(code, code.textContent ?? '', lang)
+    }
   })
 
   // Take a heading another file's link asked for once this tab shows.
@@ -312,6 +324,38 @@
     color: var(--fg-2);
     border: 1px dashed var(--border-strong);
     border-radius: var(--r-sm);
+  }
+  /* Code block colours, the editor's tokens (lib/components/syntax.ts). */
+  .md :global(.syn-key) {
+    color: var(--syn-key);
+  }
+  .md :global(.syn-string) {
+    color: var(--syn-string);
+  }
+  .md :global(.syn-number) {
+    color: var(--syn-number);
+  }
+  .md :global(.syn-bool) {
+    color: var(--syn-bool);
+  }
+  .md :global(.syn-comment) {
+    color: var(--syn-comment);
+    font-style: italic;
+  }
+  .md :global(.syn-anchor) {
+    color: var(--syn-anchor);
+  }
+  .md :global(.syn-tag) {
+    color: var(--syn-tag);
+  }
+  .md :global(.syn-punct) {
+    color: var(--syn-punct);
+  }
+  .md :global(.syn-accent) {
+    color: var(--accent);
+  }
+  .md :global(.syn-err) {
+    color: var(--err);
   }
   .md :global(del) {
     color: var(--fg-2);

@@ -23,12 +23,13 @@
   } from '@codemirror/view'
   import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
   import { searchKeymap, highlightSelectionMatches, search, SearchQuery, setSearchQuery, findNext, findPrevious } from '@codemirror/search'
-  import { syntaxHighlighting, bracketMatching, foldGutter, foldKeymap, HighlightStyle, StreamLanguage } from '@codemirror/language'
+  import { syntaxHighlighting, bracketMatching, foldGutter, foldKeymap, StreamLanguage } from '@codemirror/language'
   import { yaml as yamlMode } from '@codemirror/legacy-modes/mode/yaml'
   import { json } from '@codemirror/lang-json'
   import { yaml } from '@codemirror/lang-yaml'
   import { tags as t } from '@lezer/highlight'
   import { theme } from '../stores/theme.svelte'
+  import { highlightStyle } from './syntax'
 
   // CodeMirror 6 wrapper used for every code/text surface. Phase 04
   // extends it with engine-driven diagnostics and overlays.
@@ -69,20 +70,6 @@
   const placeholderConf = new Compartment()
   const extraConf = new Compartment()
   const themeConf = new Compartment()
-
-  // Colors come from the syntax tokens in tokens.css.
-  const highlight = HighlightStyle.define([
-    { tag: [t.propertyName, t.definition(t.propertyName)], color: 'var(--syn-key)' },
-    { tag: [t.string, t.special(t.string)], color: 'var(--syn-string)' },
-    { tag: t.number, color: 'var(--syn-number)' },
-    { tag: [t.bool, t.null, t.atom, t.keyword], color: 'var(--syn-bool)' },
-    { tag: [t.comment, t.lineComment, t.blockComment], color: 'var(--syn-comment)', fontStyle: 'italic' },
-    { tag: t.labelName, color: 'var(--syn-anchor)' },
-    { tag: [t.typeName, t.tagName], color: 'var(--syn-tag)' },
-    { tag: [t.punctuation, t.separator, t.brace, t.squareBracket, t.bracket], color: 'var(--syn-punct)' },
-    { tag: [t.meta, t.processingInstruction], color: 'var(--accent)' },
-    { tag: t.invalid, color: 'var(--err)' },
-  ])
 
   // The colours are tokens; the dark flag only picks CodeMirror's own
   // defaults (panels, tooltips) to match the shown theme.
@@ -214,7 +201,7 @@
           search(), // findNext and findPrevious need its state; its own panel stays closed
           findField,
           findMarks,
-          syntaxHighlighting(highlight),
+          syntaxHighlighting(highlightStyle), // colours from the tokens (syntax.ts)
           themeConf.of(editorTheme(untrack(() => theme.resolved) === 'dark')),
           keymap.of([...editorKeymap, ...historyKeymap, ...searchKeymap, ...foldKeymap]),
           langConf.of(langExt(init.language)),

@@ -41,7 +41,7 @@
   import { neat } from '../../lib/api/k8s'
   import { toast } from '../../lib/stores/toast.svelte'
   import { copyText } from '../../lib/utils/clipboard'
-  import { activeEditor, editorLink, editorNames, editorNav, lensOpen, openIn, openSessions, type ExternalEditor } from '../editor/active.svelte'
+  import { activeEditor, editorLink, editorNames, editorNav, lensOpen, markdownView, openIn, openSessions, type ExternalEditor } from '../editor/active.svelte'
   import { charts, helmNav } from '../helm/helm.svelte'
   import { comparison, queries } from '../compare/compare.svelte'
   import { applyAnalysis, offsetOf, yamlIntel } from '../editor/intel'
@@ -82,7 +82,7 @@
   // Markdown shows as source or rendered; the editor stays underneath,
   // so switching keeps the cursor, the scroll and any what-if edits.
   const markdown = $derived(session.disk?.lang === 'markdown')
-  let mdView = $state<'source' | 'preview'>('source')
+  let mdView = $state<'source' | 'preview'>(markdownView.value)
   const previewing = $derived(markdown && mdView === 'preview')
   const lines = $derived(session.buffer ? session.buffer.split('\n').length - (session.buffer.endsWith('\n') ? 1 : 0) : 0)
 

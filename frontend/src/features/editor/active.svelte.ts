@@ -29,6 +29,9 @@ export function editorLink(editor: ExternalEditor, root: string, path: string, l
  *  tabs: persisted() values are per call, not shared by key. */
 export const lensOpen = persisted('lensOpen', true)
 
+/** How Markdown files open: their text, or rendered (decision 84). */
+export const markdownView = persisted<'source' | 'preview'>('markdownView', 'source')
+
 /** Every open file editor by path. The Helm view reads their what-if
  *  buffers so a chart renders with unsaved edits. */
 export const openSessions = new SvelteMap<string, FileSession>()

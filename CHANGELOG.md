@@ -21,7 +21,9 @@ All notable changes to codec are documented here. The format follows
   folder link shows it in the explorer, web links open in the browser
   (the system browser in the desktop app). Images in the folder show;
   remote images stay blocked until "Load images", since loading them
-  tells another server the file was opened.
+  tells another server the file was opened. YAML, JSON and shell code
+  blocks are coloured as in the editor. Settings → General → Open
+  Markdown as picks Source or Preview for new tabs.
 
 ## [3.2.0] - 2026-10-24
 
