@@ -31,6 +31,7 @@ import Send from '@lucide/svelte/icons/send'
 import Type from '@lucide/svelte/icons/type'
 import Diff from '@lucide/svelte/icons/diff'
 import CaseSensitive from '@lucide/svelte/icons/case-sensitive'
+import Palette from '@lucide/svelte/icons/palette'
 import QrCode from '@lucide/svelte/icons/qr-code'
 import ScanQrCode from '@lucide/svelte/icons/scan-qr-code'
 import Sheet from '@lucide/svelte/icons/sheet'
@@ -381,6 +382,16 @@ export const tools: ToolDef[] = [
       },
     ],
     load: () => import('../features/qr/QrTool.svelte'),
+  },
+  {
+    id: 'colour',
+    title: 'Colour',
+    group: 'Utilities',
+    description: 'HEX, RGB, HSL, HSV, OKLCH and names; WCAG contrast with AA and AAA; a scale of shades.',
+    icon: Palette,
+    hue: 'lime',
+    keywords: ['color', 'colour', 'hex', 'rgb', 'hsl', 'oklch', 'contrast', 'wcag', 'a11y', 'palette', 'shades'],
+    load: () => import('../features/colour/ColourTool.svelte'),
   },
   {
     id: 'wellness',

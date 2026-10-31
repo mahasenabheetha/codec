@@ -40,6 +40,12 @@ All notable changes to codec are documented here. The format follows
   parts explained. `codec qr` draws a code in the terminal or saves it;
   `codec qr read` reads one. Uses boombuler/barcode and gozxing (MIT).
 
+- **Colour**, a new Utilities tool: a colour written any common way
+  (hex, rgb, hsl, hsv, oklch or a CSS name, or picked) in every format
+  with its name or the nearest one; WCAG 2 contrast against a background
+  with AA and AAA for text, large text and icons; a 50–950 scale of
+  shades in OKLCH. All in the browser.
+
 ### Changed
 
 - The Secrets & UUID tab is now Secrets (secrets and placeholder commit
