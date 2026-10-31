@@ -505,3 +505,10 @@ Settled unless the user reopens them. Add new ones at the bottom:
     the module. Unlike 91, a running timer and today's totals are kept
     in the browser's storage, so a reload doesn't lose them; still no
     history beyond today and nothing leaves the machine (2026-10-31).
+97. Work tabs in 3.7.0 (asked for 2026-10-31): Smart paste, Base64 and
+    Compare get a tab strip like the Log viewer's, several pastes or
+    comparisons open at once, each tab with its own state. One shared
+    tab strip and store, the Log viewer moved onto it, so they behave
+    alike. Tabs live for the window only; nothing pasted is stored (19).
+    It is T1, ahead of the JSON work, so Smart paste's new detection
+    arrives already tabbed (2026-10-31).

@@ -72,18 +72,21 @@ keep the UI consistent and polished. Work efficiently: read only what a
 task needs and run only the tests for packages touched (the full suite
 runs once, at step 4).
 
-### v3.7.0 — JSON and table tools
+### v3.7.0 — JSON and table tools, work tabs
 Agreed 2026-10-25 (decision 90). The two heavier tools: working with
 structured data pasted from anywhere. The JSON tool grows sub-tabs and
 YAML ⇄ JSON lives in it (a paste in one gives the other); CSV and TSV
-join Text & data.
+join Text & data. Asked for 2026-10-31 (decision 97): Smart paste,
+Base64 and Compare get tabs like the Log viewer, several pastes or
+comparisons open at once; it comes first.
 
 | # | Task | Main parts | Status |
 |---|---|---|---|
-| T1 | JSON tools: engine + API | `internal/jsonkit` over the existing scanner: JSON ⇄ YAML (key order kept), JSONC and JSON5 read, sort keys, flatten to paths and back, a diff by path (added, removed, changed, type changed), infer a JSON Schema from samples, jq filter (the query engine is there), large input read without a tree; `codec json` gains the subcommands; a fuzz target | |
-| T2 | JSON tools: UI | The JSON tool grows sub-tabs: Format, Tree (search, copy a value's path, fold), Convert (JSON ⇄ YAML), Diff, Paths, Schema, Query; the tool is named JSON & YAML in the rail and palette; docs | |
-| T3 | CSV and TSV | `internal/table`: delimiter and header guessed (override), quotes and embedded newlines; viewer with a windowed table (sort, filter, column types and counts); converts to JSON (typed or all text), Markdown table, YAML and TSV/CSV, and a JSON array of objects back to CSV; `codec csv`; a fuzz target | |
-| T4 | Smart paste | Recognises CSV or TSV and JSON5 or JSONC, and offers the tool | |
+| T1 | Work tabs | A tab strip like the Log viewer's for Smart paste, Base64 and Compare: each tab its own input (or sides) and result; "+" for a new one, close (×, middle click, Ctrl+W), arrow keys between tabs, double-click to rename; names from what's in it (the detected kind, the mode, the two sides). One shared component and store, which the Log viewer moves onto too, so all four behave alike. Tabs last for the window: pasted text is never stored (19); docs | |
+| T2 | JSON tools: engine + API | `internal/jsonkit` over the existing scanner: JSON ⇄ YAML (key order kept), JSONC and JSON5 read, sort keys, flatten to paths and back, a diff by path (added, removed, changed, type changed), infer a JSON Schema from samples, jq filter (the query engine is there), large input read without a tree; `codec json` gains the subcommands; a fuzz target | |
+| T3 | JSON tools: UI | The JSON tool grows sub-tabs: Format, Tree (search, copy a value's path, fold), Convert (JSON ⇄ YAML), Diff, Paths, Schema, Query; the tool is named JSON & YAML in the rail and palette; docs | |
+| T4 | CSV and TSV | `internal/table`: delimiter and header guessed (override), quotes and embedded newlines; viewer with a windowed table (sort, filter, column types and counts); converts to JSON (typed or all text), Markdown table, YAML and TSV/CSV, and a JSON array of objects back to CSV; `codec csv`; a fuzz target | |
+| T5 | Smart paste | Recognises CSV or TSV and JSON5 or JSONC, and offers the tool | |
 | — | Release | Full checks; a fuzz run of the new parsers; a review pass over the engines and the UI; docs; CHANGELOG cut as 3.7.0 | |
 
 ### v3.8.0 — Generators and checks
