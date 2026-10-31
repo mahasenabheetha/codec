@@ -3,10 +3,10 @@ package web
 import (
 	"encoding/base64"
 	"errors"
-	"image"
 	_ "image/gif" // images a code may be read from
 	_ "image/jpeg"
 	_ "image/png"
+	"io"
 	"net/http"
 
 	"github.com/mahasenabheetha/codec/v2/internal/qr"
@@ -66,13 +66,18 @@ func (s *Server) handleQRMake(w http.ResponseWriter, r *http.Request) {
 // POST /api/v2/qr/read, body: a PNG, JPEG or GIF (the UI redraws other
 // formats as PNG first). The code's text and what it means.
 func (s *Server) handleQRRead(w http.ResponseWriter, r *http.Request) {
-	img, _, err := image.Decode(http.MaxBytesReader(w, r.Body, maxQRImage))
+	data, err := io.ReadAll(http.MaxBytesReader(w, r.Body, maxQRImage))
 	if err != nil {
 		if errors.As(err, new(*http.MaxBytesError)) {
 			writeError(w, http.StatusRequestEntityTooLarge, "the image is over 20 MB")
 			return
 		}
-		writeError(w, http.StatusUnprocessableEntity, "not an image codec can read (PNG, JPEG or GIF)")
+		writeError(w, http.StatusBadRequest, "reading the image: "+err.Error())
+		return
+	}
+	img, err := qr.Decode(data) // its size checked before the pixels are
+	if err != nil {
+		writeError(w, http.StatusUnprocessableEntity, err.Error())
 		return
 	}
 	text, err := qr.Read(img)

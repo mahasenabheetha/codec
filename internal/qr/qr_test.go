@@ -2,6 +2,8 @@ package qr
 
 import (
 	"bytes"
+	"encoding/binary"
+	"hash/crc32"
 	"image"
 	"image/png"
 	"strings"
@@ -116,5 +118,26 @@ func TestPayloads(t *testing.T) {
 		if k := Explain(text).Kind; k != kind {
 			t.Errorf("%q: %s, want %s", text, k, kind)
 		}
+	}
+}
+
+func TestDecodeRefusesHugeImages(t *testing.T) {
+	// A tiny PNG header claiming 100 000 × 100 000 pixels.
+	var buf bytes.Buffer
+	png.Encode(&buf, image.NewGray(image.Rect(0, 0, 1, 1)))
+	b := buf.Bytes()
+	// IHDR's width and height sit at bytes 16–23; its CRC (over the
+	// chunk type and data, bytes 12–28) follows at 29–32.
+	for i, v := range []byte{0, 1, 0x86, 0xa0, 0, 1, 0x86, 0xa0} {
+		b[16+i] = v
+	}
+	binary.BigEndian.PutUint32(b[29:33], crc32.ChecksumIEEE(b[12:29]))
+	if _, err := Decode(b); err == nil || !strings.Contains(err.Error(), "40 megapixels") {
+		t.Errorf("a 100 000 × 100 000 image was let through: %v", err)
+	}
+	c, _ := Encode("ok", "M")
+	small, _ := c.PNG(4)
+	if _, err := Decode(small); err != nil {
+		t.Errorf("a real code refused: %v", err)
 	}
 }

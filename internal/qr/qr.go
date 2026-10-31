@@ -153,6 +153,27 @@ func (c *Code) Terminal() string {
 	return b.String()
 }
 
+// MaxPixels bounds an image Decode accepts: a small file can claim a huge
+// size, and decoding would then claim memory for every pixel.
+const MaxPixels = 40_000_000
+
+// Decode reads a PNG, JPEG or GIF (the decoders registered by the caller),
+// checking its size from the header before decoding the pixels.
+func Decode(data []byte) (image.Image, error) {
+	cfg, _, err := image.DecodeConfig(bytes.NewReader(data))
+	if err != nil {
+		return nil, errors.New("not an image codec can read (PNG, JPEG or GIF)")
+	}
+	if cfg.Width <= 0 || cfg.Height <= 0 || cfg.Width*cfg.Height > MaxPixels {
+		return nil, fmt.Errorf("the image is %d×%d pixels, more than codec reads (40 megapixels)", cfg.Width, cfg.Height)
+	}
+	img, _, err := image.Decode(bytes.NewReader(data))
+	if err != nil {
+		return nil, errors.New("the image could not be read: " + err.Error())
+	}
+	return img, nil
+}
+
 // Read finds a QR code in img and returns its text.
 func Read(img image.Image) (string, error) {
 	bmp, err := gozxing.NewBinaryBitmapFromImage(img)

@@ -2,7 +2,6 @@ package cli
 
 import (
 	"fmt"
-	"image"
 	_ "image/gif" // images a code may be read from
 	_ "image/jpeg"
 	_ "image/png"
@@ -84,14 +83,13 @@ var qrReadCmd = &cobra.Command{
 	Short: "Read a QR code from a PNG, JPEG or GIF image",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		f, err := os.Open(args[0])
+		data, err := os.ReadFile(args[0])
 		if err != nil {
 			return err
 		}
-		defer f.Close()
-		img, _, err := image.Decode(f)
+		img, err := qr.Decode(data)
 		if err != nil {
-			return fmt.Errorf("%s: not a PNG, JPEG or GIF", args[0])
+			return fmt.Errorf("%s: %w", args[0], err)
 		}
 		text, err := qr.Read(img)
 		if err != nil {
