@@ -19,8 +19,9 @@ function tick() {
 }
 
 /** Keep the clock ticking while `onTick` listens; returns the release. */
-function hold(onTick: () => void): () => void {
+export function hold(onTick: () => void): () => void {
   listeners.add(onTick)
+  now = Date.now() // a new listener starts from the real time, not the last tick
   if (!interval) {
     interval = setInterval(tick, TICK_MS)
     // A tab coming back to the front catches up at once.
@@ -71,7 +72,8 @@ export class Timer {
 
   /** Milliseconds left; reactive while running. */
   left = $derived.by(() => {
-    if (this.state === 'running') return Math.max(0, this.#endsAt - clock.now)
+    // Clamped to the length: the last tick can be a moment older than start().
+    if (this.state === 'running') return Math.min(this.duration, Math.max(0, this.#endsAt - clock.now))
     if (this.state === 'paused') return this.#pausedLeft
     if (this.state === 'done') return 0
     return this.duration

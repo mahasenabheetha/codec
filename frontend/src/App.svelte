@@ -36,6 +36,7 @@
   import CommandPalette from './lib/shell/CommandPalette.svelte'
   import ShortcutsDialog from './lib/shell/ShortcutsDialog.svelte'
   import Toaster from './lib/components/Toaster.svelte'
+  import BreakLayer from './features/wellness/BreakLayer.svelte'
   import RestartBanner from './lib/shell/RestartBanner.svelte'
   import Home from './features/home/Home.svelte'
   import Explorer from './features/workspace/Explorer.svelte'
@@ -505,6 +506,7 @@
   <QuickOpen />
   <OpenFolderDialog />
   <ShortcutsDialog />
+  <BreakLayer />
   <Toaster />
 </Tooltip.Provider>
 

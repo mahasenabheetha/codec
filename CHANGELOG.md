@@ -18,6 +18,17 @@ All notable changes to codec are documented here. The format follows
   through the end, it offers a fresh start rather than a late alarm.
   The Today tab shows today's sessions, minutes focused and breaks on a
   timeline of the day, kept only until midnight.
+- Break reminders, in Focus & breaks → Breaks: an eye break (20-20-20),
+  stretches, water, posture and your own, each switched on separately
+  with its own interval, length, message and sound, shown as a
+  full-window break, a card in the corner or a toast. Breaks can guide
+  you: a breathing circle (calm 4-6, box 4-4-4-4 or 4-7-8), rings for
+  looking into the distance, or a drawn figure doing five stretches.
+  Snooze 5 minutes, skip (Esc), take a break now, or pause reminders for
+  30 minutes, an hour or until tomorrow. They wait for a focus session
+  to end if you like, never interrupt a focus break, can keep to active
+  hours, and a break taken covers shorter ones that came due. They run
+  whichever tool is open; one due while the laptop slept is skipped.
 
 ## [3.5.0] - 2026-10-31
 
