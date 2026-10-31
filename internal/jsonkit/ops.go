@@ -180,7 +180,7 @@ func parsePath(s string) ([]step, string, error) {
 				j++
 			}
 			if j == i+1 {
-				return nil, "", fmt.Errorf("an empty key after .")
+				return nil, "", fmt.Errorf("an empty key after a dot")
 			}
 			path = append(path, step{Key: s[i+1 : j], Index: -1})
 			i = j
