@@ -59,6 +59,15 @@ func TestEncodeAPI(t *testing.T) {
 	if code, _ := post("uuid", `{"op":"parse","input":"x"}`); code != 422 {
 		t.Errorf("uuid parse garbage: %d", code)
 	}
+	if code, out := post("password", `{"count":2,"rules":{"length":12,"minLower":1,"minUpper":1,"minDigits":1,"minSymbols":-1}}`); code != 200 || len(out["passwords"].([]any)) != 2 {
+		t.Errorf("password: %d %v", code, out)
+	}
+	if code, out := post("password", `{"op":"passphrase","phrase":{"words":5,"separator":"-"}}`); code != 200 || out["passwords"].([]any)[0].(map[string]any)["bits"] != 64.0 {
+		t.Errorf("passphrase: %d %v", code, out)
+	}
+	if code, _ := post("password", `{"rules":{"length":3,"minDigits":4}}`); code != 422 {
+		t.Errorf("impossible rules: %d", code)
+	}
 	if code, out := post("expected", `{"input":"900150983cd24fb0d6963f7d28e17f72  a.txt"}`); code != 200 || out["expected"].([]any)[0].(map[string]any)["algorithm"] != "MD5" {
 		t.Errorf("expected: %d %v", code, out)
 	}

@@ -26,7 +26,10 @@ type encodeRequest struct {
 	// Secrets and UUIDs
 	Secret encode.SecretOptions `json:"secret"`
 	UUID   encode.UUIDOptions   `json:"uuid"`
-	Count  int                  `json:"count"`
+	// Passwords (op passphrase for words)
+	Rules  encode.PasswordOptions   `json:"rules"`
+	Phrase encode.PassphraseOptions `json:"phrase"`
+	Count  int                      `json:"count"`
 	// Commit SHA placeholders: sha1 (default), short or sha256.
 	Form string `json:"form"`
 	// htpasswd
@@ -37,7 +40,8 @@ type encodeRequest struct {
 }
 
 // POST /api/v2/encode/{kind}: url, hex, hash, secret, uuid (make, or
-// op parse), sha, htpasswd, expected (checksums to compare with).
+// op parse), password (op passphrase for words), sha, htpasswd, expected
+// (checksums to compare with).
 // Input and output are never kept (decision 19). Bad input is a 422
 // with the reason.
 func (s *Server) handleEncode(w http.ResponseWriter, r *http.Request) {
@@ -103,6 +107,23 @@ func (s *Server) handleEncode(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		writeJSON(w, http.StatusOK, map[string]any{"uuids": out})
+	case "password:", "password:passphrase":
+		out := make([]encode.Password, 0, count)
+		for range count {
+			var p encode.Password
+			var err error
+			if req.Op == "passphrase" {
+				p, err = encode.NewPassphrase(req.Phrase)
+			} else {
+				p, err = encode.NewPassword(req.Rules)
+			}
+			if err != nil {
+				fail(err)
+				return
+			}
+			out = append(out, p)
+		}
+		writeJSON(w, http.StatusOK, map[string]any{"passwords": out})
 	case "uuid:parse":
 		info, err := encode.ParseUUID(req.Input)
 		if err != nil {

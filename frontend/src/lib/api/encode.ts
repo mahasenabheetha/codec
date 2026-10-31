@@ -54,6 +54,32 @@ export const hexDecode = (input: string) => post<{ output: string; text: boolean
 export const hash = (input: string, key: string | null) => post<{ digests: Digest[]; hmac: boolean }>('hash', { input, key })
 
 export const secrets = (secret: SecretOptions, count: number) => post<{ secrets: Secret[] }>('secret', { secret, count })
+/** A password's rules: a class is used with a minimum of 0 or more, left
+ *  out with -1; exclude takes characters out of every class. */
+export interface PasswordRules {
+  length: number
+  minLower: number
+  minUpper: number
+  minDigits: number
+  minSymbols: number
+  noAmbiguous: boolean
+  exclude: string
+}
+export interface PassphraseRules {
+  words: number
+  separator: string
+  capitalize: boolean
+  /** A digit after one random word. */
+  number: boolean
+}
+/** A password and its entropy in bits, for an attacker who knows the rules. */
+export interface Password {
+  value: string
+  bits: number
+}
+export const passwords = (rules: PasswordRules, count: number) => post<{ passwords: Password[] }>('password', { rules, count })
+export const passphrases = (phrase: PassphraseRules, count: number) => post<{ passwords: Password[] }>('password', { op: 'passphrase', phrase, count })
+
 /** Version 4 (random), 7 (time-ordered), or 5 and 3 (from a namespace and
  *  name: the same UUID every time, so one comes back). */
 export interface UUIDOptions {

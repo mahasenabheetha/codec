@@ -257,3 +257,8 @@ This project was developed as a hands-on Go learning journey by
 assistance from **Claude (Anthropic)** used as a pair-programming and
 teaching tool. Design decisions, code review, and explanations were
 AI-assisted; the learning was not.
+
+Passphrases use the [EFF large word list](https://www.eff.org/deeplinks/2016/07/new-wordlists-random-passphrases)
+by the Electronic Frontier Foundation, licensed under
+[CC BY 3.0 US](https://creativecommons.org/licenses/by/3.0/us/); it is
+embedded unchanged (`internal/encode/words`).

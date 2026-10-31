@@ -7,6 +7,7 @@ import Sparkles from '@lucide/svelte/icons/sparkles'
 import Binary from '@lucide/svelte/icons/binary'
 import Braces from '@lucide/svelte/icons/braces'
 import KeyRound from '@lucide/svelte/icons/key-round'
+import SquareAsterisk from '@lucide/svelte/icons/square-asterisk'
 import ScrollText from '@lucide/svelte/icons/scroll-text'
 import Logs from '@lucide/svelte/icons/logs'
 import Clock from '@lucide/svelte/icons/clock'
@@ -198,7 +199,7 @@ export const tools: ToolDef[] = [
     id: 'encode',
     title: 'Encode & hash',
     group: 'Utilities',
-    description: 'URL and hex encoding, hashes and file checksums, random secrets, UUIDs and htpasswd lines.',
+    description: 'URL and hex encoding, hashes and file checksums, passwords, random secrets, UUIDs and htpasswd lines.',
     icon: Hash,
     hue: 'pink',
     keywords: ['encode', 'hash'],
@@ -232,11 +233,18 @@ export const tools: ToolDef[] = [
         keywords: ['checksum', 'sha256sum', 'verify', 'download', 'file hash', 'checksums.txt', 'integrity'],
       },
       {
+        id: 'password',
+        title: 'Password',
+        description: 'Passwords by the rules a site asks for, or passphrases of random words, with their strength.',
+        icon: SquareAsterisk,
+        keywords: ['password', 'passphrase', 'diceware', 'eff', 'generate', 'pin', 'strength', 'entropy'],
+      },
+      {
         id: 'secrets',
         title: 'Secrets',
         description: 'Random secrets by length and character set, and placeholder commit SHAs.',
         icon: Dices,
-        keywords: ['random', 'password', 'generate', 'token', 'commit', 'sha', 'git', 'placeholder'],
+        keywords: ['random', 'api key', 'generate', 'token', 'commit', 'sha', 'git', 'placeholder'],
       },
       {
         id: 'uuid',

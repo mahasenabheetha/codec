@@ -19,6 +19,14 @@ All notable changes to codec are documented here. The format follows
   UUID read for its version, variant and time. `codec uuid` gains
   `--version`, `--ns`, `--name` and `codec uuid parse`.
 
+- **Password**, a new tab in Encode & hash: passwords by the rules a site
+  asks for (length, kinds of character with a minimum each, characters
+  to leave out, no look-alikes) or passphrases of random words from the
+  EFF large word list, with presets, the strength in bits counted for
+  the rules and how long guessing would take, and Hide for screen
+  sharing; shown once, never stored. `codec secret password` and
+  `codec secret passphrase`.
+
 ### Changed
 
 - The Secrets & UUID tab is now Secrets (secrets and placeholder commit
