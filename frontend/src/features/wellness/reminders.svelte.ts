@@ -15,7 +15,7 @@ import { notify } from './notify'
  *  toast (a nudge with no countdown). */
 export type Style = 'window' | 'card' | 'toast'
 /** What a break shows while it counts down. */
-export type Guide = 'breathe' | 'look' | 'stretch' | 'none'
+export type Guide = 'breathe' | 'look' | 'stretch' | 'water' | 'posture' | 'none'
 export type Rhythm = 'calm' | 'box' | '478'
 export type Kind = 'eye' | 'stretch' | 'water' | 'posture' | 'custom'
 
@@ -69,7 +69,7 @@ export const builtIns: Reminder[] = [
     every: 60,
     length: 0,
     style: 'toast',
-    guide: 'none',
+    guide: 'water',
     chime: 'soft',
   },
   {
@@ -81,10 +81,14 @@ export const builtIns: Reminder[] = [
     every: 30,
     length: 0,
     style: 'toast',
-    guide: 'none',
+    guide: 'posture',
     chime: 'soft',
   },
 ]
+
+/** Seconds a reminder lasts when it changes from a nudge (a toast) to a
+ *  break on screen, so it doesn't stay at 0 and silently remain a toast. */
+export const screenLength: Record<Kind, number> = { eye: 20, stretch: 180, water: 20, posture: 20, custom: 30 }
 
 export const rhythms: { value: Rhythm; label: string; steps: { label: string; s: number; scale: number }[] }[] = [
   { value: 'calm', label: 'Calm 4-6', steps: [{ label: 'Breathe in', s: 4, scale: 1 }, { label: 'Breathe out', s: 6, scale: 0.55 }] },
@@ -131,7 +135,16 @@ const prefsStore = persisted<Prefs>('wellness.reminders', defaults)
   const stored = { ...defaults, ...prefsStore.value }
   const list = [...stored.list]
   for (const b of builtIns) if (!list.some((r) => r.id === b.id)) list.push(b)
-  prefsStore.value = { ...stored, list: list.map((r) => ({ ...(builtIns.find((b) => b.id === r.id) ?? {}), ...r })) }
+  // Water and posture had no picture of their own before 3.6.0 was out;
+  // one stored without a guide takes its own.
+  const own: Partial<Record<Kind, Guide>> = { water: 'water', posture: 'posture' }
+  prefsStore.value = {
+    ...stored,
+    list: list.map((r) => {
+      const merged = { ...(builtIns.find((b) => b.id === r.id) ?? {}), ...r }
+      return own[merged.kind] && merged.guide === 'none' ? { ...merged, guide: own[merged.kind]! } : merged
+    }),
+  }
 }
 /** When each reminder is next due (ms since epoch). */
 const nextStore = persisted<Record<string, number>>('wellness.reminders.next', {})

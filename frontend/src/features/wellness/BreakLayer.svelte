@@ -10,6 +10,8 @@
   import LookFar from './LookFar.svelte'
   import { reminders } from './reminders.svelte'
   import StretchGuide from './StretchGuide.svelte'
+  import WaterGuide from './WaterGuide.svelte'
+  import PostureGuide from './PostureGuide.svelte'
 
   // The break on screen, over whatever tool is open: the whole window
   // (dimmed and blurred behind, the guide in the middle) or a card in
@@ -43,6 +45,10 @@
             <LookFar />
           {:else if r.guide === 'stretch'}
             <StretchGuide length={t.duration} left={t.left} />
+          {:else if r.guide === 'water'}
+            <WaterGuide progress={t.progress} />
+          {:else if r.guide === 'posture'}
+            <PostureGuide length={t.duration} left={t.left} />
           {/if}
         </div>
         {#if r.guide !== 'stretch'}<p class="text">{r.text}</p>{/if}
@@ -63,9 +69,17 @@
         <span class="small-time">{formatClock(t.left)}</span>
         <IconButton icon={X} label="Skip" size="sm" onclick={() => reminders.finish(false)} />
       </header>
-      {#if r.guide === 'look' || r.guide === 'breathe'}
+      {#if r.guide !== 'none' && r.guide !== 'stretch'}
         <div class="mini">
-          {#if r.guide === 'look'}<LookFar />{:else}<Breathing rhythm={reminders.prefs.rhythm} />{/if}
+          {#if r.guide === 'look'}
+            <LookFar />
+          {:else if r.guide === 'breathe'}
+            <Breathing rhythm={reminders.prefs.rhythm} />
+          {:else if r.guide === 'water'}
+            <WaterGuide progress={t.progress} />
+          {:else}
+            <PostureGuide length={t.duration} left={t.left} compact />
+          {/if}
         </div>
       {/if}
       <p class="text">{r.text}</p>

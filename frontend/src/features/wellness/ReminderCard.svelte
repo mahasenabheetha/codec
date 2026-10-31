@@ -9,7 +9,7 @@
   import Toggle from '../../lib/components/Toggle.svelte'
   import { clock, formatClock } from './clock.svelte'
   import { kindIcon } from './kinds'
-  import { reminders, type Guide, type Reminder, type Style } from './reminders.svelte'
+  import { reminders, screenLength, type Guide, type Reminder, type Style } from './reminders.svelte'
   import { chimes } from './sound'
   import { unlockAudio } from './sound'
   import Stepper from './Stepper.svelte'
@@ -34,6 +34,8 @@
     { value: 'breathe', label: 'Breathing' },
     { value: 'look', label: 'Look far' },
     { value: 'stretch', label: 'Stretches' },
+    { value: 'water', label: 'Water' },
+    { value: 'posture', label: 'Posture' },
     { value: 'none', label: 'None' },
   ]
   const chimeItems = [{ value: 'default', label: 'As under Sound' }, ...chimes, { value: 'none', label: 'Silent' }]
@@ -44,6 +46,12 @@
   const summary = $derived(
     r.style === 'toast' || r.length === 0 ? `every ${every(r.every)} · a nudge` : `every ${every(r.every)} · ${r.length >= 60 && r.length % 60 === 0 ? `${r.length / 60} min` : `${r.length} s`}`,
   )
+  // A nudge turned into a break on screen needs a length, or it stays a
+  // toast (length 0 means a nudge).
+  $effect(() => {
+    if (r.style !== 'toast' && r.length === 0) r.length = screenLength[r.kind]
+  })
+
   // Restart the interval when it changes, so the next one follows it.
   let lastEvery = untrack(() => r.every)
   $effect(() => {

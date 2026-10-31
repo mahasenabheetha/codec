@@ -43,7 +43,9 @@ an opt-in update check, and find in tool inputs.
   with its own interval, length, message and sound, shown as a
   full-window break, a card in the corner or a toast. Breaks can guide
   you: a breathing circle (calm 4-6, box 4-4-4-4 or 4-7-8), rings for
-  looking into the distance, or a drawn figure doing five stretches.
+  looking into the distance, a drawn figure doing five stretches, a
+  glass filling with water, or a figure sitting up at a desk with three
+  posture checks.
   Snooze 5 minutes, skip (Esc), take a break now, or pause reminders for
   30 minutes, an hour or until tomorrow. They wait for a focus session
   to end if you like, never interrupt a focus break, can keep to active
