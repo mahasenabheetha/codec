@@ -19,6 +19,13 @@ import FingerprintPattern from '@lucide/svelte/icons/fingerprint-pattern'
 import Dices from '@lucide/svelte/icons/dices'
 import UserLock from '@lucide/svelte/icons/user-lock'
 import Regex from '@lucide/svelte/icons/regex'
+import Network from '@lucide/svelte/icons/network'
+import Waypoints from '@lucide/svelte/icons/waypoints'
+import Globe from '@lucide/svelte/icons/globe'
+import Send from '@lucide/svelte/icons/send'
+import Type from '@lucide/svelte/icons/type'
+import Diff from '@lucide/svelte/icons/diff'
+import CaseSensitive from '@lucide/svelte/icons/case-sensitive'
 
 /** A sub-tab of a tool; Home and the palette list it by its own name. */
 export interface ToolTab {
@@ -166,6 +173,70 @@ export const tools: ToolDef[] = [
       },
     ],
     load: () => import('../features/encode/EncodeTool.svelte'),
+  },
+  {
+    id: 'network',
+    title: 'Network',
+    group: 'Utilities',
+    description: 'CIDR ranges, IP addresses, URLs and HTTP: subnets, conversions, curl and fetch.',
+    icon: Network,
+    keywords: ['network', 'ip', 'subnet'],
+    tabs: [
+      {
+        id: 'cidr',
+        title: 'CIDR',
+        description: 'A range in detail: network, broadcast, hosts and mask; split into subnets, and overlaps in a list of ranges.',
+        icon: Waypoints,
+        keywords: ['subnet', 'netmask', 'ipv4', 'ipv6', 'range', 'overlap', 'vnet', 'vpc'],
+      },
+      {
+        id: 'ip',
+        title: 'IP',
+        description: 'An address as integer, hex and binary; IPv6 expanded and shortened.',
+        icon: Binary,
+        keywords: ['address', 'ipv4', 'ipv6', 'integer', 'hex', 'binary'],
+      },
+      {
+        id: 'url',
+        title: 'URL builder',
+        description: 'A URL taken apart into its parts and query pairs, edited and put back together.',
+        icon: Globe,
+        keywords: ['url', 'query', 'parameters', 'build', 'parse'],
+      },
+      {
+        id: 'http',
+        title: 'HTTP',
+        description: 'curl to fetch and back, and what an HTTP status code means.',
+        icon: Send,
+        keywords: ['curl', 'fetch', 'status code', 'request', 'headers'],
+      },
+    ],
+    load: () => import('../features/network/NetworkTool.svelte'),
+  },
+  {
+    id: 'text',
+    title: 'Text & data',
+    group: 'Utilities',
+    description: 'Compare two texts, and change the case of names.',
+    icon: Type,
+    keywords: ['text'],
+    tabs: [
+      {
+        id: 'diff',
+        title: 'Text diff',
+        description: 'Two texts side by side or unified, with the changed words marked.',
+        icon: Diff,
+        keywords: ['diff', 'compare', 'difference', 'changes'],
+      },
+      {
+        id: 'case',
+        title: 'Case & names',
+        description: 'camelCase, snake_case, kebab-case and more, with Kubernetes, environment-variable and Helm name rules.',
+        icon: CaseSensitive,
+        keywords: ['camel', 'snake', 'kebab', 'pascal', 'constant', 'dns-1123', 'k8s name', 'env var'],
+      },
+    ],
+    load: () => import('../features/text/TextTool.svelte'),
   },
   {
     id: 'regex',
