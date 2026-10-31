@@ -26,6 +26,11 @@ All notable changes to codec are documented here. The format follows
   several ranges for overlaps), `codec ip`, `codec url build` (`--set`,
   `--add`, `--del`), `codec curl` (`--from-fetch`) and
   `codec http status`.
+- Text & data tool, under Utilities: **Text diff** compares two pasted
+  or dropped texts, side by side with the changed words marked or as a
+  unified patch, ignoring whitespace or case if asked.
+- Compare and Text diff: next and previous change (arrows, or Alt+↓ and
+  Alt+↑ in the diff).
 
 ## [3.3.0] - 2026-10-31
 
