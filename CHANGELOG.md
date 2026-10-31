@@ -42,6 +42,9 @@ All notable changes to codec are documented here. The format follows
   from the Explorer, a Helm view or Home uses the current Compare tab
   when it is empty, otherwise a new one. The Log viewer uses the same
   tabs and gains Alt+T and Alt+W.
+- The Ansible log tool has the same tabs: several logs open at once,
+  each named after its file or playbook and red when it has failures;
+  the playbook map colours from the current tab's log.
 
 ## [3.6.0] - 2026-10-31
 

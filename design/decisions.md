@@ -512,3 +512,9 @@ Settled unless the user reopens them. Add new ones at the bottom:
     alike. Tabs live for the window only; nothing pasted is stored (19).
     It is T1, ahead of the JSON work, so Smart paste's new detection
     arrives already tabbed (2026-10-31).
+98. Work tabs for the Ansible log tool and JSON & YAML too, in 3.7.0
+    (asked for 2026-10-31, T6 and T7 before the release). Ansible: one
+    log state per tab, as the Log viewer. JSON & YAML: two levels, the
+    work tabs are documents and the sub-tabs (Format, Tree…) views of
+    the current one; each document keeps its sub-tab and its own
+    inputs; indent and sort stay shared preferences (2026-10-31).

@@ -15,12 +15,12 @@
   import Select from '../../lib/components/Select.svelte'
   import type { LogAnalysis } from '../../lib/api/ansiblelog'
   import LogDetail from './LogDetail.svelte'
-  import { duration, logs, taskShown, type LogFilter, type LogSelection } from './log.svelte'
+  import { duration, taskShown, type LogFilter, type LogSelection, type LogState } from './log.svelte'
 
   // A whole log: the summary on top, an outline (runs, plays, tasks
   // and the output between them) beside or above the selection. The
   // outline is windowed: only rows in view are drawn.
-  let { analysis }: { analysis: LogAnalysis } = $props()
+  let { analysis, logs }: { analysis: LogAnalysis; logs: LogState } = $props()
 
   const s = $derived(analysis.summary)
   const bad = $derived(s.failed + s.unreachable > 0 || analysis.blocks.some((b) => b.run && (b.run.status === 'failed' || b.run.status === 'unfinished')))
@@ -225,7 +225,7 @@
 {/snippet}
 
 {#snippet detail()}
-  <LogDetail {analysis} />
+  <LogDetail {analysis} {logs} />
 {/snippet}
 
 <div class="analyzer">

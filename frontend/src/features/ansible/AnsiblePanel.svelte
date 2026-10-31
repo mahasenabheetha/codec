@@ -13,7 +13,7 @@
   import SegmentedControl from '../../lib/components/SegmentedControl.svelte'
   import Select from '../../lib/components/Select.svelte'
   import type { PlaybookNode } from '../../lib/api/ansible'
-  import { logs } from './log.svelte'
+  import { ansibleTabs } from './tabs.svelte'
   import { runColours } from './runColours'
   import { isAbort } from '../../lib/api/client'
   import { analyzeAnsible, type AnsibleAnalysis, type AnsibleSource, type AnsibleTask } from '../../lib/api/ansible'
@@ -132,8 +132,10 @@
   let view = $state<'steps' | 'map'>('steps')
   const pgraph = $derived(data?.kind === 'playbook' ? data.graph : null)
 
-  // A log loaded in the Ansible log tool colours the map. The run of
-  // this playbook is picked when the log names it (PLAYBOOK: with -v).
+  // A log loaded in the Ansible log tool (its current tab) colours the
+  // map. The run of this playbook is picked when the log names it
+  // (PLAYBOOK: with -v).
+  const logs = $derived(ansibleTabs.current!.log)
   let colourBy = $state('none') // a run's block index, or "none"
   const runItems = $derived([
     { value: 'none', label: 'No run colours' },
