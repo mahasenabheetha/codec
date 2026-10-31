@@ -18,10 +18,14 @@ All notable changes to codec are documented here. The format follows
   marks the ranges of a list that share addresses, with their # names;
   **IP** shows an address as integer, hex and binary, IPv6 expanded,
   and its reverse-DNS name; **URL builder** takes a URL apart into
-  fields and a query table to edit, and puts it back together. On the
-  command line: `codec cidr` (`--split`, `--contains`, several ranges
-  for overlaps), `codec ip` and `codec url build` (`--set`, `--add`,
-  `--del`).
+  fields and a query table to edit, and puts it back together; **HTTP**
+  turns a curl command (browser "Copy as cURL" included) into fetch and
+  a fetch call into curl, saying in a note what can't be carried over,
+  and explains status codes with their usual cause and whether to
+  retry. On the command line: `codec cidr` (`--split`, `--contains`,
+  several ranges for overlaps), `codec ip`, `codec url build` (`--set`,
+  `--add`, `--del`), `codec curl` (`--from-fetch`) and
+  `codec http status`.
 
 ## [3.3.0] - 2026-10-31
 

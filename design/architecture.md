@@ -60,6 +60,9 @@ internal/
                       HMAC, random secrets and UUIDs, bcrypt htpasswd lines
   netutil/            ENGINE Network tool: CIDR details (IPv4/IPv6, range kinds),
                       subnets, overlaps in a list; IP in other notations
+  httpkit/            ENGINE HTTP tab: curl read as a shell would (quotes, $'…',
+                      continuations) to fetch, a literal fetch call back to curl
+                      (own small JS reader), status codes; nothing is sent
   cron/               ENGINE standard cron: parse (dialects named), plain words,
                       next runs across DST, build from a form
   timeutil/           ENGINE timestamps: epoch units by size, dates, zones, relative
@@ -178,7 +181,8 @@ Files over 8 MB are not listed or read.
   `/files/diff`) take `{path, content?, line, col}`; no content = the file
   on disk. Requests are cancelled via `r.Context()` when the editor moves on.
   Network: `POST /net/{kind}` — `cidr` (details; `op` split with `prefix`,
-  contains with `ip`), `overlaps` {lines}, `ip`, `url` (parse, build {parts}).
+  contains with `ip`), `overlaps` {lines}, `ip`, `url` (parse, build {parts});
+  `POST /http/{curl,fetch,status}` {input} → {request, output} or {statuses}.
   `GET /files/image?path=` serves an image in the folder to the Markdown
   preview (png, jpeg, gif, webp, svg; the bytes must match the extension;
   10 MB; `Content-Security-Policy: sandbox`); the UI fetches it with the

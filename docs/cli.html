@@ -206,6 +206,8 @@ set       spec.template.spec.containers[0].image=</span></code></pre>
   <tr><th>Command</th><th>What it does</th></tr>
   <tr><td><code>cidr &lt;range&gt;</code></td><td>A range in detail: network, broadcast, first and last host, mask, wildcard, address and host counts, and its kind (private, shared, documentation, public…), IPv4 and IPv6. A range is <code>address/length</code>, an IPv4 address and netmask, or one address. <code>--split 24</code> lists the subnets, <code>--contains &lt;ip&gt;</code> checks an address (exit 2 when outside), <code>--json</code></td></tr>
   <tr><td><code>cidr &lt;range&gt; &lt;range&gt;…</code></td><td>Several ranges, as arguments or one per line on stdin (<code># comments</code> allowed): the pairs that overlap, exit 2 when any do</td></tr>
+  <tr><td><code>curl [command]</code></td><td>A curl command (argument or stdin; quotes, <code>$'…'</code> and line continuations read) printed as JavaScript <code>fetch</code>; <code>--from-fetch</code> reads a fetch call and prints curl. What can't be converted is said on stderr; nothing is sent. <code>--json</code></td></tr>
+  <tr><td><code>http status [code|words]</code></td><td>What a status code means, its usual cause and whether to retry; <code>5</code> lists every 5xx, words search (<code>gateway</code>, <code>rate limit</code>); nothing lists all</td></tr>
   <tr><td><code>ip &lt;address&gt;</code></td><td>An address as decimal, hex and binary, IPv6 expanded, IPv4-mapped, and its reverse-DNS name; reads <code>167772161</code>, <code>0x0a000001</code> and <code>0b…</code> too. <code>--json</code></td></tr>
 </table></div>
 
