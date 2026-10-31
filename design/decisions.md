@@ -494,3 +494,14 @@ Settled unless the user reopens them. Add new ones at the bottom:
     block and overrides only surfaces, borders and the main text, so
     the two can't drift apart; it obeys Dusk's contrast rules (text 7–12:1)
     (2026-10-31).
+96. Wellness, a sidebar section, in 3.6.0 (asked for 2026-10-31, widening
+    91): one tool, Focus & breaks, with a full focus timer (presets and
+    custom lengths, rounds, a task label, today's totals) and break
+    reminders that run on their own (eye, stretch, water, posture and
+    custom; each with its interval, length, sound and a full-window,
+    card or toast look, with guided breathing and look-far and stretch
+    animations). It stays frontend only, except system notifications in
+    the desktop app through the Wails notifications service already in
+    the module. Unlike 91, a running timer and today's totals are kept
+    in the browser's storage, so a reload doesn't lose them; still no
+    history beyond today and nothing leaves the machine (2026-10-31).

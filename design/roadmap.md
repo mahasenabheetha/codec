@@ -312,28 +312,36 @@ info), so a pink tab never reads as an error.
 | T5 | Midnight | Asked for 2026-10-31 after T4: the same icons and button colours as Dusk ("they are the best"), only a darker blue background; a fourth theme, also a dark style for System | Done: `:root[data-theme='midnight']` shares Dusk's block and overrides surfaces (navy, hue 258, L 0.20–0.32), borders, `--fg-0` (dimmed to stay under 12:1), `--accent-fg`, shadow and overlay; theme store, pre-paint, Settings (Theme and "When the system is dark"), palette "Use the Midnight theme". The contrast checker merges every block that names a theme and applies Dusk's rules to Midnight; all four themes pass. Checked in the browser (Network, Log viewer); docs (settings, design, design language), CHANGELOG, decision 95 |
 | — | Release | Full checks; CHANGELOG cut as 3.5.0 | Full checks passed (gofmt, vet, all Go tests, frontend build, svelte-check, the contrast check for all four themes); no Go code changed in this release, so no fuzz run; docs pass (README themes paragraph, docs home card, settings, design); CHANGELOG cut as 3.5.0 |
 
-### v3.6.0 — Update check and focus timer
+### v3.6.0 — Update check and Wellness
 Agreed 2026-10-06 (decision 85). Wails has no updater and codec never
 looks for new versions, so an installed copy stays old until the user
 notices a release. codec can ask GitHub for the latest release and say
 when a newer one exists; updating stays the installer run over the top
 (it replaces the install in place and keeps settings).
 
-The release also holds a small focus timer (decision 91, 2026-10-31):
-a Pomodoro clock and an eye-break reminder, so long days at the screen
-get rests. Both add a Settings section, and both are small.
+The release also brings **Wellness**, a new sidebar section (decision
+96, 2026-10-31, widening 91): a focus timer and break reminders for
+long days at the screen, asked for "with the best UI possible". One
+tool, **Focus & breaks**, with sub-tabs Focus, Breaks and Today. It is
+frontend only except for system notifications in the desktop app
+(the Wails notifications service, no new dependency), runs the same in
+the browser UI and the desktop app, and keeps its settings, a running
+timer (so a reload doesn't lose it) and today's totals in the browser's
+storage, nothing else: no history beyond today, nothing sent anywhere.
+Everything is off until started or switched on.
 
 | # | Task | Main parts | Status |
 |---|---|---|---|
 | T1 | Check: engine + API + CLI | `internal/update`: latest release from the GitHub API (pre-releases only when running one), semver compare with `internal/version`, 5 s timeout, at most once a day (result cached in the config dir), dev builds never check; `updates.check` setting, off by default; `GET /api/v2/update`; `codec version --check`; tests against a fake server | |
-| T2 | Notice in the UI | Settings → General: "Check for updates" switch and "Check now"; "codec X.Y.Z is available" in the footer with a link to the release (the system browser in the desktop app), dismissable per version; tray menu entry in the desktop app; docs (settings, security: the second network use, troubleshooting) | |
-| T3 | Focus timer and break reminders | Frontend only, no new dependency, off until switched on in Settings → Focus & breaks. `features/focus/focus.svelte.ts`: one store, phase (focus, break, off) and an `endsAt` timestamp, the time left worked out from the clock so a throttled window or a sleeping laptop can't make it drift, a long-expired timer offering a new session instead of a stale alert. **Pomodoro** (focus 25, break 5, a long break of 15 every fourth round; lengths are settings; auto-start or wait) and an **eye break** (every 20 minutes, a 20-second look-away; the lengths are settings); any break resets the eye timer, so the two never fire together. A status-bar widget (icon and countdown, a popover with start, pause, skip, reset and snooze 5 minutes), palette commands (Start focus, Take a break now, Snooze). A break card in the corner with a CSS breathing circle (in 4 s, out 4 s) and the countdown, still under "reduce motion"; a soft two-note chime made with Web Audio (no files; volume and mute; the Start click unlocks audio); the countdown in the window title while it runs. Same code in the browser UI and the desktop app. Only the chosen lengths are remembered (`persisted`), never the running timer or any history; docs (`settings.html`, `shortcuts.html`, a short page on the timer); to check by hand in both apps, including a minimised desktop window and a background browser tab (late by up to a minute) | |
+| T2 | Notice in the UI | Settings → General: "Check for updates" switch and "Check now"; "codec X.Y.Z is available" in the footer with a link to the release (the system browser in the desktop app), dismissable per version; docs (settings, security: the second network use, troubleshooting) | |
+| T3 | Wellness frame, clock and sounds | A **Wellness** group on the rail with **Focus & breaks** (sub-tabs Focus, Breaks, Today; Home and palette entries) and its own hue. `features/wellness/clock.svelte.ts`: one ticker for every timer, each an `endsAt` timestamp, so a throttled tab or a sleeping laptop can't make it drift; a timer long past its end offers a fresh start instead of a stale alarm. `sound.ts`: chimes made with Web Audio, no files (soft bell, two notes, wood block, rising, a gentle tick for the last seconds), volume, mute and a preview; the first click unlocks audio. Settings persisted per user (`persisted`) | |
+| T4 | Focus timer | A large progress ring in the phase's colour (focus in the tool's hue, breaks in a calm green), the time in large figures, the round as dots (●●○○). Presets: Classic 25/5, Deep work 50/10, Flow 90/20, and Custom: focus, short break and long break lengths, rounds before the long break, auto-start the next phase. Start, pause, resume, +5 minutes, skip, reset; "What are you working on?" shown beside the clock, in the window title and the status bar (kept for the session only). A short end-of-phase card with the chime; Space starts and pauses on the tab. **Today**: focus sessions and minutes, breaks taken, a strip of the day's sessions; reset at midnight | |
+| T5 | Break reminders | Reminders that run on their own: **Eye break** (20-20-20: every 20 minutes, 20 seconds looking far away), **Stretch** (every 50 minutes, 3 minutes, a rotating set of simple stretches), **Water** and **Posture** (nudges), and your own (name, interval, length). Each: on/off, interval, length, sound and how it shows: a **full-window break** (dimmed backdrop, countdown ring, a guided breathing circle in a chosen rhythm: calm 4-6, box 4-4-4-4, 4-7-8; for the eye break a slow look-far animation; for stretches a drawn figure per move), a **corner card**, or a **toast**. Snooze 5 minutes, skip, "pause reminders" for 30 minutes, an hour or until tomorrow. Works with the focus timer: no reminder during a focus break, and an option to hold reminders until the focus session ends. Optional active hours (for example 9–18 on weekdays). Coming back after an absence longer than a break counts as one. Still under "reduce motion" | |
+| T6 | Everywhere | A status-bar widget (a small ring and the time left; a popover to start, pause, skip and snooze); palette commands (Start focus, Pause, Take a break now, Pause reminders); the countdown in the window title; system notifications when codec isn't in front (the browser's Notification API, asked for from Settings; in the desktop app the Wails notifications service and a tray menu entry: Start focus, Pause reminders); docs: a `wellness.html` page with screenshots, settings, shortcuts; checked by hand in both apps, including a minimised desktop window and a background browser tab | |
 | — | Release | Full checks; CHANGELOG cut as 3.6.0 | |
 
-Later for the timer: a system notification and a tray entry in the
-desktop app (needs a look at what Wails offers), the Windows idle time
-for a nudge across all apps; for now a system-wide tool such as
-Stretchly or Workrave covers other applications.
+Later: the Windows idle time, to count a break taken away from the
+keyboard anywhere, not only from codec.
 
 Later, after SignPath signing: "Update now" (download the installer,
 verify it against the release checksums, run it silently, restart);
