@@ -8,9 +8,12 @@ All notable changes to codec are documented here. The format follows
 
 ### Added
 
-- `codec version --check` asks GitHub whether a newer release is out.
-  The app's own check, once a day and off until switched on, comes with
-  its Settings switch.
+- Update check: Settings → General → "Check for updates" (off by
+  default) asks GitHub once a day for codec's latest release; a newer
+  one shows in the status bar with a link to its page (dismiss it until
+  the next release) and in the desktop app's tray menu. "Check now" asks
+  once either way, and `codec version --check` does the same on the
+  command line. It sends nothing about you or your files.
 
 - Wellness, a new sidebar section, with **Focus & breaks**. The Focus
   tab is a focus timer on a large ring: Classic 25/5, Deep work 50/10,

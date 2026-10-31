@@ -59,4 +59,21 @@ func TestUpdateAPI(t *testing.T) {
 	if v := get("/api/v2/update"); !v.Enabled || !v.Newer {
 		t.Errorf("on: %+v", v)
 	}
+
+	// The tray reads the day's answer only. The checker here keeps no
+	// cache, so there is none to read; with one, it is the newer release.
+	if rel := s.NewerRelease(); rel != nil {
+		t.Errorf("no cache, yet NewerRelease = %+v", rel)
+	}
+	cached := update.New(t.TempDir())
+	cached.BaseURL = gh.URL
+	s.opts.Updates = cached
+	before := hits.Load()
+	if rel := s.NewerRelease(); rel != nil || hits.Load() != before {
+		t.Errorf("before a check: %+v, %d new requests", rel, hits.Load()-before)
+	}
+	get("/api/v2/update?force=1")
+	if rel := s.NewerRelease(); rel == nil || rel.Version != "v3.7.0" {
+		t.Errorf("after a check: %+v", rel)
+	}
 }

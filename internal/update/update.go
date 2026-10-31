@@ -140,6 +140,12 @@ func (c *Checker) fetch(ctx context.Context, current string) ([]Release, error) 
 	return out, nil
 }
 
+// Cached is the day's answer for current without asking anyone: ok is
+// false when there is none (never checked, too old, or another version).
+func (c *Checker) Cached(current string) (Result, bool) {
+	return c.cached(current)
+}
+
 // cached returns the last answer when it is fresh and for this version.
 func (c *Checker) cached(current string) (Result, bool) {
 	if c.CacheFile == "" {

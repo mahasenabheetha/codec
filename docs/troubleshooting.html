@@ -116,6 +116,9 @@
 <h2 id="editor-links">Open in VS Code does nothing<a class="anchor" href="#editor-links">#</a></h2>
 <p>The button uses the <code>vscode://</code> (or <code>cursor://</code>) link your editor registers when installed normally. Portable installs may not register it. Check that the right editor is chosen in <a href="settings.html">Settings</a>; the first time, your browser asks whether to open the editor — allow it.</p>
 
+<h2 id="updates">The update check says it couldn't check<a class="anchor" href="#updates">#</a></h2>
+<p>codec asks <code>api.github.com</code> for its releases, with a 5-second limit. A proxy or firewall that blocks it, no network, or GitHub's limit for anonymous requests (60 an hour per address) makes the check fail; codec carries on as before and tries again the next day. <code>codec version --check</code> shows the same answer on the command line. A development build never checks.</p>
+
 <h2 id="docker">Docker<a class="anchor" href="#docker">#</a></h2>
 <ul>
   <li><strong>The page doesn't load:</strong> the container listens on 8765 inside; open the host port you published (<code>-p 127.0.0.1:8765:8765</code> → <a href="http://localhost:8765">localhost:8765</a>).</li>

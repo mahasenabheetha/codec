@@ -38,6 +38,13 @@ func (d *desktop) setupTray() {
 func (d *desktop) fillTrayMenu(menu *application.Menu) {
 	menu.Clear()
 	menu.Add("Open codec").OnClick(func(*application.Context) { d.showWindow() })
+	if rel := d.server.Load().NewerRelease(); rel != nil {
+		menu.Add("Get codec " + rel.Version + "…").OnClick(func(*application.Context) {
+			if err := d.app.Browser.OpenURL(rel.URL); err != nil {
+				logf("open %s: %v", rel.URL, err)
+			}
+		})
+	}
 	if recent := d.cfg.Get().RecentFolders; len(recent) > 0 {
 		menu.AddSeparator()
 		for _, dir := range recent[:min(len(recent), trayRecent)] {

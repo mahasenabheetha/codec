@@ -29,6 +29,7 @@
   import SunMoon from '@lucide/svelte/icons/sun-moon'
   import Monitor from '@lucide/svelte/icons/monitor'
   import { theme } from './lib/stores/theme.svelte'
+  import { updates } from './lib/stores/update.svelte'
   import { uiSize } from './lib/stores/size.svelte'
   import Rail from './lib/shell/Rail.svelte'
   import TabBar from './lib/shell/TabBar.svelte'
@@ -82,6 +83,10 @@
 
   // Rule metadata, so findings everywhere can offer "Turn off".
   lint.load()
+
+  // Is a newer codec out? The server asks GitHub at most daily, and only
+  // with the check switched on in Settings (decision 85).
+  updates.load()
 
   // Tool code loads on first open and is cached, so switching tabs is
   // instant and each tool keeps its state while its tab stays open.

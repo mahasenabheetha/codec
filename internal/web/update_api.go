@@ -37,6 +37,19 @@ func (s *Server) handleUpdate(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, v)
 }
 
+// NewerRelease is the newer release the day's check found, or nil: with
+// the check off, before it ran, or when codec is up to date. It never
+// asks GitHub itself; the desktop tray menu shows it.
+func (s *Server) NewerRelease() *update.Release {
+	if !s.opts.Config.Get().Updates.Check {
+		return nil
+	}
+	if r, ok := s.opts.Updates.Cached(version.Get().Version); ok && r.Newer {
+		return r.Latest
+	}
+	return nil
+}
+
 // handleUpdateSettings switches the daily check on or off.
 func (s *Server) handleUpdateSettings(w http.ResponseWriter, r *http.Request) {
 	var req struct {
