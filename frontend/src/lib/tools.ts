@@ -31,6 +31,8 @@ import Send from '@lucide/svelte/icons/send'
 import Type from '@lucide/svelte/icons/type'
 import Diff from '@lucide/svelte/icons/diff'
 import CaseSensitive from '@lucide/svelte/icons/case-sensitive'
+import QrCode from '@lucide/svelte/icons/qr-code'
+import ScanQrCode from '@lucide/svelte/icons/scan-qr-code'
 import Sheet from '@lucide/svelte/icons/sheet'
 import TableProperties from '@lucide/svelte/icons/table-properties'
 import Leaf from '@lucide/svelte/icons/leaf'
@@ -353,6 +355,32 @@ export const tools: ToolDef[] = [
     hue: 'peach',
     keywords: ['regexp', 'regular expression', 'pattern', 'match', 'replace'],
     load: () => import('../features/regex/RegexTool.svelte'),
+  },
+  {
+    id: 'qr',
+    title: 'QR code',
+    group: 'Utilities',
+    description: 'Make a QR code for a link, a Wi-Fi login or an authenticator, and read one from an image.',
+    icon: QrCode,
+    hue: 'cyan',
+    keywords: ['qr', 'barcode', 'scan', 'wifi', 'totp', 'otpauth'],
+    tabs: [
+      {
+        id: 'make',
+        title: 'Make',
+        description: 'Text, a link, a Wi-Fi login or an authenticator setup as a QR code, saved as PNG or SVG.',
+        icon: QrCode,
+        keywords: ['generate', 'create', 'wifi qr', 'totp qr', 'png', 'svg'],
+      },
+      {
+        id: 'read',
+        title: 'Read',
+        description: 'The text in a QR code from a dropped, pasted or chosen image.',
+        icon: ScanQrCode,
+        keywords: ['decode', 'scan', 'read qr', 'screenshot'],
+      },
+    ],
+    load: () => import('../features/qr/QrTool.svelte'),
   },
   {
     id: 'wellness',

@@ -167,6 +167,14 @@
 </ul>
 <p>On the command line: <code>codec regex</code> (see <a href="cli.html#regex">CLI</a>).</p>
 
+<h2 id="qr">QR code<a class="anchor" href="#qr">#</a></h2>
+<p>Under <strong>Utilities</strong>, with two tabs. Everything happens on this machine; nothing is stored, and no camera is used.</p>
+<ul>
+  <li><strong>Make</strong> — a code for text or a link; a <strong>Wi-Fi</strong> login a phone joins by scanning (network name, password, security, hidden networks; special characters escaped); or an <strong>authenticator</strong> setup link for TOTP (issuer, account, a base32 secret or a new random one, 6 or 8 digits, 30 or 60 seconds). Choose how much damage it survives, from level L (7%) to H (30%, enough for a logo on top). The preview shows the code and the text it holds (secrets hidden until you ask); save it as <strong>PNG</strong> or <strong>SVG</strong>, which stays sharp at any size.</li>
+  <li><strong>Read</strong> — drop, paste (<kbd>Ctrl</kbd>+<kbd>V</kbd>) or choose an image with a QR code: a photo, a screenshot, PNG, JPEG, WebP, GIF or SVG, light on dark too. The text is shown with its parts: a link's host, a Wi-Fi network and password, an authenticator's issuer, account and secret, an email address or phone number.</li>
+</ul>
+<p>On the command line: <code>codec qr</code> draws a code in the terminal or saves it with <code>-o</code>, and <code>codec qr read</code> reads one (see <a href="cli.html#encode">CLI</a>). Codes are made with <a href="https://github.com/boombuler/barcode">boombuler/barcode</a> and read with <a href="https://github.com/makiuchi-d/gozxing">gozxing</a>, both MIT.</p>
+
 <h2 id="keys">Keyboard<a class="anchor" href="#keys">#</a></h2>
 <div class="table-wrap"><table>
   <tr><th>Keys</th><th>Action</th></tr>

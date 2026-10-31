@@ -202,6 +202,8 @@ set       spec.template.spec.containers[0].image=</span></code></pre>
 <h2 id="encode">Encode and hash<a class="anchor" href="#encode">#</a></h2>
 <div class="table-wrap"><table>
   <tr><th>Command</th><th>What it does</th></tr>
+  <tr><td><code>qr [text]</code></td><td>A QR code drawn in the terminal for a phone to scan, or saved with <code>-o code.png|code.svg</code> (<code>--scale</code>); <code>--level L|M|Q|H</code>; <code>--wifi NAME --password … --security WPA|WEP|none --hidden</code> for a Wi-Fi login; <code>--totp-account … --totp-secret … --totp-issuer …</code> for an authenticator setup link</td></tr>
+  <tr><td><code>qr read &lt;image&gt;</code></td><td>The text in a QR code in a PNG, JPEG or GIF; what it is (link, Wi-Fi, authenticator…) and its parts on stderr</td></tr>
   <tr><td><code>url encode|decode [text]</code></td><td>Percent-encoding; <code>--whole</code> keeps a URL's structure, <code>--plus</code> treats a space as <code>+</code></td></tr>
   <tr><td><code>url parse [url]</code></td><td>A URL's parts and its query string as a table (<code>--json</code>); a bare <code>a=1&amp;b=2</code> works too</td></tr>
   <tr><td><code>url build [url]</code></td><td>A URL from <code>--scheme</code>, <code>--host</code>, <code>--port</code>, <code>--path</code>, <code>--fragment</code>; given a URL, changes it: <code>--set key=value</code> replaces a parameter, <code>--add</code> adds one, <code>--del key</code> removes it</td></tr>

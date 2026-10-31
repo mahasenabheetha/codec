@@ -33,6 +33,13 @@ All notable changes to codec are documented here. The format follows
   ipsum; a seed repeats a run. Emails, IPs and phones use reserved
   ranges. `codec fake rows` and `codec fake lorem`.
 
+- **QR code**, a new Utilities tool: make a code for text or a link, a
+  Wi-Fi login or an authenticator (TOTP) setup, at any error-correction
+  level, saved as PNG or SVG; read one from a dropped, pasted or chosen
+  image (any format the browser shows, light on dark too), with its
+  parts explained. `codec qr` draws a code in the terminal or saves it;
+  `codec qr read` reads one. Uses boombuler/barcode and gozxing (MIT).
+
 ### Changed
 
 - The Secrets & UUID tab is now Secrets (secrets and placeholder commit
