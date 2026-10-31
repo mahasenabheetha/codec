@@ -146,7 +146,7 @@
   <div class="sides">
     <SidePicker label="Left" bind:side={cmp.left} bind:whatIf={cmp.leftWhatIf} onchange={() => cmp.run()} onclear={() => cmp.clear('left')} replace={(s) => cmp.setSide('left', s)} />
     <SidePicker label="Right" bind:side={cmp.right} bind:whatIf={cmp.rightWhatIf} onchange={() => cmp.run()} onclear={() => cmp.clear('right')} replace={(s) => cmp.setSide('right', s)} />
-    <span class="swap"><IconButton icon={ArrowLeftRight} label="Swap sides" size="sm" onclick={() => cmp.swap()} /></span>
+    <span class="swap"><IconButton icon={ArrowLeftRight} tone="swap" label="Swap sides" size="sm" onclick={() => cmp.swap()} /></span>
   </div>
 
   {#if pasting}

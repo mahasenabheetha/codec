@@ -227,7 +227,7 @@
         {/each}
         <form class="add" onsubmit={(e) => (e.preventDefault(), addPattern())}>
           <input bind:value={pattern} placeholder="metadata.annotations.checksum/*" spellcheck="false" aria-label="Path to ignore" />
-          <Button size="sm" icon={Plus} type="submit" disabled={!pattern.trim()}>Add</Button>
+          <Button size="sm" icon={Plus} tone="add" type="submit" disabled={!pattern.trim()}>Add</Button>
         </form>
       </SettingSection>
 
@@ -238,7 +238,7 @@
               {#snippet details()}
                 <span class="mono">{f.path || 'not available on this system'}</span>{#if f.path && !f.exists}<span class="gone"> · not created yet</span>{/if}
               {/snippet}
-              <IconButton icon={Copy} size="sm" label="Copy the path" disabled={!f.path} onclick={() => copyText(f.path, 'Path')} />
+              <IconButton icon={Copy} tone="copy" size="sm" label="Copy the path" disabled={!f.path} onclick={() => copyText(f.path, 'Path')} />
             </SettingRow>
           {/each}
           <SettingRow title="Recent folders" description={info.recent.length ? `${info.recent.length} remembered for Home and Open folder.` : 'None remembered.'}>

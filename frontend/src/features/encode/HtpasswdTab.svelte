@@ -98,7 +98,7 @@
     />
   {/snippet}
   {#snippet actions()}
-    <Button variant="primary" icon={Play} onclick={run} disabled={!ready || job.busy} title={formatShortcut('Mod+Enter')}>
+    <Button variant="primary" icon={Play} tone="run" onclick={run} disabled={!ready || job.busy} title={formatShortcut('Mod+Enter')}>
       {making ? 'Make line' : 'Check'}
     </Button>
   {/snippet}
@@ -146,7 +146,7 @@
     <Pane title={making ? 'htpasswd line' : 'Result'} grow={false}>
       {#snippet actions()}
         {#if making}
-          <IconButton icon={Copy} label="Copy line" shortcut="Alt+C" size="sm" disabled={!result} onclick={() => copyText(result, 'Line')} />
+          <IconButton icon={Copy} tone="copy" label="Copy line" shortcut="Alt+C" size="sm" disabled={!result} onclick={() => copyText(result, 'Line')} />
         {/if}
       {/snippet}
       {#if job.error}

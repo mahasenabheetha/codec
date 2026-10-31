@@ -79,7 +79,7 @@
     <Toggle label="Ignore case" bind:checked={opts.ignoreCase} />
   {/snippet}
   {#snippet actions()}
-    <IconButton icon={ArrowLeftRight} label="Swap the sides" shortcut="Alt+S" disabled={!left && !right} onclick={swap} />
+    <IconButton icon={ArrowLeftRight} tone="swap" label="Swap the sides" shortcut="Alt+S" disabled={!left && !right} onclick={swap} />
   {/snippet}
   {#snippet body()}
     <div class="frame">

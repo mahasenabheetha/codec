@@ -29,6 +29,26 @@ import Type from '@lucide/svelte/icons/type'
 import Diff from '@lucide/svelte/icons/diff'
 import CaseSensitive from '@lucide/svelte/icons/case-sensitive'
 
+/** A tool's colour (decision 94): a `--hue-*` token. How much of it shows
+ *  is up to the theme (`--tint-tool`): none in Dark and Light. */
+export type Hue = 'indigo' | 'violet' | 'pink' | 'peach' | 'lime' | 'teal' | 'cyan'
+
+/** The CSS value for a hue, to set as `--tool` on what belongs to the tool. */
+export function hueVar(h: Hue): string {
+  return `var(--hue-${h})`
+}
+
+/** Hues of the workspace views on the rail, which aren't in the registry. */
+export const viewHue = {
+  explorer: 'indigo',
+  search: 'cyan',
+  open: 'indigo',
+  problems: 'pink',
+  compare: 'peach',
+  query: 'teal',
+  new: 'lime',
+} as const satisfies Record<string, Hue>
+
 /** A sub-tab of a tool; Home and the palette list it by its own name. */
 export interface ToolTab {
   id: string
@@ -44,6 +64,7 @@ export interface ToolDef {
   group: string
   description: string
   icon: Component
+  hue: Hue
   keywords: string[]
   /** Sub-tabs, the first by default; the last one shown is remembered. */
   tabs?: ToolTab[]
@@ -57,6 +78,7 @@ export const tools: ToolDef[] = [
     group: 'Encode & decode',
     description: 'Paste anything — codec detects JSON, base64, JWTs, Ansible logs, timestamps, URL-encoded text or cron and does the obvious thing.',
     icon: Sparkles,
+    hue: 'violet',
     keywords: ['auto', 'detect', 'paste'],
     load: () => import('../features/smart/SmartPaste.svelte'),
   },
@@ -66,6 +88,7 @@ export const tools: ToolDef[] = [
     group: 'Encode & decode',
     description: 'Encode or decode base64, standard or URL-safe. Decoded JSON is pretty-printed.',
     icon: Binary,
+    hue: 'indigo',
     keywords: ['b64', 'encode', 'decode', 'secret'],
     load: () => import('../features/base64/Base64Tool.svelte'),
   },
@@ -75,6 +98,7 @@ export const tools: ToolDef[] = [
     group: 'Encode & decode',
     description: 'Pretty-print, minify or validate JSON, with exact error positions.',
     icon: Braces,
+    hue: 'peach',
     keywords: ['format', 'pretty', 'minify', 'validate', 'lint'],
     load: () => import('../features/json/JsonTool.svelte'),
   },
@@ -84,6 +108,7 @@ export const tools: ToolDef[] = [
     group: 'Encode & decode',
     description: 'Decode a JSON Web Token into readable claims, with expiry at a glance.',
     icon: KeyRound,
+    hue: 'pink',
     keywords: ['token', 'jws', 'claims', 'auth', 'bearer'],
     load: () => import('../features/jwt/JwtTool.svelte'),
   },
@@ -93,6 +118,7 @@ export const tools: ToolDef[] = [
     group: 'Logs',
     description: 'From one failed task to a whole pipeline log: status, probable cause and readable output.',
     icon: ScrollText,
+    hue: 'teal',
     keywords: ['log', 'playbook', 'task', 'failure', 'error', 'pipeline'],
     load: () => import('../features/ansible/AnsibleTool.svelte'),
   },
@@ -102,6 +128,7 @@ export const tools: ToolDef[] = [
     group: 'Logs',
     description: 'Read ECS, JSON, logfmt, klog and text logs: filter, chart, error groups and fields, across several files merged by time.',
     icon: Logs,
+    hue: 'lime',
     keywords: ['log', 'ecs', 'json', 'logfmt', 'klog', 'argo', 'kubectl', 'slog', 'zap', 'logrus', 'kibana', 'error', 'trace'],
     load: () => import('../features/logs/LogViewer.svelte'),
   },
@@ -111,6 +138,7 @@ export const tools: ToolDef[] = [
     group: 'Utilities',
     description: 'Epoch timestamps, time zones, date formats and cron schedules in plain words.',
     icon: Clock,
+    hue: 'cyan',
     keywords: ['date', 'time'],
     tabs: [
       {
@@ -150,6 +178,7 @@ export const tools: ToolDef[] = [
     group: 'Utilities',
     description: 'URL and hex encoding, hashes, random secrets and htpasswd lines.',
     icon: Hash,
+    hue: 'pink',
     keywords: ['encode', 'hash'],
     tabs: [
       {
@@ -196,6 +225,7 @@ export const tools: ToolDef[] = [
     group: 'Utilities',
     description: 'CIDR ranges, IP addresses, URLs and HTTP: subnets, conversions, curl and fetch.',
     icon: Network,
+    hue: 'teal',
     keywords: ['network', 'ip', 'subnet'],
     tabs: [
       {
@@ -235,6 +265,7 @@ export const tools: ToolDef[] = [
     group: 'Utilities',
     description: 'Compare two texts, and change the case of names.',
     icon: Type,
+    hue: 'violet',
     keywords: ['text'],
     tabs: [
       {
@@ -260,6 +291,7 @@ export const tools: ToolDef[] = [
     group: 'Utilities',
     description: 'Test a pattern on sample lines, see the groups, and read it in plain words.',
     icon: Regex,
+    hue: 'peach',
     keywords: ['regexp', 'regular expression', 'pattern', 'match', 'replace'],
     load: () => import('../features/regex/RegexTool.svelte'),
   },
@@ -288,11 +320,12 @@ export interface ToolEntry {
   title: string
   description: string
   icon: Component
+  hue: Hue
   keywords: string[]
 }
 
 export function toolEntries(t: ToolDef): ToolEntry[] {
-  if (!t.tabs) return [{ key: t.id, tool: t.id, title: t.title, description: t.description, icon: t.icon, keywords: t.keywords }]
+  if (!t.tabs) return [{ key: t.id, tool: t.id, title: t.title, description: t.description, icon: t.icon, hue: t.hue, keywords: t.keywords }]
   return t.tabs.map((s) => ({
     key: t.id + '.' + s.id,
     tool: t.id,
@@ -300,6 +333,7 @@ export function toolEntries(t: ToolDef): ToolEntry[] {
     title: s.title,
     description: s.description,
     icon: s.icon,
+    hue: t.hue,
     keywords: [...s.keywords, ...t.keywords, t.title.toLowerCase()],
   }))
 }

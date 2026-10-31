@@ -336,7 +336,7 @@
       </Popover>
       <Popover side="bottom" align="end">
         {#snippet trigger(props)}
-          <Button {...props} size="sm" variant="ghost" icon={Download}>Export</Button>
+          <Button {...props} size="sm" variant="ghost" icon={Download} tone="save">Export</Button>
         {/snippet}
         <div class="menu">
           <p class="muted">The {count(viewer.total)} matching entries as</p>

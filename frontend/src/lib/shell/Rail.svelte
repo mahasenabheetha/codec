@@ -17,14 +17,14 @@
   import { finder } from '../../features/search/search.svelte'
   import { layout } from '../stores/layout.svelte'
   import { compareRoute, settingsRoute, newRoute, problemsRoute, queryRoute, router } from '../stores/router.svelte'
-  import { toolGroups } from '../tools'
+  import { hueVar, toolGroups, viewHue, type Hue } from '../tools'
   import { chain } from '../utils/events'
 
   const groups = toolGroups()
   const collapsed = $derived(layout.railCollapsed)
 </script>
 
-{#snippet item(icon: Component, label: string, selected: boolean, onclick: () => void, shortcut?: string)}
+{#snippet item(icon: Component, label: string, selected: boolean, onclick: () => void, shortcut?: string, hue?: Hue)}
   {@const Icon = icon}
   <Tooltip text={label} {shortcut} side="right" off={!collapsed}>
     {#snippet children(props)}
@@ -33,6 +33,8 @@
         type="button"
         class="item"
         class:selected
+        class:hued={!!hue}
+        style:--tool={hue && hueVar(hue)}
         aria-current={selected ? 'page' : undefined}
         aria-label={label}
         onclick={chain(props.onclick, onclick)}
@@ -58,16 +60,16 @@
     {:else}
       <div class="group">Workspace</div>
     {/if}
-    {@render item(FolderTree, 'Explorer', layout.explorerOpen && layout.sidebarView === 'explorer', () => layout.toggleExplorer(), 'Mod+Shift+E')}
+    {@render item(FolderTree, 'Explorer', layout.explorerOpen && layout.sidebarView === 'explorer', () => layout.toggleExplorer(), 'Mod+Shift+E', viewHue.explorer)}
     {@render item(Search, 'Search', layout.explorerOpen && layout.sidebarView === 'search', () => {
       layout.toggleSearch()
       finder.focusTick++
-    }, 'Mod+Shift+F')}
-    {@render item(FolderOpen, 'Open folder…', false, () => workspace.chooseFolder(), 'Mod+O')}
-    {@render item(ListChecks, 'Problems', router.path === problemsRoute, () => layout.open(problemsRoute))}
-    {@render item(GitCompare, 'Compare', router.path === compareRoute, () => layout.open(compareRoute))}
-    {@render item(TextSearch, 'Query', router.path === queryRoute, () => layout.open(queryRoute))}
-    {@render item(FilePlus, 'New', router.path === newRoute, () => layout.open(newRoute))}
+    }, 'Mod+Shift+F', viewHue.search)}
+    {@render item(FolderOpen, 'Open folder…', false, () => workspace.chooseFolder(), 'Mod+O', viewHue.open)}
+    {@render item(ListChecks, 'Problems', router.path === problemsRoute, () => layout.open(problemsRoute), undefined, viewHue.problems)}
+    {@render item(GitCompare, 'Compare', router.path === compareRoute, () => layout.open(compareRoute), undefined, viewHue.compare)}
+    {@render item(TextSearch, 'Query', router.path === queryRoute, () => layout.open(queryRoute), undefined, viewHue.query)}
+    {@render item(FilePlus, 'New', router.path === newRoute, () => layout.open(newRoute), undefined, viewHue.new)}
 
     {#each groups as g (g.group)}
       {#if collapsed}
@@ -76,7 +78,7 @@
         <div class="group">{g.group}</div>
       {/if}
       {#each g.tools as t (t.id)}
-        {@render item(t.icon, t.title, router.toolId === t.id, () => layout.openTool(t.id))}
+        {@render item(t.icon, t.title, router.toolId === t.id, () => layout.openTool(t.id), undefined, t.hue)}
       {/each}
     {/each}
   </div>
@@ -177,8 +179,16 @@
     color: var(--fg-0);
     background: var(--bg-3);
   }
+  /* A tool's or view's icon in its hue, as far as the theme shows it
+     (decision 94); the selected one in the accent otherwise. */
+  .item.hued :global(svg) {
+    color: var(--tool-icon);
+  }
   .item.selected :global(svg) {
     color: var(--accent);
+  }
+  .item.hued.selected :global(svg) {
+    color: var(--tool-accent);
   }
   .bottom {
     display: flex;

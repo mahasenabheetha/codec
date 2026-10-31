@@ -148,7 +148,7 @@
         ]}
         bind:value={opts.textView}
       />
-      <IconButton icon={Copy} label="Copy as patch" size="sm" onclick={() => copyText(result.diff!, 'Patch')} />
+      <IconButton icon={Copy} tone="copy" label="Copy as patch" size="sm" onclick={() => copyText(result.diff!, 'Patch')} />
     {/if}
   </div>
 

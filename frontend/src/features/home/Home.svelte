@@ -9,7 +9,7 @@
   import Button from '../../lib/components/Button.svelte'
   import Kbd from '../../lib/components/Kbd.svelte'
   import { layout } from '../../lib/stores/layout.svelte'
-  import { toolEntries, toolGroups } from '../../lib/tools'
+  import { hueVar, toolEntries, toolGroups, viewHue } from '../../lib/tools'
   import { comparison } from '../compare/compare.svelte'
   import { openFolder, openSample, workspace as ws } from '../workspace/workspace.svelte'
 
@@ -58,7 +58,7 @@
               <span class="title">Open your own folder</span>
               <span class="desc">A repository on this machine. codec reads it and never writes to it.</span>
             </span>
-            <Button icon={FolderOpen} onclick={() => ws.chooseFolder()}>Open folder…</Button>
+            <Button icon={FolderOpen} tone="open" onclick={() => ws.chooseFolder()}>Open folder…</Button>
           </li>
         </ol>
       </section>
@@ -114,7 +114,7 @@
       <div class="grid">
         {#if i === 0}
           <button type="button" class="card" onclick={() => comparison.pasteBoth()}>
-            <span class="icon"><GitCompare size={18} strokeWidth={1.75} /></span>
+            <span class="icon hued" style:--tool={hueVar(viewHue.compare)}><GitCompare size={18} strokeWidth={1.75} /></span>
             <span class="text">
               <span class="title">Compare text</span>
               <span class="desc">Paste two YAML, JSON or plain texts and see what differs. No folder needed.</span>
@@ -124,7 +124,7 @@
         {/if}
         {#each g.tools.flatMap(toolEntries) as t (t.key)}
           <button type="button" class="card" onclick={() => layout.openTool(t.tool, t.tab)}>
-            <span class="icon"><t.icon size={18} strokeWidth={1.75} /></span>
+            <span class="icon hued" style:--tool={hueVar(t.hue)}><t.icon size={18} strokeWidth={1.75} /></span>
             <span class="text">
               <span class="title">{t.title}</span>
               <span class="desc">{t.description}</span>
@@ -280,6 +280,10 @@
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
     word-break: break-all;
+  }
+  .icon.hued {
+    color: var(--tool-accent);
+    background: var(--tool-accent-soft);
   }
   .icon.muted {
     color: var(--fg-1);

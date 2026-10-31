@@ -76,7 +76,7 @@
   {#snippet actions()}
     {#if onswap}
       <IconButton
-        icon={ArrowLeftRight}
+        icon={ArrowLeftRight} tone="swap"
         label="Use output as input"
         shortcut="Alt+S"
         size="sm"
@@ -88,7 +88,7 @@
       <IconButton icon={Search} label="Find in the output" shortcut="Ctrl+F" size="sm" active={finding} onclick={() => (finding = !finding)} />
     {/if}
     <IconButton
-      icon={Copy}
+      icon={Copy} tone="copy"
       label="Copy output"
       shortcut="Alt+C"
       size="sm"

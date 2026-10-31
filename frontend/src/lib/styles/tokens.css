@@ -72,6 +72,30 @@
   --brand-terraform: #9b8cff;
   --brand-json: var(--syn-number);
 
+  /* Colour roles (decision 94). Each tool has a hue and each action a
+     tone; --tint-tool and --tint-action say how much of them a theme
+     shows: 0% in Dark and Light, which keeps today's look, more in Dusk.
+     Components never use a hue directly: an element of a tool takes the
+     .hued class (global.css) and reads --tool-accent, --tool-accent-soft
+     and --tool-icon; IconButton and Button take a tone. Status colours
+     keep their own hues, so a tool's colour never reads as an error. */
+  --hue-indigo: #9aa5f5;
+  --hue-violet: #b9a2f0;
+  --hue-pink: #ee9fc8;
+  --hue-peach: #f2b28e;
+  --hue-lime: #b5d68a;
+  --hue-teal: #7fd1c1;
+  --hue-cyan: #82c8e6;
+  --act-copy: var(--hue-cyan);
+  --act-clear: var(--hue-pink);
+  --act-save: var(--hue-lime);
+  --act-swap: var(--hue-peach);
+  --act-open: var(--hue-indigo);
+  --act-add: var(--hue-teal);
+  --act-run: var(--hue-violet);
+  --tint-tool: 0%;
+  --tint-action: 0%;
+
   /* Editor surfaces (CodeMirror) */
   --editor-active-line: rgb(255 255 255 / 0.025);
   --editor-selection: rgb(122 162 255 / 0.16);

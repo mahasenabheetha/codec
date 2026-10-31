@@ -36,7 +36,7 @@
   {#snippet actions()}
     <IconButton icon={ClipboardPaste} label="Paste from clipboard" size="sm" onclick={pasteFromClipboard} />
     <IconButton
-      icon={Eraser}
+      icon={Eraser} tone="clear"
       label="Clear"
       shortcut="Escape"
       size="sm"

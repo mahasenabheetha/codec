@@ -76,7 +76,7 @@
     right: 0;
     bottom: -1px;
     height: 2px;
-    background: var(--accent);
+    background: var(--tool-accent, var(--accent));
     border-radius: 2px 2px 0 0;
   }
   .count {

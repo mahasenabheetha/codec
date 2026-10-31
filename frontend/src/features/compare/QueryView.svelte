@@ -71,7 +71,7 @@
         placeholder=".spec.template.spec.containers[].image"
         {onkeydown}
       ></textarea>
-      <Button variant="primary" size="sm" icon={Play} disabled={!canRun || q.running} onclick={() => q.run()}>
+      <Button variant="primary" size="sm" icon={Play} tone="run" disabled={!canRun || q.running} onclick={() => q.run()}>
         {q.running ? 'Running…' : 'Run'}
       </Button>
     </div>

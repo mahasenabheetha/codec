@@ -135,7 +135,7 @@
     />
   {/if}
   {#if filled}
-    <IconButton icon={X} label="Clear {label.toLowerCase()} side" size="sm" onclick={onclear} />
+    <IconButton icon={X} tone="clear" label="Clear {label.toLowerCase()} side" size="sm" onclick={onclear} />
   {/if}
 </div>
 

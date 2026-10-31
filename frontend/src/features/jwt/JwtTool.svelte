@@ -50,7 +50,7 @@
 
 <ToolLayout {tool}>
   {#snippet actions()}
-    <Button variant="primary" icon={Play} onclick={run} title={formatShortcut('Mod+Enter')}>Decode</Button>
+    <Button variant="primary" icon={Play} tone="run" onclick={run} title={formatShortcut('Mod+Enter')}>Decode</Button>
   {/snippet}
   {#snippet input()}
     <InputPane

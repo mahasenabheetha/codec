@@ -61,6 +61,28 @@ Both themes meet the same rules: text ≥ 4.5:1 on `--bg-0`…`--bg-3` and
 on its own `-soft` background, logos ≥ 3:1. A new colour token gets a
 value in both blocks.
 
+**Colour roles** (decision 94). Colour has three jobs, kept apart:
+
+- **Tool hue.** Each tool and workspace view has one (`hue` in
+  `lib/tools.ts`, `viewHue` for the rail's views), from `--hue-indigo`,
+  `-violet`, `-pink`, `-peach`, `-lime`, `-teal`, `-cyan`. What belongs to
+  the tool (its page, rail entry, Home card) sets `--tool` to
+  `hueVar(hue)` and takes the `.hued` class, which works out
+  `--tool-accent`, `--tool-accent-hover`, `--tool-accent-soft` and
+  `--tool-icon` for everything inside. Shared components read
+  `var(--tool-accent, var(--accent))`, so they work outside a tool too.
+- **Action tone.** `tone` on `IconButton` and `Button`: `copy`, `clear`,
+  `save`, `swap`, `open`, `add`, `run` (`--act-*`). Only the icon takes
+  it, never on a primary button or a disabled one. A close or remove ×
+  has no tone.
+- **Status.** `--ok`, `--warn`, `--err`, `--info` keep hues no tool or
+  action uses, so colour never suggests a problem that isn't there.
+
+How much of the first two a theme shows is `--tint-tool` and
+`--tint-action`: `0%` in Dark and Light, which keeps them exactly as
+they were. Never use a `--hue-*` or `--act-*` token directly; go through
+the roles, so a theme can turn them up or down in one place.
+
 Never hard-code a colour, size or font in a component. A new token is a
 change to this file and `tokens.css` together.
 

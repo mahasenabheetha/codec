@@ -110,6 +110,18 @@ p {
   border: 0;
 }
 
+/* Something that belongs to a tool (a tool page, its rail entry, its
+   Home card) sets --tool to its hue and takes this class. The values are
+   worked out here, where --tool is known, and inherited by what is
+   inside; at --tint-tool 0% they are exactly the accent and the text
+   colour (decision 94). */
+.hued {
+  --tool-accent: color-mix(in oklab, var(--tool) var(--tint-tool), var(--accent));
+  --tool-accent-hover: color-mix(in oklab, var(--tool) var(--tint-tool), var(--accent-hover));
+  --tool-accent-soft: color-mix(in oklab, var(--tool) var(--tint-tool), var(--accent-soft));
+  --tool-icon: color-mix(in oklab, var(--tool) var(--tint-tool), currentColor);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

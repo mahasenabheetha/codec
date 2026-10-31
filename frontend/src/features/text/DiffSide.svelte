@@ -58,9 +58,9 @@
   <Pane {title}>
     {#snippet meta()}{name ? `${name} · ` : ''}{sizeLabel(value)}{/snippet}
     {#snippet actions()}
-      <IconButton icon={FolderOpen} label="Open a file" size="sm" onclick={() => picker?.click()} />
+      <IconButton icon={FolderOpen} tone="open" label="Open a file" size="sm" onclick={() => picker?.click()} />
       <IconButton icon={ClipboardPaste} label="Paste from clipboard" size="sm" onclick={paste} />
-      <IconButton icon={Eraser} label="Clear" size="sm" disabled={!value} onclick={() => ((value = ''), (name = ''))} />
+      <IconButton icon={Eraser} tone="clear" label="Clear" size="sm" disabled={!value} onclick={() => ((value = ''), (name = ''))} />
     {/snippet}
     <CodeView bind:value label={title} {placeholder} wrap />
   </Pane>

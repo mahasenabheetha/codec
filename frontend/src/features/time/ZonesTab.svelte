@@ -120,7 +120,7 @@
           <datalist id="zones-add">
             {#each zoneNames as z (z)}<option value={z}></option>{/each}
           </datalist>
-          <IconButton icon={Plus} label="Add the zone" size="sm" disabled={!canonicalZone(adding)} onclick={add} />
+          <IconButton icon={Plus} tone="add" label="Add the zone" size="sm" disabled={!canonicalZone(adding)} onclick={add} />
         </form>
       {/snippet}
       {#if zs.length}

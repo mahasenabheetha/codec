@@ -76,7 +76,7 @@
     {/if}
   {/snippet}
   {#snippet actions()}
-    <Button variant="primary" icon={Play} onclick={run} title={formatShortcut('Mod+Enter')}>
+    <Button variant="primary" icon={Play} tone="run" onclick={run} title={formatShortcut('Mod+Enter')}>
       {encoding ? 'Encode' : 'Decode'}
     </Button>
   {/snippet}

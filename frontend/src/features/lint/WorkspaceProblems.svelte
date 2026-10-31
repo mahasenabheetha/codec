@@ -89,7 +89,7 @@
       {/if}
     </div>
     <Button variant="ghost" size="sm" icon={Settings} onclick={() => layout.open(settingsRoute)}>Settings</Button>
-    <Button variant="primary" size="sm" icon={Play} disabled={!workspace.info?.open || lint.running} onclick={() => lint.runWorkspace()}>
+    <Button variant="primary" size="sm" icon={Play} tone="run" disabled={!workspace.info?.open || lint.running} onclick={() => lint.runWorkspace()}>
       {lint.running ? 'Checking…' : lint.results ? 'Check again' : 'Lint workspace'}
     </Button>
   </header>

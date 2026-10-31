@@ -146,7 +146,7 @@
       <span>New name</span>
       <input type="text" spellcheck="false" bind:value={to} bind:this={toInput} placeholder="new-name" />
     </label>
-    <Button size="sm" variant="primary" icon={Copy} disabled={!result} onclick={() => copyText(result?.text ?? '', 'Copy')}>Copy</Button>
+    <Button size="sm" variant="primary" icon={Copy} tone="copy" disabled={!result} onclick={() => copyText(result?.text ?? '', 'Copy')}>Copy</Button>
   </div>
 
   {#if error}

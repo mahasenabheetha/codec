@@ -120,7 +120,7 @@
     {#if entry}<span class="where">{entry.file}:{entry.line}</span>{/if}
     <span class="spacer"></span>
     {#if entry}
-      <IconButton icon={Copy} label="Copy the line as read (secrets masked)" size="sm" onclick={() => copy('line')} />
+      <IconButton icon={Copy} tone="copy" label="Copy the line as read (secrets masked)" size="sm" onclick={() => copy('line')} />
       <IconButton icon={Braces} label="Copy the entry as JSON (secrets masked)" size="sm" onclick={() => copy('entry')} />
       <IconButton
         icon={viewer.isPinned(entry.i) ? PinOff : PinIcon}

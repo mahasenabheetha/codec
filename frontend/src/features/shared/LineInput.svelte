@@ -36,7 +36,7 @@
     <input bind:this={field} bind:value aria-label={label} {placeholder} spellcheck="false" autocomplete="off" />
     {#if actions}{@render actions()}{/if}
     <IconButton icon={ClipboardPaste} label="Paste from clipboard" size="sm" onclick={paste} />
-    <IconButton icon={Eraser} label="Clear" shortcut="Escape" size="sm" disabled={!value} onclick={() => (onclear ? onclear() : (value = ''))} />
+    <IconButton icon={Eraser} tone="clear" label="Clear" shortcut="Escape" size="sm" disabled={!value} onclick={() => (onclear ? onclear() : (value = ''))} />
   </div>
   {#if children}{@render children()}{/if}
 </section>

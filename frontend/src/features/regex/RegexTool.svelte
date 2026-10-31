@@ -159,7 +159,7 @@
                 />
               </div>
               <span class="slash" aria-hidden="true">/{flagText}</span>
-              <IconButton icon={Copy} label="Copy pattern" size="sm" disabled={!pattern} onclick={() => copyText(pattern, 'Pattern')} />
+              <IconButton icon={Copy} tone="copy" label="Copy pattern" size="sm" disabled={!pattern} onclick={() => copyText(pattern, 'Pattern')} />
             </div>
             {#if res?.error}
               <div class="err">
@@ -179,7 +179,7 @@
           <Pane title="Test text">
             {#snippet meta()}{sizeLabel(job.input)}{/snippet}
             {#snippet actions()}
-              <IconButton icon={Eraser} label="Clear" shortcut="Escape" size="sm" disabled={!job.input} onclick={clear} />
+              <IconButton icon={Eraser} tone="clear" label="Clear" shortcut="Escape" size="sm" disabled={!job.input} onclick={clear} />
             {/snippet}
             <CodeView bind:this={editor} bind:value={job.input} label="Test text" placeholder="Lines to test the pattern on — matches light up as you type" extensions={marks} wrap />
           </Pane>
@@ -221,7 +221,7 @@
               <div class="replaced">
                 <div class="bar">
                   <span>{all ? 'Every match replaced' : 'First match replaced'}</span>
-                  <IconButton icon={Copy} label="Copy result" shortcut="Alt+C" size="sm" onclick={() => copyText(res.replaced ?? '', 'Result')} />
+                  <IconButton icon={Copy} tone="copy" label="Copy result" shortcut="Alt+C" size="sm" onclick={() => copyText(res.replaced ?? '', 'Result')} />
                 </div>
                 <CodeView value={res.replaced} label="Replaced text" readonly wrap />
               </div>
