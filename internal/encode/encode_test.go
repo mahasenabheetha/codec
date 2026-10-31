@@ -36,6 +36,35 @@ func TestURL(t *testing.T) {
 	}
 }
 
+func TestBuildURL(t *testing.T) {
+	for _, tt := range []struct {
+		parts URLParts
+		want  string
+	}{
+		{URLParts{Scheme: "https", Host: "x.io", Port: "8443", Path: "/a b/c", Query: []Param{{"q", "go lang"}, {"tag", "1"}, {"tag", "2&3"}}, Fragment: "top"}, "https://x.io:8443/a%20b/c?q=go+lang&tag=1&tag=2%263#top"},
+		{URLParts{Scheme: "http", Host: "::1", Port: "80", Path: "api"}, "http://[::1]:80/api"},
+		{URLParts{Scheme: "postgres", User: "app", Host: "db", Path: "/orders"}, "postgres://app@db/orders"},
+		{URLParts{Query: []Param{{"a", "1"}, {"", "x"}}}, "?a=1&=x"},
+		{URLParts{Host: "example.com"}, "//example.com"},
+	} {
+		got, err := BuildURL(tt.parts)
+		if err != nil || got != tt.want {
+			t.Errorf("%+v: %q (%v), want %q", tt.parts, got, err, tt.want)
+		}
+	}
+	for _, bad := range []URLParts{{Scheme: "1http", Host: "x"}, {Host: "x", Port: "99999"}, {Host: "x", Port: "web"}, {Port: "80"}, {User: "u"}} {
+		if got, err := BuildURL(bad); err == nil {
+			t.Errorf("%+v built as %q", bad, got)
+		}
+	}
+	// Parse and build again: the same parts.
+	in := "https://x.io:8080/search?q=a+b&tag=1&tag=2#r"
+	p, _ := ParseURL(in)
+	if out, _ := BuildURL(*p); out != in {
+		t.Errorf("round trip: %q", out)
+	}
+}
+
 func TestParseURL(t *testing.T) {
 	p, err := ParseURL("https://bob:secret@x.io:8443/api/v1?tag=a&tag=b+c&empty=&flag#frag")
 	if err != nil {

@@ -58,6 +58,8 @@ internal/
                       traces joined to their entry, per source
   encode/             ENGINE Encode & hash tool: URL and hex encoding, digests and
                       HMAC, random secrets and UUIDs, bcrypt htpasswd lines
+  netutil/            ENGINE Network tool: CIDR details (IPv4/IPv6, range kinds),
+                      subnets, overlaps in a list; IP in other notations
   cron/               ENGINE standard cron: parse (dialects named), plain words,
                       next runs across DST, build from a form
   timeutil/           ENGINE timestamps: epoch units by size, dates, zones, relative
@@ -175,6 +177,8 @@ Files over 8 MB are not listed or read.
   Editor calls (`/yaml/analyze|hover|definition|complete|path`,
   `/files/diff`) take `{path, content?, line, col}`; no content = the file
   on disk. Requests are cancelled via `r.Context()` when the editor moves on.
+  Network: `POST /net/{kind}` — `cidr` (details; `op` split with `prefix`,
+  contains with `ip`), `overlaps` {lines}, `ip`, `url` (parse, build {parts}).
   `GET /files/image?path=` serves an image in the folder to the Markdown
   preview (png, jpeg, gif, webp, svg; the bytes must match the extension;
   10 MB; `Content-Security-Policy: sandbox`); the UI fetches it with the
