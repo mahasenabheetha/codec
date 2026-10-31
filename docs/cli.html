@@ -206,7 +206,9 @@ set       spec.template.spec.containers[0].image=</span></code></pre>
   <tr><td><code>hex encode|decode [text]</code></td><td><code>--upper</code>, <code>--sep :</code>; decoding accepts spaces, colons, <code>0x</code> and <code>\x</code></td></tr>
   <tr><td><code>hash [text]</code></td><td>SHA-256, SHA-384, SHA-512, SHA-1, MD5 of the exact bytes (<code>-a sha256</code> prints only that digest, <code>--base64</code>); <code>--hmac-key-env VAR</code> for HMACs</td></tr>
   <tr><td><code>secret</code></td><td>Random secrets: <code>--length</code>, <code>--sets lower,upper,digits,symbols</code>, <code>--format hex|base64|base64url</code>, <code>--no-ambiguous</code>, <code>-n</code></td></tr>
-  <tr><td><code>uuid</code></td><td>Random UUIDs (version 4), <code>-n</code> for more than one</td></tr>
+  <tr><td><code>checksum [file…]</code></td><td>Files hashed as a stream, any size, printed as <code>sha256sum</code> lines (<code>--algo</code> sha256|sha384|sha512|sha1|md5, <code>--all</code>); <code>--expect &lt;value&gt;</code> checks one file against hex, base64 or a sha256sum line; <code>--check checksums.txt</code> checks every file it lists (beside it, else from the current folder), exit code 1 when one fails or is missing</td></tr>
+  <tr><td><code>uuid</code></td><td>UUIDs: version 4 by default, <code>--version 7</code> (time-ordered), or <code>--version 5|3 --ns dns|url|oid|x500|&lt;uuid&gt; --name &lt;text&gt;</code> (the same every time); <code>-n</code> up to 1000</td></tr>
+  <tr><td><code>uuid parse &lt;uuid&gt;</code></td><td>A UUID's version, variant and, for v1, v6 and v7, when it was made; braces, upper case and <code>urn:uuid:</code> are read</td></tr>
   <tr><td><code>sha</code></td><td>Placeholder git commit ids: 40 lowercase hex characters, <code>--short</code> for 7, <code>--sha256</code> for 64; <code>-n</code> for more than one</td></tr>
   <tr><td><code>htpasswd &lt;user&gt;</code></td><td>A bcrypt <code>user:hash</code> line for basic auth; the password is asked for or piped in (<code>--cost</code>). <code>--check "&lt;line&gt;"</code> checks one, exit 2 when it doesn't match</td></tr>
 </table></div>

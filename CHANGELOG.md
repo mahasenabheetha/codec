@@ -6,6 +6,24 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- **Checksum**, a new tab in Encode & hash: files dropped, chosen or
+  picked from the open folder are hashed with every algorithm in one
+  pass, as a stream, any size, and checked against an expected value
+  (hex or base64) or a checksums file (sha256sum or BSD lines), with
+  the files it names checked in the open folder on request.
+  `codec checksum` prints sha256sum lines, `--expect` and `--check`.
+- **UUID** gets its own tab: versions 4, 7 (time-ordered), 5 and 3 (from
+  a namespace and name), up to 1000 at a time in five spellings, and a
+  UUID read for its version, variant and time. `codec uuid` gains
+  `--version`, `--ns`, `--name` and `codec uuid parse`.
+
+### Changed
+
+- The Secrets & UUID tab is now Secrets (secrets and placeholder commit
+  SHAs); UUIDs moved to the UUID tab.
+
 ## [3.7.0] - 2026-10-31
 
 Structured data from anywhere: JSON & YAML with seven views of one

@@ -238,16 +238,44 @@ secret pastes into YAML, JSON and a shell as is.`,
 	},
 }
 
+var (
+	uuidVersion int
+	uuidNS      string
+	uuidName    string
+)
+
 var uuidCmd = &cobra.Command{
 	Use:   "uuid",
-	Short: "Generate random (version 4) UUIDs",
-	Args:  cobra.NoArgs,
+	Short: "Generate UUIDs: random (v4), time-ordered (v7) or name-based (v5, v3)",
+	Long: `uuid prints UUIDs: version 4 (random) by default, 7 (time-ordered,
+sorts by creation), or 5 and 3 (the same UUID every time for a
+namespace and name: --ns dns|url|oid|x500|<uuid> --name <text>).
+At most 1000 at a time.`,
+	Args: cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		lines := make([]string, min(max(genCount, 1), 10000))
-		for i := range lines {
-			lines[i] = encode.UUID()
+		lines, err := encode.NewUUIDs(encode.UUIDOptions{Version: uuidVersion, Namespace: uuidNS, Name: uuidName}, genCount)
+		if err != nil {
+			return err
 		}
 		return emit(strings.Join(lines, "\n"))
+	},
+}
+
+var uuidParseCmd = &cobra.Command{
+	Use:   "parse <uuid>",
+	Short: "Show a UUID's version, variant and, for v1, v6 and v7, when it was made",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		info, err := encode.ParseUUID(args[0])
+		if err != nil {
+			return err
+		}
+		var b strings.Builder
+		fmt.Fprintf(&b, "uuid     %s\nversion  %d · %s\nvariant  %s", info.UUID, info.Version, info.Kind, info.Variant)
+		if info.Time != "" {
+			fmt.Fprintf(&b, "\ntime     %s", info.Time)
+		}
+		return emit(b.String())
 	},
 }
 
@@ -400,5 +428,9 @@ func init() {
 	htpasswdCmd.Flags().IntVar(&htCost, "cost", encode.DefaultCost, fmt.Sprintf("bcrypt cost, %d to %d (each step doubles the time)", encode.MinCost, encode.MaxCost))
 	htpasswdCmd.Flags().StringVar(&htCheck, "check", "", `check the password against this "user:hash" line`)
 
+	uuidCmd.Flags().IntVar(&uuidVersion, "version", 4, "UUID version: 4, 7, 5 or 3")
+	uuidCmd.Flags().StringVar(&uuidNS, "ns", "dns", "namespace for v5 and v3: dns, url, oid, x500 or a UUID")
+	uuidCmd.Flags().StringVar(&uuidName, "name", "", "name for v5 and v3")
+	uuidCmd.AddCommand(uuidParseCmd)
 	rootCmd.AddCommand(urlCmd, hexCmd, hashCmd, secretCmd, uuidCmd, shaCmd, htpasswdCmd)
 }

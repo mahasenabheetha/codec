@@ -19,6 +19,8 @@ import Link from '@lucide/svelte/icons/link'
 import FileDigit from '@lucide/svelte/icons/file-digit'
 import FingerprintPattern from '@lucide/svelte/icons/fingerprint-pattern'
 import Dices from '@lucide/svelte/icons/dices'
+import FileCheck from '@lucide/svelte/icons/file-check'
+import IdCard from '@lucide/svelte/icons/id-card'
 import UserLock from '@lucide/svelte/icons/user-lock'
 import Regex from '@lucide/svelte/icons/regex'
 import Network from '@lucide/svelte/icons/network'
@@ -196,7 +198,7 @@ export const tools: ToolDef[] = [
     id: 'encode',
     title: 'Encode & hash',
     group: 'Utilities',
-    description: 'URL and hex encoding, hashes, random secrets and htpasswd lines.',
+    description: 'URL and hex encoding, hashes and file checksums, random secrets, UUIDs and htpasswd lines.',
     icon: Hash,
     hue: 'pink',
     keywords: ['encode', 'hash'],
@@ -220,14 +222,28 @@ export const tools: ToolDef[] = [
         title: 'Hash',
         description: 'SHA-256, SHA-512, SHA-1 and MD5 of text, and HMAC with a key.',
         icon: FingerprintPattern,
-        keywords: ['sha256', 'sha512', 'sha1', 'md5', 'hmac', 'checksum', 'digest'],
+        keywords: ['sha256', 'sha512', 'sha1', 'md5', 'hmac', 'digest'],
+      },
+      {
+        id: 'checksum',
+        title: 'Checksum',
+        description: 'Checksums of files, of any size, checked against an expected value or a checksums file.',
+        icon: FileCheck,
+        keywords: ['checksum', 'sha256sum', 'verify', 'download', 'file hash', 'checksums.txt', 'integrity'],
       },
       {
         id: 'secrets',
-        title: 'Secrets & UUID',
-        description: 'Random secrets by length and character set, UUIDs, and placeholder commit SHAs.',
+        title: 'Secrets',
+        description: 'Random secrets by length and character set, and placeholder commit SHAs.',
         icon: Dices,
-        keywords: ['random', 'password', 'generate', 'uuid', 'guid', 'token', 'commit', 'sha', 'git', 'placeholder'],
+        keywords: ['random', 'password', 'generate', 'token', 'commit', 'sha', 'git', 'placeholder'],
+      },
+      {
+        id: 'uuid',
+        title: 'UUID',
+        description: 'UUIDs v4, v7, v5 and v3, up to 1000 at a time; read one for its version and time.',
+        icon: IdCard,
+        keywords: ['uuid', 'guid', 'v4', 'v7', 'v5', 'ulid', 'identifier'],
       },
       {
         id: 'htpasswd',
