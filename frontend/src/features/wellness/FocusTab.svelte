@@ -17,11 +17,12 @@
   import Pane from '../shared/Pane.svelte'
   import ToolLayout from '../shared/ToolLayout.svelte'
   import ToolTabs from '../shared/ToolTabs.svelte'
-  import { toolCommands, toolStatus } from '../shared/tool.svelte'
+  import { toolStatus } from '../shared/tool.svelte'
   import { formatClock } from './clock.svelte'
   import FocusRing from './FocusRing.svelte'
   import { focus, limits, phaseLabel, presets, type Phase, type PresetId } from './focus.svelte'
   import SoundSettings from './SoundSettings.svelte'
+  import NotifyToggle from './NotifyToggle.svelte'
   import Stepper from './Stepper.svelte'
   import { today } from './today.svelte'
 
@@ -59,12 +60,6 @@
       ? `${phaseLabel[focus.phase]} · ${formatClock(focus.left)}${t.state === 'paused' ? ' · paused' : ''} · round ${focus.round} of ${lengths.rounds}`
       : `Ready · ${phaseLabel[focus.phase].toLowerCase()}, ${minutes(lengths[focus.phase])}`,
   }))
-  toolCommands(isActive, () => [
-    { id: 'focus.toggle', title: 'Focus: Start or pause', group: 'Wellness', shortcut: 'Space', run: () => focus.toggle() },
-    { id: 'focus.skip', title: 'Focus: Skip to the next phase', group: 'Wellness', run: () => focus.skip() },
-    { id: 'focus.extend', title: 'Focus: Add 5 minutes', group: 'Wellness', run: () => focus.extend() },
-    { id: 'focus.reset', title: 'Focus: Reset', group: 'Wellness', run: () => focus.reset() },
-  ])
   $effect(() => shortcut('Space', (e) => (e.preventDefault(), focus.toggle()), { when: isActive }))
 
   const todayLine = $derived(
@@ -150,6 +145,7 @@
             </div>
           {/if}
           <Toggle bind:checked={focus.prefs.autoStart} label="Start the next phase by itself" />
+          <NotifyToggle />
         </div>
       </Pane>
 

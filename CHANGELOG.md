@@ -29,6 +29,13 @@ All notable changes to codec are documented here. The format follows
   to end if you like, never interrupt a focus break, can keep to active
   hours, and a break taken covers shorter ones that came due. They run
   whichever tool is open; one due while the laptop slept is skipped.
+- Wellness from anywhere: a status-bar widget (a small ring and the time
+  left, or when the next reminder is due, with controls in a popover),
+  the time left in the window title, palette commands (start or pause
+  focus, skip, add 5 minutes, take a break now, pause and resume
+  reminders), tray menu entries in the desktop app, and an optional
+  system notification when codec is in the background. A docs page,
+  Focus and breaks.
 
 ## [3.5.0] - 2026-10-31
 

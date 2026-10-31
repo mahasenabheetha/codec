@@ -216,6 +216,11 @@ class Workspace {
     es.addEventListener('open-file', (e) => {
       layout.openFile(JSON.parse((e as MessageEvent).data).path)
     })
+    // The desktop tray asks for a Wellness action; the status-bar widget
+    // listens (features/wellness/WellnessWidget.svelte).
+    es.addEventListener('wellness', (e) => {
+      window.dispatchEvent(new CustomEvent('codec:wellness', { detail: JSON.parse((e as MessageEvent).data).action }))
+    })
     es.addEventListener('tree', () => this.scheduleReload())
     es.addEventListener('files', (e) => {
       const { root, changes } = JSON.parse((e as MessageEvent).data) as {

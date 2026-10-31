@@ -10,12 +10,13 @@
   import Pane from '../shared/Pane.svelte'
   import ToolLayout from '../shared/ToolLayout.svelte'
   import ToolTabs from '../shared/ToolTabs.svelte'
-  import { toolCommands, toolStatus } from '../shared/tool.svelte'
+  import { toolStatus } from '../shared/tool.svelte'
   import { clock, formatClock } from './clock.svelte'
   import { kindIcon } from './kinds'
   import ReminderCard from './ReminderCard.svelte'
   import { reminders, rhythms } from './reminders.svelte'
   import SoundSettings from './SoundSettings.svelte'
+  import NotifyToggle from './NotifyToggle.svelte'
   import Stepper from './Stepper.svelte'
 
   let { tool, active }: { tool: ToolDef; active: boolean } = $props()
@@ -32,11 +33,6 @@
   toolStatus(isActive, () => ({
     text: !count ? 'No reminders on' : paused ? `Reminders paused until ${time(reminders.pausedUntil)}` : up ? `Next: ${up.reminder.name} in ${formatClock(up.at - clock.now)}` : 'Reminders on',
   }))
-  toolCommands(isActive, () => [
-    { id: 'breaks.now', title: 'Breaks: Take a break now', group: 'Wellness', run: () => reminders.breakNow() },
-    { id: 'breaks.pause', title: 'Breaks: Pause reminders for an hour', group: 'Wellness', run: () => reminders.pause(3_600_000) },
-    { id: 'breaks.resume', title: 'Breaks: Resume reminders', group: 'Wellness', run: () => reminders.resume() },
-  ])
 </script>
 
 <ToolLayout {tool}>
@@ -91,6 +87,7 @@
       <Pane title="When to remind" grow={false}>
         <div class="options">
           <Toggle bind:checked={p.holdDuringFocus} label="Wait until a focus session ends" />
+          <NotifyToggle />
           <div class="hours">
             <Toggle bind:checked={p.hours.on} label="Only during active hours" />
             {#if p.hours.on}

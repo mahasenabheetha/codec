@@ -8,6 +8,7 @@ import { Timer, type TimerSnapshot } from './clock.svelte'
 import { today } from './today.svelte'
 import { ring } from './wellness.svelte'
 import { unlockAudio } from './sound'
+import { notify } from './notify'
 
 export type Phase = 'focus' | 'short' | 'long'
 export type PresetId = 'classic' | 'deep' | 'flow' | 'custom'
@@ -200,6 +201,11 @@ class Focus {
     this.#advance()
     this.timer.reset()
     this.notice = { kind: 'ended', phase, next: this.phase }
+    notify(
+      phase === 'focus' ? 'Focus session done' : 'Break over',
+      phase === 'focus' ? `Time for a ${this.lengths[this.phase]} minute ${this.phase === 'long' ? 'long break' : 'break'}.` : 'Ready for the next round?',
+      'codec-focus',
+    )
     if (this.prefs.autoStart) this.start()
   }
 }

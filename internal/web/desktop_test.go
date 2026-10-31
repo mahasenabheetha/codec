@@ -11,6 +11,30 @@ import (
 	"time"
 )
 
+// The tray's Wellness requests reach open pages as "wellness" events.
+func TestWellness(t *testing.T) {
+	s := New(testOptions(false))
+	defer s.Close()
+	events, unsubscribe := s.hub.subscribe()
+	defer unsubscribe()
+
+	s.Wellness("break")
+	for {
+		select {
+		case e := <-events:
+			if e.name != "wellness" {
+				continue
+			}
+			if got := e.data.(map[string]string)["action"]; got != "break" {
+				t.Errorf("action = %q, want break", got)
+			}
+			return
+		case <-time.After(5 * time.Second):
+			t.Fatal("no wellness event")
+		}
+	}
+}
+
 func TestOpenPath(t *testing.T) {
 	s := New(testOptions(false))
 	defer s.Close()

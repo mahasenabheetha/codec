@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Focus and breaks · codec docs</title>
+<meta name="description" content="A focus timer and break reminders for long days at the screen: presets or your own lengths, eye breaks, stretches, water and posture, with sounds, guided breathing and system notifications.">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<input type="checkbox" id="menu" class="menu-toggle" aria-hidden="true">
+<header class="top">
+  <label for="menu" class="menu-button" aria-label="Menu">&#9776;</label>
+  <a class="brand" href="index.html"><img src="assets/logo.svg" alt=""> codec <span class="tag">docs</span></a>
+  <span class="spacer"></span>
+  <nav class="links" aria-label="Site">
+    <a href="getting-started.html" class="hide-sm">Get started</a>
+    <a href="cli.html" class="hide-sm">CLI</a>
+    <a href="https://github.com/mahasenabheetha/codec/releases">Download</a>
+    <a href="https://github.com/mahasenabheetha/codec">GitHub</a>
+  </nav>
+</header>
+<div class="layout">
+<nav class="side" aria-label="Documentation">
+<h4>Start</h4>
+<ul>
+<li><a href="index.html">Overview</a></li>
+<li><a href="getting-started.html">Getting started</a></li>
+</ul>
+<h4>Using codec</h4>
+<ul>
+<li><a href="workspace.html">Workspace and editor</a></li>
+<li><a href="helm.html">Helm</a></li>
+<li><a href="lint.html">Lint and schemas</a></li>
+<li><a href="kubernetes.html">Kubernetes and Kustomize</a></li>
+<li><a href="argo.html">Argo</a></li>
+<li><a href="ci.html">CI pipelines</a></li>
+<li><a href="compose.html">Compose</a></li>
+<li><a href="ansible.html">Ansible</a></li>
+<li><a href="logs.html">Log viewer</a></li>
+<li><a href="compare.html">Compare and query</a></li>
+<li><a href="new.html">New files and clones</a></li>
+<li><a href="tools.html">Everyday tools</a></li>
+<li><a href="wellness.html" aria-current="page">Focus and breaks</a></li>
+<li><a href="settings.html">Settings and your data</a></li>
+</ul>
+<h4>Reference</h4>
+<ul>
+<li><a href="cli.html">CLI reference</a></li>
+<li><a href="shortcuts.html">Keyboard shortcuts</a></li>
+<li><a href="troubleshooting.html">Troubleshooting</a></li>
+</ul>
+<h4>How it works</h4>
+<ul>
+<li><a href="architecture.html">Architecture</a></li>
+<li><a href="flows.html">Flows</a></li>
+<li><a href="security.html">Security and privacy</a></li>
+<li><a href="design.html">Design language</a></li>
+<li><a href="development.html">Development</a></li>
+</ul>
+</nav>
+<main>
+<article class="content">
+<h1>Focus and breaks</h1>
+<p class="lead">Under <strong>Wellness</strong> in the sidebar, <strong>Focus &amp; breaks</strong> helps with long days at the screen: a focus timer, and reminders to rest your eyes, stretch, drink water and sit well. Everything is off until you start it or switch it on, and nothing leaves your machine.</p>
+
+<h2 id="focus">Focus timer<a class="anchor" href="#focus">#</a></h2>
+<p>The <strong>Focus</strong> tab runs focus sessions and breaks in rounds, with a long break after the last round. A large ring fills as the time goes, in the tool's colour while you focus and a calm green during breaks; dots under the time show the round.</p>
+<div class="table-wrap"><table>
+  <tr><th>Preset</th><th>Focus</th><th>Break</th><th>Long break</th><th>Rounds</th></tr>
+  <tr><td>Classic</td><td>25 min</td><td>5 min</td><td>15 min</td><td>4</td></tr>
+  <tr><td>Deep work</td><td>50 min</td><td>10 min</td><td>20 min</td><td>3</td></tr>
+  <tr><td>Flow</td><td>90 min</td><td>20 min</td><td>30 min</td><td>2</td></tr>
+  <tr><td>Custom</td><td colspan="4">Your own lengths and rounds, set with − and +</td></tr>
+</table></div>
+<ul>
+  <li><strong>Start</strong> and <strong>pause</strong> with the round button or <kbd>Space</kbd>; <strong>+5 min</strong> adds time, <strong>Skip</strong> moves to the next phase, <strong>Reset</strong> goes back to round 1.</li>
+  <li><strong>What are you working on?</strong> Write it under the ring; it shows in the status bar popover and stays while the window is open.</li>
+  <li>When a phase ends a chime sounds and a card offers the next one (<em>Start break</em>, <em>Skip break</em>, <em>Start focus</em>). <strong>Start the next phase by itself</strong> skips the card.</li>
+  <li>The timer keeps running whichever tool is open, and after a reload. If the laptop slept through the end, it offers a fresh start instead of a late alarm.</li>
+</ul>
+<p>The <strong>Today</strong> tab counts today's focus sessions, minutes focused and breaks, and draws them on a timeline of the day. It is kept only until midnight; <em>Clear today</em> empties it sooner.</p>
+
+<h2 id="breaks">Break reminders<a class="anchor" href="#breaks">#</a></h2>
+<p>The <strong>Breaks</strong> tab holds reminders that run on their own, each switched on separately:</p>
+<div class="table-wrap"><table>
+  <tr><th>Reminder</th><th>Default</th><th>Shows as</th></tr>
+  <tr><td>Eye break</td><td>every 20 minutes, 20 seconds (the 20-20-20 rule)</td><td>a card, with rings drifting into the distance</td></tr>
+  <tr><td>Stretch</td><td>every 50 minutes, 3 minutes</td><td>the whole window, with a figure doing five stretches</td></tr>
+  <tr><td>Water</td><td>every hour</td><td>a toast</td></tr>
+  <tr><td>Posture</td><td>every 30 minutes</td><td>a toast</td></tr>
+  <tr><td>Your own</td><td>a name, a message, an interval and a length</td><td>your choice</td></tr>
+</table></div>
+<p>Open a reminder's <strong>Settings</strong> to change its message, how often it comes and how long it lasts, how it shows (<em>Full window</em>, <em>Card</em> or <em>Toast</em>), what it shows (<em>Breathing</em>, <em>Look far</em>, <em>Stretches</em> or nothing) and its sound; <strong>Try it</strong> shows it now. The breathing circle follows the rhythm under <em>When to remind</em>: calm 4-6, box 4-4-4-4 or 4-7-8, with the step and its seconds in words.</p>
+<ul>
+  <li>A break on screen can be <strong>snoozed</strong> for 5 minutes or <strong>skipped</strong> (<kbd>Esc</kbd> for a full-window one). <strong>Take a break now</strong> starts the longest one you have on.</li>
+  <li><strong>Pause</strong> stops reminders for 30 minutes, an hour or until tomorrow; <strong>Resume</strong> starts their intervals over.</li>
+  <li>They work with the focus timer: none during a focus break (you are resting already), and with <em>Wait until a focus session ends</em> none during focus either.</li>
+  <li><em>Only during active hours</em> keeps them to, say, 9:00–18:00 on weekdays.</li>
+  <li>One break shows at a time, and a break you take covers any shorter one that came due meanwhile. One that came due while the laptop slept is skipped, not shown late.</li>
+</ul>
+
+<h2 id="sound">Sounds and notifications<a class="anchor" href="#sound">#</a></h2>
+<p>Under <strong>Sound</strong> choose the chime (soft bell, two notes, wood block, rising or gentle hum), its volume, or mute; each reminder can use its own or none. The chimes are made in the page, with no sound files.</p>
+<p><strong>Notify me when codec is in the background</strong> shows a system notification when a phase ends or a reminder comes due and codec is not the window in front. The browser asks once; in the desktop app the notification comes from its built-in browser view.</p>
+
+<h2 id="everywhere">From anywhere<a class="anchor" href="#everywhere">#</a></h2>
+<ul>
+  <li><strong>Status bar:</strong> while a session runs, a small ring and the time left; otherwise when the next reminder is due. Click it for start, pause, +5 min, skip, <em>Break now</em> and pausing reminders.</li>
+  <li><strong>Window title:</strong> the time left while a session runs, so it shows on the taskbar or the browser tab.</li>
+  <li><strong>Palette</strong> (<kbd>Ctrl</kbd> <kbd>K</kbd>): <em>Focus: Start or pause</em>, <em>Skip</em>, <em>Add 5 minutes</em>, <em>Reset</em>, <em>Breaks: Take a break now</em>, <em>Pause reminders for an hour</em>, <em>Resume reminders</em>.</li>
+  <li><strong>Desktop tray menu:</strong> <em>Start or pause focus</em>, <em>Take a break now</em>, <em>Pause reminders for an hour</em>, <em>Resume reminders</em>.</li>
+</ul>
+
+<h2 id="data">What is kept<a class="anchor" href="#data">#</a></h2>
+<p>Your choices (lengths, reminders, sounds), a running session (so a reload carries on) and today's totals are kept in the browser's storage, like the other display preferences; the task line only for the open window. There is no history beyond today, and nothing is sent anywhere. Reminders run while codec is open; for breaks away from codec altogether, a system-wide tool such as Stretchly or Workrave covers the other applications.</p>
+<nav class="pager" aria-label="Pages">
+<a class="prev" href="tools.html"><small>Previous</small>Everyday tools</a>
+<a class="next" href="settings.html"><small>Next</small>Settings and your data</a>
+</nav>
+<footer>codec is open source under the MIT licence. It runs on your machine and never writes to your files.</footer>
+</article>
+</main>
+</div>
+</body>
+</html>

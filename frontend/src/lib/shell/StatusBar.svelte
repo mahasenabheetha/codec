@@ -1,4 +1,5 @@
 <script lang="ts">
+  import WellnessWidget from '../../features/wellness/WellnessWidget.svelte'
   import ShieldCheck from '@lucide/svelte/icons/shield-check'
   import ExternalLink from '@lucide/svelte/icons/external-link'
   import FolderGit from '@lucide/svelte/icons/folder-git-2'
@@ -114,6 +115,7 @@
   </div>
 
   <div class="right">
+    <WellnessWidget />
     {#if workspace.disconnected && !connection.restarted}
       <button type="button" class="warn-btn" onclick={() => location.reload()} title="codec was restarted or stopped">
         <Unplug size={12} strokeWidth={2} /> Disconnected — reload

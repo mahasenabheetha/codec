@@ -9,6 +9,7 @@ import { hold, Timer } from './clock.svelte'
 import { focus } from './focus.svelte'
 import { type Chime, unlockAudio } from './sound'
 import { ring } from './wellness.svelte'
+import { notify } from './notify'
 
 /** How a reminder shows: the whole window, a card in the corner, or a
  *  toast (a nudge with no countdown). */
@@ -233,6 +234,7 @@ class Reminders {
   /** Show a reminder now. A test leaves the schedule alone. */
   show(r: Reminder, test = false) {
     if (r.chime !== 'none') ring(r.chime === 'default' ? undefined : r.chime)
+    notify(r.name, r.text, 'codec-break-' + r.id)
     if (r.style === 'toast' || r.length === 0) {
       toasts.show(`${r.name}: ${r.text}`, 'neutral', 9000, {
         label: 'Snooze 5 min',
