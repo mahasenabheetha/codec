@@ -12,7 +12,7 @@
   import ToolLayout from '../shared/ToolLayout.svelte'
   import { toolStatus } from '../shared/tool.svelte'
   import WorkTabStrip from '../shared/WorkTabStrip.svelte'
-  import { workTabShortcuts } from '../shared/worktabs.svelte'
+  import { freeNumber, workTabShortcuts } from '../shared/worktabs.svelte'
   import { count } from './format'
   import LogTab from './LogTab.svelte'
   import { logTabs, sourceName, type LogViewer } from './viewer.svelte'
@@ -49,9 +49,11 @@
   }
   function openPasted(text: string, add = false, name?: string) {
     if (!text.trim()) return
-    // Pasted logs are numbered across the tabs, so tabs and chips tell them apart.
-    const n = logTabs.list.reduce((k, v) => k + v.sources.filter((s) => s.kind === 'text' && s.name.startsWith('Pasted')).length, 0)
-    logTabs.open([{ kind: 'text', name: name ?? (n ? `Pasted ${n + 1}` : 'Pasted'), text }], add)
+    // Pasted logs are numbered across the tabs, so tabs and chips tell
+    // them apart: the lowest number not in use ("Pasted" is the first).
+    const used = logTabs.list.flatMap((v) => v.sources.flatMap((s) => (s.kind !== 'text' ? [] : s.name === 'Pasted' ? [{ n: 1 }] : /^Pasted (\d+)$/.test(s.name) ? [{ n: Number(s.name.slice(7)) }] : [])))
+    const n = freeNumber(used)
+    logTabs.open([{ kind: 'text', name: name ?? (n === 1 ? 'Pasted' : `Pasted ${n}`), text }], add)
   }
 
   // Files dropped anywhere on the tool (Shift adds them to the current

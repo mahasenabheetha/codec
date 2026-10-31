@@ -4,11 +4,10 @@
 import { newTabKey, WorkTabs } from '../shared/worktabs.svelte'
 import { TransformState } from '../shared/transform.svelte'
 
-let count = 0
-
 export class Base64Tab {
   readonly key = newTabKey()
-  readonly n = ++count
+  /** Its number among the open tabs (set by the store). */
+  n = $state(0)
   name = $state('')
   session = new TransformState()
   mode = $state<'b64-encode' | 'b64-decode'>('b64-encode')

@@ -5,11 +5,10 @@ import { newTabKey, WorkTabs } from '../shared/worktabs.svelte'
 import { TransformState } from '../shared/transform.svelte'
 import { LogState } from './log.svelte'
 
-let count = 0
-
 export class AnsibleTab {
   readonly key = newTabKey()
-  readonly n = ++count
+  /** Its number among the open tabs (set by the store). */
+  n = $state(0)
   /** The user's own name; '' names it after what it holds. */
   name = $state('')
   session = new TransformState()

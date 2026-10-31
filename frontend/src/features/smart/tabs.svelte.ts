@@ -23,11 +23,10 @@ const kindName: Record<Kind, string> = {
   unknown: '',
 }
 
-let count = 0
-
 export class PasteTab {
   readonly key = newTabKey()
-  readonly n = ++count
+  /** Its number among the open tabs (set by the store). */
+  n = $state(0)
   /** The user's own name; '' names it after what it holds. */
   name = $state('')
   session = new TransformState()

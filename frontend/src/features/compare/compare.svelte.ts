@@ -49,12 +49,11 @@ class Ignores {
 
 const ignores = new Ignores()
 
-let count = 0
-
 /** One comparison: a Compare tab's sides, options and result. */
 export class Comparison {
   readonly key = newTabKey()
-  readonly n = ++count
+  /** Its number among the open tabs (set by the store). */
+  n = $state(0)
   /** The user's own name; '' names it after its sides. */
   name = $state('')
   left = $state<Side>({ kind: 'file' })
