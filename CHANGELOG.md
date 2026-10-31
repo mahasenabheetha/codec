@@ -6,6 +6,13 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+## [3.3.0] - 2026-10-31
+
+Markdown preview: READMEs and docs in a repository read rendered, as on
+GitHub, with links between files and the repository's own images, and
+nothing in a file able to run. Also find in tool outputs, and Base64
+decode pretty-prints JSON, as it said it did.
+
 ### Added
 
 - Find in the output of the encode and decode tools (Smart paste, JSON,
@@ -689,7 +696,8 @@ First tagged release: codec as it stood before the 2.0 work began.
 - Release pipeline: pushing a `v*` tag publishes binaries for Linux,
   Windows and macOS (amd64/arm64) to GitHub Releases via GoReleaser.
 
-[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v3.2.0...HEAD
+[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v3.3.0...HEAD
+[3.3.0]: https://github.com/mahasenabheetha/codec/compare/v3.2.0...v3.3.0
 [3.2.0]: https://github.com/mahasenabheetha/codec/compare/v3.1.1...v3.2.0
 [3.1.1]: https://github.com/mahasenabheetha/codec/compare/v3.1.0...v3.1.1
 [3.1.0]: https://github.com/mahasenabheetha/codec/compare/v3.0.0...v3.1.0

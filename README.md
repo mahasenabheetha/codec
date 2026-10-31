@@ -61,7 +61,7 @@ passwords. codec does them locally, next to the files they belong to.
 </tr>
 <tr>
 <td><img src="docs/images/editor.png" alt="Editor"></td>
-<td><b>Workspace and editor</b><br>Open a repo read-only; every YAML file labelled by type. An editor that understands Helm, Jinja, GitHub and Argo expressions, with plain-English errors, hover, go to definition, schema completion and snippets.<br><a href="https://mahasenabheetha.github.io/codec/workspace.html">Workspace guide →</a></td>
+<td><b>Workspace and editor</b><br>Open a repo read-only; every YAML file labelled by type. An editor that understands Helm, Jinja, GitHub and Argo expressions, with plain-English errors, hover, go to definition, schema completion and snippets. Markdown files rendered as on GitHub, with links between files and images from the repo, safely.<br><a href="https://mahasenabheetha.github.io/codec/workspace.html">Workspace guide →</a></td>
 </tr>
 <tr>
 <td><b>Lint and schemas</b><br>YAML 1.1 traps, risky Kubernetes settings, removed APIs for your target version, and schema validation for Kubernetes, CRDs, GitHub Actions, GitLab CI, Azure Pipelines and Compose — in the editor, across the repo and in CI.<br><a href="https://mahasenabheetha.github.io/codec/lint.html">Lint guide →</a></td>

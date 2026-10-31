@@ -449,3 +449,16 @@ Settled unless the user reopens them. Add new ones at the bottom:
     stored (19), never the running timer. It knows only about codec; for
     other applications a system-wide break tool is the answer
     (2026-10-31).
+92. How the Markdown preview (84) is built, 3.3.0: the preview takes
+    every link click, because the app routes by URL hash; a file link
+    opens a codec tab, never leaving the open folder. Images in the
+    folder come from `GET /files/image` (images only, bytes checked,
+    10 MB, sandbox CSP), fetched with the token and shown as blob URLs,
+    SVG cleaned with DOMPurify first, so the token never goes in a URL.
+    Remote images are allowed per file until codec closes, never stored
+    (19). The desktop app opens web links in the system browser through
+    `POST /desktop/open-url` (http, https, mailto only), since WebView2
+    would open a bare popup. Code blocks share the editor's colours
+    (`lib/components/syntax.ts`). The hostile-Markdown cases run in a
+    browser console for now; the frontend has no test runner yet
+    (2026-10-31).
