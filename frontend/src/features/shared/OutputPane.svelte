@@ -12,6 +12,7 @@
   import Pane from './Pane.svelte'
   import ErrorBanner from './ErrorBanner.svelte'
   import FindBar from './FindBar.svelte'
+  import { findShortcut } from './find.svelte'
   import { displayLanguage, sizeLabel } from './detect'
   import type { TransformState } from './transform.svelte'
 
@@ -53,16 +54,20 @@
   $effect(() => {
     if (!canFind) finding = false
   })
-  $effect(() => {
-    const onkey = (e: KeyboardEvent) => {
-      if (!(e.ctrlKey || e.metaKey) || e.shiftKey || e.altKey || e.key.toLowerCase() !== 'f' || !canFind) return
-      if (!over && !pane?.contains(document.activeElement)) return
-      e.preventDefault()
-      finding = true
-    }
-    window.addEventListener('keydown', onkey)
-    return () => window.removeEventListener('keydown', onkey)
-  })
+  findShortcut(
+    {
+      get pane() {
+        return pane
+      },
+      get over() {
+        return over
+      },
+      get enabled() {
+        return canFind
+      },
+    },
+    () => (finding = true),
+  )
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->

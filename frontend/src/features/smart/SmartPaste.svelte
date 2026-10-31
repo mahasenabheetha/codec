@@ -93,6 +93,7 @@
       {session}
       bind:editor
       onclear={clear}
+      language="auto"
       placeholder="Paste JSON, base64, a JWT, an Ansible task log, an epoch timestamp, URL-encoded text or a cron expression — codec figures out which"
       onpaste={run}
     />

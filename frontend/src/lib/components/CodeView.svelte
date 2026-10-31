@@ -292,16 +292,18 @@
 
   /** Find text (ignoring case): every match is marked, and the editor
    *  goes to one. dir 0 is a new query (the first match from the top),
-   *  1 and -1 the next and previous. Returns how many there are (to
-   *  10 000) and which one is current, 1-based. An empty query clears. */
-  export function find(q: string, dir: 0 | 1 | -1 = 0): { count: number; index: number } {
+   *  1 and -1 the next and previous; 'mark' only marks and counts,
+   *  leaving the cursor where it is (for text being typed). Returns how
+   *  many there are (to 10 000) and which one is current, 1-based. An
+   *  empty query clears. */
+  export function find(q: string, dir: 0 | 1 | -1 | 'mark' = 0): { count: number; index: number } {
     if (!view) return { count: 0, index: 0 }
     const query = new SearchQuery({ search: q, caseSensitive: false, literal: true })
     view.dispatch({ effects: [setSearchQuery.of(query), findText.of(q)] })
     if (!q) return { count: 0, index: 0 }
     if (dir === 0) view.dispatch({ selection: { anchor: 0 } })
     if (dir === -1) findPrevious(view)
-    else findNext(view)
+    else if (dir !== 'mark') findNext(view)
     const sel = view.state.selection.main
     let count = 0
     let index = 0

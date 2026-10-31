@@ -8,6 +8,11 @@ All notable changes to codec are documented here. The format follows
 
 ### Added
 
+- Find in a tool's input as well as its output (the search button, or
+  Ctrl+F over or in the input), in Smart paste, JSON, Base64 and every
+  tool with an input pane; typing keeps your place while the matches
+  follow. Smart paste's input is coloured as JSON when it holds JSON.
+
 - Update check: Settings → General → "Check for updates" (off by
   default) asks GitHub once a day for codec's latest release; a newer
   one shows in the status bar with a link to its page (dismiss it until
