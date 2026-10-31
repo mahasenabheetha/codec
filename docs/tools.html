@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Everyday tools · codec docs</title>
-<meta name="description" content="Smart paste, base64, JSON, JWT, whole Ansible log analysis, URL, hex, hashes, secrets, htpasswd, timestamps, cron and regular expressions, in the UI and on the command line. Nothing you paste is stored.">
+<meta name="description" content="Smart paste, base64, JSON and YAML (format, tree, convert, diff, paths, schema, jq), CSV and TSV tables, JWT, whole Ansible log analysis, URL, hex, hashes, secrets, htpasswd, timestamps, cron and regular expressions, in the UI and on the command line. Nothing you paste is stored.">
 <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/site.css">
 </head>
@@ -63,7 +63,7 @@
 <main>
 <article class="content">
 <h1>Everyday tools</h1>
-<p class="lead">The tools for the text you handle all day: smart paste, base64, JSON, JWT and Ansible logs, and under <strong>Utilities</strong> URL and hex encoding, hashes, secrets, htpasswd lines, CIDR ranges and IP addresses, timestamps, cron schedules and regular expressions. They work without an open folder, and nothing you paste is stored or sent anywhere.</p>
+<p class="lead">The tools for the text you handle all day: smart paste, base64, JSON &amp; YAML, JWT and Ansible logs, and under <strong>Utilities</strong> URL and hex encoding, hashes, secrets, htpasswd lines, CIDR ranges and IP addresses, CSV and TSV tables, timestamps, cron schedules and regular expressions. They work without an open folder, and nothing you paste is stored or sent anywhere.</p>
 
 <figure>
   <img src="images/jwt.png" alt="The JWT tool: a token on the left, and on the right its validity, algorithm, claims table with expiry, header and signature" width="1400" height="820">
@@ -71,8 +71,9 @@
 </figure>
 
 <h2 id="smart">Smart paste<a class="anchor" href="#smart">#</a></h2>
+<p><strong>Smart paste</strong> and <strong>Base64</strong> have tabs, like the Log viewer: keep a JWT, a base64 secret and a JSON blob open at once, each with its own input and result. <strong>+</strong> (or <kbd>Alt</kbd> <kbd>T</kbd>) opens a tab, × or a middle click (or <kbd>Alt</kbd> <kbd>W</kbd>) closes one, a double click renames it. Smart paste names a tab after what it found (<em>JWT</em>, <em>base64</em>, <em>JSON</em>); Base64 after its direction (<em>Encode 1</em>), never after what you pasted. Closing a tab with text in it offers Undo; tabs last as long as the window.</p>
 <p>Every tool's output has a <strong>Find</strong> button (or <kbd>Ctrl</kbd>+<kbd>F</kbd> with the pointer over the output): type and every match is marked, with a count; <kbd>Enter</kbd> goes to the next, <kbd>Shift</kbd>+<kbd>Enter</kbd> to the previous. Case is ignored.</p>
-<p>Paste anything. codec detects JSON, base64, a JWT or an Ansible log and does the obvious thing: pretty-prints JSON, decodes base64 (and pretty-prints it if the result is JSON), decodes a token, analyses a log. An epoch timestamp, URL-encoded text or a cron expression is read too, with a button to open it in Timestamp, URL or Cron; a CIDR range, an IP address or a <code>curl</code> command is described or converted, with a button to open it in the Network tool (a bare number is never taken for an address); a structured log is summarised, with a button to open it in the <a href="logs.html">Log viewer</a>. The status bar says what it detected.</p>
+<p>Paste anything. codec detects JSON, base64, a JWT or an Ansible log and does the obvious thing: pretty-prints JSON, decodes base64 (and pretty-prints it if the result is JSON), decodes a token, analyses a log. An epoch timestamp, URL-encoded text or a cron expression is read too, with a button to open it in Timestamp, URL or Cron; a CIDR range, an IP address or a <code>curl</code> command is described or converted, with a button to open it in the Network tool (a bare number is never taken for an address); a structured log is summarised, with a button to open it in the <a href="logs.html">Log viewer</a>. JSONC or JSON5 (an object or array with comments, trailing commas or unquoted keys) is written as JSON, with a button to open it in <a href="#json">JSON &amp; YAML</a>; CSV or TSV (three lines or more, every row as wide, short cells) is described column by column, with a button to open it in <a href="#text">CSV &amp; TSV</a>. The status bar says what it detected.</p>
 
 <h2 id="base64">Base64<a class="anchor" href="#base64">#</a></h2>
 <ul>
@@ -83,8 +84,18 @@
   <li><strong>Swap</strong> (<kbd>Alt</kbd> <kbd>S</kbd>) moves the output to the input and flips encode/decode.</li>
 </ul>
 
-<h2 id="json">JSON<a class="anchor" href="#json">#</a></h2>
-<p>Pretty-print, minify, or validate. Errors give the exact line and column and the editor jumps there.</p>
+<h2 id="json">JSON &amp; YAML<a class="anchor" href="#json">#</a></h2>
+<p>Paste a document once and look at it every way: Format, Tree, Paths, Schema and Query share it. Several documents can be open at once, each in a <strong>tab</strong> of its own below the toolbar: <strong>+</strong> (or <kbd>Alt</kbd> <kbd>T</kbd>) for a new one, × or a middle click (or <kbd>Alt</kbd> <kbd>W</kbd>) to close, a double click to rename. Each keeps its own inputs (Diff's two sides, the Query filter, Convert's YAML and Paths' lines) and comes back on the view you left it on; indentation and sorting are shared. A tab is named after a Kubernetes-shaped document (<em>Deployment/api</em>), else <em>Document 1</em>; closing one with text in it offers Undo. JSONC or JSON5 opened from Smart paste goes into the current document when it is empty, otherwise a new one. JSONC (comments, trailing commas) and JSON5 (unquoted keys, single quotes, hex numbers…) are read as well as JSON, and written as JSON; errors give the exact line and column and the editor jumps there. Key order is kept everywhere.</p>
+<ul>
+  <li><strong>Format</strong>: pretty-print (two or four spaces, or tabs), minify or validate; <strong>Sort keys</strong> orders every object's keys. Validate says when the text is JSONC or JSON5 rather than strict JSON.</li>
+  <li><strong>Tree</strong>: fold and open objects and arrays, copy any value's path (<code>.spec.containers[0].image</code>), and search keys, paths and values; a click on a match copies its path. A document over 2 MB shows what it holds (objects, arrays, keys, depth) instead of a tree.</li>
+  <li><strong>Convert</strong>: JSON to YAML and YAML to JSON; anchors are resolved, several YAML documents become an array, and Swap sends the result back the other way.</li>
+  <li><strong>Diff</strong>: two documents (paste, open or drop files) compared by path: added, removed, changed, or a type that changed. Key order and formatting don't count; <code>1.0</code> and <code>1</code> are the same.</li>
+  <li><strong>Paths</strong>: every value as <code>path = value</code>, empty objects and arrays included, and back from such lines.</li>
+  <li><strong>Schema</strong>: a JSON Schema (draft 2020-12) every sample fits, from one document, several, or JSON Lines: types, properties in the order first seen, required keys, array items, and formats such as date-time, email and uuid.</li>
+  <li><strong>Query</strong>: a jq filter, with examples to start from; no environment, at most 1000 results, 5 seconds.</li>
+</ul>
+<p>The same from the command line: <code>codec json</code> (see the <a href="cli.html">CLI reference</a>).</p>
 
 <h2 id="jwt">JWT<a class="anchor" href="#jwt">#</a></h2>
 <p>Decodes the header and claims, shows registered claims with their meaning (<code>iss</code> issuer, <code>exp</code> expires…), times as dates with "in 3 hours" or "expired yesterday", and a validity badge. The signature is <strong>not verified</strong> — codec has no keys — and says so.</p>
@@ -92,7 +103,7 @@
 <p>For other logs — JSON, ECS, logfmt, klog, text from services, pods and pipelines — use the <a href="logs.html">Log viewer</a>.</p>
 
 <h2 id="ansible-log">Ansible log<a class="anchor" href="#ansible-log">#</a></h2>
-<p>Paste a whole log from a pipeline, or drop or open a log file (up to 64 MB). CI timestamps (GitLab, GitHub, Azure DevOps), wrapper prefixes (Packer, Compose), colour codes, shell output and several playbook runs in one log are all fine; codec learns wrapper prefixes from the log instead of knowing them in advance. It shows:</p>
+<p>Paste a whole log from a pipeline, or drop or open a log file (up to 64 MB). CI timestamps (GitLab, GitHub, Azure DevOps), wrapper prefixes (Packer, Compose), colour codes, shell output and several playbook runs in one log are all fine; codec learns wrapper prefixes from the log instead of knowing them in advance. Each log gets a <strong>tab</strong> of its own, as in Smart paste, so a failed run and a passing one can stay open side by side: <strong>+</strong> (or <kbd>Alt</kbd> <kbd>T</kbd>) for a new tab, × or a middle click (or <kbd>Alt</kbd> <kbd>W</kbd>) to close, a double click to rename. A tab is named after its file or the first run's playbook (<em>site.yml</em>), else <em>Log 1</em>, and its name turns red when the log has failures; each keeps its own selection, filter and host. The playbook map colours from the log in the current tab. It shows:</p>
 <ul>
   <li>a <strong>summary</strong>: runs, hosts, tasks, duration, counts from the recap, and a verdict when the outcome isn't Ansible's alone ("Ansible succeeded; the output after it mentions errors", "stopped before its recap");</li>
   <li>an <strong>outline</strong> of runs, plays and tasks with their status and duration, and the <strong>other output</strong> between them (CI steps, shell commands) as blocks with their error count. Filter by <strong>Failed</strong>, <strong>Changed</strong>, <strong>Skipped</strong> or <strong>All</strong>, pick a host, or search; arrow keys move through it. The first failure is selected when a log opens;</li>
@@ -127,6 +138,7 @@
 <ul>
   <li><strong>Text diff</strong> — two texts compared line by line: paste or type them, or drop a file on either side (or open one). Changed lines show side by side with the changed characters marked, or as a unified patch to copy; the arrows go from change to change. <strong>Ignore whitespace</strong> and <strong>Ignore case</strong> loosen what counts as a change, and the swap button turns the comparison round. For files in the open folder, Helm renders and YAML compared by meaning, use <a href="compare.html">Compare</a>.</li>
   <li><strong>Case &amp; names</strong> — a name or phrase in camelCase, PascalCase, snake_case, kebab-case, CONSTANT_CASE, dot.case, Title, Sentence, lower and path case, each with Copy. Words split at separators and case changes, and acronyms stay whole: <em>getHTTPResponse</em> is get · HTTP · Response. <strong>Name rules</strong> checks it as a Kubernetes name (DNS-1123 label and subdomain), a label value, an environment variable and a Helm release name (53 characters at most), says what breaks each rule, and offers a name that passes.</li>
+  <li><strong>CSV &amp; TSV</strong> — paste delimited text to see it as a table. The delimiter (comma, tab, semicolon or pipe) and whether the first row names the columns are guessed, and can be chosen instead; quoted fields may hold the delimiter, quotes and line breaks. Each column shows its type (integer, number, boolean, date or text); click a column to sort by it, filter the rows by any cell, and double-click a cell to copy it. The column button lists how many values each column has filled, empty and distinct; rows with more or fewer fields than the rest are counted. Copy gives the rows shown as TSV, ready for a spreadsheet. <strong>Convert</strong> writes the table as JSON, JSON Lines, YAML, a Markdown table (number columns right-aligned), CSV or TSV; <strong>Typed values</strong> makes numbers, booleans and null by each column's type, so a ZIP code such as 007 stays text. <strong>JSON → CSV</strong> goes the other way: an array of objects becomes one column per key, nested values written as JSON. The viewer shows the first 100 000 rows; conversions use them all. On the command line: <code>codec csv</code> (see <a href="cli.html#tools">CLI</a>).</li>
 </ul>
 
 <h2 id="time">Time<a class="anchor" href="#time">#</a></h2>

@@ -1,5 +1,6 @@
-// Compare and query state. There is one Compare tab and one Query tab;
-// opening either with new inputs replaces what they show.
+// Compare and query state. Compare has work tabs (decision 97), each a
+// comparison of its own; the ignored paths (from the settings) and the
+// Explorer's picked file are shared. There is one Query tab.
 
 import { isAbort } from '../../lib/api/client'
 import {
@@ -17,6 +18,7 @@ import { layout } from '../../lib/stores/layout.svelte'
 import { compareRoute, queryRoute } from '../../lib/stores/router.svelte'
 import { toasts } from '../../lib/stores/toast.svelte'
 import { openSessions } from '../editor/active.svelte'
+import { newTabKey, WorkTabs } from '../shared/worktabs.svelte'
 
 /** A side with its what-if buffer filled in, if the file has one. */
 function withBuffer(s: Side, useWhatIf: boolean): Side {
@@ -28,7 +30,32 @@ function withBuffer(s: Side, useWhatIf: boolean): Side {
 
 type Which = 'left' | 'right'
 
-class Compare {
+/** The ignored paths: one list, saved in the settings, for every tab. */
+class Ignores {
+  list = $state<string[]>([])
+  #loaded = false
+
+  async load() {
+    if (this.#loaded) return
+    this.#loaded = true
+    this.list = await getIgnore().catch(() => [])
+  }
+
+  async set(patterns: string[]) {
+    this.list = await saveIgnore(patterns).catch(() => patterns)
+    for (const c of compareTabs.list) c.run()
+  }
+}
+
+const ignores = new Ignores()
+
+/** One comparison: a Compare tab's sides, options and result. */
+export class Comparison {
+  readonly key = newTabKey()
+  /** Its number among the open tabs (set by the store). */
+  n = $state(0)
+  /** The user's own name; '' names it after its sides. */
+  name = $state('')
   left = $state<Side>({ kind: 'file' })
   right = $state<Side>({ kind: 'file' })
   // Use open tabs' what-if edits for each side (off = the file on disk).
@@ -47,43 +74,43 @@ class Compare {
   // How a text diff is shown.
   textView = $state<'split' | 'unified'>('split')
 
-  ignore = $state<string[]>([])
-  private ignoreLoaded = false
   private inflight: AbortController | null = null
   private typing: ReturnType<typeof setTimeout> | undefined
 
   ready = $derived(sideReady(this.left) && sideReady(this.right))
   empty = $derived(!sideChosen(this.left) && !sideChosen(this.right))
 
-  /** Open the Compare tab with these sides. */
-  open(left: Side, right: Side, whatIf: { left?: boolean; right?: boolean } = {}) {
+  /** The tab's name: the user's, or its two sides. */
+  get title(): string {
+    if (this.name) return this.name
+    if (this.empty) return `Compare ${this.n}`
+    // Two pasted sides have no names to show; number them instead.
+    if (this.left.kind === 'paste' && this.right.kind === 'paste') return `Pasted ${this.n}`
+    return `${sideName(this.left)} ↔ ${sideName(this.right)}`
+  }
+
+  /** Something pasted on either side (it exists nowhere else, 19). */
+  get hasPaste(): boolean {
+    return pasted(this.left) || pasted(this.right)
+  }
+
+  /** Show these sides. */
+  set(left: Side, right: Side, whatIf: { left?: boolean; right?: boolean } = {}) {
     this.left = left
     this.right = right
     this.leftWhatIf = whatIf.left ?? false
     this.rightWhatIf = whatIf.right ?? true
     this.result = null
-    layout.open(compareRoute)
     this.run()
   }
 
-  // The file chosen with "Select for compare" in the Explorer; "Compare
-  // with selected" pairs another file with it.
-  picked = $state<string | null>(null)
-
-  /** Open the Compare tab on two workspace files. */
-  openFiles(left: string, right: string) {
-    this.open({ kind: 'file', path: left }, { kind: 'file', path: right })
-  }
-
-  /** Open the Compare tab with a paste box on each side; a side that
-   *  is already pasted keeps its text. */
+  /** A paste box on each side; a side already pasted keeps its text. */
   pasteBoth() {
     for (const w of ['left', 'right'] as const) {
       if (this[w].kind !== 'paste') this[w] = { kind: 'paste', content: '' }
     }
     this.result = null
     this.error = null
-    layout.open(compareRoute)
     this.run()
   }
 
@@ -150,19 +177,17 @@ class Compare {
     if (lost.length) this.offerUndo(lost)
   }
 
-  async loadIgnore() {
-    if (this.ignoreLoaded) return
-    this.ignoreLoaded = true
-    this.ignore = await getIgnore().catch(() => [])
+  /** The ignored paths, shared by every tab. */
+  get ignore(): string[] {
+    return ignores.list
   }
 
-  async setIgnore(patterns: string[]) {
-    this.ignore = await saveIgnore(patterns).catch(() => patterns)
-    this.run()
+  setIgnore(patterns: string[]) {
+    return ignores.set(patterns)
   }
 
   addIgnore(pattern: string) {
-    if (!this.ignore.includes(pattern)) this.setIgnore([...this.ignore, pattern])
+    if (!ignores.list.includes(pattern)) ignores.set([...ignores.list, pattern])
   }
 
   async run() {
@@ -173,7 +198,7 @@ class Compare {
     this.running = true
     try {
       // A clear() while the patterns load aborts this run.
-      await this.loadIgnore()
+      await ignores.load()
       if (ctrl.signal.aborted || !this.ready) return
       const r = await compare(withBuffer(this.left, this.leftWhatIf), withBuffer(this.right, this.rightWhatIf), this.ignore, { mode: this.mode, ignoreSpace: this.ignoreSpace, ignoreCase: this.ignoreCase }, ctrl.signal)
       if (ctrl.signal.aborted) return
@@ -202,7 +227,74 @@ export function sideChosen(s: Side): boolean {
   return s.kind !== 'file' || !!s.path
 }
 
-export const comparison = new Compare()
+/** A side in a tab's name: a file's name, a chart's render, or pasted. */
+function sideName(s: Side): string {
+  if (s.kind === 'paste') return 'pasted'
+  if (s.kind === 'helm') return `${(s.chart || 'chart').split('/').pop()}${s.profile ? ` (${s.profile})` : ''}`
+  return s.path ? s.path.split('/').pop()! : '…'
+}
+
+/** Compare's work tabs, and what the rest of codec asks of Compare:
+ *  opening it on files, renders or pasted text (in the current tab when
+ *  that is empty, else in a new one), the shared ignored paths, and the
+ *  Explorer's picked file. */
+class CompareTabs extends WorkTabs<Comparison> {
+  // The file chosen with "Select for compare" in the Explorer; "Compare
+  // with selected" pairs another file with it.
+  picked = $state<string | null>(null)
+
+  constructor() {
+    super(() => new Comparison(), { keepOne: true, undoable: (c) => c.hasPaste })
+  }
+
+  /** The current tab when it has nothing yet, else a new one. */
+  #free(): Comparison {
+    const cur = this.current
+    return cur && cur.empty ? cur : this.add()
+  }
+
+  /** Open Compare on these sides. */
+  open(left: Side, right: Side, whatIf: { left?: boolean; right?: boolean } = {}) {
+    this.#free().set(left, right, whatIf)
+    layout.open(compareRoute)
+  }
+
+  /** Open Compare on two workspace files. */
+  openFiles(left: string, right: string) {
+    this.open({ kind: 'file', path: left }, { kind: 'file', path: right })
+  }
+
+  /** Open Compare with a paste box on each side: the current tab if it is
+   *  empty or already pasting, else a new one. */
+  pasteBoth() {
+    const cur = this.current
+    const tab = cur && (cur.empty || cur.left.kind === 'paste' || cur.right.kind === 'paste') ? cur : this.add()
+    tab.pasteBoth()
+    layout.open(compareRoute)
+  }
+
+  /** Compare the current tab again. */
+  run() {
+    this.current?.run()
+  }
+
+  get ignore(): string[] {
+    return ignores.list
+  }
+  loadIgnore() {
+    return ignores.load()
+  }
+  setIgnore(patterns: string[]) {
+    return ignores.set(patterns)
+  }
+  addIgnore(pattern: string) {
+    if (!ignores.list.includes(pattern)) ignores.set([...ignores.list, pattern])
+  }
+}
+
+export const compareTabs = new CompareTabs()
+/** Compare as the rest of codec uses it. */
+export const comparison = compareTabs
 
 class Query {
   expr = $state('.spec.template.spec.containers[].image')

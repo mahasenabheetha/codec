@@ -142,6 +142,7 @@ Build once in `frontend/src/lib/components` and reuse:
 | `Button` | Actions with text (primary, secondary, ghost; `sm`) |
 | `IconButton` | Icon-only actions; always a `label` (also its tooltip) |
 | `Tabs`, `SegmentedControl` | Switching views of the same thing; exclusive choices |
+| `WorkTabStrip` + `WorkTabs` (features/shared) | Several of the same work open at once in one tool (pastes, comparisons, logs; decision 97): one store and strip, each tab's component kept mounted and hidden when not current |
 | `Select`, `Toggle`, `SearchInput` | Form controls (Bits UI underneath) |
 | `SplitPane` | Resizable panes (sizes persisted by key) |
 | `TreeView` | File trees and outlines; keyboard pattern, windowed over 300 rows |

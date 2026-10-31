@@ -74,7 +74,7 @@ func TestDetectUtilityReview(t *testing.T) {
 		"* Update the readme file",
 		"%02x:%02x:%02x",
 		"printf %10s",
-		`{"a":"x%20y",}`, // broken JSON keeps its line and column error
+		`{"a":"x%20y" "b"}`, // broken JSON keeps its line and column error
 		"TASK [web : fetch] ***\nok: [h] => {\"url\": \"https://x.io/a%2Fb\"}", // an Ansible log
 		"0701234567",
 	} {

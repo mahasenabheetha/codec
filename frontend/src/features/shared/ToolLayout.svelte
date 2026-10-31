@@ -1,5 +1,10 @@
+<script lang="ts" module>
+  /** Context key for a work-tab strip that sub-tab pages show. */
+  export const workTabsStripKey = Symbol('work-tabs-strip')
+</script>
+
 <script lang="ts">
-  import type { Snippet } from 'svelte'
+  import { getContext, type Snippet } from 'svelte'
   import { hueVar, type ToolDef } from '../../lib/tools'
   import SplitPane from '../../lib/components/SplitPane.svelte'
 
@@ -13,9 +18,14 @@
     input?: Snippet
     output?: Snippet
     body?: Snippet
+    /** Work tabs (decision 97): the strip, between the toolbar and the panes. */
+    tabs?: Snippet
   }
 
-  let { tool, controls, actions, input, output, body }: Props = $props()
+  let { tool, controls, actions, input, output, body, tabs: own }: Props = $props()
+  // A tool whose sub-tabs sit inside work tabs (JSON & YAML) gives the
+  // strip through context, so every sub-tab's page shows it.
+  const tabs = $derived(own ?? getContext<Snippet | undefined>(workTabsStripKey))
 </script>
 
 <div class="tool hued" style:--tool={hueVar(tool.hue)}>
@@ -28,6 +38,7 @@
     <div class="spacer"></div>
     {#if actions}<div class="actions">{@render actions()}</div>{/if}
   </header>
+  {#if tabs}{@render tabs()}{/if}
   {#if body}
     <div class="body single">{@render body()}</div>
   {:else if input && output}

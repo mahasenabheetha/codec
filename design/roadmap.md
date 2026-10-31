@@ -72,20 +72,6 @@ keep the UI consistent and polished. Work efficiently: read only what a
 task needs and run only the tests for packages touched (the full suite
 runs once, at step 4).
 
-### v3.7.0 — JSON and table tools
-Agreed 2026-10-25 (decision 90). The two heavier tools: working with
-structured data pasted from anywhere. The JSON tool grows sub-tabs and
-YAML ⇄ JSON lives in it (a paste in one gives the other); CSV and TSV
-join Text & data.
-
-| # | Task | Main parts | Status |
-|---|---|---|---|
-| T1 | JSON tools: engine + API | `internal/jsonkit` over the existing scanner: JSON ⇄ YAML (key order kept), JSONC and JSON5 read, sort keys, flatten to paths and back, a diff by path (added, removed, changed, type changed), infer a JSON Schema from samples, jq filter (the query engine is there), large input read without a tree; `codec json` gains the subcommands; a fuzz target | |
-| T2 | JSON tools: UI | The JSON tool grows sub-tabs: Format, Tree (search, copy a value's path, fold), Convert (JSON ⇄ YAML), Diff, Paths, Schema, Query; the tool is named JSON & YAML in the rail and palette; docs | |
-| T3 | CSV and TSV | `internal/table`: delimiter and header guessed (override), quotes and embedded newlines; viewer with a windowed table (sort, filter, column types and counts); converts to JSON (typed or all text), Markdown table, YAML and TSV/CSV, and a JSON array of objects back to CSV; `codec csv`; a fuzz target | |
-| T4 | Smart paste | Recognises CSV or TSV and JSON5 or JSONC, and offers the tool | |
-| — | Release | Full checks; a fuzz run of the new parsers; a review pass over the engines and the UI; docs; CHANGELOG cut as 3.7.0 | |
-
 ### v3.8.0 — Generators and checks
 Agreed 2026-10-25 (decision 90). Things that make something: checksums,
 identifiers, passwords, test data, QR codes and colours. Nothing made is
@@ -142,6 +128,7 @@ The rest of "Next", picked up when it fits.
 
 | Version | Items |
 |---|---|
+| 3.7.0 | Work tabs in Smart paste, Base64, Compare, JSON & YAML and the Ansible log (one shared strip, the Log viewer's); JSON & YAML (JSONC and JSON5 read, format, tree, convert, diff by path, paths, schema, jq; `internal/jsonkit`, `codec json`); CSV & TSV in Text & data (`internal/table`, a windowed table, conversions, `codec csv`); Smart paste recognises CSV, TSV, JSONC and JSON5 |
 | 3.6.0 | Wellness (focus timer with presets and custom lengths, Today, break reminders with full-window, card and toast breaks, breathing and stretch guides, chimes, status-bar widget, notifications, tray), an opt-in update check, find in tool inputs |
 | 3.5.0 | Comfort: Interface size (Comfortable default, bigger icons), word buttons for Copy and Clear, the Dusk and Midnight themes with colour per tool and action, a contrast checker |
 | 3.4.0 | Network tool (CIDR and overlaps, IP, URL builder, curl ⇄ fetch, status codes), Text & data (text diff, case and names), time zones and formats, commit SHA placeholders, smart paste for them |

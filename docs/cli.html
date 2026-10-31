@@ -181,9 +181,18 @@ set       spec.template.spec.containers[0].image=</span></code></pre>
 <h2 id="tools">Encode, decode, logs<a class="anchor" href="#tools">#</a></h2>
 <div class="table-wrap"><table>
   <tr><th>Command</th><th>What it does</th></tr>
-  <tr><td><code>auto [input]</code></td><td>Detect and transform, as smart paste does; Ansible <code>-vv</code> logs are analysed; an epoch timestamp, URL-encoded text, a cron expression, a log, a CIDR range, an IP address or a curl command is summarised, naming the command that does more</td></tr>
+  <tr><td><code>auto [input]</code></td><td>Detect and transform, as smart paste does; Ansible <code>-vv</code> logs are analysed; an epoch timestamp, URL-encoded text, a cron expression, a log, a CIDR range, an IP address, a curl command, CSV or TSV, or JSONC or JSON5 is summarised, naming the command that does more</td></tr>
   <tr><td><code>b64 encode|decode [text]</code></td><td><code>--url</code> for the URL-safe alphabet; decoding tolerates missing padding</td></tr>
-  <tr><td><code>json pretty|min|validate [json]</code></td><td><code>--indent</code> for pretty; validate exits 1 with line and column</td></tr>
+  <tr><td><code>json pretty|min|validate [json]</code></td><td>pretty and min also read JSONC (comments, trailing commas) and JSON5 (unquoted keys, single quotes, hex…) and write JSON; <code>--sort</code> sorts keys, <code>--indent</code> for pretty; validate is strict, exits 1 with line and column, and says when the text is valid JSONC or JSON5</td></tr>
+  <tr><td><code>json yaml [file]</code> · <code>json from-yaml [file]</code></td><td>JSON to YAML and back, keeping key order; several YAML documents become an array</td></tr>
+  <tr><td><code>json flatten [file]</code> · <code>json unflatten [file]</code></td><td>Every value as <code>.spec.containers[0].image = "app:1"</code>, and back; <code>--json</code></td></tr>
+  <tr><td><code>json diff &lt;old&gt; &lt;new&gt;</code></td><td>What changed, by path (+ added, − removed, ~ changed, ± type changed); numbers compared by value; exit code 2 when they differ; <code>--json</code></td></tr>
+  <tr><td><code>json schema [file…]</code></td><td>Infer a JSON Schema (draft 2020-12) from samples: files, or JSON Lines on stdin; types, required keys, string formats; <code>--min</code></td></tr>
+  <tr><td><code>json query &lt;filter&gt; [file]</code></td><td>A jq filter (gojq): no environment, at most 1000 results, 5 seconds; <code>--compact</code></td></tr>
+  <tr><td><code>json stats [file]</code></td><td>Counts in large JSON (values, objects, arrays, keys, depth), read as a stream without loading it; <code>--json</code></td></tr>
+  <tr><td><code>csv info [file]</code></td><td>CSV or TSV described: the delimiter and header (guessed unless <code>--delimiter</code> comma|tab|semicolon|pipe and <code>--header</code> yes|no), the rows, and each column's type with its filled, empty and distinct counts; <code>--json</code></td></tr>
+  <tr><td><code>csv to &lt;format&gt; [file]</code></td><td>CSV or TSV as <code>json</code>, <code>jsonl</code>, <code>yaml</code>, <code>markdown</code>, <code>csv</code> or <code>tsv</code>; values typed by column (numbers, booleans, null for empty) unless <code>--text</code>; <code>--delimiter</code>, <code>--header</code>, <code>--indent</code></td></tr>
+  <tr><td><code>csv from-json [file]</code></td><td>A JSON array of objects (or arrays, or JSON Lines) as CSV, one column per key; nested values written as JSON; <code>--tsv</code></td></tr>
   <tr><td><code>jwt decode [token]</code></td><td>Header and claims; the signature is not verified</td></tr>
   <tr><td><code>watch</code></td><td>Transform recognisable clipboard content in place (<code>--interval</code>)</td></tr>
 </table></div>

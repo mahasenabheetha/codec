@@ -3,17 +3,16 @@
   import FilePlus from '@lucide/svelte/icons/file-plus'
   import FileUp from '@lucide/svelte/icons/file-up'
   import Logs from '@lucide/svelte/icons/logs'
-  import Plus from '@lucide/svelte/icons/plus'
-  import X from '@lucide/svelte/icons/x'
   import Button from '../../lib/components/Button.svelte'
   import Dialog from '../../lib/components/Dialog.svelte'
   import EmptyState from '../../lib/components/EmptyState.svelte'
-  import IconButton from '../../lib/components/IconButton.svelte'
   import { handoff } from '../../lib/stores/handoff.svelte'
   import { toolById } from '../../lib/tools'
   import { samples } from '../shared/samples'
   import ToolLayout from '../shared/ToolLayout.svelte'
   import { toolStatus } from '../shared/tool.svelte'
+  import WorkTabStrip from '../shared/WorkTabStrip.svelte'
+  import { freeNumber, workTabShortcuts } from '../shared/worktabs.svelte'
   import { count } from './format'
   import LogTab from './LogTab.svelte'
   import { logTabs, sourceName, type LogViewer } from './viewer.svelte'
@@ -50,9 +49,11 @@
   }
   function openPasted(text: string, add = false, name?: string) {
     if (!text.trim()) return
-    // Pasted logs are numbered across the tabs, so tabs and chips tell them apart.
-    const n = logTabs.list.reduce((k, v) => k + v.sources.filter((s) => s.kind === 'text' && s.name.startsWith('Pasted')).length, 0)
-    logTabs.open([{ kind: 'text', name: name ?? (n ? `Pasted ${n + 1}` : 'Pasted'), text }], add)
+    // Pasted logs are numbered across the tabs, so tabs and chips tell
+    // them apart: the lowest number not in use ("Pasted" is the first).
+    const used = logTabs.list.flatMap((v) => v.sources.flatMap((s) => (s.kind !== 'text' ? [] : s.name === 'Pasted' ? [{ n: 1 }] : /^Pasted (\d+)$/.test(s.name) ? [{ n: Number(s.name.slice(7)) }] : [])))
+    const n = freeNumber(used)
+    logTabs.open([{ kind: 'text', name: name ?? (n === 1 ? 'Pasted' : `Pasted ${n}`), text }], add)
   }
 
   // Files dropped anywhere on the tool (Shift adds them to the current
@@ -98,6 +99,7 @@
   }
 
   toolStatus(() => active && !logTabs.list.length, () => ({ text: 'Ready' }))
+  workTabShortcuts(() => active, logTabs, () => pick(false))
 </script>
 
 <input
@@ -147,18 +149,19 @@
         </div>
       {:else}
         <div class="tabs">
-          <div class="strip" role="tablist" aria-label="Open logs">
-            {#each logTabs.list as v (v.key)}
-              <div class="tab" class:on={v === cur} class:bad={!!v.error && !v.opened}>
-                <button type="button" role="tab" aria-selected={v === cur} class="name" title={tip(v)} onclick={() => logTabs.select(v)}>
-                  <span class="label">{v.opening && !v.opened ? 'Reading…' : v.title}</span>
-                  {#if v.opened}<span class="n">{count(v.opened.summary.entries)}</span>{/if}
-                </button>
-                <button type="button" class="close" aria-label="Close {v.title}" title="Close this log" onclick={() => logTabs.close(v)}><X size={12} /></button>
-              </div>
-            {/each}
-            <IconButton icon={Plus} tone="add" label="Open logs in a new tab" size="sm" onclick={() => pick(false)} />
-          </div>
+          <WorkTabStrip
+            tabs={logTabs}
+            title={(v) => (v.opening && !v.opened ? 'Reading…' : v.title)}
+            label="Open logs"
+            addLabel="Open logs in a new tab"
+            onadd={() => pick(false)}
+            {tip}
+            bad={(v) => !!v.error && !v.opened}
+          >
+            {#snippet badge(v)}
+              {#if v.opened}<span class="n">{count(v.opened.summary.entries)}</span>{/if}
+            {/snippet}
+          </WorkTabStrip>
           {#each logTabs.list as v (v.key)}
             <div class="tab-body" class:hidden={v !== cur}>
               <LogTab viewer={v} active={active && v === cur} />
@@ -217,71 +220,10 @@
     gap: var(--s-2);
     min-height: 0;
   }
-  .strip {
-    display: flex;
-    align-items: flex-end;
-    gap: 2px;
-    overflow-x: auto;
-    border-bottom: 1px solid var(--border);
-  }
-  .tab {
-    display: flex;
-    align-items: center;
-    flex: none;
-    max-width: 240px;
-    margin-bottom: -1px;
-    color: var(--fg-1);
-    border: 1px solid transparent;
-    border-bottom: none;
-    border-radius: var(--r-md) var(--r-md) 0 0;
-  }
-  .tab:hover {
-    background: var(--bg-2);
-  }
-  .tab.on {
-    color: var(--fg-0);
-    background: var(--bg-1);
-    border-color: var(--border);
-  }
-  .tab.bad .label {
-    color: var(--err);
-  }
-  .name {
-    display: flex;
-    align-items: baseline;
-    gap: var(--s-2);
-    min-width: 0;
-    padding: var(--s-1) var(--s-1) var(--s-1) var(--s-3);
-    font-size: var(--fs-sm);
-    color: inherit;
-    background: none;
-    border: none;
-  }
-  .label {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
   .n {
     font-size: var(--fs-xs);
     color: var(--fg-2);
     font-variant-numeric: tabular-nums;
-  }
-  .close {
-    display: grid;
-    place-items: center;
-    width: 20px;
-    height: 20px;
-    margin-right: var(--s-1);
-    padding: 0;
-    color: var(--fg-2);
-    background: none;
-    border: none;
-    border-radius: var(--r-sm);
-  }
-  .close:hover {
-    color: var(--fg-0);
-    background: var(--bg-4);
   }
   .tab-body {
     flex: 1;

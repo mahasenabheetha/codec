@@ -6,6 +6,60 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+## [3.7.0] - 2026-10-31
+
+Structured data from anywhere: JSON & YAML with seven views of one
+document (format JSONC and JSON5, a tree with paths, conversion, a diff
+by path, flattened paths, an inferred schema, jq), CSV and TSV as a
+table, and work tabs in Smart paste, Base64, Compare, JSON & YAML and
+the Ansible log, so several pastes, documents or logs stay open at once.
+
+### Added
+
+- `codec json` reads JSONC and JSON5 as well as JSON (pretty and min
+  write them as JSON; `--sort` sorts keys) and gains `yaml`,
+  `from-yaml`, `flatten`, `unflatten`, `diff` (by path, exit code 2 when
+  different), `schema` (inferred from samples or JSON Lines), `query`
+  (jq) and `stats` (counts in large files, read as a stream). The
+  JSON & YAML tool in the app follows.
+- JSON becomes **JSON & YAML**, with tabs that share one pasted
+  document: Format (pretty, minify or validate, with sorted keys;
+  JSONC and JSON5 read and written as JSON), Tree (fold, search, copy
+  any value's path; counts instead for documents over 2 MB), Convert
+  (JSON ⇄ YAML), Diff (two documents by path), Paths (flatten and back),
+  Schema (inferred from samples or JSON Lines) and Query (jq). Tool
+  outputs everywhere gain the find bar and JSON colouring.
+- **CSV & TSV**, a new tab in Text & data: delimited text as a table,
+  the delimiter and header row guessed (or chosen), quoted fields with
+  line breaks read; sort by a column, filter rows, see each column's
+  type and how many values are filled, empty and distinct. Convert to
+  JSON (typed by column, or all text), JSON Lines, YAML, a Markdown
+  table, CSV or TSV, and a JSON array of objects back to CSV. On the
+  command line: `codec csv info`, `codec csv to` and
+  `codec csv from-json`.
+- Smart paste (and `codec auto`) recognises JSONC and JSON5, written as
+  JSON with a button to open JSON & YAML, and CSV or TSV, described
+  column by column with a button to open CSV & TSV.
+
+- Tabs in Smart paste, Base64 and Compare, like the Log viewer's: keep
+  several pastes or comparisons open at once, each with its own input,
+  options and result. New with + or Alt+T, close with ×, a middle click
+  or Alt+W (closing pasted text offers Undo), move with the arrow keys,
+  rename with a double click. Tabs name themselves after what they hold
+  (JWT, Encode 1, values.yaml ↔ values-prod.yaml, Pasted 1). Comparing
+  from the Explorer, a Helm view or Home uses the current Compare tab
+  when it is empty, otherwise a new one. The Log viewer uses the same
+  tabs and gains Alt+T and Alt+W.
+- The Ansible log tool has the same tabs: several logs open at once,
+  each named after its file or playbook and red when it has failures;
+  the playbook map colours from the current tab's log.
+- JSON & YAML has tabs too: several documents open at once, each with
+  its own inputs (Diff's sides, the Query filter…) and the view it was
+  left on; Kubernetes-shaped documents name their tab (Deployment/api).
+- A new tab takes the lowest free number: close Paste 1 of three and
+  the next is Paste 1 again, not Paste 4 (every tool with tabs); a
+  pasted log in the Log viewer no longer repeats a number in use.
+
 ## [3.6.0] - 2026-10-31
 
 Wellness, a new sidebar section: a focus timer with presets or your own
@@ -850,7 +904,8 @@ First tagged release: codec as it stood before the 2.0 work began.
 - Release pipeline: pushing a `v*` tag publishes binaries for Linux,
   Windows and macOS (amd64/arm64) to GitHub Releases via GoReleaser.
 
-[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v3.6.0...HEAD
+[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v3.7.0...HEAD
+[3.7.0]: https://github.com/mahasenabheetha/codec/compare/v3.6.0...v3.7.0
 [3.6.0]: https://github.com/mahasenabheetha/codec/compare/v3.5.0...v3.6.0
 [3.5.0]: https://github.com/mahasenabheetha/codec/compare/v3.4.0...v3.5.0
 [3.4.0]: https://github.com/mahasenabheetha/codec/compare/v3.3.0...v3.4.0

@@ -6,11 +6,11 @@
   import type { LogAnalysis, LogResult, LogTask } from '../../lib/api/ansiblelog'
   import { transform, type AnsibleTask } from '../../lib/api/transform'
   import AnsibleView from './AnsibleView.svelte'
-  import { duration, logs, resultStatus, statusTone, taskLabel } from './log.svelte'
+  import { duration, resultStatus, statusTone, taskLabel, type LogState } from './log.svelte'
 
   // The selected task (its host results, each in the single-task view),
   // run (meta, notes, recap) or block of other output.
-  let { analysis }: { analysis: LogAnalysis } = $props()
+  let { analysis, logs }: { analysis: LogAnalysis; logs: LogState } = $props()
 
   const sel = $derived(logs.sel)
   const block = $derived(sel ? analysis.blocks[sel.block] : undefined)

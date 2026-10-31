@@ -28,10 +28,17 @@ import Send from '@lucide/svelte/icons/send'
 import Type from '@lucide/svelte/icons/type'
 import Diff from '@lucide/svelte/icons/diff'
 import CaseSensitive from '@lucide/svelte/icons/case-sensitive'
+import Sheet from '@lucide/svelte/icons/sheet'
 import Leaf from '@lucide/svelte/icons/leaf'
 import Timer from '@lucide/svelte/icons/timer'
 import Eye from '@lucide/svelte/icons/eye'
 import CalendarCheck from '@lucide/svelte/icons/calendar-check'
+import ListTree from '@lucide/svelte/icons/list-tree'
+import ArrowRightLeft from '@lucide/svelte/icons/arrow-right-left'
+import GitCompare from '@lucide/svelte/icons/git-compare'
+import Route from '@lucide/svelte/icons/route'
+import FileJson from '@lucide/svelte/icons/file-braces'
+import TextSearch from '@lucide/svelte/icons/text-search'
 
 /** A tool's colour (decision 94): a `--hue-*` token. How much of it shows
  *  is up to the theme (`--tint-tool`): none in Dark and Light. */
@@ -98,12 +105,21 @@ export const tools: ToolDef[] = [
   },
   {
     id: 'json',
-    title: 'JSON',
+    title: 'JSON & YAML',
     group: 'Encode & decode',
-    description: 'Pretty-print, minify or validate JSON, with exact error positions.',
+    description: 'Format, explore, convert, compare and query JSON (JSONC and JSON5 too) and YAML.',
     icon: Braces,
     hue: 'peach',
-    keywords: ['format', 'pretty', 'minify', 'validate', 'lint'],
+    keywords: ['json', 'yaml', 'json5', 'jsonc', 'format', 'pretty', 'minify', 'validate', 'lint'],
+    tabs: [
+      { id: 'format', title: 'Format', description: 'Pretty-print, minify or validate JSON, JSONC or JSON5, with keys sorted if you like.', icon: Braces, keywords: ['pretty', 'minify', 'validate', 'sort keys', 'indent'] },
+      { id: 'tree', title: 'Tree', description: 'JSON as a tree to fold, search and copy paths from.', icon: ListTree, keywords: ['explore', 'browse', 'path', 'viewer'] },
+      { id: 'convert', title: 'Convert', description: 'JSON to YAML and back, keeping key order.', icon: ArrowRightLeft, keywords: ['yaml to json', 'json to yaml', 'convert'] },
+      { id: 'diff', title: 'Diff', description: 'Two JSON documents compared by path: added, removed, changed.', icon: GitCompare, keywords: ['compare', 'difference', 'changes'] },
+      { id: 'paths', title: 'Paths', description: 'Every value as a path and value (.spec.replicas = 3), and back.', icon: Route, keywords: ['flatten', 'unflatten', 'path', 'dot notation'] },
+      { id: 'schema', title: 'Schema', description: 'A JSON Schema inferred from samples or JSON Lines.', icon: FileJson, keywords: ['json schema', 'infer', 'generate', 'types'] },
+      { id: 'query', title: 'Query', description: 'Run a jq filter on JSON.', icon: TextSearch, keywords: ['jq', 'filter', 'select', 'map'] },
+    ],
     load: () => import('../features/json/JsonTool.svelte'),
   },
   {
@@ -267,7 +283,7 @@ export const tools: ToolDef[] = [
     id: 'text',
     title: 'Text & data',
     group: 'Utilities',
-    description: 'Compare two texts, and change the case of names.',
+    description: 'Compare two texts, change the case of names, and read CSV or TSV as a table.',
     icon: Type,
     hue: 'violet',
     keywords: ['text'],
@@ -285,6 +301,13 @@ export const tools: ToolDef[] = [
         description: 'camelCase, snake_case, kebab-case and more, with Kubernetes, environment-variable and Helm name rules.',
         icon: CaseSensitive,
         keywords: ['camel', 'snake', 'kebab', 'pascal', 'constant', 'dns-1123', 'k8s name', 'env var'],
+      },
+      {
+        id: 'table',
+        title: 'CSV & TSV',
+        description: 'Delimited text as a table to sort and filter, with column types; converted to JSON, YAML, Markdown and back.',
+        icon: Sheet,
+        keywords: ['csv', 'tsv', 'table', 'spreadsheet', 'delimited', 'markdown table', 'json to csv'],
       },
     ],
     load: () => import('../features/text/TextTool.svelte'),

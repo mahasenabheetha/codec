@@ -2,11 +2,13 @@ package cli
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
 
 	"github.com/mahasenabheetha/codec/v2/internal/codec"
+	"github.com/mahasenabheetha/codec/v2/internal/jsonkit"
 )
 
 // urlSafe is bound to the --url flag on the b64 subcommands.
@@ -65,35 +67,19 @@ var jsonCmd = &cobra.Command{
 
 var jsonPrettyCmd = &cobra.Command{
 	Use:   "pretty [json]",
-	Short: "Reformat JSON with indentation",
+	Short: "Reformat JSON (or JSONC, JSON5) with indentation",
 	Args:  cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		in, err := readInput(args)
-		if err != nil {
-			return err
-		}
-		out, err := codec.PrettyJSON(in, indent)
-		if err != nil {
-			return err
-		}
-		return emit(out)
+		return reformat(args, jsonIndentFlag())
 	},
 }
 
 var jsonMinCmd = &cobra.Command{
 	Use:   "min [json]",
-	Short: "Minify JSON to a single line",
+	Short: "Minify JSON (or JSONC, JSON5) to a single line",
 	Args:  cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		in, err := readInput(args)
-		if err != nil {
-			return err
-		}
-		out, err := codec.MinifyJSON(in)
-		if err != nil {
-			return err
-		}
-		return emit(out)
+		return reformat(args, "")
 	},
 }
 
@@ -107,6 +93,11 @@ var jsonValidateCmd = &cobra.Command{
 			return err
 		}
 		if err := codec.ValidateJSON(in); err != nil {
+			// Say so when it is JSONC or JSON5: still invalid JSON, but
+			// the reason to look for is different.
+			if _, d, lerr := jsonkit.Parse(in); lerr == nil {
+				return fmt.Errorf("%w (it is valid %s: codec json pretty writes it as JSON)", err, strings.ToUpper(string(d)))
+			}
 			return err
 		}
 		fmt.Println("valid")
@@ -143,8 +134,9 @@ var autoCmd = &cobra.Command{
 	Long: `auto detects what you pasted and does the right thing, as smart paste
 does: JSON is encoded to base64, base64 is decoded (and pretty-printed
 if it contains JSON), and JWTs are expanded. An epoch timestamp,
-URL-encoded text, a cron expression, a log, a CIDR range, an IP address
-or a curl command is summarised, with the command that does more.`,
+URL-encoded text, a cron expression, a log, a CIDR range, an IP address,
+a curl command, CSV or TSV, or JSONC or JSON5 is summarised, with the
+command that does more.`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		in, err := readInput(args)
@@ -153,7 +145,7 @@ or a curl command is summarised, with the command that does more.`,
 		}
 		// Utilities first: an epoch number is valid JSON too.
 		if u, ok := codec.DetectUtility(in, time.Now()); ok {
-			more := map[string]string{"epoch": "codec time", "url": "codec url decode", "cron": "codec cron", "cidr": "codec cidr", "ip": "codec ip", "curl": "codec curl"}[u.Kind]
+			more := map[string]string{"epoch": "codec time", "url": "codec url decode", "cron": "codec cron", "cidr": "codec cidr", "ip": "codec ip", "curl": "codec curl", "csv": "codec csv", "tsv": "codec csv", "jsonc": "codec json", "json5": "codec json"}[u.Kind]
 			if more != "" {
 				more = " (" + more + " does more)"
 			}

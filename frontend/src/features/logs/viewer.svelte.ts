@@ -24,6 +24,7 @@ import {
 import type { ArgoRun } from '../../lib/api/argo'
 import { persisted } from '../../lib/stores/persist.svelte'
 import { toast } from '../../lib/stores/toast.svelte'
+import { WorkTabs } from '../shared/worktabs.svelte'
 
 export const PAGE = 200
 const BUCKETS = 120
@@ -591,9 +592,8 @@ export class LogViewer {
 }
 
 /** The open logs, one tab each, and the queries run in any of them. */
-class LogTabs {
-  list = $state.raw<LogViewer[]>([])
-  current = $state.raw<LogViewer | null>(null)
+// The Log viewer's work tabs (decision 97); the strip is the shared one.
+class LogTabs extends WorkTabs<LogViewer> {
   history = $state.raw<string[]>([]) // newest first; memory only (decision 19)
 
   /** Read sources in a tab of their own (the current tab when it holds
@@ -621,16 +621,9 @@ class LogTabs {
     v.open(sources)
   }
 
-  select(v: LogViewer) {
-    this.current = v
-  }
-
-  /** Close a tab and let the server go of its log. */
-  close(v: LogViewer) {
-    const i = this.list.indexOf(v)
+  /** A closed tab lets the server go of its log. */
+  protected closed(v: LogViewer) {
     v.close()
-    this.list = this.list.filter((x) => x !== v)
-    if (this.current === v) this.current = this.list[Math.min(i, this.list.length - 1)] ?? null
   }
 
   remember(q: string) {

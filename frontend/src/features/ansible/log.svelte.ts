@@ -14,7 +14,7 @@ export type LogSelection =
   | { kind: 'other'; block: number }
   | null
 
-class LogState {
+export class LogState {
   analysis = $state.raw<LogAnalysis | null>(null)
   source = $state.raw<{ name: string; size: number; file: boolean } | null>(null)
   running = $state(false)
@@ -82,8 +82,6 @@ class LogState {
   /** The runs, with their block index, for pickers. */
   runs = $derived((this.analysis?.blocks ?? []).flatMap((b, i) => (b.run ? [{ block: i, run: b.run, from: b.from }] : [])))
 }
-
-export const logs = new LogState()
 
 /** Whether a task passes the outline's filter and host choice. */
 export function taskShown(t: LogTask, filter: LogFilter, host: string, query: string): boolean {
