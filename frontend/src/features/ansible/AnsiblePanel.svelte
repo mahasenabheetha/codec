@@ -135,22 +135,22 @@
   // A log loaded in the Ansible log tool (its current tab) colours the
   // map. The run of this playbook is picked when the log names it
   // (PLAYBOOK: with -v).
-  const logs = $derived(ansibleTabs.current!.log)
+  const runs = $derived(ansibleTabs.current?.log.runs ?? [])
   let colourBy = $state('none') // a run's block index, or "none"
   const runItems = $derived([
     { value: 'none', label: 'No run colours' },
-    ...logs.runs.map((r, i) => ({ value: String(r.block), label: `Run ${i + 1}${r.run.playbook ? ' · ' + r.run.playbook : ''} (log line ${r.from})` })),
+    ...runs.map((r, i) => ({ value: String(r.block), label: `Run ${i + 1}${r.run.playbook ? ' · ' + r.run.playbook : ''} (log line ${r.from})` })),
   ])
   // Picked again when another log loads or another playbook opens.
   $effect(() => {
-    const runs = logs.runs
+    const loaded = runs
     const name = base(path)
     untrack(() => {
-      colourBy = String(runs.find((r) => r.run.playbook && r.run.playbook === name)?.block ?? 'none')
+      colourBy = String(loaded.find((r) => r.run.playbook && r.run.playbook === name)?.block ?? 'none')
     })
   })
   const colours = $derived.by(() => {
-    const r = logs.runs.find((x) => String(x.block) === colourBy)
+    const r = runs.find((x) => String(x.block) === colourBy)
     return pgraph && r ? runColours(pgraph, r.run) : null
   })
   const graphNodes = $derived<GraphNode[]>(
@@ -334,7 +334,7 @@
             {#if view === 'steps'}
               <SearchInput bind:value={filter} placeholder="Filter tasks" label="Filter tasks" />
               <button type="button" class="link" onclick={() => (collapsed = {})}>Expand all</button>
-            {:else if logs.runs.length}
+            {:else if runs.length}
               <Select items={runItems} bind:value={colourBy} label="Colour by a run of the loaded log" />
             {:else}
               <span class="muted">Solid: import · dashed: include, decided while running · load a log in Ansible log to colour by a run</span>
