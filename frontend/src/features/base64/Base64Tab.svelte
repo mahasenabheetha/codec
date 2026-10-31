@@ -1,0 +1,104 @@
+<script lang="ts">
+  import Binary from '@lucide/svelte/icons/binary'
+  import Play from '@lucide/svelte/icons/play'
+  import type CodeView from '../../lib/components/CodeView.svelte'
+  import Button from '../../lib/components/Button.svelte'
+  import SegmentedControl from '../../lib/components/SegmentedControl.svelte'
+  import Toggle from '../../lib/components/Toggle.svelte'
+  import { toolById } from '../../lib/tools'
+  import { copyText } from '../../lib/utils/clipboard'
+  import { formatShortcut } from '../../lib/utils/platform'
+  import ToolLayout from '../shared/ToolLayout.svelte'
+  import InputPane from '../shared/InputPane.svelte'
+  import OutputPane from '../shared/OutputPane.svelte'
+  import { samples } from '../shared/samples'
+  import { liveTransform } from '../shared/transform.svelte'
+  import { untrack, type Snippet } from 'svelte'
+  import type { Base64Tab } from './tabs.svelte'
+  import { toolCommands, toolShortcuts, toolStatus } from '../shared/tool.svelte'
+
+  // One Base64 tab: its own input, direction and options (decision 97).
+  let { tab, active, strip }: { tab: Base64Tab; active: boolean; strip: Snippet } = $props()
+
+  const tool = toolById('base64')!
+  const t = untrack(() => tab) // a tab component lives with one tab (keyed)
+  const session = t.session
+  let editor = $state<CodeView>()
+
+  const encoding = $derived(t.mode === 'b64-encode')
+  const options = () => ({ mode: t.mode, urlSafe: t.urlSafe, prettyJSON: t.mode === 'b64-decode' && t.prettyJSON })
+  liveTransform(session, options)
+
+  const run = () => session.run(options())
+  const copy = () => copyText(session.output)
+  function clear() {
+    session.clear()
+    editor?.focus()
+  }
+  // Swapping also flips direction: encode → swap → decode round-trips.
+  function swap() {
+    if (!session.output) return
+    session.input = session.output
+    t.mode = encoding ? 'b64-decode' : 'b64-encode'
+    editor?.focus()
+  }
+  function sample() {
+    session.input = encoding ? samples.base64Encode : samples.base64Decode
+  }
+
+  toolShortcuts(() => active, { run, copy, clear, swap })
+  toolCommands(() => active, () => [
+    { id: 'base64.encode', title: 'Base64: Encode', group: 'Base64', run: () => (t.mode = 'b64-encode') },
+    { id: 'base64.decode', title: 'Base64: Decode', group: 'Base64', run: () => (t.mode = 'b64-decode') },
+    { id: 'base64.urlsafe', title: 'Base64: Toggle URL-safe alphabet', group: 'Base64', run: () => (t.urlSafe = !t.urlSafe) },
+    { id: 'base64.pretty', title: 'Base64: Toggle pretty JSON when decoding', group: 'Base64', run: () => (t.prettyJSON = !t.prettyJSON) },
+    { id: 'base64.swap', title: 'Base64: Use output as input', group: 'Base64', shortcut: 'Alt+S', run: swap },
+  ])
+  toolStatus(() => active, () => {
+    if (session.error) return { text: encoding ? 'Encoding failed' : 'Not valid base64', tone: 'err' }
+    if (session.result) return { text: `${encoding ? 'Encoded' : 'Decoded'}${t.urlSafe ? ' · URL-safe' : ''}`, tone: 'ok' }
+    return { text: encoding ? 'Ready to encode' : 'Ready to decode' }
+  })
+</script>
+
+<ToolLayout {tool}>
+  {#snippet tabs()}{@render strip()}{/snippet}
+  {#snippet controls()}
+    <SegmentedControl
+      label="Direction"
+      bind:value={t.mode}
+      options={[
+        { value: 'b64-encode', label: 'Encode' },
+        { value: 'b64-decode', label: 'Decode' },
+      ]}
+    />
+    <Toggle label="URL-safe" bind:checked={t.urlSafe} title="Use - and _ instead of + and / (JWTs, URLs)" />
+    {#if !encoding}
+      <Toggle label="Pretty JSON" bind:checked={t.prettyJSON} title="Indent decoded JSON; off shows the bytes exactly as decoded" />
+    {/if}
+  {/snippet}
+  {#snippet actions()}
+    <Button variant="primary" icon={Play} tone="run" onclick={run} title={formatShortcut('Mod+Enter')}>
+      {encoding ? 'Encode' : 'Decode'}
+    </Button>
+  {/snippet}
+  {#snippet input()}
+    <InputPane
+      {session}
+      bind:editor
+      onclear={clear}
+      placeholder={encoding ? 'Text to encode…' : 'Base64 to decode — whitespace and missing padding are fine'}
+      onpaste={run}
+    />
+  {/snippet}
+  {#snippet output()}
+    <OutputPane
+      {session}
+      emptyIcon={Binary}
+      emptyTitle={encoding ? 'Encoded text appears here' : 'Decoded text appears here'}
+      emptyDescription="Type or paste on the left. Decoded JSON is pretty-printed automatically."
+      onsample={sample}
+      onswap={swap}
+    />
+  {/snippet}
+</ToolLayout>

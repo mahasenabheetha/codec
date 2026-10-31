@@ -9,19 +9,18 @@
   import SegmentedControl from '../../lib/components/SegmentedControl.svelte'
   import type { CompareResult, DiffCell, DiffRow } from '../../lib/api/compare'
   import { copyText } from '../../lib/utils/clipboard'
-  import { comparison as cmp } from './compare.svelte'
 
   // A text diff side by side: each changed line beside the line that
   // replaced it, the changed characters marked strongly, unchanged runs
   // folded into gaps that open on click. Unified shows the patch.
-  // opts holds the layout and the ignore flags: the Compare view's by
-  // default, a tool's own otherwise (Text & data → Text diff).
+  // opts holds the layout and the ignore flags: the Compare tab's, or a
+  // tool's own (Text & data → Text diff).
   interface Props {
     result: CompareResult
-    opts?: { textView: 'split' | 'unified'; ignoreSpace: boolean; ignoreCase: boolean }
+    opts: { textView: 'split' | 'unified'; ignoreSpace: boolean; ignoreCase: boolean }
   }
 
-  let { result, opts = cmp }: Props = $props()
+  let { result, opts }: Props = $props()
 
   const rows = $derived(result.rows ?? [])
   // Gaps opened by the user, by row index. CompareView keys this

@@ -6,6 +6,18 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Tabs in Smart paste, Base64 and Compare, like the Log viewer's: keep
+  several pastes or comparisons open at once, each with its own input,
+  options and result. New with + or Alt+T, close with ×, a middle click
+  or Alt+W (closing pasted text offers Undo), move with the arrow keys,
+  rename with a double click. Tabs name themselves after what they hold
+  (JWT, Encode 1, values.yaml ↔ values-prod.yaml, Pasted 1). Comparing
+  from the Explorer, a Helm view or Home uses the current Compare tab
+  when it is empty, otherwise a new one. The Log viewer uses the same
+  tabs and gains Alt+T and Alt+W.
+
 ## [3.6.0] - 2026-10-31
 
 Wellness, a new sidebar section: a focus timer with presets or your own

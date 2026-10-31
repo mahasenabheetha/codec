@@ -13,9 +13,11 @@
     input?: Snippet
     output?: Snippet
     body?: Snippet
+    /** Work tabs (decision 97): the strip, between the toolbar and the panes. */
+    tabs?: Snippet
   }
 
-  let { tool, controls, actions, input, output, body }: Props = $props()
+  let { tool, controls, actions, input, output, body, tabs }: Props = $props()
 </script>
 
 <div class="tool hued" style:--tool={hueVar(tool.hue)}>
@@ -28,6 +30,7 @@
     <div class="spacer"></div>
     {#if actions}<div class="actions">{@render actions()}</div>{/if}
   </header>
+  {#if tabs}{@render tabs()}{/if}
   {#if body}
     <div class="body single">{@render body()}</div>
   {:else if input && output}
