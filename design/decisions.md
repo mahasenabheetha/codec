@@ -488,3 +488,9 @@ Settled unless the user reopens them. Add new ones at the bottom:
     the status colours. The later releases move up one: the update
     check and focus timer (85, 91) become 3.6.0, the JSON and table
     tools 3.7.0 and the generators 3.8.0 (90) (2026-10-31).
+95. Midnight, a fourth theme in 3.5.0 (asked for 2026-10-31 after
+    seeing Dusk): Dusk's icons, buttons, tabs and text, which the user
+    likes best, on a darker blue background. It shares Dusk's token
+    block and overrides only surfaces, borders and the main text, so
+    the two can't drift apart; it obeys Dusk's contrast rules (text 7–12:1)
+    (2026-10-31).

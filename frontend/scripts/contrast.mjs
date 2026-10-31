@@ -5,18 +5,27 @@ import { readFileSync } from 'node:fs'
 
 const css = readFileSync(new URL('../src/lib/styles/tokens.css', import.meta.url), 'utf8')
 
-// Theme blocks: :root is Dark; the others override it.
+// Theme blocks: :root is Dark; the others override it. A theme's tokens
+// are every block whose selector list names it, in file order (Midnight
+// shares Dusk's block, then has its own).
 function block(selector) {
-  const at = css.indexOf(selector + ' {')
-  if (at < 0) throw new Error('no block ' + selector)
-  const body = css.slice(at, css.indexOf('\n}', at))
-  return Object.fromEntries([...body.matchAll(/^\s*(--[\w-]+):\s*([^;]+);/gm)].map((m) => [m[1], m[2].trim()]))
+  const tokens = {}
+  for (let at = css.indexOf(selector); at >= 0; at = css.indexOf(selector, at + 1)) {
+    const next = css[at + selector.length]
+    if (next !== ' ' && next !== ',') continue
+    const open = css.indexOf('{', at)
+    const body = css.slice(open, css.indexOf('\n}', open))
+    for (const m of body.matchAll(/^\s*(--[\w-]+):\s*([^;]+);/gm)) tokens[m[1]] = m[2].trim()
+  }
+  if (!Object.keys(tokens).length) throw new Error('no block ' + selector)
+  return tokens
 }
 const base = block(':root')
 const themes = {
   dark: base,
   light: { ...base, ...block(":root[data-theme='light']") },
   dusk: { ...base, ...block(":root[data-theme='dusk']") },
+  midnight: { ...base, ...block(":root[data-theme='midnight']") },
 }
 
 // A colour as [r, g, b, a], following var() within the theme.
@@ -72,11 +81,14 @@ for (const theme of Object.keys(themes)) {
 // Dusk shows the hues: as icons and text on panels, and as the fill of a
 // tool's primary button. And it stays soft: body text about 10:1, at
 // most 12:1 (Dark is about 16:1).
-for (const h of hues) {
-  check('dusk', h, '--bg-2', 4.5)
-  check('dusk', '--accent-fg', h, 4.5)
+// Midnight has Dusk's colours on a navy ground, and its rules.
+for (const theme of ['dusk', 'midnight']) {
+  for (const h of hues) {
+    check(theme, h, '--bg-2', 4.5)
+    check(theme, '--accent-fg', h, 4.5)
+  }
+  for (const bg of surfaces) check(theme, '--fg-0', bg, 7, 12)
 }
-for (const bg of surfaces) check('dusk', '--fg-0', bg, 7, 12)
 
-console.log(failed ? `${failed} pair(s) fail` : 'All contrast pairs pass in Dark, Light and Dusk.')
+console.log(failed ? `${failed} pair(s) fail` : `All contrast pairs pass in ${Object.keys(themes).join(', ')}.`)
 process.exit(failed ? 1 : 0)

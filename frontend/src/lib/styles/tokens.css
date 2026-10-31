@@ -254,7 +254,8 @@
   --overlay: rgb(20 28 45 / 0.35);
 }
 
-:root[data-theme='dusk'] {
+:root[data-theme='dusk'],
+:root[data-theme='midnight'] {
   color-scheme: dark;
 
   /* Dusk (decision 94): soft and colourful. A muted blue-violet ground,
@@ -337,4 +338,24 @@
 
   --shadow-pop: 0 10px 30px rgb(8 8 20 / 0.45), 0 0 0 1px var(--border-strong);
   --overlay: rgb(10 10 24 / 0.5);
+}
+
+/* Midnight (decision 95): Dusk's colours on a deep navy ground. Only the
+   surfaces, borders and main text differ; everything else is Dusk's. */
+:root[data-theme='midnight'] {
+  --bg-0: #0a1628;
+  --bg-1: #0d1b2e;
+  --bg-2: #111f35;
+  --bg-3: #192941;
+  --bg-4: #21334e;
+
+  --border: #1e2e46;
+  --border-strong: #2d405d;
+
+  --fg-0: #cbcfdc;
+
+  --accent-fg: #0a1628;
+
+  --shadow-pop: 0 10px 30px rgb(2 6 16 / 0.55), 0 0 0 1px var(--border-strong);
+  --overlay: rgb(2 6 16 / 0.55);
 }

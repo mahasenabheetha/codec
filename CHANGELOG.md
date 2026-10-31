@@ -20,8 +20,11 @@ All notable changes to codec are documented here. The format follows
   header, main button and selected tab (a soft pill) in its own colour,
   a soft glow on the selected sidebar entry, a thin coloured line on
   result cards, and Copy, Clear, Open, Run and other actions in their
-  own colours. With System, "When the system is dark"
-  picks Dark or Dusk. Dark and Light are unchanged.
+  own colours. Dark and Light are unchanged.
+- Midnight, a fourth theme: Dusk's colours for icons, buttons, tabs and
+  text on a deep navy background ("Use the Midnight theme" in the
+  palette). With System, "When the system is dark" picks Dark, Dusk or
+  Midnight.
 
 ### Fixed
 

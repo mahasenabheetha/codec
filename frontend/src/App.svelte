@@ -261,6 +261,13 @@
       icon: Palette,
       run: () => ((theme.pref = 'dusk'), (theme.darkStyle = 'dusk')),
     },
+    {
+      id: 'view.themeMidnight',
+      title: 'Use the Midnight theme',
+      group: 'View',
+      icon: Palette,
+      run: () => ((theme.pref = 'midnight'), (theme.darkStyle = 'midnight')),
+    },
     ...(['compact', 'comfortable', 'large'] as const).map((s) => ({
       id: 'view.size.' + s,
       title: 'Interface size: ' + s[0].toUpperCase() + s.slice(1),

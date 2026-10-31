@@ -111,11 +111,13 @@
     { value: 'system', label: 'System' },
     { value: 'dark', label: 'Dark' },
     { value: 'dusk', label: 'Dusk' },
+    { value: 'midnight', label: 'Midnight' },
     { value: 'light', label: 'Light' },
   ]
   const darkStyles: { value: DarkStyle; label: string }[] = [
     { value: 'dark', label: 'Dark' },
     { value: 'dusk', label: 'Dusk' },
+    { value: 'midnight', label: 'Midnight' },
   ]
   const sizes: { value: UiSize; label: string }[] = [
     { value: 'compact', label: 'Compact' },
@@ -156,7 +158,7 @@
       <p class="intro">Saved in your user profile, never in a repository. codec only reads the folders you open.</p>
 
       <SettingSection id="general" title="General">
-        <SettingRow title="Theme" description="Dusk is a softer, colourful dark theme. System follows your operating system's light or dark setting.">
+        <SettingRow title="Theme" description="Dusk is a softer, colourful dark theme; Midnight has its colours on deep navy. System follows your operating system's light or dark setting.">
           <SegmentedControl options={themes} bind:value={theme.pref} label="Theme" />
         </SettingRow>
         {#if theme.pref === 'system'}

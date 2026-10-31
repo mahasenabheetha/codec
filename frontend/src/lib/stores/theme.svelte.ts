@@ -1,15 +1,15 @@
-// The colour theme. The preference is System, Dark, Dusk or Light (a
-// display preference, persisted); `resolved` is what is shown. System
-// follows the operating system, using Dark or Dusk when it is dark (the
-// "dark style", decision 94). The attribute it sets on <html> switches
+// The colour theme. The preference is System, Dark, Dusk, Midnight or
+// Light (a display preference, persisted); `resolved` is what is shown.
+// System follows the operating system, using Dark, Dusk or Midnight when
+// it is dark (the "dark style", decisions 94 and 95). The attribute it sets on <html> switches
 // the token set in tokens.css. index.html applies the same choice before
 // the app loads, so the first paint is right.
 import { persisted } from './persist.svelte'
 import { windowTheme } from '../platform'
 
-export type ThemePref = 'system' | 'dark' | 'dusk' | 'light'
-export type Theme = 'dark' | 'dusk' | 'light'
-export type DarkStyle = 'dark' | 'dusk'
+export type ThemePref = 'system' | 'dark' | 'dusk' | 'midnight' | 'light'
+export type Theme = 'dark' | 'dusk' | 'midnight' | 'light'
+export type DarkStyle = 'dark' | 'dusk' | 'midnight'
 
 const pref = persisted<ThemePref>('theme', 'dark')
 const darkStyle = persisted<DarkStyle>('darkStyle', 'dark')
@@ -48,7 +48,7 @@ export const theme = {
   get resolved(): Theme {
     return resolved
   },
-  /** Dark or Dusk: a dark background. */
+  /** Dark, Dusk or Midnight: a dark background. */
   get dark(): boolean {
     return resolved !== 'light'
   },

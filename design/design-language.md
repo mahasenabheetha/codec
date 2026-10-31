@@ -70,7 +70,14 @@ dark theme, made in OKLCH so its colours share one lightness:
 | Hues | indigo `#a8bcf5` · violet `#c6b2ed` · pink `#e1a9d4` · peach `#ebae8d` · lime `#b1c88b` · teal `#7ad0c5` · cyan `#7ccbe4` (L 0.80, C 0.085); `--tint-tool` and `--tint-action` 100% |
 | Syntax | key `#a5bdf2` · string `#aed09c` · number `#e7b18c` · bool `#caade1` · comment `#9497ab` · anchor `#89cdc3` · tag `#dcc188` |
 
-Dusk's text stays between 7:1 and 12:1 on its surfaces: readable, never
+Midnight (decision 95) is Dusk on deep navy: it shares Dusk's block and
+overrides only the surfaces (`--bg-0 #0a1628` · `--bg-1 #0d1b2e` ·
+`--bg-2 #111f35` · `--bg-3 #192941` · `--bg-4 #21334e`, hue 258 with more
+chroma), the borders (`#1e2e46`, `#2d405d`), `--fg-0 #cbcfdc` (a touch
+dimmer, to stay under 12:1 on the darker ground), `--accent-fg`, the
+shadow and the overlay.
+
+Dusk's and Midnight's text stays between 7:1 and 12:1 on their surfaces: readable, never
 glaring. `npm --prefix frontend run contrast` (`frontend/scripts/contrast.mjs`)
 checks every rule here for all three themes.
 
