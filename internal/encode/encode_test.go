@@ -1,6 +1,7 @@
 package encode
 
 import (
+	"fmt"
 	"math"
 	"regexp"
 	"strings"
@@ -166,6 +167,26 @@ func TestUUID(t *testing.T) {
 			t.Fatalf("UUID %q", u)
 		}
 		seen[u] = true
+	}
+}
+
+func TestCommitSHA(t *testing.T) {
+	for form, n := range map[string]int{"": 40, "sha1": 40, "short": 7, "sha256": 64} {
+		re := regexp.MustCompile(fmt.Sprintf(`^[0-9a-f]{%d}$`, n))
+		seen := map[string]bool{}
+		for range 50 {
+			s, err := CommitSHA(form)
+			if err != nil || !re.MatchString(s) {
+				t.Fatalf("%q: %q, %v", form, s, err)
+			}
+			seen[s] = true
+		}
+		if n > 7 && len(seen) != 50 {
+			t.Errorf("%q: repeats in 50", form)
+		}
+	}
+	if _, err := CommitSHA("md5"); err == nil {
+		t.Error("unknown form accepted")
 	}
 }
 

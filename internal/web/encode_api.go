@@ -26,6 +26,8 @@ type encodeRequest struct {
 	// Secrets and UUIDs
 	Secret encode.SecretOptions `json:"secret"`
 	Count  int                  `json:"count"`
+	// Commit SHA placeholders: sha1 (default), short or sha256.
+	Form string `json:"form"`
 	// htpasswd
 	User     string `json:"user"`
 	Password string `json:"password"`
@@ -33,7 +35,7 @@ type encodeRequest struct {
 	Line     string `json:"line"`
 }
 
-// POST /api/v2/encode/{kind}: url, hex, hash, secret, uuid, htpasswd.
+// POST /api/v2/encode/{kind}: url, hex, hash, secret, uuid, sha, htpasswd.
 // Input and output are never kept (decision 19). Bad input is a 422
 // with the reason.
 func (s *Server) handleEncode(w http.ResponseWriter, r *http.Request) {
@@ -98,6 +100,17 @@ func (s *Server) handleEncode(w http.ResponseWriter, r *http.Request) {
 			out[i] = encode.UUID()
 		}
 		writeJSON(w, http.StatusOK, map[string]any{"uuids": out})
+	case "sha:":
+		out := make([]string, count)
+		for i := range out {
+			s, err := encode.CommitSHA(req.Form)
+			if err != nil {
+				fail(err)
+				return
+			}
+			out[i] = s
+		}
+		writeJSON(w, http.StatusOK, map[string]any{"shas": out})
 	case "htpasswd:make":
 		line, err := encode.Htpasswd(req.User, req.Password, cmp.Or(req.Cost, encode.DefaultCost))
 		if err != nil {

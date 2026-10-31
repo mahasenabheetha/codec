@@ -6,6 +6,13 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Secrets & UUID makes placeholder git commit ids: Commit SHA gives
+  random lowercase hex in the shape of a commit id, 40 characters, the
+  7-character short form, or 64 for SHA-256 repositories; also
+  `codec sha` (`--short`, `--sha256`, `-n`).
+
 ## [3.3.0] - 2026-10-31
 
 Markdown preview: READMEs and docs in a repository read rendered, as on

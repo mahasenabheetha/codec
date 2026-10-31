@@ -2,6 +2,7 @@ package web
 
 import (
 	"encoding/json"
+	"net/http"
 	"strings"
 	"testing"
 )
@@ -34,6 +35,12 @@ func TestEncodeAPI(t *testing.T) {
 	}
 	if v := out["secrets"].([]any)[0].(map[string]any)["value"].(string); strings.ToUpper(v) != v {
 		t.Errorf("upper-case only: %q", v)
+	}
+	if code, out := post("sha", `{"count":3,"form":"short"}`); code != 200 || len(out["shas"].([]any)) != 3 || len(out["shas"].([]any)[0].(string)) != 7 {
+		t.Errorf("sha short: %d %v", code, out)
+	}
+	if code, _ := post("sha", `{"form":"md5"}`); code != http.StatusUnprocessableEntity {
+		t.Errorf("sha unknown form: %d, want 422", code)
 	}
 	if code, out := post("uuid", `{"count":1000}`); code != 200 || len(out["uuids"].([]any)) != maxCount {
 		t.Errorf("uuid count capped: %d", len(out["uuids"].([]any)))

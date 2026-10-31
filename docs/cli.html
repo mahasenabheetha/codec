@@ -196,6 +196,7 @@ set       spec.template.spec.containers[0].image=</span></code></pre>
   <tr><td><code>hash [text]</code></td><td>SHA-256, SHA-384, SHA-512, SHA-1, MD5 of the exact bytes (<code>-a sha256</code> prints only that digest, <code>--base64</code>); <code>--hmac-key-env VAR</code> for HMACs</td></tr>
   <tr><td><code>secret</code></td><td>Random secrets: <code>--length</code>, <code>--sets lower,upper,digits,symbols</code>, <code>--format hex|base64|base64url</code>, <code>--no-ambiguous</code>, <code>-n</code></td></tr>
   <tr><td><code>uuid</code></td><td>Random UUIDs (version 4), <code>-n</code> for more than one</td></tr>
+  <tr><td><code>sha</code></td><td>Placeholder git commit ids: 40 lowercase hex characters, <code>--short</code> for 7, <code>--sha256</code> for 64; <code>-n</code> for more than one</td></tr>
   <tr><td><code>htpasswd &lt;user&gt;</code></td><td>A bcrypt <code>user:hash</code> line for basic auth; the password is asked for or piped in (<code>--cost</code>). <code>--check "&lt;line&gt;"</code> checks one, exit 2 when it doesn't match</td></tr>
 </table></div>
 

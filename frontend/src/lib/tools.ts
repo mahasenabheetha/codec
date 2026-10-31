@@ -153,9 +153,9 @@ export const tools: ToolDef[] = [
       {
         id: 'secrets',
         title: 'Secrets & UUID',
-        description: 'Random secrets by length and character set, and UUIDs.',
+        description: 'Random secrets by length and character set, UUIDs, and placeholder commit SHAs.',
         icon: Dices,
-        keywords: ['random', 'password', 'generate', 'uuid', 'guid', 'token'],
+        keywords: ['random', 'password', 'generate', 'uuid', 'guid', 'token', 'commit', 'sha', 'git', 'placeholder'],
       },
       {
         id: 'htpasswd',
