@@ -14,6 +14,13 @@ All notable changes to codec are documented here. The format follows
   different), `schema` (inferred from samples or JSON Lines), `query`
   (jq) and `stats` (counts in large files, read as a stream). The
   JSON & YAML tool in the app follows.
+- JSON becomes **JSON & YAML**, with tabs that share one pasted
+  document: Format (pretty, minify or validate, with sorted keys;
+  JSONC and JSON5 read and written as JSON), Tree (fold, search, copy
+  any value's path; counts instead for documents over 2 MB), Convert
+  (JSON ⇄ YAML), Diff (two documents by path), Paths (flatten and back),
+  Schema (inferred from samples or JSON Lines) and Query (jq). Tool
+  outputs everywhere gain the find bar and JSON colouring.
 
 - Tabs in Smart paste, Base64 and Compare, like the Log viewer's: keep
   several pastes or comparisons open at once, each with its own input,
