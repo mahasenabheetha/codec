@@ -6,6 +6,62 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+## [3.6.0] - 2026-10-31
+
+Wellness, a new sidebar section: a focus timer with presets or your own
+lengths, today's sessions on a timeline, and break reminders for eyes,
+stretches, water and posture with guided breathing and stretch
+animations, calm chimes and system notifications, from any tool. Also
+an opt-in update check, and find in tool inputs.
+
+### Added
+
+- Find in a tool's input as well as its output (the search button, or
+  Ctrl+F over or in the input), in Smart paste, JSON, Base64 and every
+  tool with an input pane; typing keeps your place while the matches
+  follow. Smart paste's input is coloured as JSON when it holds JSON.
+
+- Update check: Settings → General → "Check for updates" (off by
+  default) asks GitHub once a day for codec's latest release; a newer
+  one shows in the status bar with a link to its page (dismiss it until
+  the next release) and in the desktop app's tray menu. "Check now" asks
+  once either way, and `codec version --check` does the same on the
+  command line. It sends nothing about you or your files.
+
+- Wellness, a new sidebar section, with **Focus & breaks**. The Focus
+  tab is a focus timer on a large ring: Classic 25/5, Deep work 50/10,
+  Flow 90/20 or your own lengths and rounds, a long break after the
+  last round, start, pause, +5 minutes, skip and reset (Space starts
+  and pauses), "What are you working on?" beside the clock, and a calm
+  chime (five to choose from, with volume and mute) when a phase ends.
+  It keeps running in any tab and after a reload; if the laptop slept
+  through the end, it offers a fresh start rather than a late alarm.
+  The Today tab shows today's sessions, minutes focused and breaks on a
+  timeline of the day, kept only until midnight.
+- Break reminders, in Focus & breaks → Breaks: an eye break (20-20-20),
+  stretches, water, posture, each with its own picture, and your own, each switched on separately
+  with its own interval, length, message and sound, shown as a
+  full-window break, a card in the corner or a toast. Breaks can guide
+  you: a breathing circle (calm 4-6, box 4-4-4-4 or 4-7-8), rings for
+  looking into the distance, a drawn figure doing five stretches, a
+  glass filling with water, or a figure sitting up at a desk with three
+  posture checks.
+  Snooze 5 minutes, skip (Esc), take a break now, or pause reminders for
+  30 minutes, an hour or until tomorrow. They wait for a focus session
+  to end if you like, never interrupt a focus break, can keep to active
+  hours, and a break taken covers shorter ones that came due. They run
+  whichever tool is open; one due while the laptop slept is skipped.
+  With codec open in several tabs or windows, they keep your choices in
+  step and one of them reminds, so each reminder comes once. "Last
+  chime", under Sound and in the status-bar popover, says what rang.
+- Wellness from anywhere: a status-bar widget (a small ring and the time
+  left, or when the next reminder is due, with controls in a popover),
+  the time left in the window title, palette commands (start or pause
+  focus, skip, add 5 minutes, take a break now, pause and resume
+  reminders), tray menu entries in the desktop app, and an optional
+  system notification when codec is in the background. A docs page,
+  Focus and breaks.
+
 ## [3.5.0] - 2026-10-31
 
 Comfort: bigger icons and controls with an Interface size setting, and
@@ -794,7 +850,8 @@ First tagged release: codec as it stood before the 2.0 work began.
 - Release pipeline: pushing a `v*` tag publishes binaries for Linux,
   Windows and macOS (amd64/arm64) to GitHub Releases via GoReleaser.
 
-[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v3.5.0...HEAD
+[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v3.6.0...HEAD
+[3.6.0]: https://github.com/mahasenabheetha/codec/compare/v3.5.0...v3.6.0
 [3.5.0]: https://github.com/mahasenabheetha/codec/compare/v3.4.0...v3.5.0
 [3.4.0]: https://github.com/mahasenabheetha/codec/compare/v3.3.0...v3.4.0
 [3.3.0]: https://github.com/mahasenabheetha/codec/compare/v3.2.0...v3.3.0

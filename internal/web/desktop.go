@@ -65,6 +65,14 @@ func (s *Server) OpenPath(dir, file string) error {
 	return nil
 }
 
+// Wellness asks open pages to act on the focus timer or the break
+// reminders: "focus" starts or pauses focus, "break" takes a break now,
+// "pause" pauses reminders for an hour, "resume" resumes them. The
+// desktop app's tray menu calls it; with no page open it does nothing.
+func (s *Server) Wellness(action string) {
+	s.hub.publish("wellness", map[string]string{"action": action})
+}
+
 // inWorkspace returns path relative to the open workspace, '/'-
 // separated and in the case stored on disk, when it lies inside it. It
 // compares both as given and with links resolved, so a folder opened

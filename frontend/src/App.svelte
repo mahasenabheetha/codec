@@ -29,6 +29,7 @@
   import SunMoon from '@lucide/svelte/icons/sun-moon'
   import Monitor from '@lucide/svelte/icons/monitor'
   import { theme } from './lib/stores/theme.svelte'
+  import { updates } from './lib/stores/update.svelte'
   import { uiSize } from './lib/stores/size.svelte'
   import Rail from './lib/shell/Rail.svelte'
   import TabBar from './lib/shell/TabBar.svelte'
@@ -36,6 +37,7 @@
   import CommandPalette from './lib/shell/CommandPalette.svelte'
   import ShortcutsDialog from './lib/shell/ShortcutsDialog.svelte'
   import Toaster from './lib/components/Toaster.svelte'
+  import BreakLayer from './features/wellness/BreakLayer.svelte'
   import RestartBanner from './lib/shell/RestartBanner.svelte'
   import Home from './features/home/Home.svelte'
   import Explorer from './features/workspace/Explorer.svelte'
@@ -81,6 +83,10 @@
 
   // Rule metadata, so findings everywhere can offer "Turn off".
   lint.load()
+
+  // Is a newer codec out? The server asks GitHub at most daily, and only
+  // with the check switched on in Settings (decision 85).
+  updates.load()
 
   // Tool code loads on first open and is cached, so switching tabs is
   // instant and each tool keeps its state while its tab stays open.
@@ -505,6 +511,7 @@
   <QuickOpen />
   <OpenFolderDialog />
   <ShortcutsDialog />
+  <BreakLayer />
   <Toaster />
 </Tooltip.Provider>
 

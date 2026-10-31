@@ -28,6 +28,10 @@ import Send from '@lucide/svelte/icons/send'
 import Type from '@lucide/svelte/icons/type'
 import Diff from '@lucide/svelte/icons/diff'
 import CaseSensitive from '@lucide/svelte/icons/case-sensitive'
+import Leaf from '@lucide/svelte/icons/leaf'
+import Timer from '@lucide/svelte/icons/timer'
+import Eye from '@lucide/svelte/icons/eye'
+import CalendarCheck from '@lucide/svelte/icons/calendar-check'
 
 /** A tool's colour (decision 94): a `--hue-*` token. How much of it shows
  *  is up to the theme (`--tint-tool`): none in Dark and Light. */
@@ -294,6 +298,39 @@ export const tools: ToolDef[] = [
     hue: 'peach',
     keywords: ['regexp', 'regular expression', 'pattern', 'match', 'replace'],
     load: () => import('../features/regex/RegexTool.svelte'),
+  },
+  {
+    id: 'wellness',
+    title: 'Focus & breaks',
+    group: 'Wellness',
+    description: 'A focus timer and break reminders for long days at the screen: eyes, stretches, water and posture.',
+    icon: Leaf,
+    hue: 'violet',
+    keywords: ['pomodoro', 'timer', 'break', 'rest', 'wellness', 'health', 'eyes', 'focus'],
+    tabs: [
+      {
+        id: 'focus',
+        title: 'Focus',
+        description: 'Focus sessions and breaks on a large ring, with presets or your own lengths.',
+        icon: Timer,
+        keywords: ['pomodoro', 'deep work', 'concentrate', 'session'],
+      },
+      {
+        id: 'breaks',
+        title: 'Breaks',
+        description: 'Reminders to rest your eyes, stretch, drink water and sit up, each on its own interval.',
+        icon: Eye,
+        keywords: ['reminder', '20-20-20', 'stretch', 'water', 'posture', 'eye strain'],
+      },
+      {
+        id: 'today',
+        title: 'Today',
+        description: "Today's focus sessions, minutes and breaks, kept only until midnight.",
+        icon: CalendarCheck,
+        keywords: ['stats', 'summary', 'progress'],
+      },
+    ],
+    load: () => import('../features/wellness/WellnessTool.svelte'),
   },
 ]
 

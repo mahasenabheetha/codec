@@ -19,6 +19,7 @@
   import { lint } from '../lint/lint.svelte'
   import LintSections from './LintSections.svelte'
   import SettingRow from './SettingRow.svelte'
+  import UpdateRow from './UpdateRow.svelte'
   import SettingSection from './SettingSection.svelte'
 
   // Every setting in one place. All of it lives in the user profile
@@ -185,6 +186,7 @@
             label="Open Markdown as"
           />
         </SettingRow>
+        <UpdateRow />
       </SettingSection>
 
       {#if desktop && desk}

@@ -70,7 +70,7 @@ const hues = ['indigo', 'violet', 'pink', 'peach', 'lime', 'teal', 'cyan'].map((
 for (const theme of Object.keys(themes)) {
   const t = themes[theme]
   for (const bg of surfaces) for (const fg of ['--fg-0', '--fg-1', '--fg-2']) check(theme, fg, bg, 4.5)
-  for (const fg of ['--accent', ...status]) {
+  for (const fg of ['--accent', '--rest', ...status]) {
     check(theme, fg, '--bg-2', 4.5)
     check(theme, fg, fg + '-soft', 4.5)
   }

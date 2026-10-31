@@ -36,6 +36,14 @@ type Settings struct {
 	// "metadata.annotations.checksum/*").
 	DiffIgnore []string `json:"diffIgnore,omitempty"`
 	Desktop    Desktop  `json:"desktop,omitzero"`
+	Updates    Updates  `json:"updates,omitzero"`
+}
+
+// Updates holds the update check's choice (decision 85).
+type Updates struct {
+	// Check asks GitHub once a day whether a newer codec is out. Off by
+	// default: it is codec's only network use besides schema downloads.
+	Check bool `json:"check,omitempty"`
 }
 
 // Desktop holds the desktop app's own choices. Start at login lives in

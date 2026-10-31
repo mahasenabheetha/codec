@@ -1,4 +1,9 @@
 <script lang="ts">
+  import ArrowUpCircle from '@lucide/svelte/icons/circle-arrow-up'
+  import X from '@lucide/svelte/icons/x'
+  import { openLink } from '../platform'
+  import { updates } from '../stores/update.svelte'
+  import WellnessWidget from '../../features/wellness/WellnessWidget.svelte'
   import ShieldCheck from '@lucide/svelte/icons/shield-check'
   import ExternalLink from '@lucide/svelte/icons/external-link'
   import FolderGit from '@lucide/svelte/icons/folder-git-2'
@@ -114,6 +119,18 @@
   </div>
 
   <div class="right">
+    {#if updates.notice}
+      {@const n = updates.notice}
+      <span class="update">
+        <button type="button" class="update-link" title="Open the release page" onclick={() => openLink(n.url)}>
+          <ArrowUpCircle size={12} strokeWidth={2} /> codec {n.version} is available
+        </button>
+        <button type="button" class="update-x" aria-label="Dismiss until the next release" title="Dismiss until the next release" onclick={() => updates.dismiss()}>
+          <X size={11} strokeWidth={2.5} />
+        </button>
+      </span>
+    {/if}
+    <WellnessWidget />
     {#if workspace.disconnected && !connection.restarted}
       <button type="button" class="warn-btn" onclick={() => location.reload()} title="codec was restarted or stopped">
         <Unplug size={12} strokeWidth={2} /> Disconnected — reload
@@ -348,5 +365,32 @@
     .local {
       display: none;
     }
+  }
+  .update {
+    display: inline-flex;
+    align-items: center;
+    gap: 1px;
+    color: var(--accent);
+  }
+  .update-link,
+  .update-x {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: 20px;
+    padding: 0 var(--s-2);
+    font-size: var(--fs-xs);
+    color: inherit;
+    background: var(--accent-soft);
+    border: none;
+    border-radius: var(--r-sm) 0 0 var(--r-sm);
+  }
+  .update-x {
+    padding: 0 6px;
+    border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  }
+  .update-link:hover,
+  .update-x:hover {
+    color: var(--fg-0);
   }
 </style>

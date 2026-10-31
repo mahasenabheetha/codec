@@ -13,8 +13,21 @@ function load<T>(key: string, fallback: T): T {
   }
 }
 
-export function persisted<T>(key: string, initial: T): { value: T } {
+/** `sync`: follow changes another codec tab makes, so two tabs agree
+ *  (Wellness: a reminder switched off in one tab is off in the other). */
+export function persisted<T>(key: string, initial: T, opts: { sync?: boolean } = {}): { value: T } {
   let value = $state<T>(load(key, initial))
+
+  if (opts.sync) {
+    window.addEventListener('storage', (e) => {
+      if (e.storageArea !== localStorage || e.key !== PREFIX + key) return
+      try {
+        value = e.newValue === null ? initial : (JSON.parse(e.newValue) as T)
+      } catch {
+        // a corrupt value from elsewhere: keep ours
+      }
+    })
+  }
 
   // $effect.root lets a module-level store own an effect outside any
   // component. JSON.stringify reads every nested field, so the effect

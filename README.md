@@ -103,6 +103,17 @@ easy on the eyes over a long day, **Dusk** (blue-violet) and
 its own colour. Icons and controls come in Compact, Comfortable or
 Large.
 
+Under **Wellness**, Focus & breaks keeps long days healthier: a focus
+timer on a large ring (Classic 25/5, Deep work 50/10, Flow 90/20 or your
+own lengths), today's sessions on a timeline, and break reminders for
+your eyes (20-20-20), stretches, water and posture, shown as a
+full-window break with guided breathing or stretches, a card or a toast,
+with calm chimes and an optional system notification. It runs in any
+tool, from the status bar, the palette or the desktop tray.
+
+codec can tell you when a newer release is out: switch on *Check for
+updates* in Settings (off by default), or run `codec version --check`.
+
 ## Quick start
 
 Download the archive for your platform from

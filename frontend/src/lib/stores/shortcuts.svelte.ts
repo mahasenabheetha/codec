@@ -43,6 +43,7 @@ function parse(combo: string): Parsed {
 // macOS, where Alt changes e.key to "ç".
 function eventKey(e: KeyboardEvent): string {
   if (e.code.startsWith('Key')) return e.code.slice(3).toLowerCase()
+  if (e.key === ' ') return 'space'
   return e.key.toLowerCase()
 }
 

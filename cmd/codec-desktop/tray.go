@@ -38,6 +38,13 @@ func (d *desktop) setupTray() {
 func (d *desktop) fillTrayMenu(menu *application.Menu) {
 	menu.Clear()
 	menu.Add("Open codec").OnClick(func(*application.Context) { d.showWindow() })
+	if rel := d.server.Load().NewerRelease(); rel != nil {
+		menu.Add("Get codec " + rel.Version + "…").OnClick(func(*application.Context) {
+			if err := d.app.Browser.OpenURL(rel.URL); err != nil {
+				logf("open %s: %v", rel.URL, err)
+			}
+		})
+	}
 	if recent := d.cfg.Get().RecentFolders; len(recent) > 0 {
 		menu.AddSeparator()
 		for _, dir := range recent[:min(len(recent), trayRecent)] {
@@ -49,6 +56,16 @@ func (d *desktop) fillTrayMenu(menu *application.Menu) {
 			})
 		}
 	}
+	menu.AddSeparator()
+	// Wellness (decision 96): the page runs the timer and reminders; the
+	// tray only asks it to.
+	wellness := func(label, action string) {
+		menu.Add(label).OnClick(func(*application.Context) { d.server.Load().Wellness(action) })
+	}
+	wellness("Start or pause focus", "focus")
+	wellness("Take a break now", "break")
+	wellness("Pause reminders for an hour", "pause")
+	wellness("Resume reminders", "resume")
 	menu.AddSeparator()
 	menu.Add("Quit codec").OnClick(func(*application.Context) { d.quit() })
 	menu.Update()
