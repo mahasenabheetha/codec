@@ -8,7 +8,7 @@
   import { formatClock } from './clock.svelte'
   import { kindIcon } from './kinds'
   import LookFar from './LookFar.svelte'
-  import { reminders } from './reminders.svelte'
+  import { guideOf, reminders } from './reminders.svelte'
   import StretchGuide from './StretchGuide.svelte'
   import WaterGuide from './WaterGuide.svelte'
   import PostureGuide from './PostureGuide.svelte'
@@ -21,6 +21,7 @@
   const r = $derived(c?.reminder)
   const t = $derived(c?.timer)
   const Icon = $derived(r ? kindIcon[r.kind] : null)
+  const guide = $derived(r ? guideOf(r) : 'none')
 
   function onkeydown(e: KeyboardEvent) {
     if (c && r?.style === 'window' && e.key === 'Escape') {
@@ -39,19 +40,19 @@
       <div class="panel">
         <div class="pill">{#if Icon}<Icon size={15} strokeWidth={2} />{/if}{r.name}{#if c.test}<span class="test">· test</span>{/if}</div>
         <div class="guide">
-          {#if r.guide === 'breathe'}
+          {#if guide === 'breathe'}
             <Breathing rhythm={reminders.prefs.rhythm} />
-          {:else if r.guide === 'look'}
+          {:else if guide === 'look'}
             <LookFar />
-          {:else if r.guide === 'stretch'}
+          {:else if guide === 'stretch'}
             <StretchGuide length={t.duration} left={t.left} />
-          {:else if r.guide === 'water'}
+          {:else if guide === 'water'}
             <WaterGuide progress={t.progress} />
-          {:else if r.guide === 'posture'}
+          {:else if guide === 'posture'}
             <PostureGuide length={t.duration} left={t.left} />
           {/if}
         </div>
-        {#if r.guide !== 'stretch'}<p class="text">{r.text}</p>{/if}
+        {#if guide !== 'stretch'}<p class="text">{r.text}</p>{/if}
         <div class="progress" aria-hidden="true"><span style:width="{(1 - t.progress) * 100}%"></span></div>
         <div class="time" role="timer">{formatClock(t.left)}</div>
         <div class="actions">
@@ -69,13 +70,13 @@
         <span class="small-time">{formatClock(t.left)}</span>
         <IconButton icon={X} label="Skip" size="sm" onclick={() => reminders.finish(false)} />
       </header>
-      {#if r.guide !== 'none' && r.guide !== 'stretch'}
+      {#if guide !== 'none' && guide !== 'stretch'}
         <div class="mini">
-          {#if r.guide === 'look'}
+          {#if guide === 'look'}
             <LookFar />
-          {:else if r.guide === 'breathe'}
+          {:else if guide === 'breathe'}
             <Breathing rhythm={reminders.prefs.rhythm} />
-          {:else if r.guide === 'water'}
+          {:else if guide === 'water'}
             <WaterGuide progress={t.progress} />
           {:else}
             <PostureGuide length={t.duration} left={t.left} compact />

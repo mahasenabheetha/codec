@@ -104,7 +104,7 @@
         <span>Show as</span>
         <SegmentedControl options={styles} bind:value={r.style} label="Show as" />
       </div>
-      {#if r.style !== 'toast'}
+      {#if r.style !== 'toast' && r.kind === 'custom'}
         <div class="field">
           <span>Guide</span>
           <SegmentedControl options={guides} bind:value={r.guide} label="Guide" />

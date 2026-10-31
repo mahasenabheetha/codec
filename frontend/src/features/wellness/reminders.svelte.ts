@@ -67,8 +67,8 @@ export const builtIns: Reminder[] = [
     text: 'Time for a glass of water.',
     enabled: false,
     every: 60,
-    length: 0,
-    style: 'toast',
+    length: 20,
+    style: 'card',
     guide: 'water',
     chime: 'soft',
   },
@@ -79,12 +79,20 @@ export const builtIns: Reminder[] = [
     text: 'Feet flat, shoulders down, screen at eye level.',
     enabled: false,
     every: 30,
-    length: 0,
-    style: 'toast',
+    length: 20,
+    style: 'card',
     guide: 'posture',
     chime: 'soft',
   },
 ]
+
+/** Each built-in reminder's own picture; only your own reminders choose. */
+const ownGuide: Record<Exclude<Kind, 'custom'>, Guide> = { eye: 'look', stretch: 'stretch', water: 'water', posture: 'posture' }
+
+/** The picture a break shows: a built-in's own, or a custom one's choice. */
+export function guideOf(r: Reminder): Guide {
+  return r.kind === 'custom' ? r.guide : ownGuide[r.kind]
+}
 
 /** Seconds a reminder lasts when it changes from a nudge (a toast) to a
  *  break on screen, so it doesn't stay at 0 and silently remain a toast. */
@@ -114,6 +122,8 @@ export const rhythms: { value: Rhythm; label: string; steps: { label: string; s:
 ]
 
 interface Prefs {
+  /** Bumped when the built-ins' looks change, to reset them once. */
+  version: number
   list: Reminder[]
   /** Wait for a focus session to end before reminding. */
   holdDuringFocus: boolean
@@ -121,7 +131,10 @@ interface Prefs {
   hours: { on: boolean; from: number; to: number; weekdays: boolean }
 }
 
+const PREFS_VERSION = 2
+
 const defaults: Prefs = {
+  version: PREFS_VERSION,
   list: builtIns,
   holdDuringFocus: true,
   rhythm: 'calm',
@@ -135,14 +148,17 @@ const prefsStore = persisted<Prefs>('wellness.reminders', defaults, { sync: true
   const stored = { ...defaults, ...prefsStore.value }
   const list = [...stored.list]
   for (const b of builtIns) if (!list.some((r) => r.id === b.id)) list.push(b)
-  // Water and posture had no picture of their own before 3.6.0 was out;
-  // one stored without a guide takes its own.
-  const own: Partial<Record<Kind, Guide>> = { water: 'water', posture: 'posture' }
+  // Before version 2 the built-ins' look could be anything (water and
+  // posture were toasts with no picture); once, they take their default
+  // look again, keeping whether they're on, how often, message and sound.
+  const reset = (prefsStore.value.version ?? 1) < PREFS_VERSION // as stored, before the defaults
   prefsStore.value = {
     ...stored,
+    version: PREFS_VERSION,
     list: list.map((r) => {
-      const merged = { ...(builtIns.find((b) => b.id === r.id) ?? {}), ...r }
-      return own[merged.kind] && merged.guide === 'none' ? { ...merged, guide: own[merged.kind]! } : merged
+      const b = builtIns.find((x) => x.id === r.id)
+      const merged = { ...(b ?? {}), ...r }
+      return b && reset ? { ...merged, style: b.style, length: b.length, guide: b.guide } : merged
     }),
   }
 }

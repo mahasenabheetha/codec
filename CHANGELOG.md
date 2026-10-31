@@ -39,7 +39,7 @@ an opt-in update check, and find in tool inputs.
   The Today tab shows today's sessions, minutes focused and breaks on a
   timeline of the day, kept only until midnight.
 - Break reminders, in Focus & breaks → Breaks: an eye break (20-20-20),
-  stretches, water, posture and your own, each switched on separately
+  stretches, water, posture, each with its own picture, and your own, each switched on separately
   with its own interval, length, message and sound, shown as a
   full-window break, a card in the corner or a toast. Breaks can guide
   you: a breathing circle (calm 4-6, box 4-4-4-4 or 4-7-8), rings for
