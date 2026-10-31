@@ -434,7 +434,7 @@
             extensions={session.isYAML ? intel : []}
           />
         </div>
-        {#if previewing}<MarkdownPreview text={session.buffer} />{/if}
+        {#if previewing}<MarkdownPreview text={session.buffer} {path} {active} />{/if}
       {/snippet}
       {#if lensOpen.value}
         <SplitPane id="file-lens" initial={0.74} min={220}>

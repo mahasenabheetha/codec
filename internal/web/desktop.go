@@ -3,6 +3,7 @@ package web
 import (
 	"io/fs"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -23,6 +24,9 @@ type Desktop interface {
 	// choices shown in Settings → Desktop.
 	Settings() (DesktopSettings, error)
 	SetSettings(DesktopSettings) error
+	// OpenURL opens a web or mail link in the system browser or mail
+	// app; the window itself never navigates away from codec.
+	OpenURL(url string) error
 }
 
 // DesktopSettings are the desktop app's choices.
@@ -133,6 +137,29 @@ func (s *Server) desktopRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /api/v2/desktop/pick-folder", s.handlePickFolder)
 	mux.HandleFunc("GET /api/v2/desktop/settings", s.handleDesktopSettings)
 	mux.HandleFunc("POST /api/v2/desktop/settings", s.handleDesktopSettings)
+	mux.HandleFunc("POST /api/v2/desktop/open-url", s.handleOpenURL)
+}
+
+// handleOpenURL opens a link from the page (the Markdown preview) in the
+// system browser. http, https and mailto only: never a file or a custom
+// scheme that would start a program.
+func (s *Server) handleOpenURL(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		URL string `json:"url"`
+	}
+	if !decode(w, r, &req) {
+		return
+	}
+	u, err := url.Parse(req.URL)
+	if err != nil || !(((u.Scheme == "http" || u.Scheme == "https") && u.Host != "") || (u.Scheme == "mailto" && u.Opaque != "")) {
+		writeError(w, http.StatusBadRequest, "only http, https and mailto links open")
+		return
+	}
+	if err := s.opts.Desktop.OpenURL(u.String()); err != nil {
+		writeError(w, http.StatusInternalServerError, "open link: "+err.Error())
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // handleDesktopSettings answers the current choices; a POST with the

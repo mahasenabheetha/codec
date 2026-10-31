@@ -3,6 +3,8 @@
 // it runs in a browser console (in dev: await import the two modules and
 // call check(renderMarkdown, document)) or in Node with a DOM library.
 
+import { linkCases, linkTarget } from './links'
+
 export interface Case {
   name: string
   md: string
@@ -53,6 +55,10 @@ export function check(render: (md: string) => string, doc: Document): string[] {
       ...(c.not ?? []).filter(found).map((p) => `has ${p}`),
     ]
     if (bad.length) fails.push(`${c.name}: ${bad.join(', ')}\n  ${html}`)
+  }
+  for (const [href, from, want] of linkCases) {
+    const got = JSON.stringify(linkTarget(href, from))
+    if (got !== JSON.stringify(want)) fails.push(`link ${href} from ${from}: ${got}, want ${JSON.stringify(want)}`)
   }
   return fails
 }

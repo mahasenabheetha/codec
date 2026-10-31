@@ -1,4 +1,4 @@
-import { request } from './client'
+import { getBlob, request } from './client'
 
 export interface WorkspaceInfo {
   open: boolean
@@ -61,6 +61,9 @@ export const openSampleWorkspace = () => request<WorkspaceInfo>('POST', '/api/v2
 
 export const listDirs = (path = '') =>
   request<DirListing>('GET', '/api/v2/fs/dirs' + (path ? '?path=' + encodeURIComponent(path) : ''))
+
+/** An image inside the open folder (png, jpeg, gif, webp, svg), for the Markdown preview. */
+export const getImage = (path: string, signal?: AbortSignal) => getBlob(`/api/v2/files/image?path=${encodeURIComponent(path)}`, signal)
 
 export const getTree = () => request<FileTree>('GET', '/api/v2/files/tree')
 

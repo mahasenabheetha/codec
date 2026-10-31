@@ -16,8 +16,12 @@ All notable changes to codec are documented here. The format follows
   palette) shows them rendered, GitHub-flavoured with tables, task lists
   and strikethrough, in both themes. It renders the editor's text, so
   what-if edits show. The file is treated as untrusted: raw HTML shows as
-  text, nothing in it can run, and images don't load yet. Links to
-  headings scroll; web links open in a new window.
+  text, nothing in it can run. A link to another file opens it in a
+  codec tab (with its #heading when that file shows its preview), a
+  folder link shows it in the explorer, web links open in the browser
+  (the system browser in the desktop app). Images in the folder show;
+  remote images stay blocked until "Load images", since loading them
+  tells another server the file was opened.
 
 ## [3.2.0] - 2026-10-24
 

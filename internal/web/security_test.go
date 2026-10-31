@@ -124,6 +124,56 @@ func TestWorkspaceAPI(t *testing.T) {
 	}
 }
 
+func TestImageAPI(t *testing.T) {
+	outside := t.TempDir()
+	png := []byte("\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89")
+	os.WriteFile(filepath.Join(outside, "secret.png"), png, 0o644)
+	root := t.TempDir()
+	os.MkdirAll(filepath.Join(root, "docs"), 0o755)
+	os.WriteFile(filepath.Join(root, "docs", "a.png"), png, 0o644)
+	os.WriteFile(filepath.Join(root, "docs", "d.svg"), []byte(`<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg"/>`), 0o644)
+	os.WriteFile(filepath.Join(root, "fake.png"), []byte("token: x\n"), 0o644)
+	os.WriteFile(filepath.Join(root, "notes.yaml"), []byte("a: 1\n"), 0o644)
+	os.WriteFile(filepath.Join(root, "big.png"), append(png, make([]byte, maxImage)...), 0o644)
+
+	s := New(testOptions(true))
+	defer s.Close()
+	if err := s.OpenWorkspace(root); err != nil {
+		t.Fatal(err)
+	}
+	rel, _ := filepath.Rel(root, filepath.Join(outside, "secret.png"))
+	for _, tt := range []struct {
+		path string
+		want int
+		typ  string
+	}{
+		{"docs/a.png", 200, "image/png"},
+		{"docs/d.svg", 200, "image/svg+xml"},
+		{"notes.yaml", http.StatusUnsupportedMediaType, ""}, // not an image type
+		{"fake.png", http.StatusUnsupportedMediaType, ""},   // the bytes aren't one
+		{"big.png", http.StatusRequestEntityTooLarge, ""},
+		{"missing.png", http.StatusNotFound, ""},
+		{"../secret.png", http.StatusForbidden, ""},
+		{filepath.ToSlash(rel), http.StatusForbidden, ""},
+		{filepath.Join(outside, "secret.png"), http.StatusForbidden, ""},
+	} {
+		rec := call(s, "GET", "/api/v2/files/image?path="+url.QueryEscape(tt.path), "127.0.0.1:8765", s.Token(), "", "")
+		if rec.Code != tt.want {
+			t.Errorf("%s: %d, want %d (%s)", tt.path, rec.Code, tt.want, rec.Body)
+		}
+		if tt.typ != "" && rec.Header().Get("Content-Type") != tt.typ {
+			t.Errorf("%s: Content-Type %q, want %q", tt.path, rec.Header().Get("Content-Type"), tt.typ)
+		}
+		if rec.Code == 200 && !strings.Contains(rec.Header().Get("Content-Security-Policy"), "sandbox") {
+			t.Errorf("%s: no sandbox CSP", tt.path)
+		}
+	}
+	// Like every API route, it needs the token.
+	if rec := call(s, "GET", "/api/v2/files/image?path=docs/a.png", "127.0.0.1:8765", "", "", ""); rec.Code != http.StatusUnauthorized {
+		t.Errorf("no token: %d, want 401", rec.Code)
+	}
+}
+
 func TestYAMLAPI(t *testing.T) {
 	root := t.TempDir()
 	os.WriteFile(filepath.Join(root, "v.yaml"), []byte("base: &b\n  x: 1\nuse: *b\n"), 0o644)

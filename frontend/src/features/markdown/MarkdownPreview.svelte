@@ -1,36 +1,149 @@
+<script lang="ts" module>
+  // Files whose remote images were let in, until codec is closed; never
+  // stored (decision 19).
+  const remoteAllowed = new Set<string>()
+  // A heading to scroll to once that file's preview shows: a link like
+  // guide.md#install, followed from another file.
+  const pending = $state<{ path: string; id: string }>({ path: '', id: '' })
+</script>
+
 <script lang="ts">
-  import { renderMarkdown } from './render'
+  import { onDestroy, untrack } from 'svelte'
+  import ImageOff from '@lucide/svelte/icons/image-off'
+  import Button from '../../lib/components/Button.svelte'
+  import { getImage } from '../../lib/api/workspace'
+  import { openLink } from '../../lib/platform'
+  import { layout } from '../../lib/stores/layout.svelte'
+  import { toast } from '../../lib/stores/toast.svelte'
+  import { workspace as ws } from '../workspace/workspace.svelte'
+  import { linkTarget, type Target } from './links'
+  import { renderMarkdown, sanitizeSVG } from './render'
 
   // A Markdown file rendered (decision 84): the editor's text, so what-if
   // edits show. The app's routes live in the URL hash, so no link in here
-  // may navigate the page: #heading scrolls within the preview, web links
-  // open in a new window, links to files do nothing yet.
+  // may navigate the page: #heading scrolls within the preview, a link to
+  // a file opens it in a codec tab, web links open in the browser.
+  // Images in the folder load through the API; remote ones only after
+  // "Load images", since they tell another server the file was opened.
   interface Props {
     text: string
+    /** The file's workspace path, which relative links resolve against. */
+    path: string
+    /** Whether its tab is showing. */
+    active: boolean
   }
 
-  let { text }: Props = $props()
+  let { text, path, active }: Props = $props()
 
   let el = $state<HTMLDivElement>()
   const html = $derived(renderMarkdown(text))
+  let allowRemote = $state(remoteAllowed.has(untrack(() => path)))
+  let blocked = $state(0)
+
+  // Object URLs of the folder's images, by path; kept across re-renders
+  // so typing doesn't fetch them again.
+  const images = new Map<string, Promise<string | null>>()
+  function folderImage(p: string): Promise<string | null> {
+    let u = images.get(p)
+    if (!u) {
+      u = getImage(p)
+        .then(async (b) => (b.type === 'image/svg+xml' ? new Blob([sanitizeSVG(await b.text())], { type: b.type }) : b))
+        .then((b) => URL.createObjectURL(b))
+        .catch(() => null)
+      images.set(p, u)
+    }
+    return u
+  }
+  onDestroy(() => images.forEach((u) => u.then((url) => url && URL.revokeObjectURL(url))))
+
+  // Give each image its source once the HTML is in the page.
+  $effect(() => {
+    void html
+    const allow = allowRemote
+    if (!el) return
+    let n = 0
+    for (const img of el.querySelectorAll<HTMLImageElement>('img[data-src]')) {
+      const t = linkTarget(img.dataset.src ?? '', path)
+      if (t.kind === 'data') img.src = t.url
+      else if (t.kind === 'web' && /^https?:/i.test(t.url)) {
+        if (allow) img.src = t.url
+        else {
+          n++
+          img.title = `Not loaded: ${t.url}`
+        }
+      } else if (t.kind === 'file') {
+        folderImage(t.path).then((url) => {
+          if (url) img.src = url
+          else img.title = `Can't show ${t.path}: not an image in the open folder`
+        })
+      } else img.title = 'Not shown: only images in the open folder load'
+    }
+    blocked = n
+  })
+
+  // Take a heading another file's link asked for once this tab shows.
+  $effect(() => {
+    void html
+    if (!active || pending.path !== path) return
+    const id = pending.id
+    pending.path = ''
+    scrollTo(id) // runs after the DOM update that shows this tab
+  })
+
+  function loadRemote() {
+    remoteAllowed.add(path)
+    allowRemote = true
+  }
+
+  function scrollTo(id: string) {
+    el?.querySelector(`[id="user-content-${CSS.escape(id)}"]`)?.scrollIntoView({ block: 'start' })
+  }
+
+  function follow(t: Target, href: string) {
+    switch (t.kind) {
+      case 'anchor':
+        scrollTo(t.id)
+        break
+      case 'web':
+        openLink(t.url).catch((e) => toast(e instanceof Error ? e.message : String(e), 'err'))
+        break
+      case 'file':
+        if (ws.byPath.has(t.path)) {
+          if (t.id) Object.assign(pending, { path: t.path, id: t.id })
+          layout.openFile(t.path)
+        } else if (ws.files.some((f) => f.path.startsWith(t.path + '/'))) {
+          layout.explorerOpen = true
+          ws.reveal(t.path + '/')
+        } else toast(`${t.path} is not in the open folder`, 'warn')
+        break
+      default:
+        toast(`codec doesn't open links like ${href}`, 'warn')
+    }
+  }
 
   function onclick(e: MouseEvent) {
     const a = (e.target as Element).closest('a')
     if (!a || !el?.contains(a)) return
     e.preventDefault()
-    const href = a.getAttribute('href') ?? ''
-    if (href.startsWith('#')) {
-      const id = decodeURIComponent(href.slice(1))
-      el.querySelector(`[id="user-content-${CSS.escape(id)}"]`)?.scrollIntoView({ block: 'start' })
-    } else if (/^(https?|mailto):/i.test(href)) {
-      window.open(href, '_blank', 'noopener,noreferrer')
-    }
+    if (a.hasAttribute('href')) follow(linkTarget(a.getAttribute('href') ?? '', path), a.getAttribute('href') ?? '')
+  }
+
+  // A middle click would open the link's address in a new browser tab.
+  function onauxclick(e: MouseEvent) {
+    if ((e.target as Element).closest('a')) e.preventDefault()
   }
 </script>
 
 <!-- Clicks come from the links inside, which take keys themselves. -->
 <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
-<div class="preview" bind:this={el} {onclick}>
+<div class="preview" bind:this={el} {onclick} {onauxclick}>
+  {#if blocked && !allowRemote}
+    <div class="blocked" role="status">
+      <ImageOff size={14} strokeWidth={1.75} />
+      <span>{blocked} remote image{blocked === 1 ? '' : 's'} not loaded: showing them tells another server this file was opened.</span>
+      <Button size="sm" onclick={loadRemote}>Load images</Button>
+    </div>
+  {/if}
   <article class="md">
     {@html html /* sanitised by renderMarkdown */}
   </article>
@@ -43,6 +156,23 @@
     height: 100%;
     overflow: auto;
     background: var(--bg-2);
+  }
+  .blocked {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+    padding: var(--s-2) var(--s-4);
+    font-size: var(--fs-sm);
+    color: var(--fg-1);
+    background: var(--bg-1);
+    border-bottom: 1px solid var(--border);
+  }
+  .blocked span {
+    flex: 1;
+    min-width: 0;
   }
   .md {
     max-width: 880px;

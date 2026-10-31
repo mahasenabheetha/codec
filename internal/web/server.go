@@ -134,6 +134,7 @@ func (s *Server) routes() http.Handler {
 	mux.HandleFunc("GET /api/v2/files/tree", s.handleTree)
 	mux.HandleFunc("GET /api/v2/files/content", s.handleContent)
 	mux.HandleFunc("GET /api/v2/files/stat", s.handleStat)
+	mux.HandleFunc("GET /api/v2/files/image", s.handleImage)
 	mux.HandleFunc("GET /api/v2/events", s.handleEvents)
 	mux.HandleFunc("POST /api/v2/files/diff", s.handleDiff)
 	mux.HandleFunc("POST /api/v2/yaml/analyze", s.handleAnalyze)

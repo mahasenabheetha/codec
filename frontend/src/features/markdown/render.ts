@@ -71,6 +71,15 @@ const config = {
 }
 
 /**
+ * sanitizeSVG strips an SVG image of scripts and handlers. Inside an
+ * <img> it can't run anyway, but its blob URL could be opened on its own,
+ * in codec's origin.
+ */
+export function sanitizeSVG(svg: string, win: WindowLike = globalThis.window): string {
+  return DOMPurify(win).sanitize(svg, { USE_PROFILES: { svg: true, svgFilters: true } }) as string
+}
+
+/**
  * renderMarkdown turns Markdown into HTML that is safe to put in the page.
  * win is the window DOMPurify works in; tests pass their own.
  */
