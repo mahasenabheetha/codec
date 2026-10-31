@@ -462,3 +462,19 @@ Settled unless the user reopens them. Add new ones at the bottom:
     (`lib/components/syntax.ts`). The hostile-Markdown cases run in a
     browser console for now; the frontend has no test runner yet
     (2026-10-31).
+93. How 3.4.0 was built (90): placeholder commit SHAs, asked for on
+    2026-10-31, joined Secrets & UUID as T1 rather than waiting for the
+    generators of 3.7.0. Network and Text & data are tabbed tools like
+    Time and Encode & hash; the Network tab that builds URLs is "URL
+    builder" so it isn't taken for Encode & hash → URL. Network engines
+    sit in `internal/netutil` (on `net/netip`, counts as decimal strings
+    for IPv6) and `internal/httpkit` (its own shell word splitter and a
+    small reader for literal JavaScript, no new dependency); their fuzz
+    targets check round trips, and the curl one found seven edge cases
+    before release. Text diff adds no engine: it uses `POST /compare`
+    with two paste sides and the Compare view's TextDiff, which gained
+    next and previous change for both. Name cases and rules live in
+    `internal/names` beside "did you mean". Time zones and formats extend
+    `internal/timeutil`; the overlap strip samples whole hours of the
+    first zone. `codec auto` now runs the same utility detection as
+    smart paste, which it had never done (2026-10-31).
