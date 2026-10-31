@@ -27,6 +27,12 @@ All notable changes to codec are documented here. The format follows
   sharing; shown once, never stored. `codec secret password` and
   `codec secret passphrase`.
 
+- **Test data**, a new tab in Text & data: rows of made-up data from
+  columns you pick (names, emails, IPs, dates, numbers, choices…, with a
+  share left blank) as JSON, NDJSON, CSV, YAML or SQL INSERT, and lorem
+  ipsum; a seed repeats a run. Emails, IPs and phones use reserved
+  ranges. `codec fake rows` and `codec fake lorem`.
+
 ### Changed
 
 - The Secrets & UUID tab is now Secrets (secrets and placeholder commit

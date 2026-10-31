@@ -185,6 +185,8 @@ func (s *Server) routes() http.Handler {
 	mux.HandleFunc("DELETE /api/v2/logs/{id}", s.handleLogDelete)
 	mux.HandleFunc("POST /api/v2/encode/{kind}", s.handleEncode)
 	mux.HandleFunc("POST /api/v2/checksum", s.handleChecksum)
+	mux.HandleFunc("GET /api/v2/fake/kinds", s.handleFakeKinds)
+	mux.HandleFunc("POST /api/v2/fake/{kind}", s.handleFake)
 	mux.HandleFunc("GET /api/v2/checksum", s.handleChecksumFile)
 	mux.HandleFunc("POST /api/v2/net/{kind}", s.handleNet)
 	mux.HandleFunc("POST /api/v2/json/{kind}", s.handleJSON)

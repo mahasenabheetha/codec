@@ -32,6 +32,7 @@ import Type from '@lucide/svelte/icons/type'
 import Diff from '@lucide/svelte/icons/diff'
 import CaseSensitive from '@lucide/svelte/icons/case-sensitive'
 import Sheet from '@lucide/svelte/icons/sheet'
+import TableProperties from '@lucide/svelte/icons/table-properties'
 import Leaf from '@lucide/svelte/icons/leaf'
 import Timer from '@lucide/svelte/icons/timer'
 import Eye from '@lucide/svelte/icons/eye'
@@ -307,7 +308,7 @@ export const tools: ToolDef[] = [
     id: 'text',
     title: 'Text & data',
     group: 'Utilities',
-    description: 'Compare two texts, change the case of names, and read CSV or TSV as a table.',
+    description: 'Compare two texts, change the case of names, read CSV or TSV as a table, and make test data.',
     icon: Type,
     hue: 'violet',
     keywords: ['text'],
@@ -332,6 +333,13 @@ export const tools: ToolDef[] = [
         description: 'Delimited text as a table to sort and filter, with column types; converted to JSON, YAML, Markdown and back.',
         icon: Sheet,
         keywords: ['csv', 'tsv', 'table', 'spreadsheet', 'delimited', 'markdown table', 'json to csv'],
+      },
+      {
+        id: 'fake',
+        title: 'Test data',
+        description: 'Rows of made-up data as JSON, CSV, YAML or SQL, and lorem ipsum; a seed repeats them.',
+        icon: TableProperties,
+        keywords: ['fake', 'mock', 'test data', 'seed', 'lorem', 'ipsum', 'placeholder', 'sql insert', 'faker'],
       },
     ],
     load: () => import('../features/text/TextTool.svelte'),
