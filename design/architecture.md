@@ -67,7 +67,9 @@ internal/
                       (own small JS reader), status codes; nothing is sent
   cron/               ENGINE standard cron: parse (dialects named), plain words,
                       next runs across DST, build from a form
-  timeutil/           ENGINE timestamps: epoch units by size, dates, zones, relative
+  timeutil/           ENGINE timestamps: epoch units by size, dates, zones, relative;
+                      one instant across zones (DST, next change, hours for
+                      the overlap strip), standard formats, language patterns
   regex/              ENGINE regex tester: Go RE2 and the Python/.NET/JS style
                       (dlclark/regexp2, time limit), replace, explain tree
   compose/            ENGINE Compose lens: files merged with the Compose rules and

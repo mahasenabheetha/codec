@@ -37,4 +37,14 @@ func TestTimeAPI(t *testing.T) {
 	if code, out := post("build", `{"form":{"kind":"weekly","time":"09:00","days":[1,2,3,4,5]}}`); code != 200 || out["expr"] != "0 9 * * 1-5" {
 		t.Errorf("build: %d %v", code, out)
 	}
+	// The first zone is the one the input is read in.
+	if code, out := post("zones", `{"input":"2026-10-31T12:00:00Z","zone":"Europe/Stockholm","zones":["Asia/Kolkata"]}`); code != 200 || len(out["zones"].([]any)) != 2 || out["zones"].([]any)[1].(map[string]any)["time"] != "17:30" {
+		t.Errorf("zones: %d %v", code, out)
+	}
+	if code, _ := post("zones", `{"zones":["Mars/Olympus"]}`); code != 422 {
+		t.Errorf("unknown zone: %d", code)
+	}
+	if code, out := post("formats", `{"input":"1793455509","zone":"UTC"}`); code != 200 || len(out["formats"].([]any)) < 10 || len(out["patterns"].([]any)) < 5 {
+		t.Errorf("formats: %d %v", code, out)
+	}
 }

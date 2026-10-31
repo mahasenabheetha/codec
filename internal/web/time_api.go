@@ -17,6 +17,7 @@ type timeRequest struct {
 	Zone  string     `json:"zone"`  // "" or "UTC", "Local", or a zone name
 	Count int        `json:"count"` // cron: next runs, 10 by default
 	Form  *cron.Form `json:"form"`  // build
+	Zones []string   `json:"zones"` // zones: where to show the instant
 }
 
 type cronField struct {
@@ -24,7 +25,8 @@ type cronField struct {
 	Meaning string `json:"meaning"`
 }
 
-// POST /api/v2/time/{kind}: timestamp, cron, build. Nothing is stored.
+// POST /api/v2/time/{kind}: timestamp, cron, build, zones, formats.
+// Nothing is stored.
 func (s *Server) handleTime(w http.ResponseWriter, r *http.Request) {
 	var req timeRequest
 	if !decode(w, r, &req) {
@@ -93,6 +95,27 @@ func (s *Server) handleTime(w http.ResponseWriter, r *http.Request) {
 			resp["form"] = f
 		}
 		writeJSON(w, http.StatusOK, resp)
+	case "zones", "formats":
+		loc, err := timeutil.Zone(req.Zone)
+		if err != nil {
+			writeError(w, http.StatusUnprocessableEntity, err.Error())
+			return
+		}
+		t, err := timeutil.Instant(req.Input, loc, now)
+		if err != nil {
+			writeError(w, http.StatusUnprocessableEntity, err.Error())
+			return
+		}
+		if kind == "formats" {
+			writeJSON(w, http.StatusOK, map[string]any{"instant": t.Format(time.RFC3339Nano), "formats": timeutil.Formats(t, loc), "patterns": timeutil.Patterns(t, loc)})
+			return
+		}
+		zs, err := timeutil.Zones(t, append([]string{loc.String()}, req.Zones...))
+		if err != nil {
+			writeError(w, http.StatusUnprocessableEntity, err.Error())
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]any{"instant": t.Format(time.RFC3339Nano), "zones": zs})
 	case "build":
 		if req.Form == nil {
 			writeError(w, http.StatusBadRequest, "form is missing")

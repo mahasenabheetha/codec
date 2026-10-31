@@ -12,6 +12,8 @@ import Logs from '@lucide/svelte/icons/logs'
 import Clock from '@lucide/svelte/icons/clock'
 import CalendarClock from '@lucide/svelte/icons/calendar-clock'
 import CalendarSync from '@lucide/svelte/icons/calendar-sync'
+import CalendarCog from '@lucide/svelte/icons/calendar-cog'
+import Earth from '@lucide/svelte/icons/earth'
 import Hash from '@lucide/svelte/icons/hash'
 import Link from '@lucide/svelte/icons/link'
 import FileDigit from '@lucide/svelte/icons/file-digit'
@@ -107,7 +109,7 @@ export const tools: ToolDef[] = [
     id: 'time',
     title: 'Time',
     group: 'Utilities',
-    description: 'Epoch timestamps and cron schedules in plain words.',
+    description: 'Epoch timestamps, time zones, date formats and cron schedules in plain words.',
     icon: Clock,
     keywords: ['date', 'time'],
     tabs: [
@@ -117,6 +119,20 @@ export const tools: ToolDef[] = [
         description: 'Epoch seconds or milliseconds to local, UTC and ISO time, and back.',
         icon: CalendarClock,
         keywords: ['epoch', 'unix', 'date', 'iso 8601', 'now'],
+      },
+      {
+        id: 'zones',
+        title: 'Zones',
+        description: 'A time in several zones at once, with DST, and where working hours overlap.',
+        icon: Earth,
+        keywords: ['time zone', 'timezone', 'convert', 'utc', 'dst', 'meeting', 'working hours', 'offset'],
+      },
+      {
+        id: 'formats',
+        title: 'Formats',
+        description: 'One moment as RFC 3339, RFC 2822, ISO week, Unix ms and more; format strings for Go, Java, Python, .NET and JavaScript.',
+        icon: CalendarCog,
+        keywords: ['format', 'rfc 3339', 'rfc 2822', 'iso 8601', 'strftime', 'layout', 'datetimeformatter', 'java', 'python', '.net'],
       },
       {
         id: 'cron',

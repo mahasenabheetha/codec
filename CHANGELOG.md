@@ -34,6 +34,13 @@ All notable changes to codec are documented here. The format follows
   label rules, an environment-variable name and a Helm release name,
   offering a name that passes. On the command line: `codec case`
   (`--to`, `--check`).
+- Time tool: **Zones** shows a time in several zones at once (DST, a
+  day ahead or behind, the next clock change) with a strip of working
+  hours that marks when everyone is at work; **Formats** writes one
+  moment in RFC 3339, RFC 2822, ISO week and ordinal dates, the HTTP
+  date and Unix s/ms/µs/ns, and gives the format string for common
+  shapes in Go, Java, Python, .NET and JavaScript. On the command line:
+  `codec time --in` and `codec time --formats`.
 - Compare and Text diff: next and previous change (arrows, or Alt+↓ and
   Alt+↑ in the diff).
 

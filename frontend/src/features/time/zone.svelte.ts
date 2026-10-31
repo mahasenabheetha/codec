@@ -25,6 +25,12 @@ export const zones = {
   },
 }
 
+/** The Zones tab's list: the zone times are read in, and the others. */
+export const zoneList = persisted<{ base: string; others: string[] }>('timeZoneList', {
+  base: browserZone,
+  others: ['UTC', 'America/New_York', 'Asia/Kolkata'].filter((z) => z !== browserZone),
+})
+
 /** Every zone the browser knows, UTC and this machine's first. */
 export const zoneNames: string[] = (() => {
   let all: string[] = []
