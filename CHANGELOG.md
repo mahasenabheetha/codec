@@ -6,6 +6,14 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+## [3.6.0] - 2026-10-31
+
+Wellness, a new sidebar section: a focus timer with presets or your own
+lengths, today's sessions on a timeline, and break reminders for eyes,
+stretches, water and posture with guided breathing and stretch
+animations, calm chimes and system notifications, from any tool. Also
+an opt-in update check, and find in tool inputs.
+
 ### Added
 
 - Find in a tool's input as well as its output (the search button, or
@@ -837,7 +845,8 @@ First tagged release: codec as it stood before the 2.0 work began.
 - Release pipeline: pushing a `v*` tag publishes binaries for Linux,
   Windows and macOS (amd64/arm64) to GitHub Releases via GoReleaser.
 
-[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v3.5.0...HEAD
+[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v3.6.0...HEAD
+[3.6.0]: https://github.com/mahasenabheetha/codec/compare/v3.5.0...v3.6.0
 [3.5.0]: https://github.com/mahasenabheetha/codec/compare/v3.4.0...v3.5.0
 [3.4.0]: https://github.com/mahasenabheetha/codec/compare/v3.3.0...v3.4.0
 [3.3.0]: https://github.com/mahasenabheetha/codec/compare/v3.2.0...v3.3.0
