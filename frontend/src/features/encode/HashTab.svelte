@@ -198,7 +198,9 @@
   }
   .row {
     display: grid;
-    grid-template-columns: 1fr auto;
+    /* As wide as the digest, so Copy sits right after it. */
+    grid-template-columns: minmax(0, max-content) auto;
+    justify-content: start;
     align-items: center;
     gap: var(--s-1) var(--s-2);
     padding: var(--s-2) var(--s-2) var(--s-2) var(--s-3);

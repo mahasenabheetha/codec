@@ -282,7 +282,8 @@
     border-radius: var(--r-md);
   }
   code {
-    flex: 1;
+    /* As wide as the value, so Copy sits right after it. */
+    flex: 0 1 auto;
     min-width: 0;
     font-size: var(--fs-md);
     color: var(--fg-0);

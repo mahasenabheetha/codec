@@ -304,7 +304,8 @@
   }
   .digest {
     display: grid;
-    grid-template-columns: 9ch 1fr auto;
+    grid-template-columns: 9ch minmax(0, max-content) auto;
+    justify-content: start;
     align-items: center;
     gap: var(--s-2);
     margin-top: var(--s-1);
