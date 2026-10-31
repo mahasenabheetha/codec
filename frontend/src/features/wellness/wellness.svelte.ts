@@ -12,21 +12,39 @@ export interface SoundPrefs {
 }
 
 function withDefaults<T extends object>(key: string, defaults: T): { value: T } {
-  const store = persisted<T>(key, defaults)
+  const store = persisted<T>(key, defaults, { sync: true })
   store.value = { ...defaults, ...store.value }
   return store
 }
 
 const sound = withDefaults<SoundPrefs>('wellness.sound', { chime: 'bell', volume: 0.6, muted: false })
 
+/** What made the last sound, and in which tab, so a chime is never a
+ *  mystery: shown under Sound and in the status-bar widget. */
+export interface LastSound {
+  reason: string
+  at: number
+  tab: string
+}
+
+/** This tab, to tell its sounds from another codec tab's. */
+export const tabId = Math.random().toString(36).slice(2, 10)
+
+const last = persisted<LastSound | null>('wellness.lastSound', null, { sync: true })
+
 export const wellness = {
   get sound(): SoundPrefs {
     return sound.value
   },
+  get lastSound(): LastSound | null {
+    return last.value
+  },
 }
 
-/** Ring a chime, unless sound is muted. `chime` overrides the chosen one. */
-export function ring(chime: Chime = sound.value.chime) {
+/** Ring a chime for `reason` (recorded even when muted, so the record
+ *  explains a silent event too). `chime` overrides the chosen one. */
+export function ring(reason: string, chime: Chime = sound.value.chime) {
+  last.value = { reason, at: Date.now(), tab: tabId }
   if (!sound.value.muted) playChime(chime, sound.value.volume)
 }
 

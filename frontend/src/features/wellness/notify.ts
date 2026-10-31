@@ -4,7 +4,7 @@
 // no extra dependency; off until switched on, which asks the browser.
 import { persisted } from '../../lib/stores/persist.svelte'
 
-const pref = persisted<boolean>('wellness.notify', false)
+const pref = persisted<boolean>('wellness.notify', false, { sync: true })
 
 export const notifications = {
   get supported(): boolean {

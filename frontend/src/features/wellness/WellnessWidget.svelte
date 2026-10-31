@@ -17,6 +17,7 @@
   import { focus, phaseLabel } from './focus.svelte'
   import { kindIcon } from './kinds'
   import { reminders } from './reminders.svelte'
+  import { tabId, wellness } from './wellness.svelte'
 
   // Wellness in the status bar, on every screen: a small ring and the
   // time left of a focus session, or when the next reminder is due, with
@@ -137,6 +138,12 @@
           {/if}
         </div>
       </section>
+      {#if wellness.lastSound}
+        {@const l = wellness.lastSound}
+        <p class="last">
+          Last chime: {l.reason}, {new Date(l.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}{l.tab !== tabId ? ' (another codec tab)' : ''}
+        </p>
+      {/if}
       <button type="button" class="open" onclick={() => openTool(focus.active ? 'focus' : 'breaks')}>
         <Leaf size={13} strokeWidth={2} /> Open Focus &amp; breaks
       </button>
@@ -245,6 +252,10 @@
   .line strong {
     font-family: var(--font-mono);
     color: var(--fg-0);
+  }
+  .last {
+    font-size: var(--fs-xs);
+    color: var(--fg-2);
   }
   .open {
     display: inline-flex;

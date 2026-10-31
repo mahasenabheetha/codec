@@ -20,7 +20,7 @@ function dateOf(t: number): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
-const store = persisted<Day>('wellness.today', { date: dateOf(Date.now()), blocks: [] })
+const store = persisted<Day>('wellness.today', { date: dateOf(Date.now()), blocks: [] }, { sync: true })
 
 /** Today's record for writing, starting a new one when the date has
  *  moved on. */

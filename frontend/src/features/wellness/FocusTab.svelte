@@ -60,7 +60,22 @@
       ? `${phaseLabel[focus.phase]} · ${formatClock(focus.left)}${t.state === 'paused' ? ' · paused' : ''} · round ${focus.round} of ${lengths.rounds}`
       : `Ready · ${phaseLabel[focus.phase].toLowerCase()}, ${minutes(lengths[focus.phase])}`,
   }))
-  $effect(() => shortcut('Space', (e) => (e.preventDefault(), focus.toggle()), { when: isActive }))
+  // Space starts and pauses, but only when no control has focus: on a
+  // focused button, switch or option Space is that control's, and taking
+  // it would start the timer by mistake (a chime 25 minutes later from
+  // nowhere).
+  $effect(() =>
+    shortcut(
+      'Space',
+      (e) => {
+        const el = document.activeElement
+        if (el && el !== document.body && el.closest('button, a, input, select, textarea, [role="radio"], [role="switch"], [role="tab"], [role="option"], [contenteditable]')) return
+        e.preventDefault()
+        focus.toggle()
+      },
+      { when: isActive },
+    ),
+  )
 
   const todayLine = $derived(
     today.sessions || today.focusMinutes

@@ -51,6 +51,9 @@ an opt-in update check, and find in tool inputs.
   to end if you like, never interrupt a focus break, can keep to active
   hours, and a break taken covers shorter ones that came due. They run
   whichever tool is open; one due while the laptop slept is skipped.
+  With codec open in several tabs or windows, they keep your choices in
+  step and one of them reminds, so each reminder comes once. "Last
+  chime", under Sound and in the status-bar popover, says what rang.
 - Wellness from anywhere: a status-bar widget (a small ring and the time
   left, or when the next reminder is due, with controls in a popover),
   the time left in the window title, palette commands (start or pause

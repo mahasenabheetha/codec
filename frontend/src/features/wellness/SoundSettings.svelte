@@ -7,11 +7,17 @@
   import Toggle from '../../lib/components/Toggle.svelte'
   import Pane from '../shared/Pane.svelte'
   import { chimes, type Chime } from './sound'
-  import { preview, wellness } from './wellness.svelte'
+  import { preview, tabId, wellness } from './wellness.svelte'
 
   // The chime for the end of a focus session or a break, its volume, and
   // a mute; shared by the focus timer and the reminders.
   const s = $derived(wellness.sound)
+  const last = $derived(wellness.lastSound)
+  const when = (t: number) => {
+    const d = new Date(t)
+    const time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    return d.toDateString() === new Date().toDateString() ? time : `${d.toLocaleDateString([], { month: 'short', day: 'numeric' })} ${time}`
+  }
 </script>
 
 <Pane title="Sound" grow={false}>
@@ -39,6 +45,13 @@
       </span>
       <Toggle bind:checked={s.muted} label="Mute" />
     </div>
+    <p class="last">
+      {#if last}
+        Last chime: <strong>{last.reason}</strong> at {when(last.at)}{last.tab !== tabId ? ', in another codec tab or window' : ''}.
+      {:else}
+        No chime yet. Each one is listed here with what rang it.
+      {/if}
+    </p>
   </div>
 </Pane>
 
@@ -75,6 +88,14 @@
   input[type='range'] {
     flex: 1;
     accent-color: var(--tool-accent, var(--accent));
+  }
+  .last {
+    font-size: var(--fs-sm);
+    color: var(--fg-2);
+  }
+  .last strong {
+    font-weight: var(--fw-medium);
+    color: var(--fg-1);
   }
   .pct {
     width: 40px;

@@ -128,7 +128,7 @@ const defaults: Prefs = {
   hours: { on: false, from: 9, to: 18, weekdays: true },
 }
 
-const prefsStore = persisted<Prefs>('wellness.reminders', defaults)
+const prefsStore = persisted<Prefs>('wellness.reminders', defaults, { sync: true })
 {
   // Merge over the defaults, and keep every built-in even if an older
   // version stored fewer (a later one may add some).
@@ -147,9 +147,9 @@ const prefsStore = persisted<Prefs>('wellness.reminders', defaults)
   }
 }
 /** When each reminder is next due (ms since epoch). */
-const nextStore = persisted<Record<string, number>>('wellness.reminders.next', {})
+const nextStore = persisted<Record<string, number>>('wellness.reminders.next', {}, { sync: true })
 /** Reminders paused until then (0: not paused). */
-const pauseStore = persisted<number>('wellness.reminders.pause', 0)
+const pauseStore = persisted<number>('wellness.reminders.pause', 0, { sync: true })
 
 /** A reminder due this long ago (the laptop slept) is skipped, not shown
  *  late: the time away was a break. */
@@ -164,6 +164,10 @@ export interface Active {
 
 class Reminders {
   current = $state<Active | null>(null)
+  /** This tab runs the schedule. With several codec tabs open, one holds
+   *  a Web Lock and reminds; the others follow its settings and take
+   *  over when it closes. Without Web Locks every tab is on its own. */
+  leader = $state(typeof navigator === 'undefined' || !navigator.locks)
   #release: (() => void) | undefined
 
   get prefs(): Prefs {
@@ -189,20 +193,29 @@ class Reminders {
   })
 
   constructor() {
+    navigator.locks?.request('codec-wellness-reminders', () => {
+      this.leader = true
+      return new Promise<void>(() => {}) // held while this tab lives
+    })
     $effect.root(() => {
       // Schedule what was switched on, forget what was switched off, and
-      // keep the clock ticking while anything is on.
+      // keep the clock ticking while anything is on (the other tabs tick
+      // too, for their countdowns). Only the tab holding the lock writes
+      // the schedule: two tabs that briefly disagreed would otherwise
+      // rewrite it back and forth through the storage events.
       $effect(() => {
         const on = this.enabled
-        const next = { ...nextStore.value }
-        let changed = false
-        for (const r of on) {
-          if (!next[r.id]) (next[r.id] = Date.now() + r.every * 60_000), (changed = true)
+        if (this.leader) {
+          const next = { ...nextStore.value }
+          let changed = false
+          for (const r of on) {
+            if (!next[r.id]) (next[r.id] = Date.now() + r.every * 60_000), (changed = true)
+          }
+          for (const id of Object.keys(next)) {
+            if (!on.some((r) => r.id === id)) delete next[id], (changed = true)
+          }
+          if (changed) nextStore.value = next
         }
-        for (const id of Object.keys(next)) {
-          if (!on.some((r) => r.id === id)) delete next[id], (changed = true)
-        }
-        if (changed) nextStore.value = next
         if (on.length && !this.#release) this.#release = hold(() => this.#tick())
         if (!on.length && this.#release) this.#release(), (this.#release = undefined)
       })
@@ -225,6 +238,7 @@ class Reminders {
   }
 
   #tick() {
+    if (!this.leader) return
     const now = Date.now()
     for (const r of this.enabled) {
       const at = this.next[r.id]
@@ -246,7 +260,7 @@ class Reminders {
 
   /** Show a reminder now. A test leaves the schedule alone. */
   show(r: Reminder, test = false) {
-    if (r.chime !== 'none') ring(r.chime === 'default' ? undefined : r.chime)
+    if (r.chime !== 'none') ring(test ? `${r.name} (Try it)` : `${r.name} reminder`, r.chime === 'default' ? undefined : r.chime)
     notify(r.name, r.text, 'codec-break-' + r.id)
     if (r.style === 'toast' || r.length === 0) {
       toasts.show(`${r.name}: ${r.text}`, 'neutral', 9000, {
@@ -274,7 +288,7 @@ class Reminders {
     for (const r of this.enabled) {
       if (r.id !== c.reminder.id && (this.next[r.id] ?? Infinity) <= now && r.length <= c.reminder.length) this.#schedule(r)
     }
-    if (taken && c.reminder.chime !== 'none') ring('soft') // a gentle "done"
+    if (taken && c.reminder.chime !== 'none') ring(`${c.reminder.name} break done`, 'soft') // a gentle "done"
   }
 
   snooze(minutes = 5) {

@@ -53,7 +53,7 @@ interface Run {
 }
 
 const defaults: Prefs = { preset: 'classic', custom: { focus: 30, short: 5, long: 15, rounds: 4 }, autoStart: false }
-const prefsStore = persisted<Prefs>('wellness.focus', defaults)
+const prefsStore = persisted<Prefs>('wellness.focus', defaults, { sync: true })
 prefsStore.value = { ...defaults, ...prefsStore.value }
 const runStore = persisted<Run | null>('wellness.focus.run', null)
 
@@ -197,7 +197,7 @@ class Focus {
     }
     if (phase === 'focus') today.addFocus(this.#startedAt, Date.now(), this.timer.duration, true)
     else today.addBreak(this.#startedAt, Date.now())
-    ring()
+    ring(phase === 'focus' ? 'Focus session done' : phase === 'long' ? 'Long break over' : 'Break over')
     this.#advance()
     this.timer.reset()
     this.notice = { kind: 'ended', phase, next: this.phase }
