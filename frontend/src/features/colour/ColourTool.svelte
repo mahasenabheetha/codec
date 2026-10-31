@@ -189,7 +189,9 @@
   }
   .fmt {
     display: grid;
-    grid-template-columns: 64px 1fr auto;
+    /* The value as wide as it is, so Copy sits right after it. */
+    grid-template-columns: 64px minmax(0, max-content) auto;
+    justify-content: start;
     align-items: center;
     gap: var(--s-2);
     padding: 2px var(--s-2);
