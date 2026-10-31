@@ -6,6 +6,19 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Wellness, a new sidebar section, with **Focus & breaks**. The Focus
+  tab is a focus timer on a large ring: Classic 25/5, Deep work 50/10,
+  Flow 90/20 or your own lengths and rounds, a long break after the
+  last round, start, pause, +5 minutes, skip and reset (Space starts
+  and pauses), "What are you working on?" beside the clock, and a calm
+  chime (five to choose from, with volume and mute) when a phase ends.
+  It keeps running in any tab and after a reload; if the laptop slept
+  through the end, it offers a fresh start rather than a late alarm.
+  The Today tab shows today's sessions, minutes focused and breaks on a
+  timeline of the day, kept only until midnight.
+
 ## [3.5.0] - 2026-10-31
 
 Comfort: bigger icons and controls with an Interface size setting, and

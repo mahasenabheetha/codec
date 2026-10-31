@@ -27,6 +27,10 @@
       ],
     },
     {
+      title: 'Focus timer',
+      items: [['Space', 'Start, pause or resume']],
+    },
+    {
       title: 'In the explorer',
       items: [
         ['Ctrl+Space', 'Select a file (also Mod+click)'],

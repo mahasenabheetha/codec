@@ -93,6 +93,11 @@
   --act-open: var(--hue-indigo);
   --act-add: var(--hue-teal);
   --act-run: var(--hue-violet);
+  /* Rest: breaks in Wellness (the focus timer's break ring, a break's
+     countdown), so a break never looks like a tool or a status. */
+  --rest: #4fd1c5;
+  --rest-soft: rgb(79 209 197 / 0.14);
+
   --tint-tool: 0%;
   --tint-action: 0%;
   /* Fills, pills and edges in the tool's colour: the selected sub-tab and
@@ -214,6 +219,9 @@
   --info: #0a68cf;
   --info-soft: rgb(10 104 207 / 0.12);
 
+  --rest: #0b7268;
+  --rest-soft: rgb(11 114 104 / 0.12);
+
   --syn-key: #0550ae;
   --syn-string: #1f6f2b;
   --syn-number: #a64d00;
@@ -323,6 +331,9 @@
   --editor-selection-match: rgb(172 177 240 / 0.13);
   --editor-search-match: rgb(212 175 93 / 0.24);
   --editor-search-match-current: rgb(212 175 93 / 0.45);
+
+  --rest: #7ad0c5;
+  --rest-soft: rgb(122 208 197 / 0.15);
 
   /* The tool hues and action tones, shown in full. */
   --hue-indigo: #a8bcf5;
