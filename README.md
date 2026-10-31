@@ -97,6 +97,12 @@ passwords. codec does them locally, next to the files they belong to.
 </tr>
 </table>
 
+Four themes: Dark, Light, and two soft, colourful dark ones that are
+easy on the eyes over a long day, **Dusk** (blue-violet) and
+**Midnight** (deep navy), where each tool and each kind of action has
+its own colour. Icons and controls come in Compact, Comfortable or
+Large.
+
 ## Quick start
 
 Download the archive for your platform from

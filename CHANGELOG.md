@@ -6,6 +6,12 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+## [3.5.0] - 2026-10-31
+
+Comfort: bigger icons and controls with an Interface size setting, and
+two soft, colourful dark themes, Dusk and Midnight, where each tool and
+each kind of action has its own colour. Dark and Light look as before.
+
 ### Added
 
 - Interface size in Settings → General and the palette: Compact,
@@ -788,7 +794,8 @@ First tagged release: codec as it stood before the 2.0 work began.
 - Release pipeline: pushing a `v*` tag publishes binaries for Linux,
   Windows and macOS (amd64/arm64) to GitHub Releases via GoReleaser.
 
-[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v3.4.0...HEAD
+[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v3.5.0...HEAD
+[3.5.0]: https://github.com/mahasenabheetha/codec/compare/v3.4.0...v3.5.0
 [3.4.0]: https://github.com/mahasenabheetha/codec/compare/v3.3.0...v3.4.0
 [3.3.0]: https://github.com/mahasenabheetha/codec/compare/v3.2.0...v3.3.0
 [3.2.0]: https://github.com/mahasenabheetha/codec/compare/v3.1.1...v3.2.0
