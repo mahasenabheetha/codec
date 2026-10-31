@@ -41,6 +41,10 @@
     cidr: 'CIDR range → described',
     ip: 'IP address → converted',
     curl: 'curl command → fetch',
+    csv: 'CSV → read as a table',
+    tsv: 'TSV → read as a table',
+    jsonc: 'JSONC → written as JSON',
+    json5: 'JSON5 → written as JSON',
     unknown: 'unrecognised',
   }
   // Where the full tool for a Utilities kind lives.
@@ -52,6 +56,8 @@
     cidr: 'Open in CIDR',
     ip: 'Open in IP',
     http: 'Open in HTTP',
+    table: 'Open in CSV & TSV',
+    format: 'Open in JSON & YAML',
   }
   function openUtility() {
     const u = session.result?.utility

@@ -181,7 +181,7 @@ set       spec.template.spec.containers[0].image=</span></code></pre>
 <h2 id="tools">Encode, decode, logs<a class="anchor" href="#tools">#</a></h2>
 <div class="table-wrap"><table>
   <tr><th>Command</th><th>What it does</th></tr>
-  <tr><td><code>auto [input]</code></td><td>Detect and transform, as smart paste does; Ansible <code>-vv</code> logs are analysed; an epoch timestamp, URL-encoded text, a cron expression, a log, a CIDR range, an IP address or a curl command is summarised, naming the command that does more</td></tr>
+  <tr><td><code>auto [input]</code></td><td>Detect and transform, as smart paste does; Ansible <code>-vv</code> logs are analysed; an epoch timestamp, URL-encoded text, a cron expression, a log, a CIDR range, an IP address, a curl command, CSV or TSV, or JSONC or JSON5 is summarised, naming the command that does more</td></tr>
   <tr><td><code>b64 encode|decode [text]</code></td><td><code>--url</code> for the URL-safe alphabet; decoding tolerates missing padding</td></tr>
   <tr><td><code>json pretty|min|validate [json]</code></td><td>pretty and min also read JSONC (comments, trailing commas) and JSON5 (unquoted keys, single quotes, hex…) and write JSON; <code>--sort</code> sorts keys, <code>--indent</code> for pretty; validate is strict, exits 1 with line and column, and says when the text is valid JSONC or JSON5</td></tr>
   <tr><td><code>json yaml [file]</code> · <code>json from-yaml [file]</code></td><td>JSON to YAML and back, keeping key order; several YAML documents become an array</td></tr>

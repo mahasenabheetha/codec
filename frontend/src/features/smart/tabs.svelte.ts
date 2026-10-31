@@ -16,6 +16,10 @@ const kindName: Record<Kind, string> = {
   cidr: 'CIDR',
   ip: 'IP address',
   curl: 'curl',
+  csv: 'CSV',
+  tsv: 'TSV',
+  jsonc: 'JSONC',
+  json5: 'JSON5',
   unknown: '',
 }
 

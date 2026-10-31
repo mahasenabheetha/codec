@@ -29,6 +29,9 @@ All notable changes to codec are documented here. The format follows
   table, CSV or TSV, and a JSON array of objects back to CSV. On the
   command line: `codec csv info`, `codec csv to` and
   `codec csv from-json`.
+- Smart paste (and `codec auto`) recognises JSONC and JSON5, written as
+  JSON with a button to open JSON & YAML, and CSV or TSV, described
+  column by column with a button to open CSV & TSV.
 
 - Tabs in Smart paste, Base64 and Compare, like the Log viewer's: keep
   several pastes or comparisons open at once, each with its own input,

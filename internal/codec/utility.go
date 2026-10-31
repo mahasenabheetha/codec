@@ -11,8 +11,10 @@ import (
 	"github.com/mahasenabheetha/codec/v2/internal/cron"
 	"github.com/mahasenabheetha/codec/v2/internal/encode"
 	"github.com/mahasenabheetha/codec/v2/internal/httpkit"
+	"github.com/mahasenabheetha/codec/v2/internal/jsonkit"
 	"github.com/mahasenabheetha/codec/v2/internal/logview"
 	"github.com/mahasenabheetha/codec/v2/internal/netutil"
+	"github.com/mahasenabheetha/codec/v2/internal/table"
 	"github.com/mahasenabheetha/codec/v2/internal/timeutil"
 )
 
@@ -97,10 +99,85 @@ func DetectUtility(s string, now time.Time) (*Utility, bool) {
 	if u, ok := networkUtility(s); ok {
 		return u, true
 	}
-	if sum, ok := logSummary(s); ok {
+	if u, ok := lenientJSON(s); ok {
+		return u, true
+	}
+	sum, isLog := logSummary(s)
+	if u, ok := tableUtility(s, isLog); ok {
+		return u, true
+	}
+	if isLog {
 		return &Utility{Kind: "log", Tool: "logs", Tab: "viewer", Summary: sum}, true
 	}
 	return nil, false
+}
+
+// lenientJSON recognises an object or array that is JSONC or JSON5 but
+// not strict JSON (comments, trailing commas, unquoted keys…), for the
+// JSON & YAML tool; the summary is it written as JSON. Strict JSON is
+// left to the JSON detector.
+func lenientJSON(s string) (*Utility, bool) {
+	if s[0] != '{' && s[0] != '[' && !strings.HasPrefix(s, "//") && !strings.HasPrefix(s, "/*") {
+		return nil, false
+	}
+	v, d, err := jsonkit.Parse(s)
+	if err != nil || d == jsonkit.JSON || v.Kind != jsonkit.Object && v.Kind != jsonkit.Array {
+		return nil, false
+	}
+	return &Utility{Kind: string(d), Tool: "json", Tab: "format", Summary: jsonkit.Encode(v, "  ")}, true
+}
+
+// tableUtility recognises CSV or TSV, for Text & data: at least three
+// lines, the delimiter guessed, two or more columns, every row as wide
+// as the first, and short cells, most of them a few words (prose with a
+// comma per line isn't a table). Text whose first row isn't a header and that reads as a log
+// (a Python log's "12:00:00,123") stays a log. JSON is never a table.
+func tableUtility(s string, isLog bool) (*Utility, bool) {
+	if s[0] == '{' || s[0] == '[' || strings.Count(s, "\n") < 2 {
+		return nil, false
+	}
+	t, err := table.Parse(s, table.Options{})
+	if err != nil || len(t.Columns) < 2 || t.Ragged > 0 || len(t.Rows) < 2 || isLog && !t.Header {
+		return nil, false
+	}
+	cells, chars, wordy := 0, 0, 0
+	for _, r := range t.Rows[:min(len(t.Rows), 200)] {
+		for _, c := range r {
+			cells++
+			chars += utf8.RuneCountInString(c)
+			if len(strings.Fields(c)) > 4 {
+				wordy++
+			}
+		}
+	}
+	if chars > cells*40 || wordy*2 >= cells {
+		return nil, false
+	}
+	kind, delim := "csv", map[rune]string{',': "comma", '\t': "tab", ';': "semicolon", '|': "pipe"}[t.Delim]
+	if t.Delim == '\t' {
+		kind = "tsv"
+	}
+	var b strings.Builder
+	head := "no header row"
+	if t.Header {
+		head = "a header row"
+	}
+	fmt.Fprintf(&b, "%s · %s · %d rows · %d columns · %s\n", strings.ToUpper(kind), delim, len(t.Rows), len(t.Columns), head)
+	width := 0
+	for _, c := range t.Columns[:min(len(t.Columns), 20)] {
+		width = max(width, utf8.RuneCountInString(c.Name))
+	}
+	for _, c := range t.Columns[:min(len(t.Columns), 20)] {
+		if c.Empty > 0 {
+			fmt.Fprintf(&b, "\n%-*s  %-8s  %d empty", width, c.Name, c.Type, c.Empty)
+		} else {
+			fmt.Fprintf(&b, "\n%-*s  %s", width, c.Name, c.Type)
+		}
+	}
+	if n := len(t.Columns) - 20; n > 0 {
+		fmt.Fprintf(&b, "\n… and %d more columns", n)
+	}
+	return &Utility{Kind: kind, Tool: "text", Tab: "table", Summary: b.String()}, true
 }
 
 // curlLike tells a curl command from a sentence that starts with

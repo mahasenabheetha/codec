@@ -134,8 +134,9 @@ var autoCmd = &cobra.Command{
 	Long: `auto detects what you pasted and does the right thing, as smart paste
 does: JSON is encoded to base64, base64 is decoded (and pretty-printed
 if it contains JSON), and JWTs are expanded. An epoch timestamp,
-URL-encoded text, a cron expression, a log, a CIDR range, an IP address
-or a curl command is summarised, with the command that does more.`,
+URL-encoded text, a cron expression, a log, a CIDR range, an IP address,
+a curl command, CSV or TSV, or JSONC or JSON5 is summarised, with the
+command that does more.`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		in, err := readInput(args)
@@ -144,7 +145,7 @@ or a curl command is summarised, with the command that does more.`,
 		}
 		// Utilities first: an epoch number is valid JSON too.
 		if u, ok := codec.DetectUtility(in, time.Now()); ok {
-			more := map[string]string{"epoch": "codec time", "url": "codec url decode", "cron": "codec cron", "cidr": "codec cidr", "ip": "codec ip", "curl": "codec curl"}[u.Kind]
+			more := map[string]string{"epoch": "codec time", "url": "codec url decode", "cron": "codec cron", "cidr": "codec cidr", "ip": "codec ip", "curl": "codec curl", "csv": "codec csv", "tsv": "codec csv", "jsonc": "codec json", "json5": "codec json"}[u.Kind]
 			if more != "" {
 				more = " (" + more + " does more)"
 			}

@@ -13,6 +13,8 @@
   import SegmentedControl from '../../lib/components/SegmentedControl.svelte'
   import Select from '../../lib/components/Select.svelte'
   import Toggle from '../../lib/components/Toggle.svelte'
+  import { untrack } from 'svelte'
+  import { handoff } from '../../lib/stores/handoff.svelte'
   import { convertTable, parseTable, tableFromJSON, type Delimiter, type HeaderMode, type TableColumn, type TableFormat, type TableInfo } from '../../lib/api/table'
   import type { ToolDef } from '../../lib/tools'
   import { copyText } from '../../lib/utils/clipboard'
@@ -54,6 +56,18 @@
   const src = $derived(view === 'from-json' ? json : doc)
   const job = $derived(view === 'table' ? parsed : view === 'convert' ? converted : fromJSON)
   const info = $derived<TableInfo | null>(view === 'table' ? parsed.result : view === 'convert' ? converted.result : null)
+
+  // CSV or TSV handed over by smart paste.
+  $effect(() => {
+    const v = handoff.take('text', 'table')
+    if (v !== null)
+      untrack(() => {
+        view = 'table'
+        delimiter = ''
+        header = 'auto'
+        doc.input = v
+      })
+  })
 
   liveJob(() => active && view === 'table', parsed, () => {
     const input = doc.input
