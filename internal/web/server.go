@@ -25,6 +25,7 @@ import (
 	"github.com/mahasenabheetha/codec/v2/internal/check"
 	"github.com/mahasenabheetha/codec/v2/internal/config"
 	"github.com/mahasenabheetha/codec/v2/internal/provider"
+	"github.com/mahasenabheetha/codec/v2/internal/update"
 	"github.com/mahasenabheetha/codec/v2/internal/version"
 	"github.com/mahasenabheetha/codec/v2/internal/workspace"
 )
@@ -63,6 +64,9 @@ type Options struct {
 	SampleDir string
 	// Desktop is set by the desktop app; nil under codec serve.
 	Desktop Desktop
+	// Updates checks for new releases; nil = update.New in the settings
+	// folder. Tests point it at a fake server.
+	Updates *update.Checker
 }
 
 // Server is the codec web server and the state it holds: the per-run
@@ -92,6 +96,10 @@ func New(opts Options) *Server {
 	}
 	s := &Server{opts: opts, token: newToken(), hub: newHub(), logs: newLogStore()}
 	s.check = check.New(provider.Default, opts.Config.Get().Lint, version.Get().Version)
+	if s.opts.Updates == nil {
+		dir, _ := config.Dir()
+		s.opts.Updates = update.New(dir)
+	}
 	s.handler = s.guard(s.routes())
 	return s
 }
@@ -127,6 +135,8 @@ func (s *Server) routes() http.Handler {
 	})
 
 	// v2 (token required, see guard)
+	mux.HandleFunc("GET /api/v2/update", s.handleUpdate)
+	mux.HandleFunc("POST /api/v2/update/settings", s.handleUpdateSettings)
 	mux.HandleFunc("GET /api/v2/workspace", s.handleWorkspace)
 	mux.HandleFunc("POST /api/v2/workspace/open", s.handleOpen)
 	mux.HandleFunc("POST /api/v2/workspace/sample", s.handleOpenSample)

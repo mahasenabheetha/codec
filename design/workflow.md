@@ -13,8 +13,8 @@ contributor or AI agent; follow it step by step. Background:
 - Engine packages are pure: no files, network, clock or environment.
   Input/output belongs to adapters (`web`, `cli`, `workspace`, `config`,
   `schemacache`, `check`, `sample`).
-- No runtime calls to third parties except schema downloads; nothing
-  pasted is persisted [19].
+- No runtime calls to third parties except schema downloads and the
+  opt-in release check (85); nothing pasted is persisted [19].
 - Don't reopen settled decisions; propose a change to the user instead.
 - Branch from `main` (`fix/<topic>` or `feature/mab/<topic>`); never
   commit to `main` [72]. Commit messages end with the attribution

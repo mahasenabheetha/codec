@@ -40,7 +40,7 @@ improvements are the common work. User docs: [docs/](docs/index.html).
 - Engine packages are pure (no files, network, clock, environment);
   I/O lives in adapter packages. See design/architecture.md.
 - Nothing pasted into tools is persisted; no third-party calls except
-  schema downloads.
+  schema downloads and the opt-in release check.
 - UI uses design tokens and shared components only
   (design/design-language.md).
 - Don't re-litigate settled decisions; propose a change to the user.

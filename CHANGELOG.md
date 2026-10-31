@@ -8,6 +8,10 @@ All notable changes to codec are documented here. The format follows
 
 ### Added
 
+- `codec version --check` asks GitHub whether a newer release is out.
+  The app's own check, once a day and off until switched on, comes with
+  its Settings switch.
+
 - Wellness, a new sidebar section, with **Focus & breaks**. The Focus
   tab is a focus timer on a large ring: Classic 25/5, Deep work 50/10,
   Flow 90/20 or your own lengths and rounds, a long break after the

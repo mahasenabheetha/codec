@@ -68,7 +68,7 @@
 <h2 id="promises">What codec promises<a class="anchor" href="#promises">#</a></h2>
 <ul>
   <li><strong>It never writes to the folders it opens.</strong> Files are opened for reading only. What-if edits live in the browser tab. Generated files are text to copy or a zip your browser saves.</li>
-  <li><strong>Nothing leaves your machine.</strong> No telemetry, no analytics, no accounts. The UI loads no third-party resources. The only outbound requests are downloads of public JSON schemas, which you can turn off (offline mode).</li>
+  <li><strong>Nothing leaves your machine.</strong> No telemetry, no analytics, no accounts. The UI loads no third-party resources. The only outbound requests are downloads of public JSON schemas, which you can turn off (offline mode), and, only if you switch it on, a once-a-day look at codec's releases on GitHub (off by default; <code>codec version --check</code> asks once when you run it). The release check sends nothing about you or your files: it is a plain request for the public releases list.</li>
   <li><strong>Nothing you paste is stored.</strong> The tools keep input, passwords and keys in memory only; only display choices (a remembered tab or time zone) are saved. A log in the Log viewer is held in the server's memory while you read it, never written to disk, and let go after an idle hour.</li>
   <li><strong>No config files in your repositories.</strong> Settings live in your user profile.</li>
 </ul>
