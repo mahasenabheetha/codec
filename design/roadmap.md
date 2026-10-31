@@ -283,18 +283,28 @@ CSV tools join it in 3.6.0).
 | T8 | Smart paste | Recognises a CIDR, an IP and a `curl` command and offers the tool; no bare-number guesses; `codec.DetectUtility` and `codec auto` follow | |
 | — | Release | Full checks; a fuzz run of the new parsers; docs (`tools.html`); CHANGELOG cut as 3.4.0 | |
 
-### v3.5.0 — Update check
+### v3.5.0 — Update check and focus timer
 Agreed 2026-10-06 (decision 85). Wails has no updater and codec never
 looks for new versions, so an installed copy stays old until the user
 notices a release. codec can ask GitHub for the latest release and say
 when a newer one exists; updating stays the installer run over the top
 (it replaces the install in place and keeps settings).
 
+The release also holds a small focus timer (decision 91, 2026-10-31):
+a Pomodoro clock and an eye-break reminder, so long days at the screen
+get rests. Both add a Settings section, and both are small.
+
 | # | Task | Main parts | Status |
 |---|---|---|---|
 | T1 | Check: engine + API + CLI | `internal/update`: latest release from the GitHub API (pre-releases only when running one), semver compare with `internal/version`, 5 s timeout, at most once a day (result cached in the config dir), dev builds never check; `updates.check` setting, off by default; `GET /api/v2/update`; `codec version --check`; tests against a fake server | |
 | T2 | Notice in the UI | Settings → General: "Check for updates" switch and "Check now"; "codec X.Y.Z is available" in the footer with a link to the release (the system browser in the desktop app), dismissable per version; tray menu entry in the desktop app; docs (settings, security: the second network use, troubleshooting) | |
+| T3 | Focus timer and break reminders | Frontend only, no new dependency, off until switched on in Settings → Focus & breaks. `features/focus/focus.svelte.ts`: one store, phase (focus, break, off) and an `endsAt` timestamp, the time left worked out from the clock so a throttled window or a sleeping laptop can't make it drift, a long-expired timer offering a new session instead of a stale alert. **Pomodoro** (focus 25, break 5, a long break of 15 every fourth round; lengths are settings; auto-start or wait) and an **eye break** (every 20 minutes, a 20-second look-away; the lengths are settings); any break resets the eye timer, so the two never fire together. A status-bar widget (icon and countdown, a popover with start, pause, skip, reset and snooze 5 minutes), palette commands (Start focus, Take a break now, Snooze). A break card in the corner with a CSS breathing circle (in 4 s, out 4 s) and the countdown, still under "reduce motion"; a soft two-note chime made with Web Audio (no files; volume and mute; the Start click unlocks audio); the countdown in the window title while it runs. Same code in the browser UI and the desktop app. Only the chosen lengths are remembered (`persisted`), never the running timer or any history; docs (`settings.html`, `shortcuts.html`, a short page on the timer); to check by hand in both apps, including a minimised desktop window and a background browser tab (late by up to a minute) | |
 | — | Release | Full checks; CHANGELOG cut as 3.5.0 | |
+
+Later for the timer: a system notification and a tray entry in the
+desktop app (needs a look at what Wails offers), the Windows idle time
+for a nudge across all apps; for now a system-wide tool such as
+Stretchly or Workrave covers other applications.
 
 Later, after SignPath signing: "Update now" (download the installer,
 verify it against the release checksums, run it silently, restart);

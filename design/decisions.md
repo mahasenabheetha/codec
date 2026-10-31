@@ -439,3 +439,13 @@ Settled unless the user reopens them. Add new ones at the bottom:
     and the checksum tool streams a dropped file through the server
     without keeping it. The QR library is the only new dependency and is
     agreed before it is added (2026-10-25).
+91. A focus timer in 3.5.0, beside the update check: a Pomodoro clock
+    and an eye-break reminder (20 minutes of work, a 20-second look
+    away), with a chime and a breathing animation, in the browser UI and
+    the desktop app alike. Frontend only: the time left comes from the
+    clock, not counted ticks; no new dependency (Web Audio makes the
+    sound), no tray, no system notification, no long-session nudge, no
+    history or statistics. Off by default; only the chosen lengths are
+    stored (19), never the running timer. It knows only about codec; for
+    other applications a system-wide break tool is the answer
+    (2026-10-31).
