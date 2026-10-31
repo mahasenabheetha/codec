@@ -57,9 +57,26 @@ colours only; space, type, layout and motion are shared:
 | Syntax | key `#0550ae` · string `#1f6f2b` · number `#a64d00` · bool/null `#7c3fd1` · comment `#626b7a` · anchor `#0b7268` · tag `#8a5d00` · template `#875400` · run time `#b0246f` |
 | Logos | official colours where they reach 3:1 on `--bg-1`; Helm `#3346c9` and Argo `#d9592b` adjusted |
 
-Both themes meet the same rules: text ≥ 4.5:1 on `--bg-0`…`--bg-3` and
+Dusk (`:root[data-theme='dusk']`, decision 94) is the soft, colourful
+dark theme, made in OKLCH so its colours share one lightness:
+
+| Group | Dusk values |
+|---|---|
+| Surfaces | `--bg-0 #1c1d2a` · `--bg-1 #202130` · `--bg-2 #252636` · `--bg-3 #2d2f41` · `--bg-4 #36384e` (blue-violet, hue 280) |
+| Borders | `--border #323446` · `--border-strong #43465d` |
+| Text | `--fg-0 #d5d6e4` (10.3:1 on bg-2, Dark is 16:1) · `--fg-1 #adb0c3` · `--fg-2 #9da0b6` |
+| Accent | `--accent #acb1f0` periwinkle · `--accent-fg` is `--bg-0` |
+| Status | `--ok #7cc98d` · `--warn #d4af5d` · `--err #f59693` · `--info #72bcf9` (L 0.77, more chroma than the hues) |
+| Hues | indigo `#a8bcf5` · violet `#c6b2ed` · pink `#e1a9d4` · peach `#ebae8d` · lime `#b1c88b` · teal `#7ad0c5` · cyan `#7ccbe4` (L 0.80, C 0.085); `--tint-tool` and `--tint-action` 100% |
+| Syntax | key `#a5bdf2` · string `#aed09c` · number `#e7b18c` · bool `#caade1` · comment `#9497ab` · anchor `#89cdc3` · tag `#dcc188` |
+
+Dusk's text stays between 7:1 and 12:1 on its surfaces: readable, never
+glaring. `npm --prefix frontend run contrast` (`frontend/scripts/contrast.mjs`)
+checks every rule here for all three themes.
+
+All themes meet the same rules: text ≥ 4.5:1 on `--bg-0`…`--bg-3` and
 on its own `-soft` background, logos ≥ 3:1. A new colour token gets a
-value in both blocks.
+value in each theme block (Dusk may inherit Dark's).
 
 **Colour roles** (decision 94). Colour has three jobs, kept apart:
 

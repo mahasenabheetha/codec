@@ -118,7 +118,7 @@ p {
 .hued {
   --tool-accent: color-mix(in oklab, var(--tool) var(--tint-tool), var(--accent));
   --tool-accent-hover: color-mix(in oklab, var(--tool) var(--tint-tool), var(--accent-hover));
-  --tool-accent-soft: color-mix(in oklab, var(--tool) var(--tint-tool), var(--accent-soft));
+  --tool-accent-soft: color-mix(in oklab, rgb(from var(--tool) r g b / 0.16) var(--tint-tool), var(--accent-soft));
   --tool-icon: color-mix(in oklab, var(--tool) var(--tint-tool), currentColor);
 }
 

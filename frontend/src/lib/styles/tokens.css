@@ -250,3 +250,87 @@
   --shadow-pop: 0 8px 28px rgb(20 28 45 / 0.14), 0 0 0 1px var(--border-strong);
   --overlay: rgb(20 28 45 / 0.35);
 }
+
+:root[data-theme='dusk'] {
+  color-scheme: dark;
+
+  /* Dusk (decision 94): soft and colourful. A muted blue-violet ground,
+     off-white text at about 10:1 rather than 16:1, pastel colours of one
+     lightness. Made in OKLCH; checked by scripts/contrast.mjs. */
+  --bg-0: #1c1d2a;
+  --bg-1: #202130;
+  --bg-2: #252636;
+  --bg-3: #2d2f41;
+  --bg-4: #36384e;
+
+  --border: #323446;
+  --border-strong: #43465d;
+
+  --fg-0: #d5d6e4;
+  --fg-1: #adb0c3;
+  --fg-2: #9da0b6;
+
+  --accent: #acb1f0;
+  --accent-hover: #bcc2fb;
+  --accent-soft: rgb(172 177 240 / 0.16);
+  --accent-fg: #1c1d2a;
+
+  --ok: #7cc98d;
+  --ok-soft: rgb(124 201 141 / 0.14);
+  --warn: #d4af5d;
+  --warn-soft: rgb(212 175 93 / 0.14);
+  --err: #f59693;
+  --err-soft: rgb(245 150 147 / 0.14);
+  --err-border: rgb(245 150 147 / 0.4);
+  --info: #72bcf9;
+  --info-soft: rgb(114 188 249 / 0.14);
+
+  --syn-key: #a5bdf2;
+  --syn-string: #aed09c;
+  --syn-number: #e7b18c;
+  --syn-bool: #caade1;
+  --syn-comment: #9497ab;
+  --syn-anchor: #89cdc3;
+  --syn-tag: #dcc188;
+  --syn-expr-tpl: #e6c58f;
+  --syn-expr-tpl-bg: rgb(230 197 143 / 0.09);
+  --syn-expr-rt: #e8a7cb;
+  --syn-expr-rt-bg: rgb(232 167 203 / 0.09);
+
+  --diff-add-bg: rgb(124 201 141 / 0.13);
+  --diff-del-bg: rgb(245 150 147 / 0.13);
+  --diff-chg-bg: rgb(212 175 93 / 0.12);
+  --diff-add-strong: rgb(124 201 141 / 0.36);
+  --diff-del-strong: rgb(245 150 147 / 0.36);
+
+  --brand-kubernetes: #88abea;
+  --brand-helm: #9ca5ea;
+  --brand-argo: #e1957a;
+  --brand-github: #79b0e8;
+  --brand-gitlab: #e09675;
+  --brand-azure: #6db3e4;
+  --brand-ansible: #e3918e;
+  --brand-docker: #67b5e1;
+  --brand-terraform: #af9ee4;
+
+  --editor-active-line: rgb(255 255 255 / 0.03);
+  --editor-selection: rgb(172 177 240 / 0.18);
+  --editor-selection-focused: rgb(172 177 240 / 0.28);
+  --editor-selection-match: rgb(172 177 240 / 0.13);
+  --editor-search-match: rgb(212 175 93 / 0.24);
+  --editor-search-match-current: rgb(212 175 93 / 0.45);
+
+  /* The tool hues and action tones, shown in full. */
+  --hue-indigo: #a8bcf5;
+  --hue-violet: #c6b2ed;
+  --hue-pink: #e1a9d4;
+  --hue-peach: #ebae8d;
+  --hue-lime: #b1c88b;
+  --hue-teal: #7ad0c5;
+  --hue-cyan: #7ccbe4;
+  --tint-tool: 100%;
+  --tint-action: 100%;
+
+  --shadow-pop: 0 10px 30px rgb(8 8 20 / 0.45), 0 0 0 1px var(--border-strong);
+  --overlay: rgb(10 10 24 / 0.5);
+}

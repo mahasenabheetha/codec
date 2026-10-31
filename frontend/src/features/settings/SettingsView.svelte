@@ -10,7 +10,7 @@
   import { forget, getSettings, type FolderID, type SettingsInfo } from '../../lib/api/settings'
   import { copyText } from '../../lib/utils/clipboard'
   import { toast } from '../../lib/stores/toast.svelte'
-  import { theme, type ThemePref } from '../../lib/stores/theme.svelte'
+  import { theme, type DarkStyle, type ThemePref } from '../../lib/stores/theme.svelte'
   import { uiSize, type UiSize } from '../../lib/stores/size.svelte'
   import { desktop } from '../../lib/platform'
   import { getDesktopSettings, setDesktopSettings, type DesktopSettings } from '../../lib/api/desktop'
@@ -110,7 +110,12 @@
   const themes: { value: ThemePref; label: string }[] = [
     { value: 'system', label: 'System' },
     { value: 'dark', label: 'Dark' },
+    { value: 'dusk', label: 'Dusk' },
     { value: 'light', label: 'Light' },
+  ]
+  const darkStyles: { value: DarkStyle; label: string }[] = [
+    { value: 'dark', label: 'Dark' },
+    { value: 'dusk', label: 'Dusk' },
   ]
   const sizes: { value: UiSize; label: string }[] = [
     { value: 'compact', label: 'Compact' },
@@ -151,9 +156,14 @@
       <p class="intro">Saved in your user profile, never in a repository. codec only reads the folders you open.</p>
 
       <SettingSection id="general" title="General">
-        <SettingRow title="Theme" description="System follows your operating system's light or dark setting.">
+        <SettingRow title="Theme" description="Dusk is a softer, colourful dark theme. System follows your operating system's light or dark setting.">
           <SegmentedControl options={themes} bind:value={theme.pref} label="Theme" />
         </SettingRow>
+        {#if theme.pref === 'system'}
+          <SettingRow title="When the system is dark" description="The dark theme System uses.">
+            <SegmentedControl options={darkStyles} bind:value={theme.darkStyle} label="When the system is dark" />
+          </SettingRow>
+        {/if}
         <SettingRow title="Interface size" description="How big icons, buttons and other controls are. Compact is the size before 3.5.0.">
           <SegmentedControl options={sizes} bind:value={uiSize.value} label="Interface size" />
         </SettingRow>

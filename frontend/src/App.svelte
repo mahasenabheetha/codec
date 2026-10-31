@@ -21,6 +21,7 @@
   import FilePlus from '@lucide/svelte/icons/file-plus'
   import CopyPlus from '@lucide/svelte/icons/copy-plus'
   import Scaling from '@lucide/svelte/icons/scaling'
+  import Palette from '@lucide/svelte/icons/palette'
   import Settings2 from '@lucide/svelte/icons/settings-2'
   import Ship from '@lucide/svelte/icons/ship'
   import FlaskConical from '@lucide/svelte/icons/flask-conical'
@@ -244,7 +245,7 @@
       title: 'Toggle light and dark theme',
       group: 'View',
       icon: SunMoon,
-      run: () => (theme.pref = theme.resolved === 'dark' ? 'light' : 'dark'),
+      run: () => (theme.pref = theme.dark ? 'light' : theme.darkStyle),
     },
     {
       id: 'view.themeSystem',
@@ -252,6 +253,13 @@
       group: 'View',
       icon: Monitor,
       run: () => (theme.pref = 'system'),
+    },
+    {
+      id: 'view.themeDusk',
+      title: 'Use the Dusk theme',
+      group: 'View',
+      icon: Palette,
+      run: () => ((theme.pref = 'dusk'), (theme.darkStyle = 'dusk')),
     },
     ...(['compact', 'comfortable', 'large'] as const).map((s) => ({
       id: 'view.size.' + s,

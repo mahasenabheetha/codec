@@ -13,6 +13,14 @@ All notable changes to codec are documented here. The format follows
   icons (16 and 18 px instead of 14 and 16) and taller buttons and rail
   entries; Compact keeps the old sizes.
 
+- Dusk, a third theme beside Dark and Light (Settings → General, and
+  "Use the Dusk theme" in the palette): soft and colourful, for long
+  days. A muted blue-violet ground, off-white text at about 10:1 rather
+  than Dark's 16:1, pastel colours of one lightness; each tool's icon,
+  header and main button in its own colour, and Copy, Clear, Open, Run
+  and other actions in theirs. With System, "When the system is dark"
+  picks Dark or Dusk. Dark and Light are unchanged.
+
 ### Changed
 
 - Copy in output panes and Clear in input panes show a word beside the
