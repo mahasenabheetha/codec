@@ -86,6 +86,15 @@
   --hue-lime: #b5d68a;
   --hue-teal: #7fd1c1;
   --hue-cyan: #82c8e6;
+  /* Working hours in Time → Time zones: work (9–17) teal with dark
+     labels, the edges of the day (7–9, 17–22) a softer peach, and the
+     hours everyone is at work solid lime; mixed into each theme's panel
+     colour so they stay apart on any ground. */
+  --hours-work: color-mix(in srgb, var(--hue-teal) 72%, var(--bg-1));
+  --hours-work-fg: #0b0d12;
+  --hours-edge: color-mix(in srgb, var(--hue-peach) 38%, var(--bg-1));
+  --hours-together: var(--hue-lime);
+  --hours-together-fg: #0b0d12;
   --act-copy: var(--hue-cyan);
   --act-clear: var(--hue-pink);
   --act-save: var(--hue-lime);

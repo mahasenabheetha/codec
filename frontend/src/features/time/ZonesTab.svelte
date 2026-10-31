@@ -53,6 +53,30 @@
   const together = $derived(hours.map((h) => zs.length > 1 && zs.every((z) => work(z.minutes[h]))))
   const nowHour = $derived(zs[0] ? Number(zs[0].time.slice(0, 2)) : -1)
   const hhmm = (m: number) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`
+  const short = (zone: string) => zone.split('/').pop()?.replace(/_/g, ' ') ?? zone
+
+  // Hovering an hour boxes its column, the same instant in every zone,
+  // and spells out each zone's time under the strip.
+  let strip = $state<HTMLDivElement>()
+  let hover = $state(-1)
+  let box = $state<{ left: number; width: number; top: number; height: number } | null>(null)
+  function onover(e: PointerEvent) {
+    const cell = (e.target as HTMLElement).closest<HTMLElement>('[data-h]')
+    if (!cell || !strip) return
+    const h = Number(cell.dataset.h)
+    if (h === hover) return
+    hover = h
+    const col = [...strip.querySelectorAll<HTMLElement>(`[data-h="${h}"]`)]
+    const s = strip.getBoundingClientRect()
+    const first = col[0].getBoundingClientRect()
+    const last = col[col.length - 1].getBoundingClientRect()
+    box = { left: first.left - s.left + strip.scrollLeft, width: first.width, top: first.top - s.top, height: last.bottom - first.top }
+  }
+  function onleave() {
+    hover = -1
+    box = null
+  }
+  const readout = $derived(hover < 0 ? [] : zs.map((z) => ({ zone: short(z.zone), time: hhmm(z.minutes[hover]), work: work(z.minutes[hover]) })))
 
   // The shared working hours, in the first zone's time, as ranges.
   const overlap = $derived.by(() => {
@@ -155,17 +179,19 @@
         {#snippet meta()}
           <span class="meta">{overlap.length ? `all at work ${overlap.join(', ')} ${zs[0].abbr}` : 'no hour when everyone is at work (9–17)'}</span>
         {/snippet}
-        <div class="strip" role="table" aria-label="Local time in each zone at each hour of {zs[0].zone}'s day">
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
+        <div class="strip" bind:this={strip} role="table" aria-label="Local time in each zone at each hour of {zs[0].zone}'s day" onpointerover={onover} onpointerleave={onleave}>
+          {#if box}<div class="column-box" aria-hidden="true" style:left="{box.left - 2}px" style:width="{box.width + 4}px" style:top="{box.top - 2}px" style:height="{box.height + 4}px"></div>{/if}
           <div class="srow head" role="row">
             <span class="label" role="columnheader">{zs[0].abbr}</span>
             {#each hours as h (h)}
-              <span class="cell hour" class:now={h === nowHour} class:together={together[h]} role="columnheader">{String(Math.floor(zs[0].minutes[h] / 60)).padStart(2, '0')}</span>
+              <span class="cell hour" class:now={h === nowHour} class:together={together[h]} class:hovered={h === hover} data-h={h} role="columnheader">{String(Math.floor(zs[0].minutes[h] / 60)).padStart(2, '0')}</span>
             {/each}
           </div>
           {#each zs as z (z.zone)}
             <div class="srow" role="row">
               <!-- Cells show the hour; a zone off the hour says its minutes once, here. -->
-              <span class="label" role="rowheader" title={z.zone}>{z.zone.split('/').pop()?.replace(/_/g, ' ')}{#if z.minutes[0] % 60}<span class="mins" title="Each hour shown is at :{String(z.minutes[0] % 60).padStart(2, '0')} there">h:{String(z.minutes[0] % 60).padStart(2, '0')}</span>{/if}</span>
+              <span class="label" role="rowheader" title={z.zone}>{short(z.zone)}{#if z.minutes[0] % 60}<span class="mins" title="Each hour shown is at :{String(z.minutes[0] % 60).padStart(2, '0')} there">h:{String(z.minutes[0] % 60).padStart(2, '0')}</span>{/if}</span>
               {#each z.minutes as m, h (h)}
                 <span
                   class="cell"
@@ -173,6 +199,7 @@
                   class:awake={!work(m) && awake(m)}
                   class:now={h === nowHour}
                   class:together={together[h]}
+                  data-h={h}
                   role="cell"
                   title="{z.zone}: {hhmm(m)}"
                 >{hhmm(m).slice(0, 2)}</span>
@@ -181,7 +208,11 @@
           {/each}
         </div>
         <p class="legend">
-          <span class="key work"></span> 9–17 <span class="key awake"></span> 7–9 and 17–22 <span class="key"></span> night · the outlined column is the time above
+          {#if readout.length}
+            {#each readout as r, i (r.zone)}{#if i}<span class="sep">=</span>{/if}<span class="read" class:work={r.work}><strong>{r.time}</strong> {r.zone}</span>{/each}
+          {:else}
+            <span class="key work"></span> 9–17 <span class="key awake"></span> 7–9 and 17–22 <span class="key together"></span> everyone at work <span class="key"></span> night · the outlined column is the time above; point at an hour to line the zones up
+          {/if}
         </p>
       </Pane>
     {/if}
@@ -272,6 +303,7 @@
     color: var(--fg-2);
   }
   .strip {
+    position: relative;
     padding: var(--s-3);
     overflow-x: auto;
     font-family: var(--font-mono);
@@ -307,23 +339,37 @@
     color: var(--fg-2);
   }
   .cell.awake {
-    color: var(--fg-1);
-    background: var(--bg-3);
+    color: var(--fg-0);
+    background: var(--hours-edge);
   }
   .cell.work {
-    color: var(--fg-0);
-    background: color-mix(in srgb, var(--accent) 30%, transparent);
+    color: var(--hours-work-fg);
+    background: var(--hours-work);
   }
   .cell.work.together {
-    color: var(--accent-fg);
-    background: var(--accent);
+    color: var(--hours-together-fg);
+    font-weight: var(--fw-semibold);
+    background: var(--hours-together);
+  }
+  .cell.hour.hovered {
+    color: var(--fg-0);
+    font-weight: var(--fw-semibold);
+  }
+  /* One box around the hovered column, over every zone's row. */
+  .column-box {
+    position: absolute;
+    z-index: 1;
+    border: 2px solid var(--fg-0);
+    border-radius: var(--r-sm);
+    pointer-events: none;
   }
   .cell.hour {
     background: none;
   }
   .cell.hour.together {
-    color: var(--accent);
+    color: var(--fg-0);
     font-weight: var(--fw-semibold);
+    box-shadow: inset 0 -3px 0 var(--hours-together);
   }
   .cell.now {
     outline: 1px solid var(--fg-1);
@@ -347,9 +393,28 @@
     border-radius: 2px;
   }
   .key.work {
-    background: color-mix(in srgb, var(--accent) 30%, transparent);
+    background: var(--hours-work);
   }
   .key.awake {
-    background: var(--bg-3);
+    background: var(--hours-edge);
+  }
+  .key.together {
+    background: var(--hours-together);
+  }
+  .read {
+    font-family: var(--font-mono);
+    color: var(--fg-1);
+  }
+  .read strong {
+    color: var(--fg-0);
+  }
+  .read.work strong {
+    padding: 0 3px;
+    color: var(--hours-work-fg);
+    background: var(--hours-work);
+    border-radius: 2px;
+  }
+  .sep {
+    color: var(--fg-3);
   }
 </style>

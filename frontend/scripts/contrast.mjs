@@ -38,6 +38,12 @@ function color(t, name) {
     const n = parseInt(m[1], 16)
     return [n >> 16, (n >> 8) & 255, n & 255, m[2] ? parseInt(m[2], 16) / 255 : 1]
   }
+  // color-mix(in srgb, var(--a) N%, var(--b)): mixed channel by channel.
+  m = v.match(/^color-mix\(in srgb, var\((--[\w-]+)\) ([\d.]+)%, var\((--[\w-]+)\)\)$/)
+  if (m) {
+    const [a, b, k] = [color(t, m[1]), color(t, m[3]), +m[2] / 100]
+    return a.map((c, i) => c * k + b[i] * (1 - k))
+  }
   m = v.match(/^rgb\((\d+) (\d+) (\d+)(?: \/ ([\d.]+))?\)$/)
   if (m) return [+m[1], +m[2], +m[3], m[4] ? +m[4] : 1]
   throw new Error(`can't read ${name}: ${v}`)
@@ -77,6 +83,10 @@ for (const theme of Object.keys(themes)) {
   check(theme, '--accent-fg', '--accent', 4.5)
   for (const syn of Object.keys(t).filter((k) => k.startsWith('--syn-') && !k.endsWith('-bg'))) check(theme, syn, '--bg-2', 4.5)
   for (const logo of Object.keys(t).filter((k) => k.startsWith('--brand-'))) check(theme, logo, '--bg-1', 3)
+  // Time zones' working hours: the hour labels on each kind of hour.
+  check(theme, '--hours-work-fg', '--hours-work', 4.5)
+  check(theme, '--fg-0', '--hours-edge', 4.5)
+  check(theme, '--hours-together-fg', '--hours-together', 4.5)
 }
 // Dusk shows the hues: as icons and text on panels, and as the fill of a
 // tool's primary button. And it stays soft: body text about 10:1, at

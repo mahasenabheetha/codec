@@ -53,6 +53,12 @@ All notable changes to codec are documented here. The format follows
 
 ### Changed
 
+- Time zones' working hours use brighter colours that stay apart in
+  every theme (teal for 9–17, peach for the edges of the day, lime when
+  everyone is at work), and pointing at an hour boxes that moment in
+  every zone and spells out each zone's time.
+- Copy buttons sit right after their value in Colour and in Encode &
+  hash (Password, Secrets, UUID, Hash, Checksum).
 - The Secrets & UUID tab is now Secrets (secrets and placeholder commit
   SHAs); UUIDs moved to the UUID tab.
 
