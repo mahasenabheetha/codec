@@ -518,3 +518,14 @@ Settled unless the user reopens them. Add new ones at the bottom:
     work tabs are documents and the sub-tabs (Format, Tree…) views of
     the current one; each document keeps its sub-tab and its own
     inputs; indent and sort stay shared preferences (2026-10-31).
+99. 3.9.0 is Log to source and CI logs (agreed 2026-11-01), ahead of
+    Kubernetes insight. A log line leads to the code that wrote it:
+    clickable file and line references, a selection searched in the open
+    folder, and a source finder built from the message's fixed parts.
+    Results open in a Source drawer with a read-only peek inside the Log
+    viewer first; a separate Open in Files button goes to the normal
+    Files view only when wanted. Only the open folder is searched, with
+    the Find in Files engine; `*.log` files are left out. The Log viewer
+    gains pipeline (Azure DevOps, GitHub Actions, GitLab, Jenkins), build
+    and infrastructure, and platform log formats. Logs are pasted or
+    opened only: nothing fetched by URL, no tokens (3, 19) (2026-11-01).
