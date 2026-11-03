@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	github.com/atotto/clipboard v0.1.4
-	github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc
+	github.com/boombuler/barcode v1.1.0
 	github.com/dlclark/regexp2 v1.12.0
 	github.com/fsnotify/fsnotify v1.10.1
 	github.com/goccy/go-yaml v1.19.2
@@ -13,13 +13,13 @@ require (
 	github.com/makiuchi-d/gozxing v0.1.1
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.3
 	github.com/spf13/cobra v1.10.2
-	github.com/wailsapp/wails/v3 v3.0.0-beta.34
-	go.yaml.in/yaml/v3 v3.0.5
+	github.com/wailsapp/wails/v3 v3.1.0-nightly.20261028
+	go.yaml.in/yaml/v3 v3.0.6
 	golang.org/x/crypto v0.58.0
 	golang.org/x/term v0.47.0
 	golang.org/x/text v0.43.0
 	helm.sh/helm/v4 v4.3.1
-	k8s.io/apimachinery v0.37.1
+	k8s.io/apimachinery v0.37.2
 	sigs.k8s.io/kustomize/api v0.21.2
 	sigs.k8s.io/kustomize/kyaml v0.21.2
 )
