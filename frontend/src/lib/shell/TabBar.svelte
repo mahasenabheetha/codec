@@ -36,7 +36,7 @@
     routeTool,
   } from '../stores/router.svelte'
   import { charts } from '../../features/helm/helm.svelte'
-  import { toolById } from '../tools'
+  import { hueVar, toolById, viewHue, type Hue } from '../tools'
 
   // Open tools and files as tabs. Middle-click closes, like an editor.
   function onauxclick(e: MouseEvent, route: string) {
@@ -61,17 +61,17 @@
     )
   })
 
-  // Fixed views: title and icon.
-  const views: Record<string, { title: string; icon: typeof X }> = {
-    [problemsRoute]: { title: 'Problems', icon: ListChecks },
+  // Fixed views: title, icon and, as on the rail, their hue.
+  const views: Record<string, { title: string; icon: typeof X; hue?: Hue }> = {
+    [problemsRoute]: { title: 'Problems', icon: ListChecks, hue: viewHue.problems },
     [settingsRoute]: { title: 'Settings', icon: Settings2 },
-    [compareRoute]: { title: 'Compare', icon: GitCompare },
-    [queryRoute]: { title: 'Query', icon: TextSearch },
-    [newRoute]: { title: 'New', icon: FilePlus },
+    [compareRoute]: { title: 'Compare', icon: GitCompare, hue: viewHue.compare },
+    [queryRoute]: { title: 'Query', icon: TextSearch, hue: viewHue.query },
+    [newRoute]: { title: 'New', icon: FilePlus, hue: viewHue.new },
   }
 
   // Views over a folder: Kubernetes resources and Kustomize builds.
-  function scopedView(route: string): { title: string; icon: typeof X } | undefined {
+  function scopedView(route: string): { title: string; icon: typeof X; hue?: Hue } | undefined {
     const k8s = routeK8s(route)
     if (k8s !== null) return { title: `K8s · ${k8s === '.' ? 'all' : base(k8s)}`, icon: Boxes }
     const kz = routeKustomize(route)
@@ -104,7 +104,8 @@
       {#if tool || file || chart || view}
         {@const selected = router.path === route}
         {@const title = tool ? tool.title : view ? view.title : file ? names.get(file)?.name : `Helm · ${charts.byPath(chart!)?.name ?? chart}`}
-        <div class="tab" class:selected title={file ?? (chart ? `Helm view of ${chart}` : undefined)}>
+        {@const hue = tool ? tool.hue : view?.hue}
+        <div class="tab" class:selected class:hued={!!hue} style:--tool={hue && hueVar(hue)} title={file ?? (chart ? `Helm view of ${chart}` : undefined)}>
           <button
             type="button"
             role="tab"
@@ -178,6 +179,20 @@
     top: 0;
     height: 2px;
     background: var(--accent);
+  }
+  /* A tool's or view's tab in its hue, as on the rail (decision 94):
+     the icon tinted, and the selected tab's bar and glow in the hue. */
+  .tab.hued .tab-main > :global(svg) {
+    color: var(--tool-icon);
+  }
+  .tab.hued.selected .tab-main > :global(svg) {
+    color: var(--tool-accent);
+  }
+  .tab.hued.selected {
+    background: color-mix(in oklab, var(--tool-accent-soft) var(--tint-fill), var(--bg-1));
+  }
+  .tab.hued.selected::before {
+    background: var(--tool-accent);
   }
   .tab-main {
     display: flex;
