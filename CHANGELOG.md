@@ -6,6 +6,31 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+## [3.8.1] - 2026-11-03
+
+Icons like VS Code's: every kind of file and folder in the explorer
+gets its own, and the top tabs take their tool's colour.
+
+### Added
+
+- **File and folder icons** from the
+  [Material Icon Theme](https://github.com/material-extensions/vscode-material-icon-theme)
+  (MIT), as in VS Code: files by name (`Dockerfile`, `go.mod`,
+  `package.json`, `.gitignore`…) or extension, folders by name
+  (`.github`, `src`, `docs`, `k8s`…) with an open icon when expanded, in
+  the explorer, tabs, Quick Open, Find in Files and everywhere else a
+  file is listed. Detected YAML types keep their own icons. Bundled,
+  never fetched; only the icons in view are loaded.
+- **Settings → File icons**: Material (the default) or Simple, the
+  quieter icons from before.
+
+### Changed
+
+- The top tabs show their tool's colour, as the sidebar does: the icon
+  tinted and the selected tab's bar in the tool's hue (in Dusk and
+  Midnight; Dark and Light stay neutral, as on the sidebar).
+- File icons grow with the Interface size, as the other icons do.
+
 ## [3.8.0] - 2026-11-01
 
 Things that make something: file checksums checked against what a

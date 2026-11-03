@@ -12,6 +12,7 @@
   import { toast } from '../../lib/stores/toast.svelte'
   import { theme, type DarkStyle, type ThemePref } from '../../lib/stores/theme.svelte'
   import { uiSize, type UiSize } from '../../lib/stores/size.svelte'
+  import { iconStyle, type IconStyle } from '../workspace/icons.svelte'
   import { desktop } from '../../lib/platform'
   import { getDesktopSettings, setDesktopSettings, type DesktopSettings } from '../../lib/api/desktop'
   import { comparison } from '../compare/compare.svelte'
@@ -125,6 +126,10 @@
     { value: 'comfortable', label: 'Comfortable' },
     { value: 'large', label: 'Large' },
   ]
+  const iconStyles: { value: IconStyle; label: string }[] = [
+    { value: 'material', label: 'Material' },
+    { value: 'simple', label: 'Simple' },
+  ]
   const editors = (Object.keys(editorNames) as ExternalEditor[]).map((e) => ({ value: e, label: editorNames[e] }))
 
   const folderText: Record<FolderID, { title: string; description: string }> = {
@@ -169,6 +174,9 @@
         {/if}
         <SettingRow title="Interface size" description="How big icons, buttons and other controls are. Compact is the size before 3.5.0.">
           <SegmentedControl options={sizes} bind:value={uiSize.value} label="Interface size" />
+        </SettingRow>
+        <SettingRow title="File icons" description="Material: an icon for each kind of file and folder, as VS Code's Material Icon Theme. Simple: the quieter icons before 3.8.1.">
+          <SegmentedControl options={iconStyles} bind:value={iconStyle.value} label="File icons" />
         </SettingRow>
         <SettingRow title="Open files in" description={'The editor "Open in" buttons and problem links launch.'}>
           <SegmentedControl options={editors} bind:value={openIn.value} label="Open files in" />

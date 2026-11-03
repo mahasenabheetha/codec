@@ -25,6 +25,7 @@
   import { logTabs } from '../logs/viewer.svelte'
   import FileIcon from './FileIcon.svelte'
   import { kindOf, lookOf } from './filetypes'
+  import { folderIconUrl } from './icons.svelte'
   import { buildTree, flatten, type TreeNode } from './tree'
   import { openFolder, openSample, workspace as ws } from './workspace.svelte'
 
@@ -186,12 +187,15 @@
           selectable={(node) => !!node.file}
           dragText={(node) => (node.file ? node.path : null)}
         >
-          {#snippet row(node)}
+          {#snippet row(node, r)}
+            {@const folderSrc = node.file ? null : folderIconUrl(node.name, r.expanded)}
             {#if node.file}
               <FileIcon file={node.file} />
               <span class="label" title={node.path + ' · ' + lookOf(node.file).title}>{node.name}</span>
             {:else}
-              <span class="folder"><Folder size={14} strokeWidth={1.75} /></span>
+              <span class="folder">
+                {#if folderSrc}<img src={folderSrc} alt="" draggable="false" />{:else}<Folder size={14} strokeWidth={1.75} />{/if}
+              </span>
               <span class="label">{node.name}</span>
             {/if}
           {/snippet}
@@ -325,6 +329,10 @@
   .folder {
     display: grid;
     color: var(--fg-2);
+  }
+  .folder img {
+    width: round(calc(14px * var(--icon-scale)), 1px);
+    height: round(calc(14px * var(--icon-scale)), 1px);
   }
   .skeleton {
     display: flex;

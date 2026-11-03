@@ -536,3 +536,10 @@ Settled unless the user reopens them. Add new ones at the bottom:
     text, selection and backgrounds stay on tokens. codec's detected
     YAML types keep their logos over an extension icon. A Simple
     setting keeps the previous quiet icons (2026-11-03).
+101. 3.8.1 is a patch release with a feature, against 73 (asked for
+    2026-11-03): the Material file and folder icons (100) and top tabs
+    in their tool's colour, released ahead of 3.9.0's log work. They
+    change looks only, no data or behaviour. The icons are served from
+    `public/file-icons` (never inlined into the bundle) and the name
+    mapping is a chunk loaded on first use; folders use the set's
+    `-open` icon when expanded (2026-11-03).

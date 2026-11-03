@@ -268,3 +268,8 @@ Passphrases use the [EFF large word list](https://www.eff.org/deeplinks/2016/07/
 by the Electronic Frontier Foundation, licensed under
 [CC BY 3.0 US](https://creativecommons.org/licenses/by/3.0/us/); it is
 embedded unchanged (`internal/encode/words`).
+
+File and folder icons are from the
+[Material Icon Theme](https://github.com/material-extensions/vscode-material-icon-theme)
+by Material Extensions, licensed under the MIT licence; the SVGs are
+bundled unchanged (`frontend/public/file-icons`, with its `LICENSE.txt`).
