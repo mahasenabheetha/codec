@@ -529,3 +529,10 @@ Settled unless the user reopens them. Add new ones at the bottom:
     gains pipeline (Azure DevOps, GitHub Actions, GitLab, Jenkins), build
     and infrastructure, and platform log formats. Logs are pasted or
     opened only: nothing fetched by URL, no tokens (3, 19) (2026-11-01).
+100. File and folder icons like VS Code's Material Icon Theme (asked
+    for 2026-11-03, 3.9.0 T7). The set's SVGs (MIT) are bundled, never
+    fetched at runtime, and only the icons a tree shows are loaded. Its
+    colours are its own, the one exception to "components use tokens";
+    text, selection and backgrounds stay on tokens. codec's detected
+    YAML types keep their logos over an extension icon. A Simple
+    setting keeps the previous quiet icons (2026-11-03).
