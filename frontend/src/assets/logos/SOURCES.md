@@ -28,3 +28,13 @@ are used only to identify file types. Colours are applied in
 
 Not available from Simple Icons (Microsoft marks were removed): Azure
 Pipelines uses a generic Lucide icon in the Azure colour instead.
+
+## Material Icon Theme
+
+The file and folder icons (decision 100) are the
+[Material Icon Theme](https://github.com/material-extensions/vscode-material-icon-theme)
+v5.40.0 (npm `material-icon-theme`), MIT licence, copyright Material
+Extensions; the licence is kept beside them as
+`frontend/public/file-icons/LICENSE.txt`. `scripts/file-icons.mjs` copies
+the SVGs its mapping uses, unchanged, and writes the mapping to
+`src/assets/file-icons.json`; run it on a newer package to update.

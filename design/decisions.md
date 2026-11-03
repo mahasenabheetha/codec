@@ -518,3 +518,28 @@ Settled unless the user reopens them. Add new ones at the bottom:
     work tabs are documents and the sub-tabs (Format, Tree…) views of
     the current one; each document keeps its sub-tab and its own
     inputs; indent and sort stay shared preferences (2026-10-31).
+99. 3.9.0 is Log to source and CI logs (agreed 2026-11-01), ahead of
+    Kubernetes insight. A log line leads to the code that wrote it:
+    clickable file and line references, a selection searched in the open
+    folder, and a source finder built from the message's fixed parts.
+    Results open in a Source drawer with a read-only peek inside the Log
+    viewer first; a separate Open in Files button goes to the normal
+    Files view only when wanted. Only the open folder is searched, with
+    the Find in Files engine; `*.log` files are left out. The Log viewer
+    gains pipeline (Azure DevOps, GitHub Actions, GitLab, Jenkins), build
+    and infrastructure, and platform log formats. Logs are pasted or
+    opened only: nothing fetched by URL, no tokens (3, 19) (2026-11-01).
+100. File and folder icons like VS Code's Material Icon Theme (asked
+    for 2026-11-03, 3.9.0 T7). The set's SVGs (MIT) are bundled, never
+    fetched at runtime, and only the icons a tree shows are loaded. Its
+    colours are its own, the one exception to "components use tokens";
+    text, selection and backgrounds stay on tokens. codec's detected
+    YAML types keep their logos over an extension icon. A Simple
+    setting keeps the previous quiet icons (2026-11-03).
+101. 3.8.1 is a patch release with a feature, against 73 (asked for
+    2026-11-03): the Material file and folder icons (100) and top tabs
+    in their tool's colour, released ahead of 3.9.0's log work. They
+    change looks only, no data or behaviour. The icons are served from
+    `public/file-icons` (never inlined into the bundle) and the name
+    mapping is a chunk loaded on first use; folders use the set's
+    `-open` icon when expanded (2026-11-03).

@@ -276,7 +276,7 @@
       {#each segments as seg, i (i)}
         {#if i > 0}<ChevronRight size={12} strokeWidth={1.75} />{/if}
         {#if i === segments.length - 1}
-          {#if session.disk}<FileIcon file={{ type: kind, lang: session.disk.lang }} />{/if}
+          {#if session.disk}<FileIcon file={{ type: kind, lang: session.disk.lang, path: session.disk.path }} />{/if}
           <span class="file">{seg}</span>
         {:else}
           <span class="dir">{seg}</span>

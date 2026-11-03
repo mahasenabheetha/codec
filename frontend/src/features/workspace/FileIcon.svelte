@@ -1,19 +1,25 @@
 <script lang="ts">
   import type { FileEntry } from '../../lib/api/workspace'
-  import { lookOf } from './filetypes'
+  import { kindOf, lookOf } from './filetypes'
+  import { fileIconUrl } from './icons.svelte'
 
-  // A file's type logo (Kubernetes, Helm, …) or a generic icon.
+  // A file's icon: the Material set's (decision 100), else its type logo
+  // (Kubernetes, Helm, …) or a generic icon. With a path, the file's name
+  // picks the icon; a kind alone goes by type and language.
   interface Props {
-    file: Pick<FileEntry, 'type' | 'lang'> | string
+    file: (Pick<FileEntry, 'type' | 'lang'> & { path?: string }) | string
     size?: number
   }
 
   let { file, size = 14 }: Props = $props()
   const look = $derived(lookOf(file))
+  const src = $derived(typeof file === 'string' ? fileIconUrl(undefined, file) : fileIconUrl(file.path, kindOf(file)))
 </script>
 
 <span class="file-icon" style="--size: {size}px; color: {look.color}">
-  {#if look.logo}
+  {#if src}
+    <img {src} alt="" draggable="false" />
+  {:else if look.logo}
     <!-- Bundled SVG from assets/logos, not user content. -->
     {@html look.logo}
   {:else if look.icon}
@@ -26,10 +32,12 @@
     display: inline-grid;
     place-items: center;
     flex: 0 0 auto;
-    width: var(--size);
-    height: var(--size);
+    /* Grows with the Interface size, as Lucide icons do. */
+    width: round(calc(var(--size) * var(--icon-scale, 1)), 1px);
+    height: round(calc(var(--size) * var(--icon-scale, 1)), 1px);
   }
-  .file-icon :global(svg) {
+  .file-icon :global(svg),
+  .file-icon img {
     width: 100%;
     height: 100%;
   }
