@@ -1,0 +1,7 @@
+> Task :app:compileKotlin
+e: file:///ws/app/src/main/kotlin/Cart.kt:10:5 Unresolved reference: total
+w: file:///ws/app/src/main/kotlin/Cart.kt:3:1 Parameter 'x' is never used
+> Task :app:compileKotlin FAILED
+> Task :lib:jar UP-TO-DATE
+FAILURE: Build failed with an exception.
+BUILD FAILED in 4s

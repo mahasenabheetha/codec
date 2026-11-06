@@ -314,7 +314,7 @@
         />
         {#if viewer.following && viewer.updatedAt}<span class="muted live">{`updated ${viewer.updatedAt.toLocaleTimeString()}`}</span>{/if}
       {/if}
-      {#if s.steps?.length || viewer.status}<StatusPicker onread={() => (tab = 'steps')} />{/if}
+      {#if s.workflows?.length || viewer.status}<StatusPicker onread={() => (tab = 'steps')} />{/if}
       <Popover side="bottom" align="end" bind:open={comparePicker}>
         {#snippet trigger(props)}
           <Button {...props} size="sm" variant="ghost" icon={GitCompareArrows}>Compare with…</Button>

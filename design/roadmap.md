@@ -72,38 +72,6 @@ keep the UI consistent and polished. Work efficiently: read only what a
 task needs and run only the tests for packages touched (the full suite
 runs once, at step 4).
 
-### v3.9.0 — Log to source and CI logs
-Agreed 2026-11-01 (decision 99). From a log line to the code that wrote
-it, in the open folder, and the Log viewer reads the logs of pipelines,
-builds and platform tools. Only what is pasted or opened is read: no
-pipeline logs fetched by URL, no tokens, no network. Kubernetes insight
-(resource totals, RBAC, NetworkPolicy) follows in a later release.
-
-**Results open in the Log viewer first.** A **Source drawer** under the
-log detail lists the matches by file (matched span highlighted, a badge
-Exact, Strong or Possible); a click opens a read-only **peek** of the
-file in the drawer, scrolled to the line and highlighted, with next and
-previous match. Only when wanted, **Open in Files** goes to the file in
-the normal Files view, at that line. With no folder open, the drawer
-offers to open one.
-
-| # | Task | Main parts | Status |
-|---|---|---|---|
-| T1 | Clickable locations | Find file and line references in log lines: Go panics and `file.go:12:5`, Java `at …(X.java:42)`, Python `File "…", line 12`, .NET `in …\X.cs:line 42` and `X.cs(42,7)`, Node `at fn (/app/x.js:10:5)`, tsc and eslint, Terraform `on main.tf line 12`, Helm `templates/x.yaml:23`, Ansible task paths. Matched against the open folder by path suffix (a build path such as `/build/src/internal/x.go` finds `internal/x.go`; several candidates are all listed). They become links that open the Source drawer and peek; **Open in Files** goes to the Files view at the line | |
-| T2 | Highlight and search | Select text in a log line or the detail panel: a popover **Find in workspace** runs a literal search of the open folder (the Find in Files engine) and shows the matches in the Source drawer; `*.log` files and the usual build and vendor folders are left out | |
-| T3 | Find source for a line | A button per entry: the query is built from the parsed message only, split into its fixed parts by the template slots; the longest distinctive part is searched and the others checked on the same or nearby lines. Placeholders understood: `%s %d %v`, `{}`, `{0}` and `{Name}`, f-strings and `${x}`, concatenation; for structured logs the message is searched and field names near it count. Ranked up inside a string literal and next to a logging call (`log.`, `logger.`, `slog.`, `fmt.Errorf`, `console.`, `Write-Host`, `echo`), down in tests, docs and vendored code. **Error chains**: a wrapped message (`a: b: c`) is searched layer by layer and shown as a chain of locations | |
-| T4 | Pipeline logs | Azure DevOps (timestamp prefix, `##[section]`, `##[group]`/`##[endgroup]`, `##[error]`, `##[warning]`, `##vso[task.logissue]`), GitHub Actions (`##[group]`, `::error file=,line=::`, the downloaded zip with one file per step), GitLab CI (`section_start`/`section_end`, ANSI colours), Jenkins (`[Pipeline] stage`, Timestamper prefix). Steps folded and timed in the existing step and lane views, errors and warnings with location links, a "first error" jump; Compare works across two runs | |
-| T5 | Build and infrastructure logs | Docker BuildKit (`#5 [2/7] RUN …`, `DONE 3.2s`, `CACHED`: steps and times), Terraform and OpenTofu (plan and apply output, `Error: … on x.tf line n`, `TF_LOG` JSON), Helm (`UPGRADE FAILED`, template errors), Maven and Gradle (`[ERROR]`, reactor summary, `> Task :…`), npm, yarn and pnpm (`npm ERR!` blocks), dotnet and MSBuild (`file(line,col): error CS…`), `go test -json`, `--- FAIL` and pytest (failures as entries) | |
-| T6 | Platform logs and Smart paste | ingress-nginx, Nginx and Apache access logs (status, latency, path as fields), Envoy and Istio access logs, Kubernetes events (`kubectl get events`, table or JSON) and the audit log, syslog (RFC 3164 and 5424) and `journalctl -o json`; Smart paste recognises the new formats and opens the Log viewer | |
-| — | Release | Full checks; a golden testdata file per new format and a fuzz run of the new readers and the location and fragment parsers; a review pass; docs (`logs.html`, `tools.html`, `security.html`: only the open folder is searched, nothing leaves the machine); CHANGELOG cut as 3.9.0 | |
-
-Later: the reverse direction (logging calls in the Files view show how
-often they appear in open logs, a click filters the log to them);
-pipeline logs fetched by run URL with a token; a `codec logs source`
-command with the `codec logs` item; the pattern miner (templates with
-typed slots, new, rare and vanished patterns against a baseline, a
-pattern library file, noise and cost report).
-
 ### Later
 The rest of "Next", picked up when it fits.
 
@@ -133,17 +101,21 @@ quantity converter; a "Copy as…" menu (JSON path, `yq`, `kubectl patch`).
 | Several folders open at once | e.g. an app and an infra repository; search and compare across them |
 | References across folders | e.g. an Argo Application pointing at a chart in another local folder; needs the item above |
 | Desktop app on macOS | A macOS runner (cgo, Xcode), Apple Developer ID signing and notarization, menu bar, Dock and window-close behaviour (from 3.0.0) |
-| `codec logs` | The Log viewer's engine on the command line: filters, `-o json`, stdin, an exit code for gates; saved queries (from 3.1.0) |
+| `codec logs` | The Log viewer's engine on the command line: filters, `-o json`, stdin, an exit code for gates; saved queries (from 3.1.0); `codec logs source` for log to source (from 3.9.0) |
 | Browser tests | Playwright against the sample workspace in CI: open a folder, the main views, Compare, tools, settings (skipped in 3.1.1) |
 | Idle time for Wellness | Count a break taken away from the keyboard anywhere, from the Windows idle time, not only from codec (from 3.6.0) |
 | Update now | After SignPath signing: download the installer, verify it against the release checksums, run it silently, restart; a winget package published by the release workflow (from 3.6.0) |
 | Wails notifications | Windows toasts from the Wails notifications service instead of the web Notification API; needs the `go-toast` module (from 3.6.0) |
 | Mermaid in the Markdown preview | Loaded only when a file has a diagram; source and preview side by side with scroll sync (from 3.3.0) |
+| Logs: source to log | Logging calls in the Files view show how often they appear in the open logs; a click filters the log to them (from 3.9.0) |
+| Logs: pipeline logs by run URL | Fetched with a token the user gives (Azure DevOps, GitHub, GitLab); needs a network and secrets decision (from 3.9.0) |
+| Logs: pattern miner | Templates with typed slots; new, rare and vanished patterns against a baseline; a pattern library file; a noise and cost report (from 3.9.0) |
 
 ## Done
 
 | Version | Items |
 |---|---|
+| 3.9.0 | Log to source: file and line links, Find in workspace and Find source, in a Source drawer with a read-only peek; pipeline logs (Azure DevOps, GitHub Actions and its log zip, GitLab, Jenkins) in steps; build and infrastructure logs (BuildKit, Terraform, Helm, Maven, Gradle, npm, dotnet, go test, pytest); access logs, syslog, journald, Kubernetes events and audit logs; Smart paste for all of them; code colours in some 40 languages (CodeMirror's legacy modes, loaded per language) |
 | 3.8.1 | File and folder icons from the Material Icon Theme (as in VS Code), with a Simple setting; top tabs in their tool's colour, as on the rail |
 | 3.8.0 | Generators and checks: Checksum (files of any size against an expected value or a checksums file) and UUID (v4, v7, v5, v3, ULIDs read) tabs, a Password tab (rules or EFF passphrases, strength), Test data (made-up rows as JSON, CSV, YAML or SQL, lorem ipsum, seeds), a QR code tool (make and read; boombuler/barcode and gozxing), a Colour tool (formats, WCAG contrast, OKLCH shades); Smart paste for UUIDs, ULIDs and hex colours; brighter working hours with a hover column in Time zones |
 | 3.7.0 | Work tabs in Smart paste, Base64, Compare, JSON & YAML and the Ansible log (one shared strip, the Log viewer's); JSON & YAML (JSONC and JSON5 read, format, tree, convert, diff by path, paths, schema, jq; `internal/jsonkit`, `codec json`); CSV & TSV in Text & data (`internal/table`, a windowed table, conversions, `codec csv`); Smart paste recognises CSV, TSV, JSONC and JSON5 |

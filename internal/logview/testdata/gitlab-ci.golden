@@ -1,0 +1,9 @@
+L1+1 text 2026-11-06T10:00:00Z msg="Preparing the \"docker\" executor" step="prepare_executor"
+L2+1 text 2026-11-06T10:00:01Z msg="Using Docker executor with image golang:1.25" step="prepare_executor"
+L3+1 text 2026-11-06T10:00:02Z msg="End of prepare_executor" step="prepare_executor" tool
+L4+1 text 2026-11-06T10:00:03Z msg="Executing \"step_script\" stage of the job script" step="step_script"
+L5+1 text 2026-11-06T10:00:03.5Z msg="$ go test ./..." step="step_script"
+L6+2 text error() 2026-11-06T10:00:09Z msg="--- FAIL: TestCart (0.00s)\n    cart_test.go:41: got 3, want 4" step="step_script"
+    raw="2026-11-06T10:00:09.000000Z 00O --- FAIL: TestCart (0.00s)\n2026-11-06T10:00:09.100000Z 00O     cart_test.go:41: got 3, want 4"
+L8+1 text 2026-11-06T10:00:10Z msg="End of step_script" step="step_script" tool
+L9+1 text error(ERROR) 2026-11-06T10:00:10.1Z msg="Job failed: exit code 1"

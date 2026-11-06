@@ -1,0 +1,14 @@
+L1+1 text 2026-11-06T10:00:00.1Z msg="Starting: Initialize job" step="Initialize job" tool
+L2+1 text 2026-11-06T10:00:00.2Z msg="Agent name: 'Hosted Agent'" step="Initialize job"
+L3+1 text 2026-11-06T10:00:01Z msg="Finishing: Initialize job" step="Initialize job" tool
+L4+1 text 2026-11-06T10:00:02Z msg="Starting: Build" step="Build" tool
+L5+1 text 2026-11-06T10:00:02.1Z msg="Task         : .NET Core" step="Build"
+L6+1 text 2026-11-06T10:00:02.11Z msg="Version      : 2.231.0" step="Build"
+L7+1 text 2026-11-06T10:00:02.12Z msg="##[endgroup]" step="Build" tool
+L8+1 text 2026-11-06T10:00:02.2Z msg="\"C:\\Program Files\\dotnet\\dotnet.exe\" build src/Shop.csproj" step="Build"
+L9+1 text error() 2026-11-06T10:00:05Z msg="src/Cart.cs(42,7): error CS0103: The name 'x' does not exist [src/Shop.csproj]" step="Build"
+L10+1 text error() 2026-11-06T10:00:05.1Z msg="The name 'x' does not exist" caller="src/Cart.cs:42:7" step="Build"
+L11+1 text 2026-11-06T10:00:05.2Z msg="##vso[task.setvariable variable=built]false" step="Build" tool
+L12+1 text warn() 2026-11-06T10:00:05.3Z msg="Build had 3 warnings" step="Build"
+L13+1 text error() 2026-11-06T10:00:05.4Z msg="Process completed with exit code 1." step="Build"
+L14+1 text 2026-11-06T10:00:05.5Z msg="Finishing: Build" step="Build" tool

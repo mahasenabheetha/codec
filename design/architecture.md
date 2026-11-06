@@ -54,10 +54,14 @@ internal/
   ansiblelog/         ENGINE whole Ansible logs from pipelines: clean (CI
                       prefixes, colours, learned wrappers), segment into runs and
                       other output, read results; the analysis model
-  logview/            ENGINE Log viewer: decode (gzip, UTF-16), prefixes (argo,
-                      kubectl, CRI, Compose, stern, CI), each line as ECS/JSON
-                      (own order-keeping reader), logfmt, klog or text; stack
-                      traces joined to their entry, per source
+  logview/            ENGINE Log viewer: decode (gzip, UTF-16, GitHub's log zip),
+                      prefixes (argo, kubectl, CRI, Compose, stern, CI), each
+                      line as ECS/JSON (own order-keeping reader), logfmt, klog
+                      or text; stack traces joined to their entry, per source;
+                      pipeline steps and levels from CI marks
+  logsrc/             ENGINE Log to source: file and line references in log
+                      text (frames, compiler and tool errors), matched to the
+                      folder's files by trailing folders
   encode/             ENGINE Encode & hash tool: URL and hex encoding, digests and
                       HMAC, random secrets and UUIDs, bcrypt htpasswd lines
   netutil/            ENGINE Network tool: CIDR details (IPv4/IPv6, range kinds),

@@ -22,6 +22,7 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/mahasenabheetha/codec/v2/internal/logsrc"
 	"github.com/mahasenabheetha/codec/v2/internal/logview"
 	"github.com/mahasenabheetha/codec/v2/internal/workspace"
 )
@@ -623,6 +624,10 @@ type entryView struct {
 	Fields   []entryField `json:"fields"`
 	Raw      string       `json:"raw"`
 	RawCut   bool         `json:"rawCut,omitempty"`
+	// Refs holds the file and line references in message, error,
+	// caller, stack and raw; Sources the folder's files for each path.
+	Refs    map[string][]refView      `json:"refs"`
+	Sources map[string][]logsrc.Match `json:"sources,omitempty"`
 }
 
 var kindNames = [...]string{"string", "number", "bool", "null", "array", "object"}
@@ -658,6 +663,7 @@ func (s *Server) handleLogEntry(w http.ResponseWriter, r *http.Request) {
 	for _, f := range e.Fields {
 		v.Fields = append(v.Fields, entryField{f.Key, kindNames[f.Kind], f.Text})
 	}
+	s.entryRefs(r.Context(), &v)
 	from, to := h.log.Around(n, num("before"), num("after"))
 	around := []logRow{}
 	for i := from; i < to; i++ {

@@ -107,7 +107,7 @@
   type="file"
   multiple
   hidden
-  accept=".log,.txt,.json,.ndjson,.jsonl,.clef,.out,.gz,text/plain,application/json,application/gzip"
+  accept=".log,.txt,.json,.ndjson,.jsonl,.clef,.out,.gz,.zip,text/plain,application/json,application/gzip,application/zip"
   onchange={(e) => {
     const input = e.currentTarget as HTMLInputElement
     openFiles(input.files, adding)

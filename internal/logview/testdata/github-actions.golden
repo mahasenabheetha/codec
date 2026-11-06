@@ -1,0 +1,12 @@
+L1+1 text 2026-11-06T10:00:00Z msg="Run actions/checkout@v4" step="Run actions/checkout@v4"
+L2+1 text 2026-11-06T10:00:00.01Z msg="with:" step="Run actions/checkout@v4"
+L3+1 text 2026-11-06T10:00:00.02Z msg="  fetch-depth: 1" step="Run actions/checkout@v4"
+L4+1 text 2026-11-06T10:00:00.03Z msg="##[endgroup]" step="Run actions/checkout@v4" tool
+L5+1 text 2026-11-06T10:00:01Z msg="Syncing repository: acme/shop" step="Run actions/checkout@v4"
+L6+1 text 2026-11-06T10:00:02Z msg="Run npm test" step="Run npm test"
+L7+1 text 2026-11-06T10:00:02.01Z msg="npm test" step="Run npm test"
+L8+1 text 2026-11-06T10:00:02.02Z msg="##[endgroup]" step="Run npm test" tool
+L9+1 text error() 2026-11-06T10:00:04Z msg="FAIL src/cart.test.ts" step="Run npm test"
+L10+1 text error() 2026-11-06T10:00:04.1Z msg="TS2322: Type 'string' is not assignable" caller="src/cart.ts:10:5" step="Run npm test"
+L11+1 text 2026-11-06T10:00:04.2Z msg="::add-mask::***" step="Run npm test" tool
+L12+1 text error() 2026-11-06T10:00:04.3Z msg="Process completed with exit code 1." step="Run npm test"

@@ -1,0 +1,5 @@
+<165>1 2026-11-06T10:00:00.003Z web-1.example.com shop 1234 ID47 [origin ip="10.0.0.1"] cart service started
+<11>1 2026-11-06T10:00:01.000Z web-1.example.com shop 1234 - - payment provider unreachable
+<34>Nov  6 10:00:02 web-1 su: 'su root' failed for bob on /dev/pts/8
+Nov  6 10:00:03 web-1 sshd[981]: Failed password for root from 10.0.0.9 port 52114 ssh2
+Nov  6 10:00:04 web-1 kernel: Out of memory: Killed process 4321 (java)

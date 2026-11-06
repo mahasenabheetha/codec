@@ -6,6 +6,60 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+## [3.9.0] - 2026-11-06
+
+From a log line to the code that wrote it, and the Log viewer reads
+the logs of pipelines, builds and platforms: their steps, errors and
+fields. Code in some 40 languages is coloured where codec shows it.
+
+### Added
+
+- **From a log line to the source** (Log viewer): file and line
+  references in an entry — stack frames of Go, Java, Kotlin, Python,
+  .NET, Node and Rust, tsc, eslint, MSBuild, Terraform, Helm and
+  Ansible — are links. A click opens the Source drawer under the
+  entry: the open folder's files that fit (matched by their trailing
+  folders, so build and agent paths work), marked exact, strong or
+  possible, with a read-only peek at the line; Open in Files goes to
+  the Files view.
+- **Find in workspace** (Log viewer): select text in an entry and
+  search the open folder for it; the matches open in the Source drawer
+  with the hit marked. Logs and build and dependency folders are left
+  out.
+- **Find source** (Log viewer): a button on each entry looks for where
+  its message was written. The values in the message are skipped, its
+  fixed parts searched, and each hit rated by what is around it (a
+  string, a logging call, a placeholder, other parts of the message,
+  the entry's field names; tests and docs count less). A wrapped error
+  (`a: b: c`) is searched layer by layer and shown as a chain.
+- **Pipeline logs** (Log viewer): Azure DevOps, GitHub Actions, GitLab
+  CI and Jenkins logs are read in their steps (tasks, groups, sections,
+  stages), timed in the Steps tab with each step's first error and in
+  the chart's lanes. `##[error]`, `##[warning]`, `::error file=,line=::`
+  and `##vso[task.logissue]` set the level and link the location; the
+  tools' own lines fold as output. GitHub's log archive zip opens with a
+  step per file.
+- Maven's `Cart.java:[42,7]` is a link to the source too.
+- **Build and infrastructure logs** (Log viewer): Docker BuildKit's
+  steps and their times; Terraform and OpenTofu's boxed errors as one
+  entry, and their JSON logs; Maven modules and Gradle tasks as steps,
+  with their failures; npm, yarn and pnpm errors; dotnet, MSBuild, tsc,
+  gcc and javac errors and warnings; go test (also `-json`) and pytest
+  failures as entries with their output.
+- **Platform logs** (Log viewer): Nginx, Apache and ingress-nginx access
+  logs and Envoy and Istio's, read into fields (`status`, `latency`,
+  `path`, `method`, `upstream`…, `status>=500` an error); syslog (RFC
+  5424 and 3164) and `journalctl -o json`; `kubectl get events` as a
+  table or JSON; the Kubernetes audit log.
+- Smart paste offers every one of these logs to the Log viewer, and
+  says how many steps it found.
+- **Code colours**: Go, Java, Kotlin, C#, JavaScript and TypeScript,
+  Python, Rust, SQL, Terraform and some 30 more languages are coloured
+  in the Files view, Markdown code blocks and the Log viewer's source
+  peek; each language loads the first time a file needs it, and code
+  folds by indentation. Function and other defined names have a colour
+  of their own in every theme.
+
 ## [3.8.1] - 2026-11-03
 
 Icons like VS Code's: every kind of file and folder in the explorer

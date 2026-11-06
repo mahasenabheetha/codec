@@ -1,0 +1,25 @@
+L4+1 json warn(Warning) 2026-11-06T10:00:00Z src=pod/web-7d9c8b6f5-x2x9z msg="Back-off restarting failed container web"
+    apiVersion:s=v1
+    kind:s=Event
+    metadata.name:s=web.1
+    metadata.namespace:s=shop
+    involvedObject.kind:s=Pod
+    involvedObject.name:s=web-7d9c8b6f5-x2x9z
+    involvedObject.namespace:s=shop
+    reason:s=BackOff
+    message:s=Back-off restarting failed container web
+    type:s=Warning
+    count:n=12
+    lastTimestamp:s=2026-11-06T10:00:00Z
+L5+1 json info(Normal) 2026-11-06T09:59:00Z src=deployment/web msg="Scaled up replica set web-7d9c8b6f5 to 3"
+    apiVersion:s=v1
+    kind:s=Event
+    metadata.name:s=web.2
+    metadata.namespace:s=shop
+    involvedObject.kind:s=Deployment
+    involvedObject.name:s=web
+    involvedObject.namespace:s=shop
+    reason:s=ScalingReplicaSet
+    message:s=Scaled up replica set web-7d9c8b6f5 to 3
+    type:s=Normal
+    lastTimestamp:s=2026-11-06T09:59:00Z

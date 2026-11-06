@@ -1,0 +1,8 @@
+L1+1 text msg="=== RUN   TestCart" tool
+L2+3 text error() msg="--- FAIL: TestCart (0.00s)\n    cart_test.go:41: got 3, want 4\n    cart_test.go:42: total wrong"
+    raw="--- FAIL: TestCart (0.00s)\n    cart_test.go:41: got 3, want 4\n    cart_test.go:42: total wrong"
+L5+1 text msg="=== RUN   TestOrder" tool
+L6+1 text msg="--- PASS: TestOrder (0.01s)"
+L7+1 text error() msg="FAIL"
+L8+1 text error() msg="FAIL\tgithub.com/acme/shop\t0.012s"
+L9+1 text msg="ok  \tgithub.com/acme/lib\t0.004s"

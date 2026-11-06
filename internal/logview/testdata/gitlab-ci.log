@@ -1,0 +1,9 @@
+2026-11-06T10:00:00.000000Z 00O section_start:1793952000:prepare_executor[0K[0K[36;1mPreparing the "docker" executor[0;m
+2026-11-06T10:00:01.000000Z 00O Using Docker executor with image golang:1.25
+2026-11-06T10:00:02.000000Z 00O section_end:1793952002:prepare_executor[0K
+2026-11-06T10:00:03.000000Z 00O section_start:1793952003:step_script[0K[0K[36;1mExecuting "step_script" stage of the job script[0;m
+2026-11-06T10:00:03.500000Z 00O [32;1m$ go test ./...[0;m
+2026-11-06T10:00:09.000000Z 00O --- FAIL: TestCart (0.00s)
+2026-11-06T10:00:09.100000Z 00O     cart_test.go:41: got 3, want 4
+2026-11-06T10:00:10.000000Z 00O section_end:1793952010:step_script[0K
+2026-11-06T10:00:10.100000Z 00O [31;1mERROR: Job failed: exit code 1[0;m

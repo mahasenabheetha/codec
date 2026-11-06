@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Log viewer · codec docs</title>
-<meta name="description" content="Read structured logs of any common format: ECS and other JSON, logfmt, klog and text with stack traces. Filter with a small query language, chart entries over time, fold repeats, pin entries and compare two runs. Nothing is stored.">
+<meta name="description" content="Read logs of any common format: ECS and other JSON, logfmt, klog, text with stack traces, pipeline, build, access, syslog and Kubernetes logs. Filter, chart, fold, pin, compare two runs, and go from a line to the code that wrote it. Nothing is stored.">
 <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/site.css">
 </head>
@@ -63,7 +63,7 @@
 <main>
 <article class="content">
 <h1>Log viewer</h1>
-<p class="lead">Tools → <strong>Log viewer</strong> reads structured logs of any common format into one shape — time, level, message, source, error, stack, fields — so you can filter, chart and read them. It is built for the logs of Kubernetes workloads and pipelines (<code>argo logs</code>, <code>kubectl logs</code>) and for any service that logs JSON or <code>key=value</code>. No folder is needed, and nothing is stored.</p>
+<p class="lead">Tools → <strong>Log viewer</strong> reads structured logs of any common format into one shape — time, level, message, source, error, stack, fields — so you can filter, chart and read them. It is built for the logs of Kubernetes workloads and pipelines (<code>argo logs</code>, <code>kubectl logs</code>) and for any service that logs JSON or <code>key=value</code>; it also reads pipeline and build output, access logs, syslog and Kubernetes events, and takes you from a line to the code that wrote it in the open folder. No folder is needed to read a log, and nothing is stored.</p>
 
 <h2 id="open">Opening logs<a class="anchor" href="#open">#</a></h2>
 <ul>
@@ -82,6 +82,9 @@
 <tr><td>Other JSON</td><td>Go <code>slog</code>, zap, logrus, zerolog; Bunyan and pino; Serilog (message templates filled in); Docker's container log files; Kibana and Elasticsearch exports</td></tr>
 <tr><td>logfmt</td><td><code>time=… level=info msg="…" key=value</code>: slog's text handler, logrus, Argo's own containers</td></tr>
 <tr><td>Text</td><td>Kubernetes klog, Go's <code>log</code> package, lines that start with a date and time or a time of day alone (<code>10:00:00.123 [main] INFO …</code>, logback's default) and a level word; Go panics and Java, .NET, Node and Python stack traces, joined to the entry they belong to</td></tr>
+<tr><td>Pipelines</td><td>Azure DevOps, GitHub Actions (also its log archive zip), GitLab CI and Jenkins: steps, levels and locations from their marks; see <a href="#pipelines">Pipeline logs</a></td></tr>
+<tr><td>Platform</td><td>Nginx, Apache, ingress-nginx, Envoy and Istio access logs, syslog, journald, Kubernetes events and audit logs; see <a href="#platform">Access logs, syslog and Kubernetes</a></td></tr>
+<tr><td>Builds</td><td>Docker BuildKit, Terraform and OpenTofu, Helm, Maven, Gradle, npm, yarn, pnpm, dotnet, MSBuild, compilers, go test and pytest; see <a href="#builds">Build and infrastructure logs</a></td></tr>
 <tr><td>Prefixes</td><td><code>argo logs</code> and stern pod names, <code>kubectl logs --prefix</code> and <code>--timestamps</code>, container runtime lines, <code>docker compose logs</code>, CI timestamps and colour codes are taken off and kept as the entry's source and time</td></tr>
 </tbody>
 </table>
@@ -127,9 +130,46 @@
 <p>Select a row for the entry in full: its message (JSON in it laid out), error, time, source, logger, caller and trace; its stack trace, with each frame's function apart from its file and the runtime's and frameworks' frames folded away; its fields as a tree; the entries just <strong>around it</strong> (±5, 20 or 50, whatever the query hides — what led up to it); and the line as it was read.</p>
 <p>Next to any value: <strong>only this</strong> and <strong>hide this</strong> add a term to the query, the column button shows the field in the list, and for trace, span, request and correlation IDs <strong>follow</strong> replaces the query with that ID, so you see everything that happened to one request across the log.</p>
 
+<h2 id="source">From a line to the source<a class="anchor" href="#source">#</a></h2>
+<p>File and line references in an entry are links: Go panics and <code>file.go:12:5</code>, Java and Kotlin frames (<code>at com.acme.Cart.add(Cart.java:42)</code>, the package giving the folders), Python's <code>File "…", line 12</code>, .NET's <code>in …\Cart.cs:line 42</code> and <code>Cart.cs(42,7)</code>, Node and Rust frames, tsc and eslint, Terraform's <code>on main.tf line 12</code>, Helm templates and Ansible task paths. Times, ports and host names are not taken for files.</p>
+<p>A click opens the <strong>Source drawer</strong> under the entry: the files of the open folder that fit, and a read-only peek of the chosen one at the line. Paths are matched by their trailing folders, so a build path such as <code>/build/src/internal/cart.go</code> or <code>C:\agent\_work\1\s\charts\values.yaml</code> finds <code>internal/cart.go</code> or <code>charts/values.yaml</code>. Each file is marked <em>exact</em> (the path names it), <em>strong</em> (its folders agree, but not all, or another file fits as well) or <em>possible</em> (only the name agrees); with several, step through them. <strong>Open in Files</strong> goes to the file in the Files view, at the line. A reference shown quieter has no file in the open folder; with no folder open, the drawer offers to open one. Only the open folder is read, and nothing leaves the machine.</p>
+<p><strong>Find in workspace</strong>: select a piece of the entry — a message, an error code, an id — and a button under the selection searches the open folder for it, literally and ignoring case, with Find in Files. The matches fill the same drawer, each with its line and the hit marked; logs (<code>*.log</code>) and build and dependency folders (<code>node_modules</code>, <code>vendor</code>, <code>dist</code>, <code>build</code>, <code>target</code>…) are left out. Of a selection over several lines, the longest line is searched.</p>
+<p><strong>Find source</strong> (the file-search button in the entry's header) looks for where the entry's message was written. The message as logged has its values filled in (<code>order 7 failed for bob</code>) where the code has a template (<code>"order %d failed for %s"</code>, <code>f"order {id} failed"</code>, <code>`order ${id}`</code>), so the message is cut at the parts that vary — numbers, ids, quoted values, paths, URLs, the value after <code>key=</code> — and the fixed parts are searched, in one pass over the folder. Each hit is then rated by what is around it: the other parts of the message nearby, being inside a string, a logging call on the line (<code>log.</code>, <code>logger.</code>, <code>slog.</code>, <code>fmt.Errorf</code>, <code>console.</code>, <code>Write-Host</code>, <code>echo</code>…), a placeholder on it, and the entry's field names nearby for a structured log; tests and documentation count less. The best come first, marked <em>exact</em>, <em>strong</em> or <em>possible</em>; hover the mark for why.</p>
+<p>A wrapped error (<code>checkout: reserve stock: cart is full</code>, as Go's <code>fmt.Errorf("…: %w", err)</code> writes it), in the message or the entry's error, is searched layer by layer, and the drawer lists each layer's places under it: the chain of calls that led to the error.</p>
+
 <h2 id="errors">Errors and fields<a class="anchor" href="#errors">#</a></h2>
 <p><strong>Errors</strong> lists the warnings and errors of the matching entries grouped by message (numbers, IDs, UUIDs and quoted values don't split a group), most frequent first, with when they started and stopped and how many sources had them. Click one for its first entry; <strong>Show</strong> filters to it (<code>group:3</code>).</p>
 <p><strong>Fields</strong> lists every field of the matching entries: how often it is there, its most common values (click one to filter to it) and, for numbers, the minimum, median, 95th percentile, maximum and mean.</p>
+
+<h2 id="pipelines">Pipeline logs<a class="anchor" href="#pipelines">#</a></h2>
+<p>The logs of Azure DevOps, GitHub Actions, GitLab CI and Jenkins are read in their <strong>steps</strong>: Azure's tasks (<code>##[section]Starting: Build</code>), GitLab's sections (<code>step_script</code>, and the job's own, by their header), Jenkins' stages (<code>[Pipeline] { (Build)</code>), and GitHub's groups (<code>Run npm test</code>). The Steps tab lists them in order, with when each ran, how long it took, its entries and errors and its first error; the chart's lanes go by step, and <code>step:Build</code> filters to one.</p>
+<p>Their marks set the level: <code>##[error]</code>, <code>##[warning]</code>, <code>::error file=…,line=…::</code> and Azure's <code>##vso[task.logissue …]</code>, whose file and line become the entry's caller, a link to the source. The tools' own lines (<code>##[endgroup]</code>, <code>##vso[task.setvariable …]</code>, <code>[Pipeline] sh</code>, GitLab's section ends) are output: <em>Fold output</em> hides them. GitHub's log archive (the run's <em>Download log archive</em> zip) opens as it is: each step's file is that step, and each job's whole log, which repeats them, is left out. Compare a failed run with one that passed as with any two logs.</p>
+
+<h2 id="builds">Build and infrastructure logs<a class="anchor" href="#builds">#</a></h2>
+<p>The output of build and deploy tools is read for what it says beyond a level word:</p>
+<table>
+<tr><th>Tool</th><th>What is read</th></tr>
+<tr><td>Docker BuildKit</td><td>Each <code>#5 [3/4] RUN …</code> is a step, its lines by number however they interleave; <code>DONE 1.2s</code> is the step's time in the Steps tab; <code>CACHED</code> and BuildKit's own lines are output; <code>ERROR</code> is an error</td></tr>
+<tr><td>Terraform, OpenTofu</td><td>A boxed error or warning (<code>╷ │ Error: … ╵</code>) is one entry, its <code>on main.tf line 12</code> a link; <code>TF_LOG=json</code> and <code>-json</code> output (<code>@level</code>, <code>@message</code>, <code>@module</code>)</td></tr>
+<tr><td>Helm</td><td><code>Error: UPGRADE FAILED: …</code>, template errors with their <code>templates/x.yaml:23</code> link</td></tr>
+<tr><td>Maven, Gradle</td><td>Each module (<code>Building shop-core</code>) or task (<code>&gt; Task :app:test</code>) is a step; <code>FAILURE</code> in the reactor summary, <code>BUILD FAILURE</code>, <code>&gt; Task … FAILED</code> and Kotlin's <code>e:</code> and <code>w:</code> are errors and warnings</td></tr>
+<tr><td>npm, yarn, pnpm</td><td>An <code>npm ERR!</code> (or <code>npm error</code>) block is one entry; yarn's <code>error</code> and <code>warning</code>; <code>ERR_PNPM_…</code></td></tr>
+<tr><td>dotnet, MSBuild, compilers</td><td><code>Cart.cs(42,7): error CS0103:</code>, tsc's <code>error TS2322:</code>, gcc's and javac's <code>: error:</code>, <code>Build FAILED.</code></td></tr>
+<tr><td>go test, pytest</td><td><code>--- FAIL</code> with the lines under it, <code>FAIL pkg</code>; <code>go test -json</code> with the package as the step; pytest's report of each failed test (<code>___ test_add ___</code>) as one entry, <code>FAILED …::test</code> and the summary</td></tr>
+</table>
+<p>A build tool's steps show when the pipeline around it names none.</p>
+
+<h2 id="platform">Access logs, syslog and Kubernetes<a class="anchor" href="#platform">#</a></h2>
+<p>Platform logs are read into fields a query can use:</p>
+<table>
+<tr><th>Log</th><th>Fields</th></tr>
+<tr><td>Nginx, Apache, ingress-nginx access logs (common and combined)</td><td><code>client</code>, <code>user</code>, <code>method</code>, <code>path</code>, <code>query</code>, <code>status</code>, <code>bytes</code>, <code>referer</code>, <code>agent</code>; ingress-nginx's <code>latency</code>, <code>upstream</code> (the entry's source), <code>upstream_addr</code>, <code>upstream_latency</code>, <code>upstream_status</code> and its request id as the trace</td></tr>
+<tr><td>Envoy and Istio access logs (the default format)</td><td><code>method</code>, <code>path</code>, <code>status</code>, <code>flags</code> (<code>UF</code>, <code>NR</code>…), <code>bytes</code>, <code>bytes_received</code>, <code>latency</code>, <code>upstream_latency</code>, <code>client</code>, <code>authority</code>, <code>upstream_addr</code>; Istio's upstream cluster as the source</td></tr>
+<tr><td>syslog (RFC 5424 and 3164, <code>/var/log/syslog</code>), <code>journalctl -o json</code></td><td>The app (or unit) as the source, <code>host</code>, <code>pid</code>, <code>facility</code>, <code>severity</code> as the level</td></tr>
+<tr><td><code>kubectl get events</code> (the table, with or without <code>-A</code>; <code>-o json</code>, <code>-w -o json</code>)</td><td>The object (<code>pod/web-7d9c</code>) as the source, <code>reason</code>, <code>namespace</code>; Warning is a warning</td></tr>
+<tr><td>The API server's audit log</td><td>The user as the source, the message <code>verb URI code</code>, the audit id as the trace</td></tr>
+</table>
+<p>A status of 500 or more is an error, 400 or more a warning, and Envoy's response flags without a status an error; latencies are seconds. So <code>status&gt;=500</code>, <code>latency&gt;1</code>, <code>path:/api/* method:POST</code> or <code>reason:BackOff</code> find what went wrong. <a href="tools.html#smart">Smart paste</a> opens any of these in the Log viewer.</p>
 
 <h2 id="argo">Argo runs<a class="anchor" href="#argo">#</a></h2>
 <p>An Argo workflow's log is read step by step. An entry's step is its <code>argo_step_name</code> field when it has one, what the other entries of its pod said, or else the pod's name, which Argo makes <code>&lt;workflow&gt;-&lt;template&gt;-&lt;number&gt;</code>; plain lines with no pod take the step of the entry before them. The list shows the step in place of the pod (the pod on hover), <code>step:deploy</code> filters to one, and <strong>Steps</strong> lists them in the order they started: when each ran, how long it took, its entries, errors and warnings, failed ones in red. Lines of Argo's own executor (its init and wait containers) count as output and fold with it.</p>

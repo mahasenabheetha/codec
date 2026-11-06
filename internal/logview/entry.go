@@ -35,6 +35,12 @@ type Entry struct {
 	Fields []Field
 	// Raw is the input the entry was read from, colour codes removed.
 	Raw string
+	// Step is the pipeline step the entry was logged in, from the CI
+	// tool's marks (Azure DevOps, GitHub Actions, GitLab, Jenkins).
+	Step string
+	// Tool marks a line the CI tool wrote for itself, not the job:
+	// output, folded with the rest.
+	Tool bool
 }
 
 // Field is one key and its value.

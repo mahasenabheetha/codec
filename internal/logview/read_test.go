@@ -40,10 +40,13 @@ func describe(entries []Entry) string {
 			fmt.Fprintf(&b, " src=%s", e.Source)
 		}
 		fmt.Fprintf(&b, " msg=%q", e.Message)
-		for _, kv := range [][2]string{{"logger", e.Logger}, {"caller", e.Caller}, {"err", e.Error}, {"trace", e.TraceID}} {
+		for _, kv := range [][2]string{{"logger", e.Logger}, {"caller", e.Caller}, {"err", e.Error}, {"trace", e.TraceID}, {"step", e.Step}} {
 			if kv[1] != "" {
 				fmt.Fprintf(&b, " %s=%q", kv[0], kv[1])
 			}
+		}
+		if e.Tool {
+			b.WriteString(" tool")
 		}
 		b.WriteByte('\n')
 		if e.Stack != "" {

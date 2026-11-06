@@ -1,0 +1,22 @@
+L1+1 json info(6) 2026-11-06T10:00:00Z src=shop.service msg="listening on :8080"
+    __REALTIME_TIMESTAMP:s=1793959200000000
+    PRIORITY:s=6
+    _SYSTEMD_UNIT:s=shop.service
+    SYSLOG_IDENTIFIER:s=shop
+    _HOSTNAME:s=web-1
+    _PID:s=812
+    MESSAGE:s=listening on :8080
+L2+1 json error(3) 2026-11-06T10:00:01Z src=shop.service msg="database connection refused"
+    __REALTIME_TIMESTAMP:s=1793959201000000
+    PRIORITY:s=3
+    _SYSTEMD_UNIT:s=shop.service
+    SYSLOG_IDENTIFIER:s=shop
+    _HOSTNAME:s=web-1
+    _PID:s=812
+    MESSAGE:s=database connection refused
+L3+1 json warn(4) 2026-11-06T10:00:02Z src=kernel msg="CPU0: Core temperature above threshold"
+    __REALTIME_TIMESTAMP:s=1793959202000000
+    PRIORITY:s=4
+    SYSLOG_IDENTIFIER:s=kernel
+    _HOSTNAME:s=web-1
+    MESSAGE:s=CPU0: Core temperature above threshold

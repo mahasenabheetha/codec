@@ -1,0 +1,27 @@
+L1+1 json 2026-11-06T10:00:00Z msg="start github.com/acme/shop" step="github.com/acme/shop" tool
+    Time:s=2026-11-06T10:00:00Z
+    Action:s=start
+    Package:s=github.com/acme/shop
+L2+1 json 2026-11-06T10:00:00.1Z msg="run TestCart" step="github.com/acme/shop" tool
+    Time:s=2026-11-06T10:00:00.1Z
+    Action:s=run
+    Package:s=github.com/acme/shop
+    Test:s=TestCart
+L3+1 json 2026-11-06T10:00:00.2Z msg="    cart_test.go:41: got 3, want 4" step="github.com/acme/shop"
+    Time:s=2026-11-06T10:00:00.2Z
+    Action:s=output
+    Package:s=github.com/acme/shop
+    Test:s=TestCart
+    Output:s=    cart_test.go:41: got 3, want 4
+
+L4+1 json error() 2026-11-06T10:00:00.3Z msg="FAIL TestCart (0.01s)" step="github.com/acme/shop"
+    Time:s=2026-11-06T10:00:00.3Z
+    Action:s=fail
+    Package:s=github.com/acme/shop
+    Test:s=TestCart
+    Elapsed:n=0.01
+L5+1 json 2026-11-06T10:00:00.4Z msg="PASS github.com/acme/lib (0.2s)" step="github.com/acme/lib"
+    Time:s=2026-11-06T10:00:00.4Z
+    Action:s=pass
+    Package:s=github.com/acme/lib
+    Elapsed:n=0.2

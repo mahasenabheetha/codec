@@ -1,6 +1,8 @@
 package codec
 
 import (
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -89,5 +91,33 @@ func TestDetectUtilityReview(t *testing.T) {
 	}
 	if u, ok := DetectUtility("0 0 * * 7/2", now); !ok || u.Kind != "cron" {
 		t.Errorf("7/2: %+v", u) // was a panic
+	}
+}
+
+// Every log format the Log viewer reads is offered to it by Smart paste
+// (decision 99, T6), with the steps it found.
+func TestDetectPlatformAndBuildLogs(t *testing.T) {
+	tests := []struct{ file, want string }{
+		{"access.log", "A log: 5 entries · text 5\n1 error"},
+		{"envoy.log", "text 3\n2 errors"},
+		{"syslog.log", "text 5\n2 errors"},
+		{"journal.json", "json 3\n1 error"},
+		{"k8s-events.txt", "text 5"},
+		{"k8s-audit.log", "json 2"},
+		{"azure-pipelines.log", "text 14 · 2 steps\n3 errors"},
+		{"buildkit.log", "5 steps\n2 errors"},
+		{"terraform.log", "json 1 · text 7\n2 errors"},
+		{"gotest.log", "text 7\n3 errors"},
+		{"pytest.log", "3 errors"},
+	}
+	for _, tc := range tests {
+		data, err := os.ReadFile(filepath.Join("..", "logview", "testdata", tc.file))
+		if err != nil {
+			t.Fatal(err)
+		}
+		u, _ := DetectUtility(string(data), time.Now())
+		if u == nil || u.Kind != "log" || !strings.Contains(u.Summary, tc.want) {
+			t.Errorf("%s: %+v, want a log with %q", tc.file, u, tc.want)
+		}
 	}
 }

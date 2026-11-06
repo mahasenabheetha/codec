@@ -1,0 +1,19 @@
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 312B done
+#1 DONE 0.0s
+#2 [internal] load metadata for docker.io/library/golang:1.25
+#2 DONE 1.2s
+#3 [1/4] FROM docker.io/library/golang:1.25@sha256:abc
+#3 CACHED
+#4 [2/4] COPY . /src
+#4 DONE 0.3s
+#5 [3/4] RUN go build -o /app ./cmd/shop
+#5 0.512 go: downloading github.com/acme/lib v1.2.0
+#5 9.871 cmd/shop/main.go:12:2: undefined: Cart
+#5 ERROR: process "/bin/sh -c go build -o /app ./cmd/shop" did not complete successfully: exit code: 1
+------
+ > [3/4] RUN go build -o /app ./cmd/shop:
+9.871 cmd/shop/main.go:12:2: undefined: Cart
+------
+Dockerfile:5
+ERROR: failed to solve: process "/bin/sh -c go build -o /app ./cmd/shop" did not complete successfully: exit code: 1

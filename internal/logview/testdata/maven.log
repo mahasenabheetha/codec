@@ -1,0 +1,11 @@
+[INFO] Scanning for projects...
+[INFO] Building shop-core 1.0-SNAPSHOT                                  [1/2]
+[INFO] --- compiler:3.11.0:compile (default-compile) @ shop-core ---
+[INFO] Building jar: /ws/shop-core/target/shop-core-1.0-SNAPSHOT.jar
+[INFO] Building shop-web 1.0-SNAPSHOT                                   [2/2]
+[ERROR] /ws/shop-web/src/main/java/com/acme/Cart.java:[42,7] cannot find symbol
+[INFO] Reactor Summary for shop 1.0-SNAPSHOT:
+[INFO] shop-core .......................................... SUCCESS [  2.104 s]
+[INFO] shop-web ........................................... FAILURE [  1.020 s]
+[INFO] BUILD FAILURE
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.11.0:compile

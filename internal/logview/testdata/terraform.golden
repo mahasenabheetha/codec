@@ -1,0 +1,15 @@
+L1+1 text msg="Initializing the backend..."
+L2+1 text msg="Terraform used the selected providers to generate the following execution plan."
+L3+1 text msg="  # aws_instance.web will be created"
+L4+1 text msg="Plan: 1 to add, 0 to change, 0 to destroy."
+L5+1 text msg="aws_instance.web: Creating..."
+L6+7 text error(Error) msg="creating EC2 Instance: InvalidAMIID.NotFound\n\n  with aws_instance.web,\n  on main.tf line 12, in resource \"aws_instance\" \"web\":\n  12: resource \"aws_instance\" \"web\" {"
+    raw="╷\n│ Error: creating EC2 Instance: InvalidAMIID.NotFound\n│ \n│   with aws_instance.web,\n│   on main.tf line 12, in resource \"aws_instance\" \"web\":\n│   12: resource \"aws_instance\" \"web\" {\n╵"
+L13+5 text warn(Warning) msg="Argument is deprecated\n\n  on variables.tf line 3:"
+    raw="╷\n│ Warning: Argument is deprecated\n│ \n│   on variables.tf line 3:\n╵"
+L18+1 json error(error) 2026-11-06T10:00:00Z msg="Error: Unsupported argument" logger="terraform.ui"
+    @level:s=error
+    @message:s=Error: Unsupported argument
+    @module:s=terraform.ui
+    @timestamp:s=2026-11-06T10:00:00.000000Z
+    type:s=diagnostic

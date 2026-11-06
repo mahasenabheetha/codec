@@ -1,0 +1,7 @@
+L1+1 text msg="> Task :app:compileKotlin" step=":app:compileKotlin"
+L2+1 text error() msg="file:///ws/app/src/main/kotlin/Cart.kt:10:5 Unresolved reference: total" step=":app:compileKotlin"
+L3+1 text warn() msg="file:///ws/app/src/main/kotlin/Cart.kt:3:1 Parameter 'x' is never used" step=":app:compileKotlin"
+L4+1 text error() msg="> Task :app:compileKotlin FAILED" step=":app:compileKotlin"
+L5+1 text msg="> Task :lib:jar UP-TO-DATE" step=":lib:jar" tool
+L6+1 text error() msg="FAILURE: Build failed with an exception." step=":lib:jar"
+L7+1 text error() msg="BUILD FAILED in 4s" step=":lib:jar"

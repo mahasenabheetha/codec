@@ -1,0 +1,12 @@
+2026-11-06T10:00:00.0000000Z ##[group]Run actions/checkout@v4
+2026-11-06T10:00:00.0100000Z with:
+2026-11-06T10:00:00.0200000Z   fetch-depth: 1
+2026-11-06T10:00:00.0300000Z ##[endgroup]
+2026-11-06T10:00:01.0000000Z Syncing repository: acme/shop
+2026-11-06T10:00:02.0000000Z ##[group]Run npm test
+2026-11-06T10:00:02.0100000Z npm test
+2026-11-06T10:00:02.0200000Z ##[endgroup]
+2026-11-06T10:00:04.0000000Z FAIL src/cart.test.ts
+2026-11-06T10:00:04.1000000Z ::error file=src/cart.ts,line=10,col=5,title=TS2322::Type 'string' is not assignable
+2026-11-06T10:00:04.2000000Z ::add-mask::***
+2026-11-06T10:00:04.3000000Z ##[error]Process completed with exit code 1.

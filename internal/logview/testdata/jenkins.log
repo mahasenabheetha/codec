@@ -1,0 +1,17 @@
+[2026-11-06T10:00:00.000Z] Started by user admin
+[2026-11-06T10:00:00.100Z] [Pipeline] Start of Pipeline
+[2026-11-06T10:00:00.200Z] [Pipeline] node
+[2026-11-06T10:00:01.000Z] [Pipeline] {
+[2026-11-06T10:00:01.100Z] [Pipeline] stage
+[2026-11-06T10:00:01.200Z] [Pipeline] { (Build)
+[2026-11-06T10:00:01.300Z] [Pipeline] sh
+[2026-11-06T10:00:01.400Z] + mvn -B package
+[2026-11-06T10:00:20.000Z] [ERROR] /var/jenkins/ws/shop/src/main/java/com/acme/Cart.java:[42,7] cannot find symbol
+[2026-11-06T10:00:20.100Z] [Pipeline] }
+[2026-11-06T10:00:20.200Z] [Pipeline] // stage
+[2026-11-06T10:00:20.300Z] [Pipeline] stage
+[2026-11-06T10:00:20.400Z] [Pipeline] { (Deploy)
+[2026-11-06T10:00:20.500Z] Stage "Deploy" skipped due to earlier failure(s)
+[2026-11-06T10:00:20.600Z] [Pipeline] // stage
+[2026-11-06T10:00:21.000Z] ERROR: script returned exit code 1
+[2026-11-06T10:00:21.100Z] Finished: FAILURE

@@ -1,0 +1,7 @@
+L1+1 text warn(WARN) msg="npm WARN deprecated inflight@1.0.6: This module is not supported"
+L2+3 text error(ERR!) msg="code E404\n404 Not Found - GET https://registry.npmjs.org/left-padd - Not found\n404 'left-padd@*' is not in this registry."
+    raw="npm ERR! code E404\nnpm ERR! 404 Not Found - GET https://registry.npmjs.org/left-padd - Not found\nnpm ERR! 404 'left-padd@*' is not in this registry."
+L5+1 text error(error) msg="code ERESOLVE"
+L6+1 text error() msg="Command failed with exit code 1."
+L7+1 text warn() msg="package.json: No license field"
+L8+1 text error() msg="ERR_PNPM_NO_MATCHING_VERSION  No matching version found for left-padd@^9"

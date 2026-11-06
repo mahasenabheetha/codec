@@ -1,0 +1,6 @@
+L1+1 text msg="  Determining projects to restore..."
+L2+1 text error() msg="/src/Shop/Cart.cs(42,7): error CS0103: The name 'x' does not exist in the current context [/src/Shop/Shop.csproj]"
+L3+1 text warn() msg="/src/Shop/Order.cs(3,1): warning CS8618: Non-nullable property 'Id' must contain a non-null value [/src/Shop/Shop.csproj]"
+L4+1 text error() msg="src/app.ts(10,5): error TS2322: Type 'string' is not assignable to type 'number'."
+L5+1 text error() msg="cart.c:3:5: error: unknown type name 'item'"
+L6+1 text error() msg="Build FAILED."

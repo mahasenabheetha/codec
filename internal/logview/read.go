@@ -2,6 +2,7 @@ package logview
 
 import (
 	"iter"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -51,13 +52,20 @@ const openLines = 1000
 type blockKind uint8
 
 const (
-	noBlock   blockKind = iota
-	goBlock             // a Go panic or goroutine dump
-	javaBlock           // frames after an exception line
-	pyBlock             // a Python traceback, before its last line
-	pyEnded             // after a traceback's last line: only a chained one may follow
-	headBlock           // after a line that is only a time: the plain lines that follow are its message
+	noBlock     blockKind = iota
+	goBlock               // a Go panic or goroutine dump
+	javaBlock             // frames after an exception line
+	pyBlock               // a Python traceback, before its last line
+	pyEnded               // after a traceback's last line: only a chained one may follow
+	headBlock             // after a line that is only a time: the plain lines that follow are its message
+	tfBlock               // a Terraform error box: "╷", "│ Error: …", "╵"
+	npmBlock              // npm's "npm ERR!" lines
+	indentBlock           // the indented lines after a failure: go test's "--- FAIL"
+	testBlock             // a pytest failure's report, after its "___ test ___"
 )
+
+// msgBlock: a block whose lines are its entry's message, not a stack.
+func msgBlock(b blockKind) bool { return b == headBlock || b >= tfBlock }
 
 type pending struct {
 	e        Entry
@@ -65,6 +73,7 @@ type pending struct {
 	block    blockKind
 	blanks   []string // raw blank lines seen inside a block, kept only if it goes on
 	stream   string
+	src      string   // the line prefix's source: the key the entry is open under
 	raws     []string // raw lines, when they are not next to each other
 	start    int      // offsets of the raw text, while the lines are contiguous
 	end      int
@@ -82,7 +91,8 @@ type line struct {
 	raw        string
 	s          string // the payload: prefixes, colour codes and redraws removed
 	pre        prefix
-	parts      int // physical lines, more than one when a runtime split it
+	parts      int    // physical lines, more than one when a runtime split it
+	gitlab     string // the line with GitLab's section marks, when it has them
 }
 
 type reader struct {
@@ -92,13 +102,16 @@ type reader struct {
 	shape labelShape
 	// cont: text lines without a time continue the entry before them,
 	// because the log's text lines usually start with one.
-	cont  bool
-	pos   int // next unread offset
-	n     int // lines read
-	peek  *line
-	queue []*pending
-	head  int
-	last  map[string]*pending
+	cont   bool
+	pos    int // next unread offset
+	n      int // lines read
+	peek   *line
+	queue  []*pending
+	head   int
+	last   map[string]*pending
+	ci     ciSteps    // the pipeline step being read
+	build  buildState // what a build tool's lines said
+	events *eventCols // a kubectl get events table being read
 }
 
 func newReader(text string, opt Options) *reader {
@@ -185,7 +198,12 @@ func (r *reader) next() *line {
 		r.n++
 		raw := strings.TrimRight(r.text[start:end], "\r")
 		var p prefix
-		s := r.prep(redraw(stripANSI(raw)), &p)
+		clean, marks := stripANSI(raw), ""
+		if strings.Contains(clean, "section_") && gitlabSection.MatchString(clean) {
+			// Taken out before the redraw, which would drop the time too.
+			clean, marks = gitlabSection.ReplaceAllString(clean, ""), clean
+		}
+		s := r.prep(redraw(clean), &p)
 		if l != nil {
 			// The rest of a line the runtime split.
 			l.s += s
@@ -193,7 +211,7 @@ func (r *reader) next() *line {
 			l.parts++
 			l.pre.partial = p.partial
 		} else {
-			l = &line{n: r.n, start: start, end: start + len(raw), raw: raw, s: s, pre: p, parts: 1}
+			l = &line{n: r.n, start: start, end: start + len(raw), raw: raw, s: s, pre: p, parts: 1, gitlab: marks}
 		}
 		if !l.pre.partial {
 			return l
@@ -274,6 +292,22 @@ func (r *reader) handle(l *line) {
 		p.done, p = true, nil
 		delete(r.last, src)
 	}
+	if l.gitlab != "" {
+		before := r.ci.current(src)
+		r.ci.gitlab(l.gitlab, l.s)
+		if strings.TrimSpace(l.s) == "" {
+			// Only a section mark: the tool's line, in the section it
+			// starts or ends.
+			ms := gitlabSection.FindAllStringSubmatch(l.gitlab, -1)
+			m := ms[len(ms)-1]
+			e := Entry{Format: Text, Message: "End of " + m[2], Step: before, Tool: true}
+			if m[1] == "start" {
+				e.Message, e.Step = "Start of "+m[2], r.ci.current(src)
+			}
+			r.start(e, l, noBlock)
+			return
+		}
+	}
 	if strings.TrimSpace(l.s) == "" {
 		if p != nil && p.block != noBlock {
 			p.blanks = append(p.blanks, l.raw)
@@ -282,8 +316,10 @@ func (r *reader) handle(l *line) {
 	}
 	if p != nil && p.block != noBlock {
 		if r.inBlock(p, l.s) {
-			if p.block == headBlock {
-				p.msg = append(p.msg, l.s)
+			if msgBlock(p.block) {
+				if text, keep := buildBlockLine(p, l.s); keep {
+					p.msg = append(p.msg, text)
+				}
 				r.join(p, l, false)
 			} else {
 				r.join(p, l, true)
@@ -292,9 +328,21 @@ func (r *reader) handle(l *line) {
 		}
 		p.block, p.blanks = noBlock, nil
 	}
+	if m, ok := readCI(l.s); ok {
+		r.ciLine(m, l)
+		return
+	}
 	var e Entry
 	if r.structured(l.s, &e) {
 		r.start(e, l, noBlock)
+		return
+	}
+	if pe, ok := r.platform(l.s); ok {
+		r.start(pe, l, noBlock)
+		return
+	}
+	if m, ok := r.build.readBuild(l.s); ok {
+		r.buildLine(m, l)
 		return
 	}
 	// A text logger prints a stack after its line; a JSON one puts it in
@@ -350,6 +398,44 @@ func (r *reader) handle(l *line) {
 	r.start(e, l, noBlock)
 }
 
+// ciLine places a line that carries a CI command: a step that starts
+// takes the line, one that ends keeps it.
+func (r *reader) ciLine(m ciMark, l *line) {
+	switch m.kind {
+	case ciSectionStart:
+		r.ci.start(m.name)
+	case ciGroupStart:
+		r.ci.group = m.name
+	}
+	e := Entry{Format: Text, Level: m.level, Message: m.msg, Caller: m.caller, Tool: m.tool}
+	if e.Level == LevelNone && !m.tool {
+		// "##[command]npm test" and the like: the text may say more.
+		var t Entry
+		readText(m.msg, r.day, &t)
+		e.Level, e.RawLevel = t.Level, t.RawLevel
+	}
+	r.start(e, l, noBlock)
+	if m.kind == ciSectionEnd {
+		r.ci.end("")
+	}
+}
+
+// buildLine places a line a build tool marked.
+func (r *reader) buildLine(m buildMark, l *line) {
+	if m.starts != "" {
+		r.ci.build, r.ci.buildSrc = m.starts, l.pre.source
+	}
+	msg := m.msg
+	if msg == "" && m.block != tfBlock {
+		msg = l.s
+	}
+	e := Entry{Format: Text, Level: m.level, RawLevel: m.raw, Message: msg, Step: m.step, Tool: m.tool}
+	if m.took > 0 {
+		e.Fields = []Field{{Key: tookKey, Kind: Number, Text: strconv.FormatFloat(m.took, 'f', -1, 64), Num: m.took}}
+	}
+	r.start(e, l, m.block)
+}
+
 // frameFollows reports whether the next line from src is a stack frame,
 // which makes the current line the exception that heads it.
 func (r *reader) frameFollows(src string) bool {
@@ -378,6 +464,8 @@ func (r *reader) inBlock(p *pending, s string) bool {
 			p.block = pyBlock
 			return true
 		}
+	case tfBlock, npmBlock, indentBlock, testBlock:
+		return inBuildBlock(p, s)
 	case headBlock:
 		// Plain lines only: one that is structured, has a time or a level
 		// of its own, or starts a stack trace begins its own entry.
@@ -404,6 +492,7 @@ func (r *reader) structured(s string, e *Entry) bool {
 		_, _, fields = unwrapPayload(fields)
 		e.Format, e.Fields = JSON, fields
 		fromFields(e)
+		jsonShapes(e)
 		e.Fields = messageFields(e)
 		return true
 	case readKlog(s, r.year, e):
@@ -463,7 +552,15 @@ func (r *reader) start(e Entry, l *line, block blockKind) *pending {
 	if prev := r.last[src]; prev != nil {
 		prev.done = true
 	}
-	e.Line, e.Source = l.n, src
+	// A prefix's source wins; without one, the line's own (syslog's
+	// app, an access log's upstream) stays.
+	e.Line = l.n
+	if src != "" || e.Source == "" {
+		e.Source = src
+	}
+	if e.Step == "" {
+		e.Step = r.ci.current(src)
+	}
 	if e.Time.IsZero() {
 		e.Time = l.pre.time
 	}
@@ -471,7 +568,7 @@ func (r *reader) start(e Entry, l *line, block blockKind) *pending {
 		e.Fields = append(e.Fields, Field{Key: "stream", Text: l.pre.stream})
 	}
 	e.Fields = append(e.Fields, l.pre.fields...)
-	p := &pending{e: e, lastLine: l.n + l.parts - 1, block: block, start: l.start, end: l.end, stream: l.pre.stream}
+	p := &pending{e: e, lastLine: l.n + l.parts - 1, block: block, start: l.start, end: l.end, stream: l.pre.stream, src: src}
 	p.e.Lines = l.parts
 	if block == pyBlock {
 		// A Go panic's first line is its message; a traceback's is part of the stack.
@@ -512,8 +609,8 @@ func (r *reader) flush(n int, yield func(Entry) bool) bool {
 		if !p.done && n-p.lastLine <= openLines {
 			break
 		}
-		if r.last[p.e.Source] == p {
-			delete(r.last, p.e.Source)
+		if r.last[p.src] == p {
+			delete(r.last, p.src)
 		}
 		r.queue[r.head] = nil
 		r.head++
@@ -587,7 +684,11 @@ func documentItems(text string) ([]Entry, bool) {
 		if _, ok := parseObject(t, nil); !ok {
 			return nil, false
 		}
-		if a, b, ok := memberSpan(t, "hits"); ok {
+		// kubectl get … -o json: a List's items.
+		if a, b, ok := memberSpan(t, "items"); ok && t[a] == '[' {
+			off += a
+			t = t[a:b]
+		} else if a, b, ok := memberSpan(t, "hits"); ok {
 			if c, d, ok := memberSpan(t[a:b], "hits"); ok && t[a+c] == '[' {
 				off += a + c
 				t = t[a+c : a+d]

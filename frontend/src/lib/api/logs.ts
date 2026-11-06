@@ -1,4 +1,5 @@
 import { postForm, request, requestBlob } from './client'
+import type { SearchMatch } from './search'
 
 // The Log viewer's server side (internal/logview, decision 86): a log
 // read once and held in memory under an id; the UI asks for pages,
@@ -49,6 +50,7 @@ export interface LogTally {
 export interface LogStep extends LogTally {
   name: string
   pods: number
+  took?: number // seconds, as the tool reports it (BuildKit's DONE)
   podStats?: (LogTally & { name: string })[] // each pod on its own, the first 50
 }
 
@@ -151,6 +153,27 @@ export interface LogEntry {
   fields: EntryField[]
   raw: string
   rawCut?: boolean
+  /** File and line references in each text, offsets in UTF-16 units. */
+  refs: Partial<Record<RefField, SourceRef[]>>
+  /** The open folder's files for each reference's path; absent when
+   *  no folder is open, an empty list when none fits. */
+  sources?: Record<string, SourceMatch[]>
+}
+
+export type RefField = 'message' | 'error' | 'caller' | 'stack' | 'raw'
+
+/** A file and line a log line points to (decision 99). */
+export interface SourceRef {
+  start: number
+  end: number
+  path: string
+  line: number
+  col?: number
+}
+
+export interface SourceMatch {
+  file: string
+  quality: 'exact' | 'strong' | 'possible'
 }
 
 export interface FieldStat {
@@ -286,4 +309,33 @@ export function compareLogs(id: string, other: string, signal?: AbortSignal): Pr
 
 export function closeLog(id: string): Promise<void> {
   return request('DELETE', base(id))
+}
+
+/** Where a piece of a log line appears in the open folder: a literal
+ *  search, logs and build output left out (decision 99). */
+export function findSource(text: string, signal?: AbortSignal): Promise<{ matches: SearchMatch[]; truncated: boolean; timedOut: boolean }> {
+  return request('POST', '/api/v2/logs/find-source', { text }, signal)
+}
+
+/** A line an entry may have been written by, rated by what is around it. */
+export interface LineHit extends SearchMatch {
+  quality: 'exact' | 'strong' | 'possible'
+  score: number
+  why: string[]
+}
+
+/** One message searched: the entry's message, or a layer of its
+ *  wrapped error, with what was searched for and the hits. */
+export interface LineLayer {
+  text: string
+  phrases: string[]
+  hits: LineHit[]
+}
+
+/** Where an entry's message was written in the open folder (decision 99). */
+export function findLine(
+  q: { message: string; error?: string; fields?: string[] },
+  signal?: AbortSignal,
+): Promise<{ layers: LineLayer[]; truncated: boolean; timedOut: boolean }> {
+  return request('POST', '/api/v2/logs/find-line', q, signal)
 }
