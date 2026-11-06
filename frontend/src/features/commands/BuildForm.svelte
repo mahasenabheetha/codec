@@ -5,7 +5,7 @@
   import type { Arg, Command, Flag, FlagUse, Suggestions, Tool } from '../../lib/api/commands'
   import IconButton from '../../lib/components/IconButton.svelte'
   import Select from '../../lib/components/Select.svelte'
-  import { chain, flagsOf, type Built } from './render'
+  import { chain, flagsOf, levelOf, usesFlag, type Built } from './render'
 
   // The form side of the Commands tool: the subcommand, its arguments
   // and its flags for one command of the line. Every change hands a new
@@ -24,7 +24,7 @@
   const cmds = $derived(chain(tool, built.path))
   const cmd = $derived(cmds[cmds.length - 1])
   const flags = $derived(flagsOf(cmds))
-  const used = (f: Flag) => built.flags.filter((u) => u.ref === f.names[0])
+  const used = (f: Flag) => built.flags.filter((u) => usesFlag(u, f, cmds))
   // Common flags and the ones in use first; the rest folded away.
   const shown = $derived(flags.filter((f) => f.common || used(f).length > 0))
   const more = $derived(flags.filter((f) => !f.common && used(f).length === 0))
@@ -36,14 +36,18 @@
   /** The subcommands at each level: the tool's, then the chosen one's. */
   const levels = $derived(cmds.filter((c) => c.commands?.length))
 
+  // Flags of the commands below the one changed lose their level: they
+  // belong to the new subcommand if it has them, or go.
   function setPath(level: number, name: string) {
-    onchange({ ...built, path: [...built.path.slice(0, level), ...(name ? [name] : [])] })
+    const flags = built.flags.map((u) => (u.level !== undefined && u.level > level ? { ...u, level: undefined } : u))
+    onchange({ ...built, flags, path: [...built.path.slice(0, level), ...(name ? [name] : [])] })
   }
 
   function toggle(f: Flag, on: boolean) {
     const ref = f.names[0]
-    const rest = built.flags.filter((u) => u.ref !== ref)
-    onchange({ ...built, flags: on ? [...built.flags, { ref, value: f.choices?.[0]?.value && !f.optionalValue ? f.choices[0].value : '', valued: !!f.value && !f.optionalValue }] : rest })
+    const rest = built.flags.filter((u) => !usesFlag(u, f, cmds))
+    const level = levelOf(f, cmds)
+    onchange({ ...built, flags: on ? [...built.flags, { ref, level, value: f.choices?.[0]?.value && !f.optionalValue && !open(f) ? f.choices[0].value : '', valued: !!f.value && !f.optionalValue }] : rest })
   }
 
   function setValue(use: FlagUse, value: string) {
@@ -51,11 +55,18 @@
   }
 
   function addAnother(f: Flag) {
-    onchange({ ...built, flags: [...built.flags, { ref: f.names[0], value: '', valued: true }] })
+    onchange({ ...built, flags: [...built.flags, { ref: f.names[0], level: levelOf(f, cmds), value: '', valued: true }] })
   }
 
   function remove(use: FlagUse) {
     onchange({ ...built, flags: built.flags.filter((u) => u !== use) })
+  }
+
+  // A flag of a command above the chosen one, not persistent, is
+  // written before the next subcommand: "before log".
+  function before(f: Flag): string {
+    const l = levelOf(f, cmds)
+    return l >= 0 && l < cmds.length - 1 && !f.persistent ? cmds[l + 1].name : ''
   }
 
   // A flag whose choices include a kind of value (jsonpath=) takes
@@ -100,6 +111,7 @@
       <input type="checkbox" checked={uses.length > 0} onchange={(e) => toggle(f, e.currentTarget.checked)} />
       <span class="names">{f.names.filter((n) => n !== '-<n>').join(', ')}{#if f.value}<span class="ph">{f.optionalValue ? `[=${f.value}]` : f.value}</span>{/if}</span>
       {#if f.danger}<span class="danger {f.danger.level}" title={f.danger.note}><TriangleAlert size={12} strokeWidth={2} /></span>{/if}
+      {#if before(f)}<span class="where">before {before(f)}</span>{/if}
     </label>
     <p class="sum">{f.summary}</p>
     {#if f.value && uses.length}
@@ -247,6 +259,10 @@
     margin-left: 0.5ch;
     color: var(--fg-2);
     font-style: italic;
+  }
+  .where {
+    font-size: var(--fs-xs);
+    color: var(--fg-2);
   }
   .sum {
     margin: 0 0 0 22px;

@@ -1204,7 +1204,7 @@ recipes:
     note: the changes stay staged; if the commit was pushed, pushing again needs a force push
   - title: Throw away every uncommitted change
     command: git reset --hard
-    words: [discard, start over, clean, lose]
+    words: [discard, all changes, everything, start over, clean, lose]
     note: changes to tracked files are lost; git stash keeps them instead
   - title: Throw away the changes to one file
     command: git restore {file}

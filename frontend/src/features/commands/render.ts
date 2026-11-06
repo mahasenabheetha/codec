@@ -45,15 +45,16 @@ export function chain(tool: Tool, path: string[]): Command[] {
   return out
 }
 
-/** The flags a command takes: its own, then the persistent ones of the
- *  commands above it, and the tool's own before any subcommand. */
+/** The flags a command takes: its own, the persistent ones of the
+ *  commands above it, and those commands' own, which go before the
+ *  next subcommand (git -C repo log). Deepest first; when two levels
+ *  share a name, the deeper one's is listed. */
 export function flagsOf(cmds: Command[]): Flag[] {
   const out: Flag[] = []
   const seen = new Set<string>()
   for (let k = cmds.length - 1; k >= 0; k--) {
     for (const f of cmds[k].flags ?? []) {
-      const own = k === cmds.length - 1 || f.persistent || (k === 0 && cmds.length === 1)
-      if (own && !seen.has(f.names[0])) {
+      if (!seen.has(f.names[0])) {
         seen.add(f.names[0])
         out.push(f)
       }
@@ -62,18 +63,44 @@ export function flagsOf(cmds: Command[]): Flag[] {
   return out
 }
 
+/** Whose flag f is: the index in cmds of the command that has it. */
+export function levelOf(f: Flag, cmds: Command[]): number {
+  return cmds.findIndex((c) => c.flags?.includes(f))
+}
+
+/** Whether u is a use of f, at f's own level. */
+export function usesFlag(u: FlagUse, f: Flag, cmds: Command[]): boolean {
+  return u.ref === f.names[0] && (u.level === undefined || u.level === levelOf(f, cmds))
+}
+
+/** The flag u uses, and after which command's word it is written: its
+ *  own level, or after the last for the chosen command's flags and the
+ *  persistent ones. null when no command of cmds has it any more. */
+function place(u: FlagUse, cmds: Command[]): { f: Flag; at: number } | null {
+  const last = cmds.length - 1
+  if (u.level !== undefined && u.level <= last) {
+    const f = cmds[u.level].flags?.find((x) => x.names[0] === u.ref)
+    if (f) return { f, at: f.persistent ? last : u.level }
+  }
+  const f = flagsOf(cmds).find((x) => x.names[0] === u.ref)
+  return f ? { f, at: f.persistent ? last : levelOf(f, cmds) } : null
+}
+
 /** The words of a built command. A flag with a value only after "="
  *  is written that way; the others as two words. */
 function words(b: Built, cmds: Command[], shell: Shell): string[] {
-  const byRef = new Map(flagsOf(cmds).map((f) => [f.names[0], f]))
-  const out = [b.tool, ...b.path]
+  const at: string[][] = cmds.map(() => []) // the flags after each command's word
   for (const u of b.flags) {
-    const f = byRef.get(u.ref)
-    if (!f) continue // not a flag of this command any more
-    if (!f.value) out.push(u.ref)
-    else if (f.optionalValue) out.push(u.valued && u.value !== '' ? `${u.ref}=${quote(u.value, shell)}` : u.ref)
-    else out.push(u.ref, quote(u.value, shell))
+    const p = place(u, cmds)
+    if (!p) continue // not a flag of this command any more
+    const { f } = p
+    const w = at[p.at]
+    if (!f.value) w.push(u.ref)
+    else if (f.optionalValue) w.push(u.valued && u.value !== '' ? `${u.ref}=${quote(u.value, shell)}` : u.ref)
+    else w.push(u.ref, quote(u.value, shell))
   }
+  const out = [b.tool, ...at[0]]
+  b.path.forEach((name, i) => out.push(name, ...(at[i + 1] ?? [])))
   for (const a of b.args) out.push(quote(a, shell))
   return out
 }

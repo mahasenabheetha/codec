@@ -33,6 +33,23 @@ All notable changes to codec are documented here. The format follows
   kubectl 1.36, with 63 recipes. A flag value written as a kind
   (`-o jsonpath=…`) is explained, and the form offers the formats in a
   text box rather than a fixed list.
+- **docker, compose and helm** in Commands: docker's run, exec, ps,
+  logs, build, images, pull, push, tag, login, stop, rm, rmi, inspect,
+  cp, stats, save and load, with image, container, network, volume,
+  system, builder, buildx, context and compose (up, down, ps, logs,
+  exec, run, build, restart, config, watch…) — checked against Docker
+  29.9 and Compose 5.6, with 46 recipes; helm's install, upgrade,
+  template, lint, list, status, history, rollback, uninstall, get, show,
+  repo, search, dependency, pull, push, package, create and test, with
+  27 recipes. helm wasn't installed to check its flags against.
+
+### Fixed
+
+- **Commands**: the Build form wrote every flag after the last
+  subcommand and dropped the tool's own (`git -C repo log` lost `-C`).
+  Each flag is now written back where it belongs, and the form lists
+  the ones that go before a subcommand, marked so
+  (`docker compose -f a.yml up`).
 
 ## [3.9.0] - 2026-11-06
 

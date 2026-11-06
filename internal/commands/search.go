@@ -42,6 +42,7 @@ const (
 	toolBoost     = 1.5 // the query names the tool
 	flagBonus     = 4.0 // the query has the flag itself: --force
 	keepShare     = 0.25
+	echoWeight    = 0.1 // a word matched in another field too
 )
 
 type doc struct {
@@ -217,14 +218,25 @@ func (ix *index) search(query, tool string, limit int) []Result {
 		}
 		score, matched, why := 0.0, 0, []string(nil)
 		for _, t := range terms {
-			best, bestWhy := 0.0, ""
-			for _, a := range t.alts {
-				for f, roots := range d.fields {
-					if w := fieldWeight[f] * a.weight; w > best && slices.Contains(roots, a.root) {
-						best, bestWhy = w, a.why
+			// The best field counts; the others it matches in add a little,
+			// so a recipe whose words say it again ranks above one whose
+			// title only happens to have it.
+			best, bestWhy, others := 0.0, "", 0.0
+			for f, roots := range d.fields {
+				fieldBest, fieldWhy := 0.0, ""
+				for _, a := range t.alts {
+					if w := fieldWeight[f] * a.weight; w > fieldBest && slices.Contains(roots, a.root) {
+						fieldBest, fieldWhy = w, a.why
 					}
 				}
+				if fieldBest > best {
+					others += best
+					best, bestWhy = fieldBest, fieldWhy
+				} else {
+					others += fieldBest
+				}
 			}
+			best += echoWeight * others
 			if best == 0 && len(t.word) >= 3 {
 				root := stem(t.word)
 				for f, roots := range d.fields {
@@ -377,7 +389,7 @@ func oneEdit(a, b string) bool {
 }
 
 var stopword = set("a an the to of in on for with from by at as is are be it its i me my we our you your this that these those and or " +
-	"how do does can could should would will what which when where why want need way some any just please command commands")
+	"how do does did done was were can could should would will what which when where why want need way some any just please command commands")
 
 func set(s string) map[string]bool {
 	m := map[string]bool{}
@@ -425,6 +437,7 @@ var synonymGroups = [][]string{
 	{"commit", "commits", "snapshot", "save"},
 	{"force", "overwrite", "override"},
 	{"secret", "password", "credential", "token"},
+	{"login", "signin", "sign", "authenticate", "credentials"},
 	{"config", "configuration", "settings", "setting", "context"},
 	{"scale", "replicas", "replica", "instances", "resize"},
 	{"namespace", "namespaces", "ns", "project"},

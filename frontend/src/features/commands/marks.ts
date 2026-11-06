@@ -6,8 +6,9 @@ import { Prec, RangeSetBuilder, type Extension } from '@codemirror/state'
 import { Decoration, EditorView, keymap } from '@codemirror/view'
 import type { Part } from '../../lib/api/commands'
 
-/** A value to fill in, as recipes write it: {branch}. */
-export const placeholderRe = /\{[a-z][a-z0-9-]*\}/g
+/** A value to fill in, as recipes write it: {branch}. Double braces
+ *  are a Go template's ({{end}}), not a placeholder. */
+export const placeholderRe = /(?<!\{)\{[a-z][a-z0-9-]*\}(?!\})/g
 
 /** The placeholders in a line, by their names. */
 export function placeholders(line: string): string[] {

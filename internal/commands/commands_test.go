@@ -166,7 +166,7 @@ func TestUse(t *testing.T) {
 	if strings.Join(u.Args, ",") != "a.go" || strings.Join(keep, ",") != "--frobnicate,> out,2>&1" || line[:u.ToolStart] != "LANG=C " || u.End != len(line) {
 		t.Errorf("args %q keep %q prefix %q end %d", u.Args, keep, line[:u.ToolStart], u.End)
 	}
-	if u := Explain("kubectl -nshop logs --tail=50 web").Segments[0].Use; fmt.Sprint(u.Flags) != "[{-n shop true} {--tail 50 true}]" {
+	if u := Explain("kubectl -nshop logs --tail=50 web").Segments[0].Use; fmt.Sprint(u.Flags) != "[{-n shop true 0} {--tail 50 true 1}]" {
 		t.Errorf("attached values: %v", u.Flags)
 	}
 	if u := Explain("grep x").Segments[0].Use; u != nil {
@@ -233,6 +233,17 @@ func FuzzExplain(f *testing.F) {
 		}
 		_ = fmt.Sprint(ex)
 	})
+}
+
+// Regression: the builder wrote every flag after the last subcommand,
+// and dropped a root flag (git -C repo log lost -C). A use says whose
+// flag each is, so it can be written back there.
+func TestUseLevels(t *testing.T) {
+	u := Explain("git -C repo -p log -p --oneline").Segments[0].Use
+	// -p before log is git's (a pager), after it log's (the patch).
+	if fmt.Sprint(u.Flags) != "[{-C repo true 0} {-p  false 0} {-p  false 1} {--oneline  false 1}]" {
+		t.Errorf("flags: %v", u.Flags)
+	}
 }
 
 // A choice written as a prefix (jsonpath=) explains every value it
@@ -338,6 +349,13 @@ func TestSearch(t *testing.T) {
 		{"switch namespace", "", "kubectl config set-context --current --namespace={namespace}"},
 		{"access service locally", "", "kubectl port-forward svc/{service} 8080:80 -n {namespace}"},
 		{"node maintenance", "", "kubectl drain {node} --ignore-daemonsets"},
+		{"free disk space docker", "", "docker system prune -a"},
+		{"build for arm", "", "docker buildx build --platform linux/amd64,linux/arm64 -t {image} --push ."},
+		{"reset database compose", "", "docker compose down -v"},
+		{"login to registry", "docker", "docker login {server} -u {user} --password-stdin"},
+		{"undo helm upgrade", "", "helm rollback {release} -n {namespace}"},
+		{"see chart default values", "", "helm show values {chart}"},
+		{"what values did i install with", "", "helm get values {release} -n {namespace}"},
 	} {
 		got, err := Search(c.query, c.tool, 10)
 		if err != nil {

@@ -85,6 +85,9 @@ export interface FlagUse {
   ref: string
   value: string
   valued: boolean
+  /** Whose flag: 0 the tool's, 1 the first subcommand's…; unset for one
+   *  the form added before its level was known. */
+  level?: number
 }
 
 /** A known command as the builder reads it (commands.Use). */

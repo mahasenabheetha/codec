@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/fs"
 	"path"
-	"regexp"
 	"slices"
 	"strings"
 	"sync"
@@ -198,9 +197,6 @@ func check(c *Command, where string) error {
 	}
 	return nil
 }
-
-// placeholder is a value to fill in a recipe's command: {branch}.
-var placeholder = regexp.MustCompile(`\{[a-z][a-z0-9-]*\}`)
 
 // checkRecipes: a recipe has a title and its command starts with the
 // tool. Other braces (stash@{0}, jsonpath) are left alone. Whether the command explains

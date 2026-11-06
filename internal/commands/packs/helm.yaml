@@ -1,0 +1,642 @@
+# helm, in codec's words, from Helm 3's reference (3.x; Helm 4 keeps
+# these and adds new names for some). helm isn't installed where this
+# was written, so its flags weren't checked against `helm --help`.
+shared:
+  values: &values
+    names: [-f, --values]
+    value: file
+    repeat: true
+    common: true
+    summary: takes values from this YAML file; later ones win
+  set: &set
+    names: [--set]
+    value: key=value
+    repeat: true
+    common: true
+    summary: sets a value, such as image.tag=1.2 (wins over -f)
+  setString: &setString
+    names: [--set-string]
+    value: key=value
+    repeat: true
+    summary: sets a value as a string, even when it looks like a number
+  setFile: &setFile
+    names: [--set-file]
+    value: key=path
+    repeat: true
+    summary: sets a value to the contents of a file
+  version: &version
+    names: [--version]
+    value: version
+    summary: uses this version of the chart; the newest by default
+  wait: &wait
+    names: [--wait]
+    summary: waits until the resources are ready before saying it worked
+  timeout: &timeout
+    names: [--timeout]
+    value: duration
+    summary: how long to wait, such as 10m (5m by default)
+  dryRun: &dryRun
+    names: [--dry-run]
+    value: mode
+    optionalValue: true
+    summary: shows what it would do without doing it
+    choices:
+      - {value: client, summary: without asking the cluster}
+      - {value: server, summary: checked against the cluster}
+      - {value: none, summary: really does it}
+  output: &output
+    names: [-o, --output]
+    value: format
+    summary: prints in this format
+    choices: [table, json, yaml]
+  atomic: &atomic
+    names: [--atomic]
+    summary: if it fails, undoes it (rolls back, or uninstalls a first install); implies --wait
+  noHooks: &noHooks
+    names: [--no-hooks]
+    summary: doesn't run the chart's hooks
+  devel: &devel
+    names: [--devel]
+    summary: allows pre-release versions too, such as 1.2.0-rc.1
+  release: &release
+    name: release
+    summary: the release's name, as helm list shows it
+
+name: helm
+group: kubernetes
+summary: Helm, the package manager for Kubernetes.
+flags:
+  - names: [-n, --namespace]
+    value: namespace
+    persistent: true
+    summary: works in this namespace
+  - names: [--kube-context]
+    value: context
+    persistent: true
+    summary: uses this context from your kubeconfig
+  - names: [--kubeconfig]
+    value: file
+    persistent: true
+    summary: reads this kubeconfig file
+  - names: [--debug]
+    persistent: true
+    summary: prints more, such as the rendered manifests when something fails
+commands:
+  - name: install
+    summary: Installs a chart as a new release.
+    danger:
+      level: caution
+      note: creates resources in the cluster
+      safer: helm install --dry-run=server {release} {chart}
+    flags:
+      - *values
+      - *set
+      - *version
+      - names: [--create-namespace]
+        common: true
+        summary: creates the namespace if it isn't there
+      - *wait
+      - *timeout
+      - *atomic
+      - *dryRun
+      - *setString
+      - *setFile
+      - names: [-g, --generate-name]
+        summary: makes up a name for the release
+      - names: [--wait-for-jobs]
+        summary: with --wait, waits for the jobs to finish too
+      - names: [--description]
+        value: text
+        summary: notes this in the release's history
+      - names: [--skip-crds]
+        summary: doesn't install the chart's CRDs
+      - *noHooks
+      - *devel
+      - names: [--repo]
+        value: url
+        summary: takes the chart from this repository, without adding it
+    args:
+      - *release
+      - name: chart
+        summary: the chart, as repo/name, a folder, a .tgz or oci://…
+  - name: upgrade
+    summary: Upgrades a release to a new version of its chart or new values.
+    danger:
+      level: caution
+      note: changes what runs in the cluster
+      safer: helm upgrade --dry-run=server {release} {chart}
+    flags:
+      - names: [-i, --install]
+        common: true
+        summary: installs it if it isn't there yet
+      - *values
+      - *set
+      - *version
+      - names: [--reuse-values]
+        summary: keeps the values of the last release and adds these
+      - names: [--reset-values]
+        summary: starts from the chart's own values
+      - names: [--reset-then-reuse-values]
+        summary: starts from the new chart's values, then applies the last release's
+      - *wait
+      - *timeout
+      - *atomic
+      - *dryRun
+      - names: [--create-namespace]
+        summary: with --install, creates the namespace if it isn't there
+      - names: [--cleanup-on-fail]
+        summary: deletes what this upgrade created if it fails
+      - names: [--force]
+        summary: replaces resources instead of patching them
+        danger:
+          level: caution
+          note: replaced resources are deleted and made again, which can restart pods
+      - names: [--history-max]
+        value: number
+        summary: keeps at most this many revisions (10 by default)
+      - *setString
+      - *setFile
+      - names: [--description]
+        value: text
+        summary: notes this in the release's history
+      - *noHooks
+      - *devel
+    args:
+      - *release
+      - name: chart
+        summary: the chart, as repo/name, a folder, a .tgz or oci://…
+  - name: template
+    summary: Renders a chart's templates and prints the manifests, without the cluster.
+    flags:
+      - *values
+      - *set
+      - *version
+      - names: [-s, --show-only]
+        value: template
+        repeat: true
+        common: true
+        summary: prints only this template, such as templates/deployment.yaml
+      - names: [--output-dir]
+        value: folder
+        summary: writes the manifests to files in this folder
+      - names: [--include-crds]
+        summary: prints the CRDs too
+      - names: [-a, --api-versions]
+        value: version
+        repeat: true
+        summary: renders as if the cluster had this API, for Capabilities checks
+      - names: [--kube-version]
+        value: version
+        summary: renders as if for this Kubernetes version
+      - names: [--is-upgrade]
+        summary: renders as for an upgrade (.Release.IsUpgrade)
+      - *setString
+      - *setFile
+      - *devel
+    args:
+      - name: release
+        optional: true
+        summary: the release name to render with
+      - name: chart
+        summary: the chart, as repo/name, a folder, a .tgz or oci://…
+  - name: lint
+    summary: Checks a chart for mistakes.
+    flags:
+      - names: [--strict]
+        common: true
+        summary: fails on warnings too
+      - *values
+      - *set
+      - names: [--with-subcharts]
+        summary: checks the dependent charts too
+    args:
+      - name: path
+        optional: true
+        repeat: true
+        summary: the chart's folder; . by default
+  - name: list
+    aliases: [ls]
+    summary: Lists the releases.
+    flags:
+      - names: [-A, --all-namespaces]
+        common: true
+        summary: in every namespace
+      - names: [-a, --all]
+        summary: every release, whatever its state
+      - names: [--failed]
+        summary: only failed releases
+      - names: [--pending]
+        summary: only releases being installed, upgraded or rolled back
+      - names: [-f, --filter]
+        value: regex
+        summary: only releases whose name matches
+      - names: [-q, --short]
+        summary: only the names
+      - *output
+  - name: status
+    summary: Shows a release's state, its notes and when it was last deployed.
+    flags:
+      - names: [--revision]
+        value: number
+        summary: of this revision
+      - names: [--show-resources]
+        summary: lists its resources too
+      - *output
+    args:
+      - *release
+  - name: history
+    aliases: [hist]
+    summary: Lists a release's revisions, to pick one to roll back to.
+    flags:
+      - names: [--max]
+        value: number
+        summary: only the last this-many
+      - *output
+    args:
+      - *release
+  - name: rollback
+    summary: Puts a release back to an earlier revision.
+    danger:
+      level: caution
+      note: changes what runs in the cluster
+    flags:
+      - *wait
+      - *timeout
+      - names: [--cleanup-on-fail]
+        summary: deletes what this rollback created if it fails
+      - names: [--force]
+        summary: replaces resources instead of patching them
+      - *noHooks
+      - names: [--dry-run]
+        summary: shows what would happen without doing it
+    args:
+      - *release
+      - name: revision
+        optional: true
+        summary: the revision; the one before by default
+  - name: uninstall
+    aliases: [un, delete, del]
+    summary: Deletes a release and the resources it made.
+    danger:
+      level: danger
+      note: the release's resources are deleted; data in its volumes may go with them
+      safer: helm uninstall --dry-run {release}
+    flags:
+      - names: [--keep-history]
+        summary: keeps its history, so it can be rolled back
+      - names: [--dry-run]
+        summary: shows what would be deleted
+      - *wait
+      - *timeout
+      - *noHooks
+    args:
+      - name: release
+        repeat: true
+        summary: the releases
+  - name: get
+    summary: Prints what a release was installed with.
+    commands:
+      - name: values
+        summary: The values you gave (all of them with -a).
+        flags:
+          - names: [-a, --all]
+            common: true
+            summary: every value, the chart's defaults too
+          - names: [--revision]
+            value: number
+            summary: of this revision
+          - *output
+        args:
+          - *release
+      - name: manifest
+        summary: The manifests it applied.
+        flags:
+          - names: [--revision]
+            value: number
+            summary: of this revision
+        args:
+          - *release
+      - name: notes
+        summary: The notes the chart printed.
+        args:
+          - *release
+      - name: all
+        summary: Everything about it.
+        flags:
+          - names: [--revision]
+            value: number
+            summary: of this revision
+        args:
+          - *release
+      - name: hooks
+        summary: Its hooks.
+        args:
+          - *release
+  - name: show
+    aliases: [inspect]
+    summary: Prints a chart's information, without installing it.
+    commands:
+      - name: values
+        summary: The chart's default values, to copy and change.
+        flags:
+          - *version
+          - *devel
+        args:
+          - name: chart
+            summary: the chart
+      - name: chart
+        summary: The chart's Chart.yaml.
+        flags:
+          - *version
+        args:
+          - name: chart
+            summary: the chart
+      - name: readme
+        summary: The chart's README.
+        flags:
+          - *version
+        args:
+          - name: chart
+            summary: the chart
+      - name: all
+        summary: Everything about the chart.
+        flags:
+          - *version
+        args:
+          - name: chart
+            summary: the chart
+      - name: crds
+        summary: The chart's CRDs.
+        flags:
+          - *version
+        args:
+          - name: chart
+            summary: the chart
+  - name: repo
+    summary: Adds, lists and updates chart repositories.
+    commands:
+      - name: add
+        summary: Adds a chart repository.
+        flags:
+          - names: [--username]
+            value: user
+            summary: the user name
+          - names: [--password]
+            value: password
+            summary: the password
+            danger:
+              level: caution
+              note: the password stays in your shell history
+              safer: helm repo add --password-stdin
+          - names: [--password-stdin]
+            summary: reads the password from input
+          - names: [--force-update]
+            summary: replaces a repository of the same name
+        args:
+          - name: name
+            summary: what to call it, such as bitnami
+          - name: url
+            summary: where it is
+      - name: update
+        aliases: [up]
+        summary: Gets the latest list of charts from the repositories.
+        args:
+          - name: repo
+            optional: true
+            repeat: true
+            summary: only these
+      - name: list
+        aliases: [ls]
+        summary: Lists the repositories.
+        flags:
+          - *output
+      - name: remove
+        aliases: [rm]
+        summary: Removes repositories.
+        args:
+          - name: repo
+            repeat: true
+            summary: the repositories
+  - name: search
+    summary: Searches for charts.
+    commands:
+      - name: repo
+        summary: Searches the repositories you added.
+        flags:
+          - names: [-l, --versions]
+            common: true
+            summary: every version, not only the newest
+          - names: [--version]
+            value: constraint
+            summary: only versions matching this, such as ^1.2
+          - *devel
+          - *output
+        args:
+          - name: keyword
+            optional: true
+            summary: what to look for
+      - name: hub
+        summary: Searches Artifact Hub.
+        args:
+          - name: keyword
+            summary: what to look for
+  - name: dependency
+    aliases: [dep]
+    summary: Manages a chart's dependencies (its subcharts).
+    commands:
+      - name: update
+        aliases: [up]
+        summary: Downloads the dependencies Chart.yaml lists into charts/, updating Chart.lock.
+        flags:
+          - names: [--skip-refresh]
+            summary: doesn't update the repositories first
+        args:
+          - name: chart
+            optional: true
+            summary: the chart's folder; . by default
+      - name: build
+        summary: Downloads the dependencies as Chart.lock pins them.
+        args:
+          - name: chart
+            optional: true
+            summary: the chart's folder; . by default
+      - name: list
+        aliases: [ls]
+        summary: Lists the dependencies and whether they are downloaded.
+        args:
+          - name: chart
+            optional: true
+            summary: the chart's folder
+  - name: pull
+    aliases: [fetch]
+    summary: Downloads a chart, to read or change it.
+    flags:
+      - names: [--untar]
+        common: true
+        summary: unpacks it into a folder
+      - *version
+      - names: [-d, --destination]
+        value: folder
+        summary: puts it in this folder
+      - names: [--repo]
+        value: url
+        summary: from this repository, without adding it
+      - *devel
+    args:
+      - name: chart
+        summary: the chart, as repo/name or oci://…
+  - name: push
+    summary: Uploads a packaged chart to an OCI registry.
+    args:
+      - name: package
+        summary: the .tgz
+      - name: remote
+        summary: the registry, as oci://host/path
+  - name: package
+    summary: Packs a chart folder into a versioned .tgz.
+    flags:
+      - names: [-u, --dependency-update]
+        summary: updates the dependencies first
+      - names: [--version]
+        value: version
+        summary: sets the chart's version
+      - names: [--app-version]
+        value: version
+        summary: sets the app's version
+      - names: [-d, --destination]
+        value: folder
+        summary: puts the .tgz here
+    args:
+      - name: path
+        repeat: true
+        summary: the chart folders
+  - name: create
+    summary: Makes a new chart folder with example templates.
+    flags:
+      - names: [-p, --starter]
+        value: starter
+        summary: starts from this starter chart
+    args:
+      - name: name
+        summary: the chart, and its folder
+  - name: test
+    summary: Runs a release's tests (its test hooks).
+    flags:
+      - names: [--logs]
+        summary: prints the test pods' logs
+      - *timeout
+    args:
+      - *release
+  - name: registry
+    summary: Signs in to and out of OCI registries.
+    commands:
+      - name: login
+        summary: Signs in to a registry.
+        flags:
+          - names: [-u, --username]
+            value: user
+            summary: the user name
+          - names: [--password-stdin]
+            summary: reads the password from input
+          - names: [-p, --password]
+            value: password
+            summary: the password
+            danger:
+              level: caution
+              note: the password stays in your shell history
+              safer: helm registry login --password-stdin
+        args:
+          - name: host
+            summary: the registry
+      - name: logout
+        summary: Signs out of a registry.
+        args:
+          - name: host
+            summary: the registry
+  - name: env
+    summary: Prints where helm keeps its files and settings.
+  - name: version
+    summary: Prints helm's version.
+recipes:
+  - title: Install a chart with your values
+    command: helm install {release} {chart} -n {namespace} --create-namespace -f values.yaml
+    words: [deploy chart, install app, new release]
+  - title: Install or upgrade, whichever is needed
+    command: helm upgrade --install {release} {chart} -n {namespace} -f values.yaml
+    words: [deploy, idempotent, ci, apply chart]
+  - title: Upgrade and roll back on its own if it fails
+    command: helm upgrade --install {release} {chart} -n {namespace} --atomic --timeout 10m
+    words: [safe deploy, automatic rollback]
+  - title: See what an upgrade would change
+    command: helm upgrade {release} {chart} -n {namespace} --dry-run=server -f values.yaml
+    words: [preview upgrade, what would happen]
+  - title: Change one value of a release
+    command: helm upgrade {release} {chart} -n {namespace} --reuse-values --set {key}={value}
+    words: [set value, change setting, bump image]
+  - title: Render a chart's manifests without the cluster
+    command: helm template {release} {chart} -f values.yaml
+    words: [render templates, see yaml, generate manifests, debug chart]
+  - title: Render one template of a chart
+    command: helm template {release} . -s templates/{template}.yaml
+    words: [one file, debug template]
+  - title: Check a chart for mistakes
+    command: helm lint --strict .
+    words: [validate chart, lint]
+  - title: List the releases in every namespace
+    command: helm list -A
+    words: [installed charts, what is deployed, releases]
+  - title: List the releases that failed
+    command: helm list -A --failed
+    words: [broken releases, failed deploy]
+  - title: See a release's revisions
+    command: helm history {release} -n {namespace}
+    words: [revisions, past deploys, versions]
+  - title: Roll a release back to the previous revision
+    command: helm rollback {release} -n {namespace}
+    words: [rollback, undo upgrade, revert release, go back]
+  - title: Roll a release back to a revision
+    command: helm rollback {release} {revision} -n {namespace} --wait
+    words: [undo, specific version]
+  - title: See the values a release was installed with
+    command: helm get values {release} -n {namespace}
+    words: [current values, what was set, installed with, deployed with]
+  - title: See every value of a release, defaults too
+    command: helm get values {release} -n {namespace} -a
+    words: [all values, computed values]
+  - title: See what a release applied
+    command: helm get manifest {release} -n {namespace}
+    words: [deployed yaml, resources]
+  - title: See a chart's default values
+    command: helm show values {chart}
+    words: [default values, values.yaml, options]
+  - title: Uninstall a release
+    command: helm uninstall {release} -n {namespace}
+    words: [remove release, delete chart]
+  - title: Add a chart repository
+    command: helm repo add {name} {url}
+    words: [new repo, chart source]
+    note: then helm repo update
+  - title: Get the latest charts from the repositories
+    command: helm repo update
+    words: [refresh repos, update charts]
+  - title: Find a chart's versions
+    command: helm search repo {chart} -l
+    words: [chart versions, available versions, latest chart]
+  - title: Download and unpack a chart
+    command: helm pull {chart} --untar
+    words: [look inside chart, download chart]
+  - title: Download a chart's dependencies
+    command: helm dependency update
+    words: [subcharts, charts folder, chart lock]
+  - title: Package a chart
+    command: helm package . -u
+    words: [tgz, release chart]
+  - title: Push a chart to an OCI registry
+    command: helm push {chart}.tgz oci://{registry}/{path}
+    words: [publish chart, acr, ghcr, oci]
+  - title: Start a new chart
+    command: helm create {name}
+    words: [scaffold, new chart, boilerplate]
+  - title: Run a release's tests
+    command: helm test {release} -n {namespace} --logs
+    words: [helm test, smoke test]

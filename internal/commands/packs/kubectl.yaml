@@ -1081,7 +1081,7 @@ recipes:
     words: [deploy done, ready, progress]
   - title: Roll back a deployment to the previous version
     command: kubectl rollout undo deployment/{name} -n {namespace}
-    words: [revert deploy, bad release, go back]
+    words: [rollback, revert deploy, bad release, go back]
   - title: See a deployment's revisions
     command: kubectl rollout history deployment/{name} -n {namespace}
     words: [versions, past releases]

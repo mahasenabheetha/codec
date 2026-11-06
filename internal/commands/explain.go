@@ -26,6 +26,10 @@ type FlagUse struct {
 	Ref    string `json:"ref"`   // the flag's first name in the reference
 	Value  string `json:"value"` // its value, when it has one
 	Valued bool   `json:"valued"`
+	// Level is whose flag it is: 0 the tool's, 1 the first subcommand's,
+	// and so on. The builder writes it back at that level: git -C repo
+	// log, docker compose -f x.yml up.
+	Level int `json:"level"`
 }
 
 // Span is a piece of the line kept as written.
@@ -350,14 +354,14 @@ func (ex *Explanation) flag(toks []Token, i int, chain []*Command, atRoot bool) 
 			name, value, hasValue = s[:eq], s[eq+1:], true
 		}
 	}
-	f := findFlag(chain, atRoot, name)
+	f, level := findFlag(chain, atRoot, name)
 	if f == nil && hasValue {
 		// "-n=x" isn't a spelling every tool takes; try it whole.
 		name, value, hasValue = s, "", false
-		f = findFlag(chain, atRoot, s)
+		f, level = findFlag(chain, atRoot, s)
 	}
 	if f != nil {
-		ex.Parts = append(ex.Parts, flagPart(t, f, value, hasValue))
+		ex.Parts = append(ex.Parts, flagPart(t, f, level, value, hasValue))
 		if f.Value != "" && !hasValue && !f.OptionalValue && i+1 < len(toks) && toks[i+1].Kind == Word {
 			v := toks[i+1]
 			ex.Parts = append(ex.Parts, valuePart(v, f))
@@ -369,14 +373,16 @@ func (ex *Explanation) flag(toks []Token, i int, chain []*Command, atRoot bool) 
 	// last one that takes one).
 	if len(s) > 2 && s[0] == '-' && s[1] != '-' {
 		var flags []*Flag
+		var levels []int
 		rest := ""
 		for k := 1; k < len(s); k++ {
-			g := findFlag(chain, atRoot, "-"+s[k:k+1])
+			g, level := findFlag(chain, atRoot, "-"+s[k:k+1])
 			if g == nil {
 				flags = nil
 				break
 			}
 			flags = append(flags, g)
+			levels = append(levels, level)
 			if g.Value != "" && !g.OptionalValue {
 				rest = s[k+1:]
 				break
@@ -385,9 +391,9 @@ func (ex *Explanation) flag(toks []Token, i int, chain []*Command, atRoot bool) 
 		if flags != nil {
 			p := Part{Start: t.Start, End: t.End, Kind: KindFlag, Text: s, Ref: flags[0].Names[0]}
 			var parts []string
-			for _, g := range flags {
+			for k, g := range flags {
 				parts = append(parts, short(g)+": "+g.Summary)
-				p.Flags = append(p.Flags, FlagUse{Ref: g.Names[0]})
+				p.Flags = append(p.Flags, FlagUse{Ref: g.Names[0], Level: levels[k]})
 				if g.Danger != nil && (p.Danger == nil || g.Danger.Level == "danger") {
 					p.Danger = g.Danger // the gravest of them
 				}
@@ -410,9 +416,9 @@ func (ex *Explanation) flag(toks []Token, i int, chain []*Command, atRoot bool) 
 	return 1
 }
 
-func flagPart(t Token, f *Flag, value string, hasValue bool) Part {
+func flagPart(t Token, f *Flag, level int, value string, hasValue bool) Part {
 	p := Part{Start: t.Start, End: t.End, Kind: KindFlag, Text: t.Text, Summary: f.Summary, Danger: f.Danger, Ref: f.Names[0],
-		Flags: []FlagUse{{Ref: f.Names[0], Value: value, Valued: hasValue}}}
+		Flags: []FlagUse{{Ref: f.Names[0], Value: value, Valued: hasValue, Level: level}}}
 	if hasValue {
 		if c := choice(f.Choices, value); c != nil && c.Summary != "" {
 			p.Summary += " (" + value + ": " + c.Summary + ")"
@@ -443,7 +449,7 @@ func short(f *Flag) string {
 // findFlag looks a flag up in the command, then in the persistent flags
 // of the commands above it; a root flag that isn't persistent only
 // counts before the first subcommand.
-func findFlag(chain []*Command, atRoot bool, name string) *Flag {
+func findFlag(chain []*Command, atRoot bool, name string) (*Flag, int) {
 	numeric := len(name) > 1 && name[0] == '-' && allDigits(name[1:])
 	for k := len(chain) - 1; k >= 0; k-- {
 		c := chain[k]
@@ -454,12 +460,12 @@ func findFlag(chain []*Command, atRoot bool, name string) *Flag {
 			}
 			for _, n := range f.Names {
 				if n == name || numeric && n == "-<n>" {
-					return f
+					return f, k
 				}
 			}
 		}
 	}
-	return nil
+	return nil, 0
 }
 
 // choice finds the choice v is. One written with a trailing "="
