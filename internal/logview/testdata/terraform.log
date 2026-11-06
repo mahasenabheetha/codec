@@ -1,0 +1,18 @@
+Initializing the backend...
+Terraform used the selected providers to generate the following execution plan.
+  # aws_instance.web will be created
+Plan: 1 to add, 0 to change, 0 to destroy.
+aws_instance.web: Creating...
+╷
+│ Error: creating EC2 Instance: InvalidAMIID.NotFound
+│ 
+│   with aws_instance.web,
+│   on main.tf line 12, in resource "aws_instance" "web":
+│   12: resource "aws_instance" "web" {
+╵
+╷
+│ Warning: Argument is deprecated
+│ 
+│   on variables.tf line 3:
+╵
+{"@level":"error","@message":"Error: Unsupported argument","@module":"terraform.ui","@timestamp":"2026-11-06T10:00:00.000000Z","type":"diagnostic"}

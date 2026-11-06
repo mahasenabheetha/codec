@@ -1,0 +1,5 @@
+{"Time":"2026-11-06T10:00:00Z","Action":"start","Package":"github.com/acme/shop"}
+{"Time":"2026-11-06T10:00:00.1Z","Action":"run","Package":"github.com/acme/shop","Test":"TestCart"}
+{"Time":"2026-11-06T10:00:00.2Z","Action":"output","Package":"github.com/acme/shop","Test":"TestCart","Output":"    cart_test.go:41: got 3, want 4\n"}
+{"Time":"2026-11-06T10:00:00.3Z","Action":"fail","Package":"github.com/acme/shop","Test":"TestCart","Elapsed":0.01}
+{"Time":"2026-11-06T10:00:00.4Z","Action":"pass","Package":"github.com/acme/lib","Elapsed":0.2}

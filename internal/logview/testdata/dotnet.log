@@ -1,0 +1,6 @@
+  Determining projects to restore...
+/src/Shop/Cart.cs(42,7): error CS0103: The name 'x' does not exist in the current context [/src/Shop/Shop.csproj]
+/src/Shop/Order.cs(3,1): warning CS8618: Non-nullable property 'Id' must contain a non-null value [/src/Shop/Shop.csproj]
+src/app.ts(10,5): error TS2322: Type 'string' is not assignable to type 'number'.
+cart.c:3:5: error: unknown type name 'item'
+Build FAILED.

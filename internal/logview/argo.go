@@ -3,6 +3,7 @@ package logview
 import (
 	"cmp"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -25,6 +26,9 @@ const (
 type StepStat struct {
 	Name string `json:"name"`
 	Pods int    `json:"pods"` // sources that logged it
+	// Took is what the tool says the step took (BuildKit), in seconds;
+	// 0 when it says nothing.
+	Took float64 `json:"took,omitempty"`
 	Tally
 	PodStats []PodStat `json:"podStats,omitempty"` // the first 50
 }
@@ -215,6 +219,7 @@ func (l *Log) stepStats() []StepStat {
 	if l.workflows == nil && !l.ci {
 		return nil
 	}
+	tookID, hasTook := l.keyIDs[tookKey]
 	by := map[uint32]*StepStat{}
 	pods := map[uint32]map[uint32]int{} // step → source → index in PodStats, -1 past the cap
 	for i := range l.rows {
@@ -229,6 +234,14 @@ func (l *Log) stepStats() []StepStat {
 			pods[r.step] = map[uint32]int{}
 		}
 		s.add(i, r)
+		if hasTook && r.tool {
+			for _, c := range l.cells[r.cellAt : r.cellAt+uint32(r.ncells)] {
+				if c.key == tookID {
+					t, _ := strconv.ParseFloat(c.text, 64)
+					s.Took += t
+				}
+			}
+		}
 		if r.source == 0 {
 			continue
 		}

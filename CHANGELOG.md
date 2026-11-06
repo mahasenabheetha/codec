@@ -34,6 +34,12 @@ All notable changes to codec are documented here. The format follows
   tools' own lines fold as output. GitHub's log archive zip opens with a
   step per file.
 - Maven's `Cart.java:[42,7]` is a link to the source too.
+- **Build and infrastructure logs** (Log viewer): Docker BuildKit's
+  steps and their times; Terraform and OpenTofu's boxed errors as one
+  entry, and their JSON logs; Maven modules and Gradle tasks as steps,
+  with their failures; npm, yarn and pnpm errors; dotnet, MSBuild, tsc,
+  gcc and javac errors and warnings; go test (also `-json`) and pytest
+  failures as entries with their output.
 
 ## [3.8.1] - 2026-11-03
 

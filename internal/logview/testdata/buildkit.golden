@@ -1,0 +1,21 @@
+L1+1 text msg="[internal] load build definition from Dockerfile" step="[internal] load build definition from Dockerfile" tool
+L2+1 text msg="transferring dockerfile: 312B done" step="[internal] load build definition from Dockerfile" tool
+L3+1 text msg="DONE 0.0s" step="[internal] load build definition from Dockerfile" tool
+L4+1 text msg="[internal] load metadata for docker.io/library/golang:1.25" step="[internal] load metadata for docker.io/library/golang:1.25" tool
+L5+1 text msg="DONE 1.2s" step="[internal] load metadata for docker.io/library/golang:1.25" tool
+    step.took:n=1.2
+L6+1 text msg="[1/4] FROM docker.io/library/golang:1.25@sha256:abc" step="[1/4] FROM docker.io/library/golang:1.25@sha256:abc" tool
+L7+1 text msg="CACHED" step="[1/4] FROM docker.io/library/golang:1.25@sha256:abc" tool
+L8+1 text msg="[2/4] COPY . /src" step="[2/4] COPY . /src" tool
+L9+1 text msg="DONE 0.3s" step="[2/4] COPY . /src" tool
+    step.took:n=0.3
+L10+1 text msg="[3/4] RUN go build -o /app ./cmd/shop" step="[3/4] RUN go build -o /app ./cmd/shop" tool
+L11+1 text msg="go: downloading github.com/acme/lib v1.2.0" step="[3/4] RUN go build -o /app ./cmd/shop"
+L12+1 text msg="cmd/shop/main.go:12:2: undefined: Cart" step="[3/4] RUN go build -o /app ./cmd/shop"
+L13+1 text error() msg="ERROR: process \"/bin/sh -c go build -o /app ./cmd/shop\" did not complete successfully: exit code: 1" step="[3/4] RUN go build -o /app ./cmd/shop"
+L14+1 text msg="------"
+L15+1 text msg=" > [3/4] RUN go build -o /app ./cmd/shop:"
+L16+1 text msg="9.871 cmd/shop/main.go:12:2: undefined: Cart"
+L17+1 text msg="------"
+L18+1 text msg="Dockerfile:5"
+L19+1 text error(ERROR) msg="failed to solve: process \"/bin/sh -c go build -o /app ./cmd/shop\" did not complete successfully: exit code: 1"

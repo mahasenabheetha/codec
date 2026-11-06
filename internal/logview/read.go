@@ -2,6 +2,7 @@ package logview
 
 import (
 	"iter"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -51,13 +52,20 @@ const openLines = 1000
 type blockKind uint8
 
 const (
-	noBlock   blockKind = iota
-	goBlock             // a Go panic or goroutine dump
-	javaBlock           // frames after an exception line
-	pyBlock             // a Python traceback, before its last line
-	pyEnded             // after a traceback's last line: only a chained one may follow
-	headBlock           // after a line that is only a time: the plain lines that follow are its message
+	noBlock     blockKind = iota
+	goBlock               // a Go panic or goroutine dump
+	javaBlock             // frames after an exception line
+	pyBlock               // a Python traceback, before its last line
+	pyEnded               // after a traceback's last line: only a chained one may follow
+	headBlock             // after a line that is only a time: the plain lines that follow are its message
+	tfBlock               // a Terraform error box: "╷", "│ Error: …", "╵"
+	npmBlock              // npm's "npm ERR!" lines
+	indentBlock           // the indented lines after a failure: go test's "--- FAIL"
+	testBlock             // a pytest failure's report, after its "___ test ___"
 )
+
+// msgBlock: a block whose lines are its entry's message, not a stack.
+func msgBlock(b blockKind) bool { return b == headBlock || b >= tfBlock }
 
 type pending struct {
 	e        Entry
@@ -100,7 +108,8 @@ type reader struct {
 	queue []*pending
 	head  int
 	last  map[string]*pending
-	ci    ciSteps // the pipeline step being read
+	ci    ciSteps    // the pipeline step being read
+	build buildState // what a build tool's lines said
 }
 
 func newReader(text string, opt Options) *reader {
@@ -299,8 +308,10 @@ func (r *reader) handle(l *line) {
 	}
 	if p != nil && p.block != noBlock {
 		if r.inBlock(p, l.s) {
-			if p.block == headBlock {
-				p.msg = append(p.msg, l.s)
+			if msgBlock(p.block) {
+				if text, keep := buildBlockLine(p, l.s); keep {
+					p.msg = append(p.msg, text)
+				}
 				r.join(p, l, false)
 			} else {
 				r.join(p, l, true)
@@ -315,7 +326,12 @@ func (r *reader) handle(l *line) {
 	}
 	var e Entry
 	if r.structured(l.s, &e) {
+		goTestEvent(&e)
 		r.start(e, l, noBlock)
+		return
+	}
+	if m, ok := r.build.readBuild(l.s); ok {
+		r.buildLine(m, l)
 		return
 	}
 	// A text logger prints a stack after its line; a JSON one puts it in
@@ -393,6 +409,22 @@ func (r *reader) ciLine(m ciMark, l *line) {
 	}
 }
 
+// buildLine places a line a build tool marked.
+func (r *reader) buildLine(m buildMark, l *line) {
+	if m.starts != "" {
+		r.ci.build = m.starts
+	}
+	msg := m.msg
+	if msg == "" && m.block != tfBlock {
+		msg = l.s
+	}
+	e := Entry{Format: Text, Level: m.level, RawLevel: m.raw, Message: msg, Step: m.step, Tool: m.tool}
+	if m.took > 0 {
+		e.Fields = []Field{{Key: tookKey, Kind: Number, Text: strconv.FormatFloat(m.took, 'f', -1, 64), Num: m.took}}
+	}
+	r.start(e, l, m.block)
+}
+
 // frameFollows reports whether the next line from src is a stack frame,
 // which makes the current line the exception that heads it.
 func (r *reader) frameFollows(src string) bool {
@@ -421,6 +453,8 @@ func (r *reader) inBlock(p *pending, s string) bool {
 			p.block = pyBlock
 			return true
 		}
+	case tfBlock, npmBlock, indentBlock, testBlock:
+		return inBuildBlock(p, s)
 	case headBlock:
 		// Plain lines only: one that is structured, has a time or a level
 		// of its own, or starts a stack trace begins its own entry.

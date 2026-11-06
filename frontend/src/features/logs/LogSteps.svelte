@@ -187,7 +187,7 @@
           {#if st.from}{formatTime(st.from, prefs.time.value, start, days)}{/if}
           {#if b}<span class="track"><i style:left="{b.left}%" style:width="{b.width}%"></i></span>{/if}
         </span>
-        <span class="num" class:live={lastLive === st.name}>{lastLive === st.name ? 'running' : st.from && st.to ? formatSpan(t(st.to) - t(st.from)) : '—'}</span>
+        <span class="num" class:live={lastLive === st.name}>{lastLive === st.name ? 'running' : st.took ? formatSpan(st.took * 1000) : st.from && st.to ? formatSpan(t(st.to) - t(st.from)) : '—'}</span>
         {#if run}<span></span>{/if}
         {@render counts(st, term('step', st.name))}
       </div>

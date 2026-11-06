@@ -50,7 +50,7 @@ func TestCISteps(t *testing.T) {
 		got = append(got, s.Name+" "+strconv.Itoa(s.Entries)+"/"+strconv.Itoa(s.Errors))
 	}
 	// Steps in order, with their errors; the tool's lines fold as output.
-	if strings.Join(got, ", ") != "Initialize job 3/0, Build 11/2" {
+	if strings.Join(got, ", ") != "Initialize job 3/0, Build 11/3" {
 		t.Errorf("steps: %v", got)
 	}
 	if lanes := l.Lanes(nil, 10); lanes.By != "step" {
@@ -87,5 +87,25 @@ func TestGitHubZip(t *testing.T) {
 
 	if _, err := Build([]File{{Name: "logs.zip", Data: b.Bytes()}}, BuildOptions{Options: testOpts, Limit: 20}); err != ErrTooLarge {
 		t.Errorf("limit: %v", err)
+	}
+}
+
+func TestBuildKitTook(t *testing.T) {
+	data, err := os.ReadFile("testdata/buildkit.log")
+	if err != nil {
+		t.Fatal(err)
+	}
+	l, err := Build([]File{{Name: "build.log", Data: data}}, BuildOptions{Options: testOpts})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got []string
+	for _, s := range l.Summary().Steps {
+		got = append(got, s.Name+" "+strconv.FormatFloat(s.Took, 'f', -1, 64)+"s/"+strconv.Itoa(s.Errors))
+	}
+	want := "[internal] load build definition from Dockerfile 0s/0, [internal] load metadata for docker.io/library/golang:1.25 1.2s/0, " +
+		"[1/4] FROM docker.io/library/golang:1.25@sha256:abc 0s/0, [2/4] COPY . /src 0.3s/0, [3/4] RUN go build -o /app ./cmd/shop 0s/1"
+	if strings.Join(got, ", ") != want {
+		t.Errorf("steps\n got %s\nwant %s", strings.Join(got, ", "), want)
 	}
 }

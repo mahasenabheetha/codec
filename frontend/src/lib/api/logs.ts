@@ -50,6 +50,7 @@ export interface LogTally {
 export interface LogStep extends LogTally {
   name: string
   pods: number
+  took?: number // seconds, as the tool reports it (BuildKit's DONE)
   podStats?: (LogTally & { name: string })[] // each pod on its own, the first 50
 }
 

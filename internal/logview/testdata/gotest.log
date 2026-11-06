@@ -1,0 +1,9 @@
+=== RUN   TestCart
+--- FAIL: TestCart (0.00s)
+    cart_test.go:41: got 3, want 4
+    cart_test.go:42: total wrong
+=== RUN   TestOrder
+--- PASS: TestOrder (0.01s)
+FAIL
+FAIL	github.com/acme/shop	0.012s
+ok  	github.com/acme/lib	0.004s

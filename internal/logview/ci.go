@@ -161,13 +161,17 @@ func location(file, line, col string) string {
 type ciSteps struct {
 	sections []string
 	group    string
+	build    string // a build tool's step (a Maven module, a Gradle task), when the CI names none
 }
 
 func (c *ciSteps) current() string {
 	if n := len(c.sections); n > 0 {
 		return c.sections[n-1]
 	}
-	return c.group
+	if c.group != "" {
+		return c.group
+	}
+	return c.build
 }
 
 func (c *ciSteps) start(name string) { c.sections = append(c.sections, name) }
