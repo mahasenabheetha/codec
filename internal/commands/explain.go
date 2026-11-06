@@ -462,9 +462,11 @@ func findFlag(chain []*Command, atRoot bool, name string) *Flag {
 	return nil
 }
 
+// choice finds the choice v is. One written with a trailing "="
+// (jsonpath=) is a kind of value, and stands for every value it starts.
 func choice(cs []Choice, v string) *Choice {
 	for i := range cs {
-		if cs[i].Value == v {
+		if cs[i].Value == v || strings.HasSuffix(cs[i].Value, "=") && strings.HasPrefix(v, cs[i].Value) {
 			return &cs[i]
 		}
 	}

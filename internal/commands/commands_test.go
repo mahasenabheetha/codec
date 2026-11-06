@@ -130,7 +130,7 @@ func TestExplainSays(t *testing.T) {
 	}
 	got := strings.Join(says, " | ")
 	for _, want := range []string{
-		"the kind of resource, such as pods or deploy: the pods",
+		"the kind of resource, such as pods or deploy, or kind/name: the pods",
 		"prints in this format",
 		"the format for -o: the full resource as YAML",
 		"the namespace for -n",
@@ -235,6 +235,21 @@ func FuzzExplain(f *testing.F) {
 	})
 }
 
+// A choice written as a prefix (jsonpath=) explains every value it
+// starts.
+func TestChoicePrefix(t *testing.T) {
+	ex := Explain("kubectl get pods -o jsonpath={.items[*].metadata.name}")
+	var got string
+	for _, p := range ex.Parts {
+		if p.Kind == "value" {
+			got = p.Summary
+		}
+	}
+	if !strings.Contains(got, "JSONPath") {
+		t.Errorf("value: %q", got)
+	}
+}
+
 // Every recipe explains fully: its tool is known, and no part of it is
 // a word the reference doesn't have.
 func TestRecipes(t *testing.T) {
@@ -318,6 +333,11 @@ func TestSearch(t *testing.T) {
 		{"who wrote this line", "", "git blame -w {file}"},
 		{"find when a bug started", "", "git bisect start {bad} {good}"},
 		{"see old version of a file", "", "git show {commit}:{file}"},
+		{"shell into a pod", "", "kubectl exec -it {pod} -n {namespace} -- sh"},
+		{"pod stuck pending", "", "kubectl describe pod {pod} -n {namespace}"},
+		{"switch namespace", "", "kubectl config set-context --current --namespace={namespace}"},
+		{"access service locally", "", "kubectl port-forward svc/{service} 8080:80 -n {namespace}"},
+		{"node maintenance", "", "kubectl drain {node} --ignore-daemonsets"},
 	} {
 		got, err := Search(c.query, c.tool, 10)
 		if err != nil {

@@ -58,6 +58,10 @@
     onchange({ ...built, flags: built.flags.filter((u) => u !== use) })
   }
 
+  // A flag whose choices include a kind of value (jsonpath=) takes
+  // more than its list: a text box that offers the list.
+  const open = (f: Flag) => !!f.choices?.some((c) => c.value.endsWith('='))
+
   /** The values an argument has: one per non-repeating argument, the rest
    *  for the last when it repeats. */
   function argValues(i: number, a: Arg): string[] {
@@ -101,7 +105,7 @@
     {#if f.value && uses.length}
       {#each uses as u, k (k)}
         <div class="val">
-          {#if f.choices?.length}
+          {#if f.choices?.length && !open(f)}
             <Select label={f.value} value={u.value} items={[...(f.optionalValue ? [{ value: '', label: '(none)' }] : []), ...f.choices.map((c) => ({ value: c.value, label: c.summary ? `${c.value} — ${c.summary}` : c.value }))]} onchange={(v) => setValue(u, v)} />
           {:else}
             <input
@@ -111,10 +115,11 @@
               aria-label="{f.names[0]} {f.value}"
               spellcheck="false"
               autocomplete="off"
-              list={suggestions(f.value).length ? `${uid}-${f.value}` : undefined}
+              list={open(f) ? `${uid}-flag-${f.names[0]}` : suggestions(f.value).length ? `${uid}-${f.value}` : undefined}
               oninput={(e) => setValue(u, e.currentTarget.value)}
             />
           {/if}
+          {#if open(f)}<datalist id="{uid}-flag-{f.names[0]}">{#each f.choices ?? [] as c (c.value)}<option value={c.value}>{c.summary ?? ''}</option>{/each}</datalist>{/if}
           {#if f.repeat && uses.length > 1}<IconButton icon={X} label="Remove this one" size="sm" onclick={() => remove(u)} />{/if}
         </div>
       {/each}

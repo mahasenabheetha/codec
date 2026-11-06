@@ -25,6 +25,14 @@ All notable changes to codec are documented here. The format follows
   reflog, blame, worktree, config, grep, init, clone, rm, mv — with
   their flags checked against git 2.55, the risky ones marked, and 62
   recipes.
+- **kubectl** in Commands: get, describe, logs, exec, apply, diff,
+  create (namespace, secret generic, tls and docker-registry, configmap,
+  deployment, job), run, delete, edit, rollout, scale, port-forward, cp,
+  top, config, explain, events, label, annotate, patch, auth can-i and
+  whoami, debug, drain, cordon, wait, api-resources — checked against
+  kubectl 1.36, with 63 recipes. A flag value written as a kind
+  (`-o jsonpath=…`) is explained, and the form offers the formats in a
+  text box rather than a fixed list.
 
 ## [3.9.0] - 2026-11-06
 

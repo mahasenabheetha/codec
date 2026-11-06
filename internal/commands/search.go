@@ -408,6 +408,7 @@ var synonymGroups = [][]string{
 	{"process", "processes", "proc", "ps", "running", "program"},
 	{"network", "port", "listen", "connection", "socket", "forward"},
 	{"permission", "permissions", "chmod", "access", "owner", "chown", "mode"},
+	{"allowed", "allow", "permission", "forbidden", "authorized", "rbac", "can-i"},
 	{"compress", "zip", "archive", "tar", "pack", "unzip", "extract", "unpack"},
 	{"download", "fetch", "pull", "get", "retrieve", "sync"},
 	{"upload", "send", "push", "publish", "share"},
