@@ -175,6 +175,7 @@ func (s *Server) routes() http.Handler {
 	mux.HandleFunc("POST /api/v2/ansible/find-task", s.handleFindTask)
 	mux.HandleFunc("POST /api/v2/ansible/log", s.handleAnsibleLog)
 	mux.HandleFunc("POST /api/v2/logs", s.handleLogsOpen)
+	mux.HandleFunc("POST /api/v2/logs/find-source", s.handleFindSource)
 	mux.HandleFunc("POST /api/v2/logs/{id}/entries", s.handleLogEntries)
 	mux.HandleFunc("GET /api/v2/logs/{id}/entries/{n}", s.handleLogEntry)
 	mux.HandleFunc("POST /api/v2/logs/{id}/fields", s.handleLogFields)

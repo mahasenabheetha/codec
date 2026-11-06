@@ -1,4 +1,5 @@
 import { postForm, request, requestBlob } from './client'
+import type { SearchMatch } from './search'
 
 // The Log viewer's server side (internal/logview, decision 86): a log
 // read once and held in memory under an id; the UI asks for pages,
@@ -307,4 +308,10 @@ export function compareLogs(id: string, other: string, signal?: AbortSignal): Pr
 
 export function closeLog(id: string): Promise<void> {
   return request('DELETE', base(id))
+}
+
+/** Where a piece of a log line appears in the open folder: a literal
+ *  search, logs and build output left out (decision 99). */
+export function findSource(text: string, signal?: AbortSignal): Promise<{ matches: SearchMatch[]; truncated: boolean; timedOut: boolean }> {
+  return request('POST', '/api/v2/logs/find-source', { text }, signal)
 }

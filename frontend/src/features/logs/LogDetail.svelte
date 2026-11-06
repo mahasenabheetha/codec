@@ -3,11 +3,12 @@
   import PinIcon from '@lucide/svelte/icons/pin'
   import PinOff from '@lucide/svelte/icons/pin-off'
   import Copy from '@lucide/svelte/icons/copy'
+  import TextSearch from '@lucide/svelte/icons/text-search'
   import X from '@lucide/svelte/icons/x'
   import IconButton from '../../lib/components/IconButton.svelte'
   import SegmentedControl from '../../lib/components/SegmentedControl.svelte'
   import { isAbort } from '../../lib/api/client'
-  import { logEntry, type LogEntry, type LogRow, type RefField, type SourceRef } from '../../lib/api/logs'
+  import { findSource, logEntry, type LogEntry, type LogRow, type RefField, type SourceRef } from '../../lib/api/logs'
   import { copyText } from '../../lib/utils/clipboard'
   import { workspace as ws } from '../workspace/workspace.svelte'
   import FieldTree from './FieldTree.svelte'
@@ -30,6 +31,7 @@
   }
 
   let { index, onclose, onpick }: Props = $props()
+  const maxFragment = 300 // logsrc.MaxFragment
   const viewer = useViewer()
 
   let entry = $state.raw<LogEntry | null>(null)
@@ -55,22 +57,85 @@
     return () => c.abort()
   })
 
-  // A file and line from the entry, shown in the Source drawer; another
-  // entry closes it.
-  let source = $state<SourceRef | null>(null)
+  // The Source drawer shows a file and line from the entry, or where a
+  // piece of it selected appears in the folder; another entry closes it.
+  type Drawer = { kind: 'ref'; ref: SourceRef } | { kind: 'search'; text: string }
+  let drawer = $state<Drawer | null>(null)
   $effect(() => {
     void index
-    source = null
+    drawer = null
   })
-  const sourceItems = $derived.by((): SourceItem[] | null => {
-    if (!source || !entry?.sources) return null
-    const r = source
+  const refItems = $derived.by((): SourceItem[] | null => {
+    if (drawer?.kind !== 'ref' || !entry?.sources) return null
+    const r = drawer.ref
     return (entry.sources[r.path] ?? []).map((m) => ({ file: m.file, line: r.line, col: r.col, quality: m.quality }))
   })
   // Without a folder every reference may be found once one is open.
   const found = (r: SourceRef) => !entry?.sources || (entry.sources[r.path]?.length ?? 0) > 0
   const refs = (f: RefField) => entry?.refs?.[f] ?? []
-  const show = (r: SourceRef) => (source = r)
+  const show = (r: SourceRef) => (drawer = { kind: 'ref', ref: r })
+
+  // A search runs when asked for, and again in a folder opened from
+  // the drawer.
+  let hits = $state.raw<{ items: SourceItem[]; note?: string } | null>(null)
+  let searching = $state(false)
+  let searchError = $state<string | null>(null)
+  $effect(() => {
+    const d = drawer
+    const open = !!ws.info?.open
+    void ws.info?.root
+    hits = null
+    searchError = null
+    searching = false
+    if (d?.kind !== 'search' || !open) return
+    searching = true
+    const c = new AbortController()
+    findSource(d.text, c.signal)
+      .then((r) => {
+        const items = r.matches.map((m) => ({ file: m.path, line: m.line, col: m.col, endCol: m.endCol, text: m.text, spans: m.spans }))
+        const files = new Set(items.map((i) => i.file)).size
+        const count = `${items.length} ${items.length === 1 ? 'match' : 'matches'} in ${files} ${files === 1 ? 'file' : 'files'}`
+        hits = { items, note: r.truncated ? `The first ${count}` : r.timedOut ? `${count}; the search stopped before the end of the folder` : count }
+        searching = false
+      })
+      .catch((e) => {
+        if (isAbort(e)) return
+        searchError = e instanceof Error ? e.message : String(e)
+        searching = false
+      })
+    return () => c.abort()
+  })
+
+  // Selecting text in the entry offers to search the folder for it.
+  let body = $state<HTMLElement>()
+  let aside = $state<HTMLElement>()
+  let picked = $state<{ text: string; x: number; y: number } | null>(null)
+  function checkSelection() {
+    const sel = window.getSelection()
+    const t = sel?.toString() ?? ''
+    if (!sel || sel.rangeCount === 0 || !t.trim() || !body?.contains(sel.anchorNode) || !aside) {
+      picked = null
+      return
+    }
+    // The search is per line: of a selection over several, the longest.
+    const line = t.split(/\r?\n/).reduce((a, l) => (l.trim().length > a.length ? l.trim() : a), '')
+    const r = sel.getRangeAt(0).getBoundingClientRect()
+    const box = aside.getBoundingClientRect()
+    picked = { text: line, x: Math.min(Math.max(r.left - box.left, 8), box.width - 180), y: r.bottom - box.top + 4 }
+  }
+  $effect(() => {
+    // A selection cleared (a click elsewhere) takes the button away.
+    const off = () => {
+      if (!window.getSelection()?.toString().trim()) picked = null
+    }
+    document.addEventListener('selectionchange', off)
+    return () => document.removeEventListener('selectionchange', off)
+  })
+  function search() {
+    if (!picked) return
+    drawer = { kind: 'search', text: picked.text }
+    picked = null
+  }
 
   // A message that is JSON, laid out.
   const prettyMessage = $derived.by(() => {
@@ -135,7 +200,7 @@
   </button>
 {/snippet}
 
-<aside class="detail" aria-label="Entry">
+<aside class="detail" aria-label="Entry" bind:this={aside}>
   <header>
     <span class="title lv-{entry?.level || 'none'}">{entry?.level ? entry.level.toUpperCase() : 'Entry'}</span>
     {#if entry}<span class="where">{entry.file}:{entry.line}</span>{/if}
@@ -154,7 +219,8 @@
     {/if}
     <IconButton icon={X} label="Close" shortcut="Escape" size="sm" onclick={onclose} />
   </header>
-  <div class="body">
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
+  <div class="body" bind:this={body} onmouseup={checkSelection} onkeyup={checkSelection} onscroll={() => (picked = null)}>
     {#if error}
       <p class="err">{error}</p>
     {:else if entry}
@@ -217,15 +283,40 @@
       <pre class="raw"><Linked text={entry.raw} refs={refs('raw')} {found} onref={show} />{#if entry.rawCut}<span class="muted"> … (cut at 1 MB)</span>{/if}</pre>
     {/if}
   </div>
-  {#if source}
+  {#if picked}
+    <button
+      type="button"
+      class="find"
+      style:left="{picked.x}px"
+      style:top="{picked.y}px"
+      disabled={picked.text.length > maxFragment}
+      title={picked.text.length > maxFragment ? 'Select a shorter piece of the line to search for' : `Search the open folder for “${picked.text}”`}
+      onmousedown={(e) => e.preventDefault()}
+      onclick={search}><TextSearch size={14} strokeWidth={1.75} />Find in workspace</button
+    >
+  {/if}
+  {#if drawer}
     <div class="source">
-      <SourceDrawer title="{source.path}:{source.line}" items={sourceItems} onclose={() => (source = null)} />
+      {#if drawer.kind === 'ref'}
+        <SourceDrawer title="{drawer.ref.path}:{drawer.ref.line}" items={refItems} onclose={() => (drawer = null)} />
+      {:else}
+        <SourceDrawer
+          title="“{drawer.text}”"
+          items={ws.info?.open ? (hits?.items ?? []) : null}
+          loading={searching}
+          error={searchError}
+          note={hits?.note}
+          empty="Not found in the open folder"
+          onclose={() => (drawer = null)}
+        />
+      {/if}
     </div>
   {/if}
 </aside>
 
 <style>
   .detail {
+    position: relative;
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -380,6 +471,27 @@
   }
   .err {
     color: var(--err);
+  }
+  .find {
+    position: absolute;
+    z-index: var(--z-popover);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-1);
+    height: 26px;
+    padding: 0 var(--s-2);
+    font-size: var(--fs-sm);
+    color: var(--fg-0);
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-pop);
+  }
+  .find:hover:not(:disabled) {
+    color: var(--accent);
+  }
+  .find:disabled {
+    color: var(--fg-2);
   }
   .source {
     flex: none;

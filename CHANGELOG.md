@@ -16,6 +16,10 @@ All notable changes to codec are documented here. The format follows
   folders, so build and agent paths work), marked exact, strong or
   possible, with a read-only peek at the line; Open in Files goes to
   the Files view.
+- **Find in workspace** (Log viewer): select text in an entry and
+  search the open folder for it; the matches open in the Source drawer
+  with the hit marked. Logs and build and dependency folders are left
+  out.
 
 ## [3.8.1] - 2026-11-03
 

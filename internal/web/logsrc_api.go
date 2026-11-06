@@ -2,9 +2,13 @@ package web
 
 import (
 	"context"
+	"errors"
+	"net/http"
+	"strings"
 	"unicode/utf8"
 
 	"github.com/mahasenabheetha/codec/v2/internal/logsrc"
+	"github.com/mahasenabheetha/codec/v2/internal/search"
 )
 
 // refView is a file and line reference in one of an entry's texts. The
@@ -75,4 +79,50 @@ func utf16Len(r rune) int {
 		return 2
 	}
 	return 1
+}
+
+// findSourceLimit bounds the matches of a search from a log: the
+// drawer lists them by eye.
+const findSourceLimit = 500
+
+// POST /api/v2/logs/find-source {text}: where a piece of a log line
+// appears in the open folder (decision 99, T2), searched literally with
+// logsrc.Excludes left out.
+func (s *Server) handleFindSource(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Text string `json:"text"`
+	}
+	if !decode(w, r, &req) {
+		return
+	}
+	text := strings.TrimSpace(req.Text)
+	if text == "" {
+		writeError(w, http.StatusUnprocessableEntity, search.ErrEmpty.Error())
+		return
+	}
+	if len(text) > logsrc.MaxFragment {
+		writeError(w, http.StatusUnprocessableEntity, "select a shorter piece of the line to search for")
+		return
+	}
+	ws := s.current()
+	if ws == nil {
+		writeError(w, http.StatusConflict, "no folder is open")
+		return
+	}
+	sr, err := search.Compile(search.Options{Query: text, Globs: logsrc.Excludes, Limit: findSourceLimit})
+	if err != nil {
+		writeError(w, http.StatusUnprocessableEntity, err.Error())
+		return
+	}
+	ctx, cancel := context.WithTimeout(r.Context(), queryTimeout)
+	defer cancel()
+	res, err := sr.Run(ctx, wsFiles(ctx, ws), ws.ReadText)
+	if errors.Is(err, context.Canceled) {
+		return // the client gave up on this search
+	}
+	writeJSON(w, http.StatusOK, map[string]any{
+		"matches":   res.Matches,
+		"truncated": res.Truncated,
+		"timedOut":  errors.Is(err, context.DeadlineExceeded),
+	})
 }

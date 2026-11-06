@@ -5,7 +5,11 @@
     file: string
     line: number
     col?: number
+    endCol?: number // a search hit: its end on the line, exclusive
     quality?: 'exact' | 'strong' | 'possible'
+    /** A search hit's line as found, and the hits in it. */
+    text?: string
+    spans?: { start: number; end: number }[]
   }
 </script>
 
@@ -30,10 +34,14 @@
   interface Props {
     title: string // what was looked for, e.g. "internal/x.go:12"
     items: SourceItem[] | null // null: no folder is open
+    loading?: boolean
+    error?: string | null
+    note?: string // e.g. that the list stops at a limit
+    empty?: string // said when nothing was found
     onclose: () => void
   }
 
-  let { title, items, onclose }: Props = $props()
+  let { title, items, loading = false, error: failed = null, note, empty, onclose }: Props = $props()
 
   let pick = $state(0)
   $effect(() => {
@@ -82,8 +90,30 @@
   function openInFiles() {
     if (!item) return
     layout.openFile(item.file)
-    editorNav.request(item.file, item.line, item.col ?? 1)
+    editorNav.request(item.file, item.line, item.col ?? 1, item.endCol)
   }
+
+  /** A line cut into plain and highlighted pieces. */
+  function pieces(text: string, spans: { start: number; end: number }[]) {
+    const out: { text: string; hit: boolean }[] = []
+    let at = 0
+    for (const sp of spans) {
+      if (sp.start < at) continue
+      if (sp.start > at) out.push({ text: text.slice(at, sp.start), hit: false })
+      out.push({ text: text.slice(sp.start, sp.end), hit: true })
+      at = sp.end
+    }
+    if (at < text.length) out.push({ text: text.slice(at), hit: false })
+    return out
+  }
+  /** A search hit's line without its indentation, hits moved along. */
+  function snippet(it: SourceItem) {
+    const text = it.text ?? ''
+    const lead = text.length - text.trimStart().length
+    return pieces(text.slice(lead), (it.spans ?? []).map((sp) => ({ start: Math.max(0, sp.start - lead), end: sp.end - lead })))
+  }
+  // The hit on the peek's line: a search hit's columns.
+  const hitSpan = $derived(item?.col && item.endCol ? [{ start: item.col - 1, end: item.endCol - 1 }] : [])
 
   const qualityTone = { exact: 'ok', strong: 'accent', possible: 'neutral' } as const
   const qualityTip = {
@@ -109,14 +139,19 @@
     <IconButton icon={X} label="Close the Source drawer" size="sm" onclick={onclose} />
   </header>
 
-  {#if items === null}
+  {#if failed}
+    <p class="empty err">{failed}</p>
+  {:else if loading}
+    <p class="empty muted">Searching the open folder…</p>
+  {:else if items === null}
     <div class="empty">
       <p>Open the folder the log came from to see this file.</p>
       <Button size="sm" icon={FolderOpen} tone="open" onclick={() => ws.chooseFolder()}>Open folder…</Button>
     </div>
   {:else if items.length === 0}
-    <p class="empty">No file of that name in the open folder{ws.info?.name ? ` (${ws.info.name})` : ''}.</p>
+    <p class="empty">{empty ?? 'No file of that name in the open folder'}{ws.info?.name ? ` (${ws.info.name})` : ''}.</p>
   {:else}
+    {#if note}<p class="note">{note}</p>{/if}
     {#if items.length > 1}
       <ul class="list">
         {#each items as it, i (it.file + ':' + it.line)}
@@ -124,6 +159,7 @@
             <button type="button" class:on={i === pick} onclick={() => (pick = i)}>
               <FileIcon file={ws.byPath.get(it.file) ?? { lang: 'text', path: it.file }} />
               <span class="file">{it.file}<span class="ln">:{it.line}</span></span>
+              {#if it.text !== undefined}<span class="snippet">{#each snippet(it) as p, j (j)}{#if p.hit}<mark>{p.text}</mark>{:else}{p.text}{/if}{/each}</span>{/if}
               {#if it.quality}<Badge tone={qualityTone[it.quality]}>{it.quality}</Badge>{/if}
             </button>
           </li>
@@ -144,7 +180,7 @@
         {:else}
           {#if past}<p class="muted">The file has fewer lines than {item.line}: it may have changed since the log was written.</p>{/if}
           {#each lines as l (l.n)}
-            <div class="row" class:hit={l.n === item.line}><span class="n">{l.n}</span><span class="t">{l.t}</span></div>
+            <div class="row" class:hit={l.n === item.line}><span class="n">{l.n}</span><span class="t">{#if l.n === item.line && hitSpan.length}{#each pieces(l.t, hitSpan) as p, j (j)}{#if p.hit}<mark>{p.text}</mark>{:else}{p.text}{/if}{/each}{:else}{l.t}{/if}</span></div>
           {/each}
         {/if}
       </div>
@@ -242,6 +278,32 @@
   }
   .ln {
     color: var(--fg-2);
+  }
+  .list .file {
+    flex: 0 1 auto;
+    max-width: 45%;
+  }
+  .snippet {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: pre;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--fg-1);
+  }
+  mark {
+    color: inherit;
+    background: color-mix(in oklab, var(--accent) 35%, transparent);
+    border-radius: 2px;
+  }
+  .note {
+    margin: 0;
+    padding: var(--s-1) var(--s-3);
+    font-size: var(--fs-xs);
+    color: var(--fg-2);
+    border-bottom: 1px solid var(--border);
   }
   .peek-head {
     display: flex;
