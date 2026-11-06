@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestReadCI(t *testing.T) {
@@ -107,5 +108,30 @@ func TestBuildKitTook(t *testing.T) {
 		"[1/4] FROM docker.io/library/golang:1.25@sha256:abc 0s/0, [2/4] COPY . /src 0.3s/0, [3/4] RUN go build -o /app ./cmd/shop 0s/1"
 	if strings.Join(got, ", ") != want {
 		t.Errorf("steps\n got %s\nwant %s", strings.Join(got, ", "), want)
+	}
+}
+
+// The fields platform logs are read into answer the questions asked of
+// them (T6).
+func TestPlatformQueries(t *testing.T) {
+	l := buildFixtures(t, "access.log", "envoy.log", "syslog.log", "k8s-events.txt", "k8s-audit.log")
+	for _, c := range []struct{ q, want string }{
+		{"status>=500", "access:2 envoy:2"},
+		{"latency>1", "access:2"},
+		{"path:/api/* method:POST", "access:2 envoy:2"},
+		{"upstream:shop-api-80", "access:2"},
+		{"flags:*", "envoy:2 envoy:3"},
+		{"level>=error source:shop", "syslog:2"},
+		{"reason:BackOff", "k8s-events.txt:3"},
+		{"source:bob", "k8s-audit:1"},
+	} {
+		m, err := l.Match(c.q, time.Time{}, time.Time{})
+		if err != nil {
+			t.Errorf("%s: %v", c.q, err)
+			continue
+		}
+		if got := where(l, m.IDs); got != c.want {
+			t.Errorf("%s:\ngot  %s\nwant %s", c.q, got, c.want)
+		}
 	}
 }

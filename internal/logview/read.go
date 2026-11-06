@@ -73,6 +73,7 @@ type pending struct {
 	block    blockKind
 	blanks   []string // raw blank lines seen inside a block, kept only if it goes on
 	stream   string
+	src      string   // the line prefix's source: the key the entry is open under
 	raws     []string // raw lines, when they are not next to each other
 	start    int      // offsets of the raw text, while the lines are contiguous
 	end      int
@@ -101,15 +102,16 @@ type reader struct {
 	shape labelShape
 	// cont: text lines without a time continue the entry before them,
 	// because the log's text lines usually start with one.
-	cont  bool
-	pos   int // next unread offset
-	n     int // lines read
-	peek  *line
-	queue []*pending
-	head  int
-	last  map[string]*pending
-	ci    ciSteps    // the pipeline step being read
-	build buildState // what a build tool's lines said
+	cont   bool
+	pos    int // next unread offset
+	n      int // lines read
+	peek   *line
+	queue  []*pending
+	head   int
+	last   map[string]*pending
+	ci     ciSteps    // the pipeline step being read
+	build  buildState // what a build tool's lines said
+	events *eventCols // a kubectl get events table being read
 }
 
 func newReader(text string, opt Options) *reader {
@@ -326,8 +328,11 @@ func (r *reader) handle(l *line) {
 	}
 	var e Entry
 	if r.structured(l.s, &e) {
-		goTestEvent(&e)
 		r.start(e, l, noBlock)
+		return
+	}
+	if pe, ok := r.platform(l.s); ok {
+		r.start(pe, l, noBlock)
 		return
 	}
 	if m, ok := r.build.readBuild(l.s); ok {
@@ -481,6 +486,7 @@ func (r *reader) structured(s string, e *Entry) bool {
 		_, _, fields = unwrapPayload(fields)
 		e.Format, e.Fields = JSON, fields
 		fromFields(e)
+		jsonShapes(e)
 		e.Fields = messageFields(e)
 		return true
 	case readKlog(s, r.year, e):
@@ -540,7 +546,12 @@ func (r *reader) start(e Entry, l *line, block blockKind) *pending {
 	if prev := r.last[src]; prev != nil {
 		prev.done = true
 	}
-	e.Line, e.Source = l.n, src
+	// A prefix's source wins; without one, the line's own (syslog's
+	// app, an access log's upstream) stays.
+	e.Line = l.n
+	if src != "" || e.Source == "" {
+		e.Source = src
+	}
 	if e.Step == "" {
 		e.Step = r.ci.current()
 	}
@@ -551,7 +562,7 @@ func (r *reader) start(e Entry, l *line, block blockKind) *pending {
 		e.Fields = append(e.Fields, Field{Key: "stream", Text: l.pre.stream})
 	}
 	e.Fields = append(e.Fields, l.pre.fields...)
-	p := &pending{e: e, lastLine: l.n + l.parts - 1, block: block, start: l.start, end: l.end, stream: l.pre.stream}
+	p := &pending{e: e, lastLine: l.n + l.parts - 1, block: block, start: l.start, end: l.end, stream: l.pre.stream, src: src}
 	p.e.Lines = l.parts
 	if block == pyBlock {
 		// A Go panic's first line is its message; a traceback's is part of the stack.
@@ -592,8 +603,8 @@ func (r *reader) flush(n int, yield func(Entry) bool) bool {
 		if !p.done && n-p.lastLine <= openLines {
 			break
 		}
-		if r.last[p.e.Source] == p {
-			delete(r.last, p.e.Source)
+		if r.last[p.src] == p {
+			delete(r.last, p.src)
 		}
 		r.queue[r.head] = nil
 		r.head++
@@ -667,7 +678,11 @@ func documentItems(text string) ([]Entry, bool) {
 		if _, ok := parseObject(t, nil); !ok {
 			return nil, false
 		}
-		if a, b, ok := memberSpan(t, "hits"); ok {
+		// kubectl get … -o json: a List's items.
+		if a, b, ok := memberSpan(t, "items"); ok && t[a] == '[' {
+			off += a
+			t = t[a:b]
+		} else if a, b, ok := memberSpan(t, "hits"); ok {
 			if c, d, ok := memberSpan(t[a:b], "hits"); ok && t[a+c] == '[' {
 				off += a + c
 				t = t[a+c : a+d]

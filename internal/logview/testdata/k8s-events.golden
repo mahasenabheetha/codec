@@ -1,0 +1,17 @@
+L1+1 text msg="NAMESPACE   LAST SEEN   TYPE      REASON      OBJECT                     MESSAGE" tool
+L2+1 text info(Normal) src=pod/web-7d9c8b6f5-x2x9z msg="Successfully assigned shop/web-7d9c8b6f5-x2x9z to node-1"
+    namespace:s=shop
+    last_seen:s=5m
+    reason:s=Scheduled
+    object:s=pod/web-7d9c8b6f5-x2x9z
+L3+1 text warn(Warning) src=pod/web-7d9c8b6f5-x2x9z msg="Back-off restarting failed container web in pod web-7d9c8b6f5-x2x9z"
+    namespace:s=shop
+    last_seen:s=4m
+    reason:s=BackOff
+    object:s=pod/web-7d9c8b6f5-x2x9z
+L4+1 text warn(Warning) src=pod/api-5f6b7c8d9-abcde msg="Readiness probe failed: HTTP probe failed with statuscode: 503"
+    namespace:s=shop
+    last_seen:s=2m
+    reason:s=Unhealthy
+    object:s=pod/api-5f6b7c8d9-abcde
+L6+1 text msg="No more events."

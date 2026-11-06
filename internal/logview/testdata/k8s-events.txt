@@ -1,0 +1,6 @@
+NAMESPACE   LAST SEEN   TYPE      REASON      OBJECT                     MESSAGE
+shop        5m          Normal    Scheduled   pod/web-7d9c8b6f5-x2x9z    Successfully assigned shop/web-7d9c8b6f5-x2x9z to node-1
+shop        4m          Warning   BackOff     pod/web-7d9c8b6f5-x2x9z    Back-off restarting failed container web in pod web-7d9c8b6f5-x2x9z
+shop        2m          Warning   Unhealthy   pod/api-5f6b7c8d9-abcde    Readiness probe failed: HTTP probe failed with statuscode: 503
+
+No more events.

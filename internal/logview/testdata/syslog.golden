@@ -1,0 +1,26 @@
+L1+1 text info() 2026-11-06T10:00:00.003Z src=shop msg="cart service started"
+    facility:n=20
+    severity:n=5
+    host:s=web-1.example.com
+    app:s=shop
+    pid:s=1234
+    msgid:s=ID47
+    sd:s=[origin ip="10.0.0.1"]
+L2+1 text error() 2026-11-06T10:00:01Z src=shop msg="payment provider unreachable"
+    facility:n=1
+    severity:n=3
+    host:s=web-1.example.com
+    app:s=shop
+    pid:s=1234
+L3+1 text fatal() 2026-11-06T10:00:02Z src=su msg="'su root' failed for bob on /dev/pts/8"
+    facility:n=4
+    severity:n=2
+    host:s=web-1
+    app:s=su
+L4+1 text 2026-11-06T10:00:03Z src=sshd msg="Failed password for root from 10.0.0.9 port 52114 ssh2"
+    host:s=web-1
+    app:s=sshd
+    pid:n=981
+L5+1 text 2026-11-06T10:00:04Z src=kernel msg="Out of memory: Killed process 4321 (java)"
+    host:s=web-1
+    app:s=kernel

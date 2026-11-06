@@ -244,8 +244,10 @@ func networkUtility(s string) (*Utility, bool) {
 }
 
 // logSummary reads the first lines of s as a log and describes it, when
-// at least two entries and most of them have a time or a level. A single
-// JSON object is JSON, not a log; an Ansible run goes to its own tool.
+// at least two entries and most of them have a time, a level or a step
+// (a pipeline's or a build tool's) — or, for a build's output with
+// errors in it (pytest, Terraform), a third of them. A single JSON
+// object is JSON, not a log; an Ansible run goes to its own tool.
 func logSummary(s string) (string, bool) {
 	if strings.Contains(s, "TASK [") || strings.Contains(s, "PLAY [") {
 		return "", false
@@ -262,15 +264,20 @@ func logSummary(s string) (string, bool) {
 	entries, marked := 0, 0
 	formats := map[string]int{}
 	levels := map[logview.Level]int{}
+	steps := map[string]bool{}
 	for e := range logview.Read(head, logview.Options{}) {
 		entries++
 		formats[e.Format.String()]++
 		levels[e.Level]++
-		if !e.Time.IsZero() || e.Level != logview.LevelNone {
+		if !e.Time.IsZero() || e.Level != logview.LevelNone || e.Step != "" || e.Tool {
 			marked++
 		}
+		if e.Step != "" {
+			steps[e.Step] = true
+		}
 	}
-	if entries < 2 || marked*10 < entries*6 {
+	problems := levels[logview.Warn] + levels[logview.Error] + levels[logview.Fatal]
+	if entries < 2 || marked*10 < entries*6 && (problems == 0 || entries < 4 || marked*10 < entries*3) {
 		return "", false
 	}
 	var b strings.Builder
@@ -282,6 +289,13 @@ func logSummary(s string) (string, bool) {
 		if formats[f] > 0 {
 			fmt.Fprintf(&b, " · %s %d", f, formats[f])
 		}
+	}
+	switch len(steps) {
+	case 0:
+	case 1:
+		b.WriteString(" · 1 step")
+	default:
+		fmt.Fprintf(&b, " · %d steps", len(steps))
 	}
 	switch n := levels[logview.Error] + levels[logview.Fatal]; n {
 	case 0:

@@ -1,0 +1,25 @@
+L1+1 json warn(403) 2026-11-06T10:00:00Z src=bob msg="list /api/v1/namespaces/shop/secrets 403" trace="a1b2"
+    kind:s=Event
+    apiVersion:s=audit.k8s.io/v1
+    level:s=Metadata
+    auditID:s=a1b2
+    stage:s=ResponseComplete
+    requestURI:s=/api/v1/namespaces/shop/secrets
+    verb:s=list
+    user.username:s=bob
+    user.groups:a=["dev"]
+    sourceIPs:a=["10.0.0.9"]
+    responseStatus.code:n=403
+    requestReceivedTimestamp:s=2026-11-06T10:00:00.000000Z
+    stageTimestamp:s=2026-11-06T10:00:00.010000Z
+L2+1 json info(200) 2026-11-06T10:00:01Z src=system:serviceaccount:argocd:argocd-application-controller msg="patch /apis/apps/v1/namespaces/shop/deployments/web 200" trace="c3d4"
+    kind:s=Event
+    apiVersion:s=audit.k8s.io/v1
+    level:s=Metadata
+    auditID:s=c3d4
+    stage:s=ResponseComplete
+    requestURI:s=/apis/apps/v1/namespaces/shop/deployments/web
+    verb:s=patch
+    user.username:s=system:serviceaccount:argocd:argocd-application-controller
+    responseStatus.code:n=200
+    requestReceivedTimestamp:s=2026-11-06T10:00:01.000000Z

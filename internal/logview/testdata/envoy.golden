@@ -1,0 +1,38 @@
+L1+1 text info() 2026-11-06T10:00:00.123Z msg="GET /api/cart 200" trace="5c0f-1d2e"
+    method:s=GET
+    path:s=/api/cart
+    protocol:s=HTTP/1.1
+    status:n=200
+    bytes_received:n=0
+    bytes:n=512
+    latency:n=0.045
+    upstream_latency:n=0.044
+    client:s=10.0.0.1
+    agent:s=curl/8.0
+    authority:s=shop.local
+    upstream_addr:s=10.1.2.3:8080
+L2+1 text error() 2026-11-06T10:00:01.456Z src=outbound|8080||shop-api.shop.svc.cluster.local msg="POST /api/order 503" trace="8d1a-77b0"
+    method:s=POST
+    path:s=/api/order
+    protocol:s=HTTP/2
+    status:n=503
+    flags:s=UF
+    bytes_received:n=120
+    bytes:n=91
+    latency:n=0.03
+    client:s=10.0.0.2
+    agent:s=Mozilla/5.0
+    authority:s=shop.local
+    upstream_addr:s=10.1.2.4:8080
+    upstream:s=outbound|8080||shop-api.shop.svc.cluster.local
+L3+1 text error() 2026-11-06T10:00:02Z msg="GET /health 0" trace="9e9e-0000"
+    method:s=GET
+    path:s=/health
+    protocol:s=HTTP/1.1
+    status:n=0
+    flags:s=NR
+    bytes_received:n=0
+    bytes:n=0
+    latency:n=0
+    agent:s=kube-probe/1.31
+    authority:s=shop.local

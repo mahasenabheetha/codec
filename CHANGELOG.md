@@ -40,6 +40,13 @@ All notable changes to codec are documented here. The format follows
   with their failures; npm, yarn and pnpm errors; dotnet, MSBuild, tsc,
   gcc and javac errors and warnings; go test (also `-json`) and pytest
   failures as entries with their output.
+- **Platform logs** (Log viewer): Nginx, Apache and ingress-nginx access
+  logs and Envoy and Istio's, read into fields (`status`, `latency`,
+  `path`, `method`, `upstream`…, `status>=500` an error); syslog (RFC
+  5424 and 3164) and `journalctl -o json`; `kubectl get events` as a
+  table or JSON; the Kubernetes audit log.
+- Smart paste offers every one of these logs to the Log viewer, and
+  says how many steps it found.
 
 ## [3.8.1] - 2026-11-03
 

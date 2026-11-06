@@ -118,7 +118,7 @@
       {session}
       emptyIcon={Sparkles}
       emptyTitle="The obvious transformation appears here"
-      emptyDescription="JSON is encoded, base64 decoded (JSON inside is pretty-printed), JWTs expanded, Ansible logs analysed; epoch timestamps, URL-encoded text and cron expressions are read and open in their tools."
+      emptyDescription="JSON is encoded, base64 decoded (JSON inside is pretty-printed), JWTs expanded, Ansible logs analysed; epoch timestamps, URL-encoded text and cron expressions are read and open in their tools; a log — an app's, a pipeline's or a build's, an access log, syslog, Kubernetes events — opens in the Log viewer."
       onsample={sample}
       onswap={swap}
       view={session.result?.jwt || session.result?.task ? rich : undefined}
