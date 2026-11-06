@@ -1,0 +1,17 @@
+L1+1 text 2026-11-06T10:00:00Z msg="Started by user admin"
+L2+1 text 2026-11-06T10:00:00.1Z msg="[Pipeline] Start of Pipeline" tool
+L3+1 text 2026-11-06T10:00:00.2Z msg="[Pipeline] node" tool
+L4+1 text 2026-11-06T10:00:01Z msg="[Pipeline] {" tool
+L5+1 text 2026-11-06T10:00:01.1Z msg="[Pipeline] stage" tool
+L6+1 text 2026-11-06T10:00:01.2Z msg="Stage Build" step="Build" tool
+L7+1 text 2026-11-06T10:00:01.3Z msg="[Pipeline] sh" step="Build" tool
+L8+1 text 2026-11-06T10:00:01.4Z msg="+ mvn -B package" step="Build"
+L9+1 text error(ERROR) 2026-11-06T10:00:20Z msg="/var/jenkins/ws/shop/src/main/java/com/acme/Cart.java:[42,7] cannot find symbol" step="Build"
+L10+1 text 2026-11-06T10:00:20.1Z msg="[Pipeline] }" step="Build" tool
+L11+1 text 2026-11-06T10:00:20.2Z msg="[Pipeline] // stage" step="Build" tool
+L12+1 text 2026-11-06T10:00:20.3Z msg="[Pipeline] stage" tool
+L13+1 text 2026-11-06T10:00:20.4Z msg="Stage Deploy" step="Deploy" tool
+L14+1 text 2026-11-06T10:00:20.5Z msg="Stage \"Deploy\" skipped due to earlier failure(s)" step="Deploy"
+L15+1 text 2026-11-06T10:00:20.6Z msg="[Pipeline] // stage" step="Deploy" tool
+L16+1 text error(ERROR) 2026-11-06T10:00:21Z msg="script returned exit code 1"
+L17+1 text 2026-11-06T10:00:21.1Z msg="Finished: FAILURE"

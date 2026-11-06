@@ -182,8 +182,8 @@ func (l *Log) steps() {
 			}
 		}
 	}
-	if !argo {
-		return
+	if !argo || l.ci {
+		return // a pipeline's steps come from its marks
 	}
 	l.workflows = workflows
 
@@ -204,7 +204,7 @@ func (l *Log) steps() {
 		}
 		last[r.file] = r.step
 		if executor[r.source] || hasArgo && field(i, argoID) == "true" {
-			r.argo = true
+			r.tool = true
 		}
 	}
 }
@@ -212,7 +212,7 @@ func (l *Log) steps() {
 // stepStats sums the entries by step, and by pod within it, in the
 // order the steps start.
 func (l *Log) stepStats() []StepStat {
-	if l.workflows == nil {
+	if l.workflows == nil && !l.ci {
 		return nil
 	}
 	by := map[uint32]*StepStat{}

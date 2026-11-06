@@ -40,6 +40,7 @@ func TestFind(t *testing.T) {
 		{"terraform module", "  on modules/net/vpc.tf line 3:", "modules/net/vpc.tf line 3→modules/net/vpc.tf:3:0"},
 		{"helm", "Error: template: shop/templates/deploy.yaml:23:14: executing", "shop/templates/deploy.yaml:23:14→shop/templates/deploy.yaml:23:14"},
 		{"ansible task path", "task path: /home/u/repo/roles/app/tasks/main.yml:12", "/home/u/repo/roles/app/tasks/main.yml:12→/home/u/repo/roles/app/tasks/main.yml:12:0"},
+		{"maven", "[ERROR] /ws/shop/src/main/java/com/acme/Cart.java:[42,7] cannot find symbol", "/ws/shop/src/main/java/com/acme/Cart.java:[42,7]→/ws/shop/src/main/java/com/acme/Cart.java:42:7"},
 		{"rust", "  --> src/main.rs:10:5", "src/main.rs:10:5→src/main.rs:10:5"},
 		{"dockerfile", "Dockerfile:12\n--------------------", "Dockerfile:12→Dockerfile:12:0"},
 		{"windows path", `C:\agent\_work\1\s\cmd\main.go:7`, `C:\agent\_work\1\s\cmd\main.go:7→C:/agent/_work/1/s/cmd/main.go:7:0`},

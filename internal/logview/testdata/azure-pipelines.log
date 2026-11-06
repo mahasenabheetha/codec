@@ -1,0 +1,14 @@
+2026-11-06T10:00:00.1000000Z ##[section]Starting: Initialize job
+2026-11-06T10:00:00.2000000Z Agent name: 'Hosted Agent'
+2026-11-06T10:00:01.0000000Z ##[section]Finishing: Initialize job
+2026-11-06T10:00:02.0000000Z ##[section]Starting: Build
+2026-11-06T10:00:02.1000000Z ##[group]Task         : .NET Core
+2026-11-06T10:00:02.1100000Z Version      : 2.231.0
+2026-11-06T10:00:02.1200000Z ##[endgroup]
+2026-11-06T10:00:02.2000000Z ##[command]"C:\Program Files\dotnet\dotnet.exe" build src/Shop.csproj
+2026-11-06T10:00:05.0000000Z src/Cart.cs(42,7): error CS0103: The name 'x' does not exist [src/Shop.csproj]
+2026-11-06T10:00:05.1000000Z ##vso[task.logissue type=error;sourcepath=src/Cart.cs;linenumber=42;columnnumber=7;code=CS0103;]The name 'x' does not exist
+2026-11-06T10:00:05.2000000Z ##vso[task.setvariable variable=built]false
+2026-11-06T10:00:05.3000000Z ##[warning]Build had 3 warnings
+2026-11-06T10:00:05.4000000Z ##[error]Process completed with exit code 1.
+2026-11-06T10:00:05.5000000Z ##[section]Finishing: Build

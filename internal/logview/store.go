@@ -33,6 +33,8 @@ type Log struct {
 	summary Summary
 	// Argo runs: the workflows named, nil when the log isn't one.
 	workflows []string
+	// ci: a pipeline log, its entries in steps from the CI tool's marks.
+	ci bool
 
 	msgOnce sync.Once // every entry's fingerprint, for comparing runs
 	msg     *msgIndex
@@ -57,10 +59,10 @@ type row struct {
 	source  uint32 // index into Log.strs
 	group   uint32 // error group + 1, for warnings and worse
 	extra   uint32 // index + 1 into Log.extras
-	step    uint32 // Argo step, into Log.strs; 0 when none
+	step    uint32 // Argo or pipeline step, into Log.strs; 0 when none
 	level   Level
 	format  Format
-	argo    bool // a line of Argo's executor (init and wait containers)
+	tool    bool // output of the tooling: Argo's executor (init and wait containers), a CI tool's own lines
 	message string
 	raw     string
 }
@@ -89,6 +91,23 @@ type BuildOptions struct {
 func Build(files []File, opt BuildOptions) (*Log, error) {
 	l := &Log{keyIDs: map[string]uint32{}, strIDs: map[string]uint32{"": 0}, strs: []string{""}}
 	g := newGrouper()
+	// A zip (GitHub's run logs) is read as the files in it.
+	var steps, jobs []string
+	var flat []File
+	for _, f := range files {
+		if !isZip(f.Data) {
+			flat, steps, jobs = append(flat, f), append(steps, ""), append(jobs, "")
+			continue
+		}
+		zs, err := unzip(f, opt.Limit)
+		if err != nil {
+			return nil, err
+		}
+		for _, z := range zs {
+			flat, steps, jobs = append(flat, z.File), append(steps, z.step), append(jobs, z.job)
+		}
+	}
+	files = flat
 	var total int64
 	for fi, f := range files {
 		limit := int64(0)
@@ -112,7 +131,12 @@ func Build(files []File, opt BuildOptions) (*Log, error) {
 		l.texts = append(l.texts, text)
 		info := FileInfo{Name: f.Name, Bytes: len(f.Data), Lines: countLines(text), Encoding: enc}
 		for e := range Read(text, opt.Options) {
-			if e.Source == "" && len(files) > 1 {
+			if steps[fi] != "" {
+				e.Step = steps[fi] // the file is the step
+			}
+			if e.Source == "" && jobs[fi] != "" {
+				e.Source = jobs[fi]
+			} else if e.Source == "" && len(files) > 1 {
 				e.Source = f.Name
 			}
 			l.add(&e, fi, g)
@@ -147,7 +171,10 @@ func (l *Log) add(e *Entry, file int, g *grouper) {
 		line: uint32(e.Line), lines: uint32(e.Lines), file: uint16(file),
 		cellAt: uint32(len(l.cells)), ncells: uint16(min(len(e.Fields), 1<<16-1)),
 		source: l.str(e.Source), level: e.Level, format: e.Format,
-		message: e.Message, raw: e.Raw,
+		message: e.Message, raw: e.Raw, tool: e.Tool,
+	}
+	if e.Step != "" {
+		r.step, l.ci = l.str(e.Step), true
 	}
 	if !e.Time.IsZero() {
 		r.time = e.Time.UnixNano()
@@ -243,7 +270,7 @@ func (l *Log) Entry(i int) Entry {
 	r := &l.rows[i]
 	e := Entry{
 		Line: int(r.line), Lines: int(r.lines), Format: r.format, Source: l.strs[r.source],
-		Level: r.level, Message: r.message, Raw: r.raw,
+		Level: r.level, Message: r.message, Raw: r.raw, Step: l.strs[r.step], Tool: r.tool,
 	}
 	if r.time != 0 {
 		e.Time = time.Unix(0, r.time).UTC()

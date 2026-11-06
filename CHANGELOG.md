@@ -26,6 +26,14 @@ All notable changes to codec are documented here. The format follows
   string, a logging call, a placeholder, other parts of the message,
   the entry's field names; tests and docs count less). A wrapped error
   (`a: b: c`) is searched layer by layer and shown as a chain.
+- **Pipeline logs** (Log viewer): Azure DevOps, GitHub Actions, GitLab
+  CI and Jenkins logs are read in their steps (tasks, groups, sections,
+  stages), timed in the Steps tab with each step's first error and in
+  the chart's lanes. `##[error]`, `##[warning]`, `::error file=,line=::`
+  and `##vso[task.logissue]` set the level and link the location; the
+  tools' own lines fold as output. GitHub's log archive zip opens with a
+  step per file.
+- Maven's `Cart.java:[42,7]` is a link to the source too.
 
 ## [3.8.1] - 2026-11-03
 

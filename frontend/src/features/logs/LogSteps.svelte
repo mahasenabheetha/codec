@@ -9,9 +9,10 @@
   import { findInLog, type Found } from './steps'
   import { prefs, useViewer } from './viewer.svelte'
 
-  // An Argo run's steps, in the order they started: when each ran, how
-  // long it took, what it logged and how much of it went wrong. Steps
-  // come from the entries' argo_step_name or the pods' names. With the
+  // A run's steps, in the order they started: when each ran, how long it
+  // took, what it logged and how much of it went wrong. Steps come from
+  // an Argo log's argo_step_name or pods' names, or a pipeline log's
+  // sections, stages and groups (Azure DevOps, GitHub, GitLab, Jenkins). With the
   // run's status beside the log, the whole step tree shows: each node's
   // phase, exit code and Argo's message, steps that never logged too,
   // and why a failed step failed.
@@ -100,7 +101,10 @@
   // A failed step's first error from the log, fetched when shown.
   let firstErrors = $state<Record<number, string>>({})
   $effect(() => {
-    const want = rows.filter((r) => failed(r.n.phase) && r.step && r.step.firstError >= 0).map((r) => r.step!.firstError)
+    const want = [
+      ...rows.filter((r) => failed(r.n.phase) && r.step && r.step.firstError >= 0).map((r) => r.step!.firstError),
+      ...logOnly.filter((st) => st.errors > 0 && st.firstError >= 0).map((st) => st.firstError),
+    ]
     for (const i of want) {
       if (i in firstErrors) continue
       firstErrors[i] = ''
@@ -187,6 +191,11 @@
         {#if run}<span></span>{/if}
         {@render counts(st, term('step', st.name))}
       </div>
+      {#if st.errors > 0 && st.firstError >= 0 && firstErrors[st.firstError]}
+        <div class="why">
+          <span class="muted">First error: </span><button type="button" class="first" onclick={() => onjump(st.firstError)}>{firstErrors[st.firstError]}</button>
+        </div>
+      {/if}
     {/each}
   </div>
 </div>

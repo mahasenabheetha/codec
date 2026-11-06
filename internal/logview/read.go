@@ -82,7 +82,8 @@ type line struct {
 	raw        string
 	s          string // the payload: prefixes, colour codes and redraws removed
 	pre        prefix
-	parts      int // physical lines, more than one when a runtime split it
+	parts      int    // physical lines, more than one when a runtime split it
+	gitlab     string // the line with GitLab's section marks, when it has them
 }
 
 type reader struct {
@@ -99,6 +100,7 @@ type reader struct {
 	queue []*pending
 	head  int
 	last  map[string]*pending
+	ci    ciSteps // the pipeline step being read
 }
 
 func newReader(text string, opt Options) *reader {
@@ -185,7 +187,12 @@ func (r *reader) next() *line {
 		r.n++
 		raw := strings.TrimRight(r.text[start:end], "\r")
 		var p prefix
-		s := r.prep(redraw(stripANSI(raw)), &p)
+		clean, marks := stripANSI(raw), ""
+		if strings.Contains(clean, "section_") && gitlabSection.MatchString(clean) {
+			// Taken out before the redraw, which would drop the time too.
+			clean, marks = gitlabSection.ReplaceAllString(clean, ""), clean
+		}
+		s := r.prep(redraw(clean), &p)
 		if l != nil {
 			// The rest of a line the runtime split.
 			l.s += s
@@ -193,7 +200,7 @@ func (r *reader) next() *line {
 			l.parts++
 			l.pre.partial = p.partial
 		} else {
-			l = &line{n: r.n, start: start, end: start + len(raw), raw: raw, s: s, pre: p, parts: 1}
+			l = &line{n: r.n, start: start, end: start + len(raw), raw: raw, s: s, pre: p, parts: 1, gitlab: marks}
 		}
 		if !l.pre.partial {
 			return l
@@ -274,6 +281,16 @@ func (r *reader) handle(l *line) {
 		p.done, p = true, nil
 		delete(r.last, src)
 	}
+	if l.gitlab != "" {
+		before := r.ci.current()
+		r.ci.gitlab(l.gitlab, l.s)
+		if strings.TrimSpace(l.s) == "" {
+			// A section's end, nothing else: the tool's line, in the section.
+			id := gitlabSection.FindStringSubmatch(l.gitlab)[2]
+			r.start(Entry{Format: Text, Message: "End of " + id, Step: before, Tool: true}, l, noBlock)
+			return
+		}
+	}
 	if strings.TrimSpace(l.s) == "" {
 		if p != nil && p.block != noBlock {
 			p.blanks = append(p.blanks, l.raw)
@@ -291,6 +308,10 @@ func (r *reader) handle(l *line) {
 			return
 		}
 		p.block, p.blanks = noBlock, nil
+	}
+	if m, ok := readCI(l.s); ok {
+		r.ciLine(m, l)
+		return
 	}
 	var e Entry
 	if r.structured(l.s, &e) {
@@ -348,6 +369,28 @@ func (r *reader) handle(l *line) {
 		return
 	}
 	r.start(e, l, noBlock)
+}
+
+// ciLine places a line that carries a CI command: a step that starts
+// takes the line, one that ends keeps it.
+func (r *reader) ciLine(m ciMark, l *line) {
+	switch m.kind {
+	case ciSectionStart:
+		r.ci.start(m.name)
+	case ciGroupStart:
+		r.ci.group = m.name
+	}
+	e := Entry{Format: Text, Level: m.level, Message: m.msg, Caller: m.caller, Tool: m.tool}
+	if e.Level == LevelNone && !m.tool {
+		// "##[command]npm test" and the like: the text may say more.
+		var t Entry
+		readText(m.msg, r.day, &t)
+		e.Level, e.RawLevel = t.Level, t.RawLevel
+	}
+	r.start(e, l, noBlock)
+	if m.kind == ciSectionEnd {
+		r.ci.end("")
+	}
 }
 
 // frameFollows reports whether the next line from src is a stack frame,
@@ -464,6 +507,9 @@ func (r *reader) start(e Entry, l *line, block blockKind) *pending {
 		prev.done = true
 	}
 	e.Line, e.Source = l.n, src
+	if e.Step == "" {
+		e.Step = r.ci.current()
+	}
 	if e.Time.IsZero() {
 		e.Time = l.pre.time
 	}

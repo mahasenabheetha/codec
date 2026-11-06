@@ -37,6 +37,8 @@ var (
 	javaRef = regexp.MustCompile(`([\w$]+(?:\.[\w$<>]+)+)\(([\w$-]+\.(?:java|kt|kts|scala|groovy|clj)):(\d+)\)`)
 	// Terraform: on main.tf line 12, in resource …
 	tfRef = regexp.MustCompile(`\bon ([^\s,:]+\.(?:tf|tfvars|hcl)) line (\d+)`)
+	// Maven and javac through Maven: /src/main/java/x/Cart.java:[42,7]
+	mavenRef = regexp.MustCompile(`((?:[A-Za-z]:)?[\w.@~+\\/-]*[\w-]\.(?:java|kt|scala|groovy)):\[(\d+),(\d+)\]`)
 	// MSBuild, dotnet, tsc: src/x.ts(10,5): error TS2322 · X.cs(42,7)
 	parenRef = regexp.MustCompile(`((?:[A-Za-z]:)?[\w.@~+\\/-]*[\w-]\.(\w{1,12}))\((\d+)(?:,(\d+))?\)`)
 	// Everything else: Go, Node, Rust, Helm, Ansible, eslint's unix
@@ -79,6 +81,9 @@ func Find(text string) []Ref {
 	for _, m := range javaRef.FindAllStringSubmatchIndex(text, MaxRefs) {
 		file := text[m[4]:m[5]]
 		add(m[4], m[7], javaPath(text[m[2]:m[3]], file), num(text, m[6], m[7]), 0)
+	}
+	for _, m := range mavenRef.FindAllStringSubmatchIndex(text, MaxRefs) {
+		add(m[2], m[1], text[m[2]:m[3]], num(text, m[4], m[5]), num(text, m[6], m[7]))
 	}
 	for _, m := range tfRef.FindAllStringSubmatchIndex(text, MaxRefs) {
 		add(m[2], m[1], text[m[2]:m[3]], num(text, m[4], m[5]), 0)

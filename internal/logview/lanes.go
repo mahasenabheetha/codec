@@ -39,7 +39,7 @@ const maxLanes = 60
 func (l *Log) Lanes(ids []uint32, maxBuckets int) Lanes {
 	out := Lanes{By: "source", Lanes: []Lane{}}
 	key := func(r *row) uint32 { return r.source }
-	if l.workflows != nil {
+	if l.workflows != nil || l.ci {
 		out.By = "step"
 		key = func(r *row) uint32 { return r.step }
 	}
