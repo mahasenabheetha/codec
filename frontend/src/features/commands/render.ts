@@ -4,6 +4,7 @@
 // tool, unknown flags, redirections, comments) is kept as written.
 
 import type { Command, Flag, FlagUse, Part, Segment, Tool } from '../../lib/api/commands'
+import { placeholderRe } from './marks'
 
 export type Shell = 'bash' | 'powershell'
 
@@ -20,6 +21,9 @@ const plain = /^[A-Za-z0-9_@%+=:,./^~-]+$/
 
 /** quote writes a word so the shell passes it through as it is. */
 export function quote(word: string, shell: Shell = 'bash'): string {
+  // A recipe's {placeholder} stays as it is in bash, where braces
+  // without a comma are plain text, so the line still shows it as one.
+  if (shell === 'bash' && word !== '' && plain.test(word.replace(placeholderRe, 'x'))) return word
   if (word !== '' && plain.test(word) && !(shell === 'powershell' && /^[@-]?$/.test(word))) return word
   if (shell === 'powershell') return `'${word.replaceAll("'", "''")}'`
   // A substitution ($HOME, $(…), `…`) was meant to be expanded: double

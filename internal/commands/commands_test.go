@@ -234,3 +234,157 @@ func FuzzExplain(f *testing.F) {
 		_ = fmt.Sprint(ex)
 	})
 }
+
+// Every recipe explains fully: its tool is known, and no part of it is
+// a word the reference doesn't have.
+func TestRecipes(t *testing.T) {
+	tools, err := Tools()
+	if err != nil {
+		t.Fatal(err)
+	}
+	n := 0
+	for _, ti := range tools {
+		tool, _ := Lookup(ti.Name)
+		for _, r := range tool.Recipes {
+			n++
+			ex := Explain(r.Command)
+			if len(ex.Segments) != 1 || ex.Segments[0].Tool != tool.Name {
+				t.Errorf("%s: %q isn't one %s command", ti.Name, r.Command, tool.Name)
+				continue
+			}
+			for _, p := range ex.Parts {
+				if p.Kind == "unknown" {
+					t.Errorf("%s %q: %q is unknown", ti.Name, r.Title, p.Text)
+				}
+			}
+		}
+	}
+	if n == 0 {
+		t.Fatal("no recipes")
+	}
+}
+
+func TestStem(t *testing.T) {
+	for _, g := range [][]string{
+		{"change", "changes", "changed", "changing"},
+		{"file", "files"},
+		{"stop", "stopped", "stopping", "stops"},
+		{"commit", "commits", "committed"},
+		{"process", "processes"},
+		{"delete", "deleted", "deleting"},
+		{"log", "logs", "logging"},
+		{"branch", "branches"},
+	} {
+		for _, w := range g[1:] {
+			if stem(w) != stem(g[0]) {
+				t.Errorf("stem(%q) = %q, stem(%q) = %q", w, stem(w), g[0], stem(g[0]))
+			}
+		}
+	}
+}
+
+func TestOneEdit(t *testing.T) {
+	for _, c := range []struct {
+		a, b string
+		want bool
+	}{
+		{"push", "pusj", true}, {"push", "psuh", true}, {"push", "pushh", true}, {"push", "pus", true},
+		{"push", "push", false}, {"push", "pull", false}, {"stash", "sthsa", false},
+	} {
+		if got := oneEdit(c.a, c.b); got != c.want {
+			t.Errorf("oneEdit(%q, %q) = %v", c.a, c.b, got)
+		}
+	}
+}
+
+// What a query should find first, by purpose rather than by name.
+func TestSearch(t *testing.T) {
+	for _, c := range []struct {
+		query, tool, first string // first: the best result's command
+	}{
+		{"undo my last commit", "", "git reset --soft HEAD~1"},
+		{"take back the last commit", "", "git reset --soft HEAD~1"},
+		{"throw away my changes", "", "git reset --hard"},
+		{"put my changes aside", "", "git stash push -m {description}"},
+		{"follow logs of a pod", "", "kubectl logs -f --tail=100 {pod} -n {namespace}"},
+		{"why did my pod crash", "", "kubectl logs -p {pod} -n {namespace}"},
+		{"roll back a deployment", "", "kubectl rollout undo deployment/{name} -n {namespace}"},
+		{"restart deployment", "", "kubectl rollout restart deployment/{name} -n {namespace}"},
+		{"--force-with-lease", "", "git push --force-with-lease"},
+		{"stash pop", "", "git stash pop"},
+		{"restart", "git", ""}, // nothing in git restarts
+		{"pusj new branch", "", "git push -u origin {branch}"}, // a typo
+	} {
+		got, err := Search(c.query, c.tool, 10)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if c.first == "" {
+			if len(got) != 0 {
+				t.Errorf("%q in %s: %v", c.query, c.tool, got[0])
+			}
+			continue
+		}
+		if len(got) == 0 || strings.TrimSpace(got[0].Command) != c.first {
+			var cmds []string
+			for _, r := range got {
+				cmds = append(cmds, fmt.Sprintf("%s (%.2f %v)", r.Command, r.Score, r.Why))
+			}
+			t.Errorf("%q: want %s first, got\n  %s", c.query, c.first, strings.Join(cmds, "\n  "))
+		}
+	}
+}
+
+// A vague query gets several answers, each saying why.
+func TestSearchVague(t *testing.T) {
+	got, _ := Search("undo", "", 10)
+	if len(got) < 3 {
+		t.Fatalf("undo: %d results", len(got))
+	}
+	for _, r := range got {
+		if len(r.Why) == 0 {
+			t.Errorf("%s: no why", r.Title)
+		}
+	}
+	// An empty query lists the recipes; naming a tool keeps to it.
+	all, _ := Search("", "", 0)
+	git, _ := Search("", "git", 0)
+	named, _ := Search("git", "", 0)
+	if len(all) <= len(git) || len(git) == 0 || len(named) != len(git) {
+		t.Errorf("browse: %d all, %d git, %d for the query git", len(all), len(git), len(named))
+	}
+}
+
+// Regression: "--dry-run" in a recipe's command made it the answer to
+// "what is running".
+func TestSearchIgnoresFlagWords(t *testing.T) {
+	got, _ := Search("see what is running", "", 3)
+	if len(got) == 0 || !strings.HasPrefix(got[0].Command, "kubectl get pods") {
+		t.Errorf("first: %+v", got)
+	}
+}
+
+// Naming the area ("kubernetes logs") keeps git's log below kubectl's.
+func TestSearchGroupHint(t *testing.T) {
+	got, _ := Search("kubernetes logs", "", 10)
+	if len(got) < 2 || got[0].Tool != "kubectl" || got[1].Tool != "kubectl" {
+		t.Errorf("first two: %+v", got)
+	}
+}
+
+func FuzzSearch(f *testing.F) {
+	for _, s := range []string{"undo my last commit", "--force", "-", "pusj", "ééé ß", "a", "kubernetes", "{x}"} {
+		f.Add(s)
+	}
+	f.Fuzz(func(t *testing.T, q string) {
+		got, err := Search(q, "", 10)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for i := 1; i < len(got); i++ {
+			if got[i].Score > got[i-1].Score {
+				t.Fatalf("%q: not in order", q)
+			}
+		}
+	})
+}

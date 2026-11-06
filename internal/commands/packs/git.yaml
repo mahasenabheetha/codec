@@ -124,3 +124,39 @@ commands:
       - name: revision range
         optional: true
         summary: which commits, such as main..feature
+recipes:
+  - title: Undo the last commit and keep its changes
+    command: git reset --soft HEAD~1
+    words: [uncommit, take back, last commit, mistake]
+    note: the changes stay staged; if the commit was pushed, pushing again needs a force push
+  - title: Throw away every uncommitted change
+    command: git reset --hard
+    words: [discard, start over, clean, lose]
+    note: changes to tracked files are lost; git stash keeps them instead
+  - title: Fix the last commit's message
+    command: git commit --amend -m {message}
+    words: [rename commit, reword, typo, change message]
+  - title: Add forgotten changes to the last commit
+    command: git commit --amend --no-edit
+    words: [forgot, missed file, include]
+  - title: Commit every change to tracked files
+    command: git commit -am {message}
+    words: [save work, snapshot]
+  - title: Put changes aside for later
+    command: git stash push -m {description}
+    words: [shelve, save temporarily, switch branch, work in progress]
+  - title: Bring back the changes put aside
+    command: git stash pop
+    words: [unstash, restore stash, get back]
+  - title: Push a new branch and remember where it goes
+    command: git push -u origin {branch}
+    words: [first push, upstream, track, publish branch]
+  - title: Force-push without losing someone else's commits
+    command: git push --force-with-lease
+    words: [after rebase, after amend, overwrite safely]
+  - title: Delete a branch on the remote
+    command: git push origin --delete {branch}
+    words: [remove remote branch]
+  - title: See the history as a graph
+    command: git log --oneline --graph -20
+    words: [tree, branches, history, recent commits]

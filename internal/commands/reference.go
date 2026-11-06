@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/fs"
 	"path"
+	"regexp"
 	"slices"
 	"strings"
 	"sync"
@@ -22,6 +23,20 @@ type Tool struct {
 	// Group says where a tool sits when they are listed: git,
 	// kubernetes, containers, linux.
 	Group string `yaml:"group" json:"group"`
+	// Recipes are the cheat sheet: things people do with the tool, by
+	// what they want rather than by flag.
+	Recipes []Recipe `yaml:"recipes" json:"recipes,omitempty"`
+}
+
+// Recipe is one way to do something: "undo the last commit, keep the
+// changes". Command is a template; {name} marks a value to fill in.
+type Recipe struct {
+	Title   string `yaml:"title" json:"title"`
+	Command string `yaml:"command" json:"command"`
+	// Words are other ways to say it, for search ("uncommit",
+	// "take back").
+	Words []string `yaml:"words" json:"words,omitempty"`
+	Note  string   `yaml:"note" json:"note,omitempty"` // what to know before running it
 }
 
 // Command is a tool or one of its subcommands.
@@ -118,6 +133,9 @@ func readPacks(fsys fs.FS) (map[string]*Tool, error) {
 		if err := check(&t.Command, t.Name); err != nil {
 			return nil, fmt.Errorf("%s: %w", path.Base(f), err)
 		}
+		if err := checkRecipes(&t); err != nil {
+			return nil, fmt.Errorf("%s: %w", path.Base(f), err)
+		}
 		for _, n := range append([]string{t.Name}, t.Aliases...) {
 			if _, dup := tools[n]; dup {
 				return nil, fmt.Errorf("%s: %q is another tool's name too", path.Base(f), n)
@@ -176,6 +194,30 @@ func check(c *Command, where string) error {
 		}
 		if err := check(s, where+" "+s.Name); err != nil {
 			return err
+		}
+	}
+	return nil
+}
+
+// placeholder is a value to fill in a recipe's command: {branch}.
+var placeholder = regexp.MustCompile(`\{[a-z][a-z0-9-]*\}`)
+
+// checkRecipes: a recipe has a title and its command starts with the
+// tool. Other braces (stash@{0}, jsonpath) are left alone. Whether the command explains
+// fully is the tests' to say: Explain reads the packs this is checking.
+func checkRecipes(t *Tool) error {
+	titles := map[string]bool{}
+	for _, r := range t.Recipes {
+		if r.Title == "" || r.Command == "" {
+			return fmt.Errorf("a recipe needs a title and a command")
+		}
+		if titles[r.Title] {
+			return fmt.Errorf("recipe %q twice", r.Title)
+		}
+		titles[r.Title] = true
+		first, _, _ := strings.Cut(r.Command, " ")
+		if first != t.Name && !slices.Contains(t.Aliases, first) {
+			return fmt.Errorf("recipe %q: the command must start with %s", r.Title, t.Name)
 		}
 	}
 	return nil

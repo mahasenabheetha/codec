@@ -14,6 +14,11 @@ All notable changes to codec are documented here. The format follows
   Build form shows the same command and changing either side changes
   the other. Values from the open folder (namespaces, resources,
   labels, charts) are offered; Copy for PowerShell quotes it that way.
+- **Cheat sheet** (Commands): find a command by what you want to do,
+  in your own words ("undo my last commit"). Recipes, commands and
+  flags are ranked, each with what matched — the word, a synonym or a
+  typo fixed; with nothing asked, recipes by tool. A pick goes on the
+  line with its values to fill in marked; Tab moves between them.
 
 ## [3.9.0] - 2026-11-06
 

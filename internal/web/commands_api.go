@@ -102,6 +102,29 @@ func (s *Server) handleCommandExplain(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{"parts": parts, "segments": segs})
 }
 
+// maxSearchQuery bounds a cheat-sheet query: a question, not a page.
+const maxSearchQuery = 500
+
+// GET /api/v2/commands/search?q=&tool=: the cheat sheet. Recipes,
+// commands and flags that do what q asks, best first, each with why it
+// matched; with no q, the recipes to browse.
+func (s *Server) handleCommandSearch(w http.ResponseWriter, r *http.Request) {
+	q, tool := r.URL.Query().Get("q"), r.URL.Query().Get("tool")
+	if len(q) > maxSearchQuery {
+		writeError(w, http.StatusUnprocessableEntity, "ask in a few words; the cheat sheet searches by purpose, not by pasted text")
+		return
+	}
+	results, err := commands.Search(q, tool, 30)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	if results == nil {
+		results = []commands.Result{}
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"results": results})
+}
+
 // commandSuggestions are values the open folder offers the builder: the
 // namespaces, resources and labels of its Kubernetes YAML, and its Helm
 // charts.

@@ -2,12 +2,14 @@
   import Copy from '@lucide/svelte/icons/copy'
   import Eraser from '@lucide/svelte/icons/eraser'
   import SquareTerminal from '@lucide/svelte/icons/square-terminal'
+  import { tick } from 'svelte'
   import { isAbort } from '../../lib/api/client'
   import { commandSuggestions, commandTool, commandTools, explainCommand, type Explanation, type Suggestions, type Tool, type ToolInfo } from '../../lib/api/commands'
   import Button from '../../lib/components/Button.svelte'
   import CodeView from '../../lib/components/CodeView.svelte'
   import EmptyState from '../../lib/components/EmptyState.svelte'
   import IconButton from '../../lib/components/IconButton.svelte'
+  import SegmentedControl from '../../lib/components/SegmentedControl.svelte'
   import SplitPane from '../../lib/components/SplitPane.svelte'
   import { toolById } from '../../lib/tools'
   import { copyText } from '../../lib/utils/clipboard'
@@ -15,8 +17,9 @@
   import { toolCommands, toolStatus } from '../shared/tool.svelte'
   import { workspace as ws } from '../workspace/workspace.svelte'
   import BuildForm from './BuildForm.svelte'
+  import CheatSheet from './CheatSheet.svelte'
   import ExplainPane from './ExplainPane.svelte'
-  import { lineMarks } from './marks'
+  import { lineMarks, placeholderKeys, placeholders, selectPlaceholder } from './marks'
   import { forPowerShell, rewrite, type Built } from './render'
 
   // Commands (decision 104): one command line, explained part by part
@@ -31,6 +34,19 @@
   let hovered = $state<number | null>(null)
   let focus = $state(0)
   let editor = $state<CodeView>()
+  // The left pane: the form, or the cheat sheet to find a command in.
+  let view = $state<'build' | 'sheet'>('sheet')
+  let sheetQuery = $state('')
+  let sheetTool = $state('')
+  let left = $state<HTMLElement>()
+
+  // A line typed into an empty one is something to build on.
+  let wasEmpty = true
+  $effect(() => {
+    const empty = !line.trim()
+    if (wasEmpty && !empty) view = 'build'
+    wasEmpty = empty
+  })
 
   // The line explained a moment after it changes.
   $effect(() => {
@@ -105,7 +121,27 @@
   function start(name: string) {
     line = name + ' '
     focus = 0
+    view = 'build'
     editor?.focus()
+  }
+
+  // A command from the cheat sheet goes on the line with its first
+  // placeholder selected, so typing fills it in; Tab goes to the next.
+  async function pick(command: string) {
+    line = command
+    focus = 0
+    view = 'build'
+    await tick()
+    const v = editor?.getView()
+    if (!v) return
+    if (!selectPlaceholder(v, 0)) v.dispatch({ selection: { anchor: v.state.doc.length } })
+    v.focus()
+  }
+
+  async function openSheet() {
+    view = 'sheet'
+    await tick()
+    left?.querySelector<HTMLInputElement>('input[type=search]')?.focus()
   }
 
   function copy(shell: 'bash' | 'powershell') {
@@ -115,17 +151,20 @@
 
   const examples = ['git log --oneline --graph -20', 'kubectl get pods -n shop -o wide', 'git push --force origin main', 'kubectl logs deploy/web -f --tail=100 | grep -i error']
 
-  const marks = $derived(lineMarks(ex.parts, hovered))
+  const marks = $derived([lineMarks(ex.parts, hovered), placeholderKeys])
+  const holes = $derived([...new Set(placeholders(line))])
   const groups = $derived([...new Set(tools.map((t) => t.group))])
 
   toolCommands(() => active, () => [
     { id: 'commands.copy', title: 'Commands: Copy the command', group: 'Commands', run: () => copy('bash') },
     { id: 'commands.copy-ps', title: 'Commands: Copy for PowerShell', group: 'Commands', run: () => copy('powershell') },
     { id: 'commands.clear', title: 'Commands: Clear', group: 'Commands', run: () => (line = '') },
+    { id: 'commands.search', title: 'Commands: Search the cheat sheet', group: 'Commands', run: openSheet },
   ])
   toolStatus(() => active, () => {
     if (!line.trim()) return { text: 'Type, paste or build a command' }
     if (error) return { text: error, tone: 'err' }
+    if (holes.length) return { text: `Fill in ${holes.join(', ')}${holes.length > 1 ? '; Tab moves to the next' : ''}`, tone: 'warn' }
     const known = ex.segments.filter((s) => s.tool).length
     const risky = ex.segments.find((s) => s.danger?.level === 'danger')
     if (risky) return { text: `${risky.path.join(' ')}: ${risky.danger!.note}`, tone: 'err' }
@@ -153,14 +192,27 @@
   <div class="body">
     <SplitPane id="commands">
       {#snippet first()}
-        <Pane title="Build">
-          {#if ref && built}
+        <div class="left" bind:this={left}>
+        <Pane title={view === 'build' ? 'Build' : 'Cheat sheet'}>
+          {#snippet actions()}
+            <SegmentedControl
+              label="Build or find a command"
+              bind:value={view}
+              options={[
+                { value: 'build', label: 'Build' },
+                { value: 'sheet', label: 'Cheat sheet' },
+              ]}
+            />
+          {/snippet}
+          {#if view === 'sheet'}
+            <CheatSheet {tools} bind:query={sheetQuery} bind:tool={sheetTool} onpick={pick} onstart={start} />
+          {:else if ref && built}
             <BuildForm tool={ref} {built} {suggest} onchange={change} />
           {:else if seg && !seg.tool && line.trim()}
             <EmptyState icon={SquareTerminal} title="Not in codec's reference" description="codec can build git, kubectl, helm, docker and the common Linux commands; the explanation still shows this one's parts." />
           {:else}
             <div class="start">
-              <p class="hint">Start from a tool, or type a command above.</p>
+              <p class="hint">Start from a tool, type a command above, or <button type="button" class="link" onclick={openSheet}>find one by what it does</button>.</p>
               {#each groups as g (g)}
                 <h3>{g}</h3>
                 <div class="tools">
@@ -175,6 +227,7 @@
             </div>
           {/if}
         </Pane>
+        </div>
       {/snippet}
       {#snippet second()}
         <Pane title="Explanation">
@@ -245,6 +298,20 @@
   .body {
     flex: 1;
     min-height: 0;
+  }
+  .left {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  .link {
+    padding: 0;
+    color: var(--accent);
+    background: none;
+    border: none;
+  }
+  .link:hover {
+    text-decoration: underline;
   }
   .start {
     padding: var(--s-3);

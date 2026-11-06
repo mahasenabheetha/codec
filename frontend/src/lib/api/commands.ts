@@ -128,3 +128,18 @@ export const explainCommand = (line: string, signal?: AbortSignal) =>
   request<Explanation>('POST', '/api/v2/commands/explain', { line }, signal)
 
 export const commandSuggestions = (signal?: AbortSignal) => request<Suggestions>('GET', '/api/v2/commands/suggest', undefined, signal)
+
+/** One thing the cheat sheet found, with how the query matched it. */
+export interface SearchResult {
+  kind: 'recipe' | 'command' | 'flag'
+  tool: string
+  title: string
+  command: string
+  summary?: string
+  danger?: Danger
+  why?: string[]
+  score: number
+}
+
+export const searchCommands = (q: string, tool: string, signal?: AbortSignal) =>
+  request<{ results: SearchResult[] }>('GET', `/api/v2/commands/search?q=${encodeURIComponent(q)}&tool=${encodeURIComponent(tool)}`, undefined, signal)

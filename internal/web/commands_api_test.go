@@ -58,3 +58,23 @@ func TestCommandSuggest(t *testing.T) {
 		t.Errorf("sample: %v", v)
 	}
 }
+
+func TestCommandSearch(t *testing.T) {
+	s := New(testOptions(false))
+	defer s.Close()
+	code, v := send(s, "GET", "/api/v2/commands/search?q=undo+my+last+commit", "", "")
+	res := v["results"].([]any)
+	first := res[0].(map[string]any)
+	if code != 200 || first["kind"] != "recipe" || first["tool"] != "git" || len(first["why"].([]any)) == 0 {
+		t.Errorf("search: %d %v", code, v)
+	}
+	if _, v := send(s, "GET", "/api/v2/commands/search?tool=kubectl", "", ""); len(v["results"].([]any)) == 0 {
+		t.Errorf("browse: %v", v)
+	}
+	if _, v := send(s, "GET", "/api/v2/commands/search?q=zzzqqq", "", ""); len(v["results"].([]any)) != 0 {
+		t.Errorf("nothing: %v", v)
+	}
+	if code, _ := send(s, "GET", "/api/v2/commands/search?q="+strings.Repeat("x", 600), "", ""); code != 422 {
+		t.Errorf("long query: %d", code)
+	}
+}

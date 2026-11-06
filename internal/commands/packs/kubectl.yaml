@@ -105,3 +105,31 @@ commands:
         optional: true
         repeat: true
         summary: which ones by name
+recipes:
+  - title: List the pods in a namespace
+    command: kubectl get pods -n {namespace}
+    words: [show pods, what is running]
+  - title: List the pods with their node and IP
+    command: kubectl get pods -o wide -n {namespace}
+    words: [where pods run, node, ip address]
+  - title: Find the pods of an app by label
+    command: kubectl get pods -l app={app} -n {namespace}
+    words: [selector, filter pods]
+  - title: Watch pods change as they happen
+    command: kubectl get pods -w -n {namespace}
+    words: [live, monitor, wait]
+  - title: Follow a pod's logs
+    command: kubectl logs -f --tail=100 {pod} -n {namespace}
+    words: [stream logs, tail logs, live output]
+  - title: Read the logs of the crashed container
+    command: kubectl logs -p {pod} -n {namespace}
+    words: [crashloop, previous logs, restarted, why did it crash]
+  - title: Restart a deployment's pods
+    command: kubectl rollout restart deployment/{name} -n {namespace}
+    words: [bounce, recreate pods, reload config]
+  - title: Roll back a deployment to the previous version
+    command: kubectl rollout undo deployment/{name} -n {namespace}
+    words: [revert deploy, bad release, go back]
+  - title: See what a delete would remove, without deleting
+    command: kubectl delete --dry-run=client {resource} -n {namespace}
+    words: [preview delete, safe delete, what would happen]
