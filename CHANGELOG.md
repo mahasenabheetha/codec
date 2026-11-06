@@ -6,6 +6,12 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+## [3.9.0] - 2026-11-06
+
+From a log line to the code that wrote it, and the Log viewer reads
+the logs of pipelines, builds and platforms: their steps, errors and
+fields.
+
 ### Added
 
 - **From a log line to the source** (Log viewer): file and line

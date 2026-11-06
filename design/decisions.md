@@ -543,3 +543,19 @@ Settled unless the user reopens them. Add new ones at the bottom:
     `public/file-icons` (never inlined into the bundle) and the name
     mapping is a chunk loaded on first use; folders use the set's
     `-open` icon when expanded (2026-11-03).
+102. How 3.9.0 reads a log into source and steps (built 2026-11-06,
+    under 99). References are found by pattern in `internal/logsrc`
+    (pure) and matched to the folder by trailing path segments, rated
+    exact, strong or possible; offsets go to the UI in UTF-16 units.
+    Find source cuts a message at its variable parts and searches all
+    fixed parts in one pass, then rates hits by what is around them
+    (string, logging call, placeholder, other parts, field names; tests
+    and docs lower); a wrapped error is searched layer by layer. In the
+    reader, CI marks come first, then structured payloads, then platform
+    and build lines, so text inside JSON never changes how it is read;
+    each pattern sits behind a cheap test of the line's start. A step
+    comes from the CI's sections, else its groups, else a build tool's
+    module or task. The tools' own lines are output (folded), never
+    dropped: every line stays in exactly one entry. A line's own source
+    (syslog's app, an upstream) stays when no prefix gives one. Smart
+    paste counts a step or a tool's line as a sign of a log (2026-11-06).

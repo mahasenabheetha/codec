@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Log viewer · codec docs</title>
-<meta name="description" content="Read structured logs of any common format: ECS and other JSON, logfmt, klog and text with stack traces. Filter with a small query language, chart entries over time, fold repeats, pin entries and compare two runs. Nothing is stored.">
+<meta name="description" content="Read logs of any common format: ECS and other JSON, logfmt, klog, text with stack traces, pipeline, build, access, syslog and Kubernetes logs. Filter, chart, fold, pin, compare two runs, and go from a line to the code that wrote it. Nothing is stored.">
 <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/site.css">
 </head>
@@ -63,7 +63,7 @@
 <main>
 <article class="content">
 <h1>Log viewer</h1>
-<p class="lead">Tools → <strong>Log viewer</strong> reads structured logs of any common format into one shape — time, level, message, source, error, stack, fields — so you can filter, chart and read them. It is built for the logs of Kubernetes workloads and pipelines (<code>argo logs</code>, <code>kubectl logs</code>) and for any service that logs JSON or <code>key=value</code>. No folder is needed, and nothing is stored.</p>
+<p class="lead">Tools → <strong>Log viewer</strong> reads structured logs of any common format into one shape — time, level, message, source, error, stack, fields — so you can filter, chart and read them. It is built for the logs of Kubernetes workloads and pipelines (<code>argo logs</code>, <code>kubectl logs</code>) and for any service that logs JSON or <code>key=value</code>; it also reads pipeline and build output, access logs, syslog and Kubernetes events, and takes you from a line to the code that wrote it in the open folder. No folder is needed to read a log, and nothing is stored.</p>
 
 <h2 id="open">Opening logs<a class="anchor" href="#open">#</a></h2>
 <ul>
