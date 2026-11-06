@@ -75,7 +75,9 @@ func TestFindSource(t *testing.T) {
 	if want := "docs/notes.md:1 internal/shop/cart.go:4"; code != 200 || strings.Join(got, " ") != want {
 		t.Errorf("find-source = %d %v, want %s", code, got, want)
 	}
-	for body, want := range map[string]int{`{"text":"  "}`: 422, `{"text":"` + strings.Repeat("x", 301) + `"}`: 422, `{"text":"a.*b"}`: 200} {
+	for body, want := range map[string]int{`{"text":"  "}`: 422, `{"text":"` + strings.Repeat("x", 301) + `"}`: 422, `{"text":"a.*b"}`: 200,
+		// 200 characters, 400 bytes: counted as characters, as the UI does.
+		`{"text":"` + strings.Repeat("é", 200) + `"}`: 200} {
 		if code, v := send(s, "POST", "/api/v2/logs/find-source", "application/json", body); code != want {
 			t.Errorf("%.20s: %d %v", body, code, v)
 		}

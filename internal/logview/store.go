@@ -94,17 +94,25 @@ func Build(files []File, opt BuildOptions) (*Log, error) {
 	// A zip (GitHub's run logs) is read as the files in it.
 	var steps, jobs []string
 	var flat []File
+	var unzipped int64 // the zips' contents share the limit
 	for _, f := range files {
 		if !isZip(f.Data) {
 			flat, steps, jobs = append(flat, f), append(steps, ""), append(jobs, "")
 			continue
 		}
-		zs, err := unzip(f, opt.Limit)
+		limit := int64(0)
+		if opt.Limit > 0 {
+			if limit = opt.Limit - unzipped; limit <= 0 {
+				return nil, ErrTooLarge
+			}
+		}
+		zs, err := unzip(f, limit)
 		if err != nil {
 			return nil, err
 		}
 		for _, z := range zs {
 			flat, steps, jobs = append(flat, z.File), append(steps, z.step), append(jobs, z.job)
+			unzipped += int64(len(z.Data))
 		}
 	}
 	files = flat

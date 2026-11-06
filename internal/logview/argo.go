@@ -186,10 +186,12 @@ func (l *Log) steps() {
 			}
 		}
 	}
-	if !argo || l.ci {
-		return // a pipeline's steps come from its marks
+	if !argo {
+		return // a pipeline's steps, if any, come from its marks
 	}
-	l.workflows = workflows
+	// An Argo run's steps are its pods': a build tool's step in one of
+	// them (BuildKit's, a Maven module) gives way.
+	l.workflows, l.ci = workflows, false
 
 	last := map[uint16]uint32{} // per file, the step of the entry before
 	for i := range l.rows {
@@ -201,10 +203,13 @@ func (l *Log) steps() {
 		if step == "" {
 			step = fromPod[r.source]
 		}
-		if step != "" {
+		switch {
+		case step != "":
 			r.step = l.str(step)
-		} else if r.source == 0 {
+		case r.source == 0:
 			r.step = last[r.file]
+		default:
+			r.step = 0
 		}
 		last[r.file] = r.step
 		if executor[r.source] || hasArgo && field(i, argoID) == "true" {

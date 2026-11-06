@@ -173,6 +173,9 @@ const maxTestLines = 400
 
 // inBuildBlock reports whether s goes on with a build tool's block.
 func inBuildBlock(p *pending, s string) bool {
+	if _, ok := readCI(s); ok {
+		return false // a CI mark is the pipeline's, whatever block it is in
+	}
 	switch p.block {
 	case tfBlock:
 		return strings.HasPrefix(s, "│") || s == "╵"

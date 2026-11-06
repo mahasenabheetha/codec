@@ -17,7 +17,8 @@ func TestPhrases(t *testing.T) {
 		{"numbers are slots", "order 7 failed after 3 retries", []string{"failed after"}},
 		{"ids and quoted values", `user "bob" not found in tenant 4f9c2a1b`, []string{"not found in tenant", "found in tenant", "not found in"}},
 		{"a word that is a variable", "user bob logged in from 10.0.0.1", []string{"user bob logged in from", "bob logged in from", "user bob logged in"}},
-		{"key=value keeps the key", "retrying request attempt=3 backoff=2s", []string{"retrying request attempt", "retrying request", "request attempt"}},
+		{"two words left are too common", "bob failed for 10.0.0.1", []string{"bob failed for"}},
+		{"key=value keeps the key", "retrying request attempt=3 backoff=2s", []string{"retrying request attempt"}},
 		{"paths and urls", "cannot read /etc/app/config.yaml from https://x.io/a", []string{"cannot read", "from"}[:1]},
 		{"too short or common", "failed: 42", nil},
 		{"one long word", "Unauthorized", []string{"Unauthorized"}},
@@ -112,6 +113,30 @@ func (c *Cart) Add(id int) error {
 	want := []string{"checkout failed → ", "reserve stock → web/app.ts:1 exact", "cart is full → internal/shop/cart.go:5 exact"}
 	if !slices.Equal(got, want) {
 		t.Errorf("chain\n got %q\nwant %q", got, want)
+	}
+}
+
+// A lower-cased line can be longer than the line: the phrase is found in
+// the line itself (regression: an index out of range in inString).
+func TestFindLineLongerLower(t *testing.T) {
+	src := map[string]string{
+		"a.go": strings.Repeat("\xe9", 60) + ` log.Info("order failed for customer")` + "\n",
+		"b.go": strings.Repeat("Ⱥ", 80) + ` log.Info("order failed for customer")` + "\n",
+	}
+	read := func(p string) ([]byte, error) { return []byte(src[p]), nil }
+	layers, _, err := FindLine(context.Background(), LineQuery{Message: "order failed for customer"}, []string{"a.go", "b.go"}, read)
+	if err != nil || len(layers) != 1 || len(layers[0].Hits) != 2 || !slices.Contains(layers[0].Hits[0].Why, "in a string") {
+		t.Fatalf("FindLine: %+v %v", layers, err)
+	}
+}
+
+// A search stopped by its deadline keeps what it found.
+func TestFindLineCancelled(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	layers, _, err := FindLine(ctx, LineQuery{Message: "cart is full"}, []string{"a.go"}, func(string) ([]byte, error) { return []byte(`"cart is full"`), nil })
+	if !errors.Is(err, context.Canceled) || len(layers) != 1 {
+		t.Errorf("FindLine: %v %v", layers, err)
 	}
 }
 

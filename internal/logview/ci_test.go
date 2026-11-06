@@ -135,3 +135,74 @@ func TestPlatformQueries(t *testing.T) {
 		}
 	}
 }
+
+// Regression: one BuildKit line in an Argo log turned its steps off.
+func TestArgoKeepsStepsWithBuildLines(t *testing.T) {
+	data, err := os.ReadFile("testdata/argo.log")
+	if err != nil {
+		t.Fatal(err)
+	}
+	data = append(data, "build-7f2kd-checkout-1234567890: #5 [2/7] RUN make\n"...)
+	l, err := Build([]File{{Name: "argo.log", Data: data}}, BuildOptions{Options: testOpts})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got []string
+	for _, s := range l.Summary().Steps {
+		got = append(got, s.Name)
+	}
+	if s := l.Summary(); len(s.Workflows) != 1 || strings.Join(got, ",") != "checkout,test" {
+		t.Errorf("workflows %v, steps %v", s.Workflows, got)
+	}
+}
+
+// Regression: a pytest report swallowed the pipeline's marks after it.
+func TestBlockEndsAtCIMark(t *testing.T) {
+	log := "##[section]Starting: Test\n___ test_add ___\nE   assert False\n1 failed in 0.1s\n##[error]Bash exited with code '1'.\n" +
+		"##[section]Finishing: Test\n##[section]Starting: Publish\nuploaded\n##[section]Finishing: Publish\n"
+	var got []string
+	for _, e := range ReadAll(log, testOpts) {
+		got = append(got, strconv.Itoa(e.Line)+e.Level.String()+"@"+e.Step)
+	}
+	want := "1@Test 2error@Test 5error@Test 6@Test 7@Publish 8@Publish 9@Publish"
+	if strings.Join(got, " ") != want {
+		t.Errorf("got  %s\nwant %s", strings.Join(got, " "), want)
+	}
+}
+
+// Regression: a GitLab section start without a header read "End of".
+func TestGitLabStartWithoutHeader(t *testing.T) {
+	es := ReadAll("section_start:1:my_sec\r\x1b[0K\nwork\nsection_end:2:my_sec\r\x1b[0K\n", testOpts)
+	if len(es) != 3 || es[0].Message != "Start of my_sec" || es[0].Step != "my_sec" || es[1].Step != "my_sec" || es[2].Message != "End of my_sec" {
+		t.Errorf("%+v", es)
+	}
+}
+
+// A Maven module is the step of its own source's lines only.
+func TestBuildStepPerSource(t *testing.T) {
+	log := "[pod/a/c] [INFO] Building shop-core 1.0  [1/2]\n[pod/b/c] other pod's line\n[pod/a/c] [INFO] compiling\n"
+	var got []string
+	for _, e := range ReadAll(log, testOpts) {
+		got = append(got, e.Step)
+	}
+	if strings.Join(got, ",") != "shop-core,,shop-core" {
+		t.Errorf("steps %q", got)
+	}
+}
+
+// Regression: each zip had the whole limit, so several could expand
+// past it together.
+func TestZipsShareTheLimit(t *testing.T) {
+	var b bytes.Buffer
+	zw := zip.NewWriter(&b)
+	w, _ := zw.Create("build/1_Run.txt")
+	w.Write([]byte(strings.Repeat("x\n", 30)))
+	zw.Close()
+	one := File{Name: "a.zip", Data: b.Bytes()}
+	if _, err := Build([]File{one}, BuildOptions{Options: testOpts, Limit: 100}); err != nil {
+		t.Fatalf("one zip: %v", err)
+	}
+	if _, err := Build([]File{one, one}, BuildOptions{Options: testOpts, Limit: 100}); err != ErrTooLarge {
+		t.Errorf("two zips: %v", err)
+	}
+}

@@ -293,12 +293,18 @@ func (r *reader) handle(l *line) {
 		delete(r.last, src)
 	}
 	if l.gitlab != "" {
-		before := r.ci.current()
+		before := r.ci.current(src)
 		r.ci.gitlab(l.gitlab, l.s)
 		if strings.TrimSpace(l.s) == "" {
-			// A section's end, nothing else: the tool's line, in the section.
-			id := gitlabSection.FindStringSubmatch(l.gitlab)[2]
-			r.start(Entry{Format: Text, Message: "End of " + id, Step: before, Tool: true}, l, noBlock)
+			// Only a section mark: the tool's line, in the section it
+			// starts or ends.
+			ms := gitlabSection.FindAllStringSubmatch(l.gitlab, -1)
+			m := ms[len(ms)-1]
+			e := Entry{Format: Text, Message: "End of " + m[2], Step: before, Tool: true}
+			if m[1] == "start" {
+				e.Message, e.Step = "Start of "+m[2], r.ci.current(src)
+			}
+			r.start(e, l, noBlock)
 			return
 		}
 	}
@@ -417,7 +423,7 @@ func (r *reader) ciLine(m ciMark, l *line) {
 // buildLine places a line a build tool marked.
 func (r *reader) buildLine(m buildMark, l *line) {
 	if m.starts != "" {
-		r.ci.build = m.starts
+		r.ci.build, r.ci.buildSrc = m.starts, l.pre.source
 	}
 	msg := m.msg
 	if msg == "" && m.block != tfBlock {
@@ -553,7 +559,7 @@ func (r *reader) start(e Entry, l *line, block blockKind) *pending {
 		e.Source = src
 	}
 	if e.Step == "" {
-		e.Step = r.ci.current()
+		e.Step = r.ci.current(src)
 	}
 	if e.Time.IsZero() {
 		e.Time = l.pre.time

@@ -45,9 +45,12 @@
 
   let { title, items, loading = false, error: failed = null, note, empty, onclose }: Props = $props()
 
+  // A new list starts at its first item; the same list again (the
+  // entry reloaded) keeps the one chosen.
   let pick = $state(0)
+  const listKey = $derived(items?.map((it) => `${it.file}:${it.line}`).join('\n') ?? '')
   $effect(() => {
-    void items
+    void listKey
     pick = 0
   })
   const item = $derived(items?.[Math.min(pick, items.length - 1)])
@@ -56,18 +59,23 @@
   const around = 400 // lines either side shown; the rest is a click away in Files
   let text = $state<string | null>(null)
   let error = $state<string | null>(null)
+  // Keyed by the folder too: another folder can have the same path. A
+  // read that failed is tried again when the file is shown again.
   let loaded = ''
   $effect(() => {
     const f = item?.file
-    if (!f || f === loaded) return
-    loaded = f
+    const key = `${ws.info?.root ?? ''}\n${f}`
+    if (!f || key === loaded) return
+    loaded = key
     text = error = null
     getContent(f)
       .then((c) => {
-        if (loaded === f) text = c.text
+        if (loaded === key) text = c.text
       })
       .catch((e) => {
-        if (loaded === f) error = e instanceof Error ? e.message : String(e)
+        if (loaded !== key) return
+        error = e instanceof Error ? e.message : String(e)
+        loaded = ''
       })
   })
   const lines = $derived.by(() => {

@@ -33,7 +33,8 @@ type zipped struct {
 
 // unzip expands a zip into its text files, in the zip's order with the
 // steps of each job in their number's order. limit caps the bytes taken
-// out (0: none), so a small zip can't fill memory.
+// out (0: none), so a small zip can't fill memory; it is what is left of
+// the limit of all the files opened together.
 func unzip(f File, limit int64) ([]zipped, error) {
 	zr, err := zip.NewReader(bytes.NewReader(f.Data), int64(len(f.Data)))
 	if err != nil {

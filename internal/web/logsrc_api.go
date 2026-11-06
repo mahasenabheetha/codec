@@ -100,7 +100,9 @@ func (s *Server) handleFindSource(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusUnprocessableEntity, search.ErrEmpty.Error())
 		return
 	}
-	if len(text) > logsrc.MaxFragment {
+	// Characters, as the UI counts them, not bytes: a selection in
+	// another script is as long as it looks.
+	if utf8.RuneCountInString(text) > logsrc.MaxFragment {
 		writeError(w, http.StatusUnprocessableEntity, "select a shorter piece of the line to search for")
 		return
 	}

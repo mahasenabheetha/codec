@@ -161,17 +161,22 @@ func location(file, line, col string) string {
 type ciSteps struct {
 	sections []string
 	group    string
-	build    string // a build tool's step (a Maven module, a Gradle task), when the CI names none
+	build    string // a build tool's step (a Maven module, a Gradle task), when the CI names none …
+	buildSrc string // … for the source that logged it: another pod's lines aren't in it
 }
 
-func (c *ciSteps) current() string {
+// current is the step a line from src is in.
+func (c *ciSteps) current(src string) string {
 	if n := len(c.sections); n > 0 {
 		return c.sections[n-1]
 	}
 	if c.group != "" {
 		return c.group
 	}
-	return c.build
+	if src == c.buildSrc {
+		return c.build
+	}
+	return ""
 }
 
 func (c *ciSteps) start(name string) { c.sections = append(c.sections, name) }

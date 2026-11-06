@@ -24,6 +24,10 @@ type Layer struct {
 	Text    string   `json:"text"`
 	Phrases []string `json:"phrases"` // what was searched for, longest first
 	Hits    []Hit    `json:"hits"`    // best first
+	// res finds each phrase in a line as it is, ignoring case: a
+	// lower-cased copy can be longer than the line (invalid UTF-8, some
+	// runes), so its offsets don't hold in the line.
+	res []*regexp.Regexp
 }
 
 // Hit is a line the layer may come from.
@@ -55,7 +59,8 @@ const edges = " \t:;,.=()[]{}<>|-–—!?#*\"'`"
 // Phrases returns the fixed parts of a message worth searching for,
 // longest first: each part between variable ones, and for a part of
 // three words or more also the part without its first or its last
-// word, in case that word was a variable too ("user bob logged in").
+// word, in case that word was a variable too ("user bob logged in"),
+// when three words are left.
 func Phrases(message string) []string {
 	var parts []string
 	at := 0
@@ -78,7 +83,10 @@ func Phrases(message string) []string {
 	for _, p := range parts {
 		p = strings.Trim(p, edges)
 		add(p)
-		if w := strings.Fields(p); len(w) >= 3 {
+		// A part less one word is searched only when three words are
+		// left: two common ones ("failed for") would match everywhere and
+		// crowd out the part itself.
+		if w := strings.Fields(p); len(w) >= 4 {
 			add(strings.Join(w[1:], " "))
 			add(strings.Join(w[:len(w)-1], " "))
 		}
@@ -147,10 +155,12 @@ func FindLine(ctx context.Context, q LineQuery, files []string, read func(string
 	for _, text := range Layers(q) {
 		ps := Phrases(text)
 		ps = ps[:min(len(ps), maxPhrases)]
-		layers = append(layers, Layer{Text: text, Phrases: ps, Hits: []Hit{}})
+		l := Layer{Text: text, Phrases: ps, Hits: []Hit{}}
 		for _, p := range ps {
 			alts = append(alts, regexp.QuoteMeta(p))
+			l.res = append(l.res, regexp.MustCompile(`(?i)`+regexp.QuoteMeta(p)))
 		}
+		layers = append(layers, l)
 	}
 	if len(alts) == 0 {
 		return layers, false, nil
@@ -159,8 +169,10 @@ func FindLine(ctx context.Context, q LineQuery, files []string, read func(string
 	if err != nil {
 		return nil, false, err
 	}
+	// A search stopped by its deadline or the client still has what it
+	// found so far; that is scored, and the error returned with it.
 	res, err := sr.Run(ctx, files, read)
-	if err != nil {
+	if err != nil && ctx.Err() == nil {
 		return nil, false, err
 	}
 
@@ -197,7 +209,7 @@ func FindLine(ctx context.Context, q LineQuery, files []string, read func(string
 		})
 		l.Hits = l.Hits[:min(len(l.Hits), MaxHits)]
 	}
-	return layers, res.Truncated, nil
+	return layers, res.Truncated, err
 }
 
 // coreFields are written by the logger, not by the call: they say
@@ -222,11 +234,10 @@ func score(l *Layer, m search.Match, lines []string, fields map[string]bool) (Hi
 		return Hit{}, false
 	}
 	line := lines[m.Line-1]
-	lower := strings.ToLower(line)
 	best, at := "", -1
-	for _, p := range l.Phrases {
-		if i := strings.Index(lower, strings.ToLower(p)); i >= 0 && len(p) > len(best) {
-			best, at = p, i
+	for i, p := range l.Phrases {
+		if loc := l.res[i].FindStringIndex(line); loc != nil && len(p) > len(best) {
+			best, at = p, loc[0]
 		}
 	}
 	if best == "" {
