@@ -81,3 +81,28 @@ func TestFindSource(t *testing.T) {
 		}
 	}
 }
+
+func TestFindLine(t *testing.T) {
+	root := t.TempDir()
+	os.MkdirAll(filepath.Join(root, "shop"), 0o755)
+	os.WriteFile(filepath.Join(root, "shop", "cart.go"), []byte("package shop\n\nfunc add() error {\n\treturn fmt.Errorf(\"cart is full\")\n}\n"), 0o644)
+	s := New(testOptions(false))
+	defer s.Close()
+	body := `{"message":"checkout failed","error":"reserve stock: cart is full","fields":["order_id"]}`
+	if code, _ := send(s, "POST", "/api/v2/logs/find-line", "application/json", body); code != 409 {
+		t.Errorf("no folder: %d", code)
+	}
+	if err := s.OpenWorkspace(root); err != nil {
+		t.Fatal(err)
+	}
+	code, v := send(s, "POST", "/api/v2/logs/find-line", "application/json", body)
+	layers := v["layers"].([]any)
+	last := layers[len(layers)-1].(map[string]any)
+	hit := last["hits"].([]any)[0].(map[string]any)
+	if code != 200 || len(layers) != 3 || last["text"] != "cart is full" || hit["path"] != "shop/cart.go" || hit["line"] != 4.0 || hit["quality"] != "exact" {
+		t.Errorf("find-line: %d %v", code, v)
+	}
+	if code, v := send(s, "POST", "/api/v2/logs/find-line", "application/json", `{"message":"42"}`); code != 200 || len(v["layers"].([]any)) != 0 {
+		t.Errorf("nothing to search: %d %v", code, v)
+	}
+}

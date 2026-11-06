@@ -315,3 +315,26 @@ export function closeLog(id: string): Promise<void> {
 export function findSource(text: string, signal?: AbortSignal): Promise<{ matches: SearchMatch[]; truncated: boolean; timedOut: boolean }> {
   return request('POST', '/api/v2/logs/find-source', { text }, signal)
 }
+
+/** A line an entry may have been written by, rated by what is around it. */
+export interface LineHit extends SearchMatch {
+  quality: 'exact' | 'strong' | 'possible'
+  score: number
+  why: string[]
+}
+
+/** One message searched: the entry's message, or a layer of its
+ *  wrapped error, with what was searched for and the hits. */
+export interface LineLayer {
+  text: string
+  phrases: string[]
+  hits: LineHit[]
+}
+
+/** Where an entry's message was written in the open folder (decision 99). */
+export function findLine(
+  q: { message: string; error?: string; fields?: string[] },
+  signal?: AbortSignal,
+): Promise<{ layers: LineLayer[]; truncated: boolean; timedOut: boolean }> {
+  return request('POST', '/api/v2/logs/find-line', q, signal)
+}

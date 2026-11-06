@@ -7,6 +7,8 @@
     col?: number
     endCol?: number // a search hit: its end on the line, exclusive
     quality?: 'exact' | 'strong' | 'possible'
+    why?: string[] // what made it likely, for the badge's tip
+    group?: string // a heading the list shows above it, e.g. a layer of an error
     /** A search hit's line as found, and the hits in it. */
     text?: string
     spans?: { start: number; end: number }[]
@@ -117,9 +119,9 @@
 
   const qualityTone = { exact: 'ok', strong: 'accent', possible: 'neutral' } as const
   const qualityTip = {
-    exact: 'The path in the log names this file',
-    strong: 'Its folders agree with the log, but not all of them, or another file fits as well',
-    possible: 'Only the file name agrees with the log',
+    exact: 'Very likely the place',
+    strong: 'Likely the place',
+    possible: 'Possibly the place',
   }
 </script>
 
@@ -152,9 +154,10 @@
     <p class="empty">{empty ?? 'No file of that name in the open folder'}{ws.info?.name ? ` (${ws.info.name})` : ''}.</p>
   {:else}
     {#if note}<p class="note">{note}</p>{/if}
-    {#if items.length > 1}
+    {#if items.length > 1 || items.some((it) => it.group)}
       <ul class="list">
-        {#each items as it, i (it.file + ':' + it.line)}
+        {#each items as it, i (i)}
+          {#if it.group && it.group !== items[i - 1]?.group}<li class="group">{it.group}</li>{/if}
           <li>
             <button type="button" class:on={i === pick} onclick={() => (pick = i)}>
               <FileIcon file={ws.byPath.get(it.file) ?? { lang: 'text', path: it.file }} />
@@ -170,7 +173,7 @@
       <div class="peek-head">
         <FileIcon file={ws.byPath.get(item.file) ?? { lang: 'text', path: item.file }} />
         <span class="file">{item.file}<span class="ln">:{item.line}</span></span>
-        {#if item.quality}<span title={qualityTip[item.quality]}><Badge tone={qualityTone[item.quality]}>{item.quality}</Badge></span>{/if}
+        {#if item.quality}<span title={item.why?.length ? `${qualityTip[item.quality]}: ${item.why.join(', ')}` : qualityTip[item.quality]}><Badge tone={qualityTone[item.quality]}>{item.quality}</Badge></span>{/if}
       </div>
       <div class="peek" bind:this={peek}>
         {#if error}
@@ -247,6 +250,15 @@
     overflow: auto;
     list-style: none;
     border-bottom: 1px solid var(--border);
+  }
+  .list .group {
+    padding: var(--s-1) var(--s-3) 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-semibold);
+    color: var(--fg-2);
   }
   .list button {
     display: flex;

@@ -20,6 +20,12 @@ All notable changes to codec are documented here. The format follows
   search the open folder for it; the matches open in the Source drawer
   with the hit marked. Logs and build and dependency folders are left
   out.
+- **Find source** (Log viewer): a button on each entry looks for where
+  its message was written. The values in the message are skipped, its
+  fixed parts searched, and each hit rated by what is around it (a
+  string, a logging call, a placeholder, other parts of the message,
+  the entry's field names; tests and docs count less). A wrapped error
+  (`a: b: c`) is searched layer by layer and shown as a chain.
 
 ## [3.8.1] - 2026-11-03
 

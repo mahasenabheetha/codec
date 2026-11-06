@@ -1,14 +1,16 @@
 <script lang="ts">
+  import { untrack } from 'svelte'
   import Braces from '@lucide/svelte/icons/braces'
   import PinIcon from '@lucide/svelte/icons/pin'
   import PinOff from '@lucide/svelte/icons/pin-off'
   import Copy from '@lucide/svelte/icons/copy'
+  import FileSearch from '@lucide/svelte/icons/file-search'
   import TextSearch from '@lucide/svelte/icons/text-search'
   import X from '@lucide/svelte/icons/x'
   import IconButton from '../../lib/components/IconButton.svelte'
   import SegmentedControl from '../../lib/components/SegmentedControl.svelte'
   import { isAbort } from '../../lib/api/client'
-  import { findSource, logEntry, type LogEntry, type LogRow, type RefField, type SourceRef } from '../../lib/api/logs'
+  import { findLine, findSource, logEntry, type LogEntry, type LogRow, type RefField, type SourceRef } from '../../lib/api/logs'
   import { copyText } from '../../lib/utils/clipboard'
   import { workspace as ws } from '../workspace/workspace.svelte'
   import FieldTree from './FieldTree.svelte'
@@ -59,7 +61,7 @@
 
   // The Source drawer shows a file and line from the entry, or where a
   // piece of it selected appears in the folder; another entry closes it.
-  type Drawer = { kind: 'ref'; ref: SourceRef } | { kind: 'search'; text: string }
+  type Drawer = { kind: 'ref'; ref: SourceRef } | { kind: 'search'; text: string } | { kind: 'line' }
   let drawer = $state<Drawer | null>(null)
   $effect(() => {
     void index
@@ -68,15 +70,20 @@
   const refItems = $derived.by((): SourceItem[] | null => {
     if (drawer?.kind !== 'ref' || !entry?.sources) return null
     const r = drawer.ref
-    return (entry.sources[r.path] ?? []).map((m) => ({ file: m.file, line: r.line, col: r.col, quality: m.quality }))
+    return (entry.sources[r.path] ?? []).map((m) => ({ file: m.file, line: r.line, col: r.col, quality: m.quality, why: [refWhy[m.quality]] }))
   })
+  const refWhy = {
+    exact: 'the path in the log names this file',
+    strong: 'its folders agree with the log, but not all of them, or another file fits as well',
+    possible: 'only the file name agrees with the log',
+  }
   // Without a folder every reference may be found once one is open.
   const found = (r: SourceRef) => !entry?.sources || (entry.sources[r.path]?.length ?? 0) > 0
   const refs = (f: RefField) => entry?.refs?.[f] ?? []
   const show = (r: SourceRef) => (drawer = { kind: 'ref', ref: r })
 
   // A search runs when asked for, and again in a folder opened from
-  // the drawer.
+  // the drawer: of a selection, or of the entry's message (Find source).
   let hits = $state.raw<{ items: SourceItem[]; note?: string } | null>(null)
   let searching = $state(false)
   let searchError = $state<string | null>(null)
@@ -87,9 +94,36 @@
     hits = null
     searchError = null
     searching = false
-    if (d?.kind !== 'search' || !open) return
+    // The entry is read, not followed: reloading it (±5 → ±20) needn't
+    // search again; another entry closes the drawer anyway.
+    const e = untrack(() => entry)
+    if (!d || d.kind === 'ref' || !open || !e) return
     searching = true
     const c = new AbortController()
+    if (d.kind === 'line') {
+      findLine({ message: e.message, error: e.error, fields: e.fields.map((f) => f.key) }, c.signal)
+        .then((r) => {
+          const chain = r.layers.length > 1
+          const items = r.layers.flatMap((l, i) =>
+            l.hits.map((h) => ({ file: h.path, line: h.line, col: h.col, endCol: h.endCol, text: h.text, spans: h.spans, quality: h.quality, why: h.why, group: chain ? `${i + 1} · ${l.text}` : undefined })),
+          )
+          const missing = r.layers.filter((l) => !l.hits.length).map((l) => `“${l.text}”`)
+          const notes = [
+            !r.layers.length ? 'Nothing in the message is distinctive enough to search for; select a part of it instead' : '',
+            chain ? `A wrapped error: ${r.layers.length} layers, each searched on its own` : '',
+            missing.length && items.length ? `Not found: ${missing.join(', ')}` : '',
+            r.timedOut ? 'The search stopped before the end of the folder' : r.truncated ? 'Very common words: only the first matches were scored' : '',
+          ]
+          hits = { items, note: notes.filter(Boolean).join('. ') || undefined }
+          searching = false
+        })
+        .catch((err) => {
+          if (isAbort(err)) return
+          searchError = err instanceof Error ? err.message : String(err)
+          searching = false
+        })
+      return () => c.abort()
+    }
     findSource(d.text, c.signal)
       .then((r) => {
         const items = r.matches.map((m) => ({ file: m.path, line: m.line, col: m.col, endCol: m.endCol, text: m.text, spans: m.spans }))
@@ -205,6 +239,15 @@
     <span class="title lv-{entry?.level || 'none'}">{entry?.level ? entry.level.toUpperCase() : 'Entry'}</span>
     {#if entry}<span class="where">{entry.file}:{entry.line}</span>{/if}
     <span class="spacer"></span>
+    {#if entry && (entry.message || entry.error)}
+      <IconButton
+        icon={FileSearch}
+        label="Find source: where this line was written in the open folder"
+        size="sm"
+        active={drawer?.kind === 'line'}
+        onclick={() => (drawer = drawer?.kind === 'line' ? null : { kind: 'line' })}
+      />
+    {/if}
     {#if entry}
       <IconButton icon={Copy} tone="copy" label="Copy the line as read (secrets masked)" size="sm" onclick={() => copy('line')} />
       <IconButton icon={Braces} label="Copy the entry as JSON (secrets masked)" size="sm" onclick={() => copy('entry')} />
@@ -299,6 +342,16 @@
     <div class="source">
       {#if drawer.kind === 'ref'}
         <SourceDrawer title="{drawer.ref.path}:{drawer.ref.line}" items={refItems} onclose={() => (drawer = null)} />
+      {:else if drawer.kind === 'line'}
+        <SourceDrawer
+          title="Where this line was written"
+          items={ws.info?.open ? (hits?.items ?? []) : null}
+          loading={searching}
+          error={searchError}
+          note={hits?.note}
+          empty="Not found in the open folder"
+          onclose={() => (drawer = null)}
+        />
       {:else}
         <SourceDrawer
           title="“{drawer.text}”"

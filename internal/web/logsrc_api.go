@@ -126,3 +126,39 @@ func (s *Server) handleFindSource(w http.ResponseWriter, r *http.Request) {
 		"timedOut":  errors.Is(err, context.DeadlineExceeded),
 	})
 }
+
+// POST /api/v2/logs/find-line {message, error, fields}: where an
+// entry's message was written (decision 99, T3), layer by layer for a
+// wrapped error.
+func (s *Server) handleFindLine(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Message string   `json:"message"`
+		Error   string   `json:"error"`
+		Fields  []string `json:"fields"`
+	}
+	if !decode(w, r, &req) {
+		return
+	}
+	ws := s.current()
+	if ws == nil {
+		writeError(w, http.StatusConflict, "no folder is open")
+		return
+	}
+	// A message is a line or two; a pasted wall of text is cut.
+	cutText := func(t string) string { t, _ = cut(t, 2000); return t }
+	q := logsrc.LineQuery{Message: cutText(req.Message), Error: cutText(req.Error), Fields: req.Fields[:min(len(req.Fields), 100)]}
+	ctx, cancel := context.WithTimeout(r.Context(), queryTimeout)
+	defer cancel()
+	layers, truncated, err := logsrc.FindLine(ctx, q, wsFiles(ctx, ws), ws.ReadText)
+	switch {
+	case errors.Is(err, context.Canceled):
+		return
+	case err != nil && !errors.Is(err, context.DeadlineExceeded):
+		writeError(w, http.StatusUnprocessableEntity, err.Error())
+		return
+	}
+	if layers == nil {
+		layers = []logsrc.Layer{}
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"layers": layers, "truncated": truncated, "timedOut": errors.Is(err, context.DeadlineExceeded)})
+}
