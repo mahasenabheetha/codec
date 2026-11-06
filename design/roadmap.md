@@ -93,7 +93,7 @@ tool's `--help`; a flag codec doesn't know is said to be so.
 
 | # | Task | Main parts | Status |
 |---|---|---|---|
-| T1 | Command engine | `internal/commands` (pure): a shell-like reader (quotes, escapes, `\|`, `&&`, `;`, `VAR=x`, `sudo`, `--`), flags in every form (`-n x`, `-nx`, `--namespace=x`, `-rf`), matched to a reference of subcommands, flags (short and long, value type, choices, needs and conflicts, danger) and positionals in YAML per tool, embedded; the explanation built from it; API; fuzz test of the reader | |
+| T1 | Command engine | `internal/commands` (pure): a shell-like reader (quotes, escapes, `\|`, `&&`, `;`, `VAR=x`, `sudo`, `--`), flags in every form (`-n x`, `-nx`, `--namespace=x`, `-rf`), matched to a reference of subcommands, flags (short and long, value type, choices, needs and conflicts, danger) and positionals in YAML per tool, embedded; the explanation built from it; API; fuzz test of the reader | Done |
 | T2 | Commands tool | The editable line, Build form and Explanation pane, two-way; danger badges and safer alternatives; Copy for bash or PowerShell; values suggested from the open folder (namespaces, resource names, chart paths from its YAML) | |
 | T3 | Cheat sheet and search by purpose | Recipes per tool (title, description, synonyms, a template with placeholders); search over recipes, flags and commands with word roots and a synonym table (undo → reset, revert, restore), ranked, several suggestions for a vague query with why; browse by tool; a suggestion opens in the builder | |
 | T4 | git | About 25 subcommands: status, log, diff, add, commit, reset, restore, revert, rebase, merge, cherry-pick, stash, branch, switch, tag, fetch, pull, push, remote, clean, bisect, reflog, blame, worktree, config; their recipes | |

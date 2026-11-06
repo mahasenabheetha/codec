@@ -1,0 +1,107 @@
+# kubectl: a seed for the engine's tests (3.10.0 T1); T5 adds the rest.
+name: kubectl
+aliases: [k]
+group: kubernetes
+summary: kubectl, the Kubernetes command-line client.
+flags:
+  - names: [-n, --namespace]
+    value: namespace
+    persistent: true
+    summary: works in this namespace
+  - names: [-A, --all-namespaces]
+    persistent: true
+    summary: works across every namespace
+  - names: [--context]
+    value: context
+    persistent: true
+    summary: uses this context from your kubeconfig
+commands:
+  - name: get
+    summary: Lists resources, or shows one.
+    flags:
+      - names: [-o, --output]
+        value: format
+        common: true
+        summary: prints in this format
+        choices:
+          - {value: wide, summary: more columns}
+          - {value: yaml, summary: the full resource as YAML}
+          - {value: json, summary: the full resource as JSON}
+          - {value: name, summary: only kind/name}
+      - names: [-l, --selector]
+        value: selector
+        common: true
+        summary: only resources whose labels match, such as app=web
+      - names: [-w, --watch]
+        summary: keeps watching and prints changes as they happen
+    args:
+      - name: resource
+        summary: the kind of resource, such as pods or deploy
+        choices:
+          - {value: pods, summary: the pods}
+          - {value: po, summary: the pods}
+          - {value: deployments, summary: the deployments}
+          - {value: deploy, summary: the deployments}
+      - name: name
+        optional: true
+        repeat: true
+        summary: only these by name
+  - name: logs
+    summary: Prints a container's logs.
+    flags:
+      - names: [-f, --follow]
+        common: true
+        summary: keeps printing new lines as they come
+      - names: [-c, --container]
+        value: container
+        summary: the container, when the pod has several
+      - names: [--tail]
+        value: lines
+        common: true
+        summary: only the last this many lines
+      - names: [-p, --previous]
+        common: true
+        summary: the logs of the container before it restarted
+    args:
+      - name: pod
+        summary: the pod, or type/name such as deploy/web
+  - name: rollout
+    summary: Manages a rollout of a deployment, daemon set or stateful set.
+    commands:
+      - name: restart
+        summary: Restarts the pods one by one, by changing the template's annotation.
+        args:
+          - name: resource
+            summary: the workload, such as deployment/web
+      - name: undo
+        summary: Goes back to the previous revision.
+        danger:
+          level: caution
+          note: changes what runs in the cluster
+        args:
+          - name: resource
+            summary: the workload, such as deployment/web
+  - name: delete
+    summary: Deletes resources.
+    danger:
+      level: danger
+      note: the resources are gone; anything not kept elsewhere can't be brought back
+      safer: kubectl delete --dry-run=client -o name …
+    flags:
+      - names: [--dry-run]
+        value: strategy
+        optionalValue: true
+        summary: shows what would be deleted without deleting it
+        choices: [none, client, server]
+      - names: [--all]
+        summary: every resource of the kind in the namespace
+        danger:
+          level: danger
+          note: deletes all of them
+    args:
+      - name: resource
+        summary: the kind of resource, or type/name
+      - name: name
+        optional: true
+        repeat: true
+        summary: which ones by name

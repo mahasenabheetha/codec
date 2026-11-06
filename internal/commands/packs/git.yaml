@@ -1,0 +1,126 @@
+# git: a seed for the engine's tests (3.10.0 T1); T4 adds the rest.
+name: git
+group: git
+summary: Git, the version control system.
+flags:
+  - names: [-C]
+    value: path
+    summary: runs as if git was started in this folder
+  - names: [-c]
+    value: name=value
+    repeat: true
+    summary: sets a configuration value for this command only
+  - names: [--no-pager]
+    summary: prints the output straight away instead of through a pager
+commands:
+  - name: commit
+    summary: Records the staged changes as a new commit.
+    flags:
+      - names: [-m, --message]
+        value: message
+        repeat: true
+        common: true
+        summary: uses this text as the commit message (several make paragraphs)
+      - names: [-a, --all]
+        common: true
+        summary: stages every change to tracked files first
+      - names: [--amend]
+        common: true
+        summary: replaces the last commit with a new one that includes these changes
+        danger:
+          level: caution
+          note: rewrites the last commit; if it was pushed, pushing again needs a force push
+      - names: [--no-edit]
+        summary: keeps the message as it is, without opening an editor
+      - names: [-n, --no-verify]
+        summary: skips the pre-commit and commit-msg hooks
+    args:
+      - name: pathspec
+        optional: true
+        repeat: true
+        summary: commits only the changes in these files
+  - name: push
+    summary: Sends local commits to a remote repository.
+    flags:
+      - names: [-u, --set-upstream]
+        common: true
+        summary: remembers the remote branch, so later pushes and pulls need no names
+      - names: [-f, --force]
+        common: true
+        summary: overwrites the remote branch with the local one
+        danger:
+          level: danger
+          note: commits on the remote that you don't have locally are lost
+          safer: git push --force-with-lease
+      - names: [--force-with-lease]
+        value: ref
+        optionalValue: true
+        summary: overwrites the remote branch only if it is where you last saw it
+      - names: [--tags]
+        summary: pushes every tag too
+      - names: [-d, --delete]
+        summary: deletes the named branches or tags on the remote
+        danger:
+          level: danger
+          note: deletes the branch on the remote for everyone
+    args:
+      - name: remote
+        optional: true
+        summary: the remote to push to, usually origin
+      - name: refspec
+        optional: true
+        repeat: true
+        summary: the branches or tags to push
+  - name: reset
+    summary: Moves the current branch to another commit, and changes the staging area and files to match as asked.
+    flags:
+      - names: [--soft]
+        common: true
+        summary: keeps your changes staged
+      - names: [--mixed]
+        summary: keeps your changes, unstaged (the default)
+      - names: [--hard]
+        common: true
+        summary: throws away the staged and unstaged changes to tracked files
+        danger:
+          level: danger
+          note: uncommitted changes to tracked files are lost
+          safer: git stash
+    args:
+      - name: commit
+        optional: true
+        summary: the commit to move to; HEAD~1 is the one before the last
+  - name: stash
+    summary: Puts uncommitted changes aside and cleans the working tree.
+    commands:
+      - name: push
+        summary: Saves the changes as a new stash.
+        flags:
+          - names: [-m, --message]
+            value: message
+            summary: describes the stash
+          - names: [-u, --include-untracked]
+            summary: stashes untracked files too
+      - name: pop
+        summary: Applies the latest stash (or the one named) and drops it.
+        args:
+          - name: stash
+            optional: true
+            summary: which stash, as stash@{n}
+      - name: list
+        summary: Lists the stashes.
+  - name: log
+    summary: Shows the commit history.
+    flags:
+      - names: [--oneline]
+        common: true
+        summary: one line per commit
+      - names: [-<n>, -n, --max-count]
+        value: number
+        summary: shows only this many commits
+      - names: [--graph]
+        summary: draws the branches and merges beside the commits
+    args:
+      - name: revision range
+        optional: true
+        summary: which commits, such as main..feature

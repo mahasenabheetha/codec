@@ -59,6 +59,9 @@ internal/
                       line as ECS/JSON (own order-keeping reader), logfmt, klog
                       or text; stack traces joined to their entry, per source;
                       pipeline steps and levels from CI marks
+  commands/           ENGINE Commands tool: a shell-like reader of command lines,
+                      the embedded reference of tools (packs/*.yaml) and what
+                      every part of a line does
   logsrc/             ENGINE Log to source: file and line references in log
                       text (frames, compiler and tool errors), matched to the
                       folder's files by trailing folders
