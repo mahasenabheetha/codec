@@ -6,6 +6,17 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- **From a log line to the source** (Log viewer): file and line
+  references in an entry — stack frames of Go, Java, Kotlin, Python,
+  .NET, Node and Rust, tsc, eslint, MSBuild, Terraform, Helm and
+  Ansible — are links. A click opens the Source drawer under the
+  entry: the open folder's files that fit (matched by their trailing
+  folders, so build and agent paths work), marked exact, strong or
+  possible, with a read-only peek at the line; Open in Files goes to
+  the Files view.
+
 ## [3.8.1] - 2026-11-03
 
 Icons like VS Code's: every kind of file and folder in the explorer

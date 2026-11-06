@@ -151,6 +151,27 @@ export interface LogEntry {
   fields: EntryField[]
   raw: string
   rawCut?: boolean
+  /** File and line references in each text, offsets in UTF-16 units. */
+  refs: Partial<Record<RefField, SourceRef[]>>
+  /** The open folder's files for each reference's path; absent when
+   *  no folder is open, an empty list when none fits. */
+  sources?: Record<string, SourceMatch[]>
+}
+
+export type RefField = 'message' | 'error' | 'caller' | 'stack' | 'raw'
+
+/** A file and line a log line points to (decision 99). */
+export interface SourceRef {
+  start: number
+  end: number
+  path: string
+  line: number
+  col?: number
+}
+
+export interface SourceMatch {
+  file: string
+  quality: 'exact' | 'strong' | 'possible'
 }
 
 export interface FieldStat {

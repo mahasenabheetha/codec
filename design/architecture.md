@@ -58,6 +58,9 @@ internal/
                       kubectl, CRI, Compose, stern, CI), each line as ECS/JSON
                       (own order-keeping reader), logfmt, klog or text; stack
                       traces joined to their entry, per source
+  logsrc/             ENGINE Log to source: file and line references in log
+                      text (frames, compiler and tool errors), matched to the
+                      folder's files by trailing folders
   encode/             ENGINE Encode & hash tool: URL and hex encoding, digests and
                       HMAC, random secrets and UUIDs, bcrypt htpasswd lines
   netutil/            ENGINE Network tool: CIDR details (IPv4/IPv6, range kinds),

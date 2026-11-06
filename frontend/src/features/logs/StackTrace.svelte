@@ -2,12 +2,19 @@
   // A stack trace laid out for reading: exception and goroutine headers
   // stand out, each frame's function is apart from its file and line,
   // and frames of the runtime and frameworks can be folded away so the
-  // application's own frames are what you see.
+  // application's own frames are what you see. A frame's file and
+  // line is a link to the Source drawer (decision 99).
+  import type { SourceRef } from '../../lib/api/logs'
+  import Linked from './Linked.svelte'
+
   interface Props {
     text: string
+    refs?: SourceRef[]
+    found?: (r: SourceRef) => boolean
+    onref?: (r: SourceRef) => void
   }
 
-  let { text }: Props = $props()
+  let { text, refs = [], found, onref }: Props = $props()
 
   type Kind = 'head' | 'frame' | 'loc' | 'code' | 'blank'
   interface Line {
@@ -15,6 +22,9 @@
     text: string
     at?: string // the file and line, for a frame written on one line
     lib: boolean
+    /** The references on this line, with offsets into `text` as shown;
+     *  a frame's `at` gets the first of them. */
+    refs: SourceRef[]
   }
 
   const libFrame =
@@ -24,44 +34,52 @@
   const lines = $derived.by(() => {
     const out: Line[] = []
     let goFrameLib = false
+    let from = 0 // where this line starts in the whole text
     for (const raw of text.split('\n')) {
+      const start = from
+      from += raw.length + 1
+      // The line's references, moved onto its trimmed text.
+      const lead = raw.length - raw.trimStart().length
+      const mine = refs.filter((r) => r.start >= start + lead && r.end <= start + raw.trimEnd().length)
+      const shifted = mine.map((r) => ({ ...r, start: r.start - start - lead, end: r.end - start - lead }))
+      const push = (l: Omit<Line, 'refs'>) => out.push({ ...l, refs: l.at ? mine.slice(0, 1) : shifted })
       const t = raw.trimEnd()
       if (!t.trim()) {
-        out.push({ kind: 'blank', text: '', lib: false })
+        push({ kind: 'blank', text: '', lib: false })
         continue
       }
       // Java, .NET, Node: "at pkg.Class.method(File.java:12)", "at X() in /x.cs:line 4"
       const java = /^\s*at\s+(.+?)(?:\s*\(([^()]*:\d+[^()]*|Native Method|Unknown Source)\)|\s+in\s+(.+))?$/.exec(t)
       if (java) {
-        out.push({ kind: 'frame', text: java[1], at: java[2] ?? java[3], lib: libFrame.test(t.trim()) })
+        push({ kind: 'frame', text: java[1], at: java[2] ?? java[3], lib: libFrame.test(t.trim()) })
         continue
       }
       // Go: a function line, then "\t/path/file.go:88 +0x1d4"
       if (/^\t/.test(raw) && /:\d+/.test(t)) {
-        out.push({ kind: 'loc', text: t.trim(), lib: goFrameLib || libFile.test(t) })
+        push({ kind: 'loc', text: t.trim(), lib: goFrameLib || libFile.test(t) })
         continue
       }
       if (/^[^\s].*\)$/.test(t) && !/^(goroutine|panic|fatal error|created by)\b/.test(t) && /^[\w./*()%-]+\(/.test(t)) {
         goFrameLib = libFrame.test(t)
-        out.push({ kind: 'frame', text: t, lib: goFrameLib })
+        push({ kind: 'frame', text: t, lib: goFrameLib })
         continue
       }
       // Python: '  File "x.py", line 4, in f', then the code
       const py = /^\s*File "([^"]+)", line (\d+)(?:, in (.+))?$/.exec(t)
       if (py) {
-        out.push({ kind: 'frame', text: py[3] ?? '', at: `${py[1]}:${py[2]}`, lib: libFile.test(py[1]) })
+        push({ kind: 'frame', text: py[3] ?? '', at: `${py[1]}:${py[2]}`, lib: libFile.test(py[1]) })
         continue
       }
       if (/^\s{4,}\S/.test(raw) && out.at(-1)?.kind === 'frame' && out.at(-1)?.at?.includes('.py')) {
-        out.push({ kind: 'code', text: t.trim(), lib: out.at(-1)!.lib })
+        push({ kind: 'code', text: t.trim(), lib: out.at(-1)!.lib })
         continue
       }
       // "... 12 more", "created by …" belong to the frames before them
       if (/^\s*\.\.\. \d+ (more|common frames omitted)$/.test(t) || /^created by /.test(t)) {
-        out.push({ kind: 'code', text: t.trim(), lib: false })
+        push({ kind: 'code', text: t.trim(), lib: false })
         continue
       }
-      out.push({ kind: 'head', text: t.trim(), lib: false })
+      push({ kind: 'head', text: t.trim(), lib: false })
     }
     return out
   })
@@ -78,7 +96,8 @@
   <div class="lines">
     {#each lines as l, i (i)}
       {#if showLib || !l.lib}
-        <div class="l {l.kind}" class:lib={l.lib}>{l.text}{#if l.at}<span class="at"> {l.at}</span>{/if}</div>
+        <!-- One line of markup: the block is pre-wrap, so breaks would show. -->
+        <div class="l {l.kind}" class:lib={l.lib}>{#if l.at}{l.text}<span class="at"> {#if onref && l.refs[0]}<Linked text={l.at} refs={[{ ...l.refs[0], start: 0, end: l.at.length }]} {found} {onref} />{:else}{l.at}{/if}</span>{:else if onref && l.refs.length}<Linked text={l.text} refs={l.refs} {found} {onref} />{:else}{l.text}{/if}</div>
       {/if}
     {/each}
   </div>

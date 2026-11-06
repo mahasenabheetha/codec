@@ -7,11 +7,14 @@
   import IconButton from '../../lib/components/IconButton.svelte'
   import SegmentedControl from '../../lib/components/SegmentedControl.svelte'
   import { isAbort } from '../../lib/api/client'
-  import { logEntry, type LogEntry, type LogRow } from '../../lib/api/logs'
+  import { logEntry, type LogEntry, type LogRow, type RefField, type SourceRef } from '../../lib/api/logs'
   import { copyText } from '../../lib/utils/clipboard'
+  import { workspace as ws } from '../workspace/workspace.svelte'
   import FieldTree from './FieldTree.svelte'
   import { formatTime, formatWhen } from './format'
+  import Linked from './Linked.svelte'
   import { maskSecrets } from './mask'
+  import SourceDrawer, { type SourceItem } from './SourceDrawer.svelte'
   import StackTrace from './StackTrace.svelte'
   import ValueActions from './ValueActions.svelte'
   import { prefs, useViewer } from './viewer.svelte'
@@ -37,6 +40,7 @@
   $effect(() => {
     const i = index
     const n = Number(span)
+    void ws.info?.root // a folder opened from the drawer: find the files again
     const c = new AbortController()
     error = null
     viewer
@@ -50,6 +54,23 @@
       })
     return () => c.abort()
   })
+
+  // A file and line from the entry, shown in the Source drawer; another
+  // entry closes it.
+  let source = $state<SourceRef | null>(null)
+  $effect(() => {
+    void index
+    source = null
+  })
+  const sourceItems = $derived.by((): SourceItem[] | null => {
+    if (!source || !entry?.sources) return null
+    const r = source
+    return (entry.sources[r.path] ?? []).map((m) => ({ file: m.file, line: r.line, col: r.col, quality: m.quality }))
+  })
+  // Without a folder every reference may be found once one is open.
+  const found = (r: SourceRef) => !entry?.sources || (entry.sources[r.path]?.length ?? 0) > 0
+  const refs = (f: RefField) => entry?.refs?.[f] ?? []
+  const show = (r: SourceRef) => (source = r)
 
   // A message that is JSON, laid out.
   const prettyMessage = $derived.by(() => {
@@ -140,9 +161,9 @@
       {#if prettyMessage}
         <pre class="message json">{prettyMessage}</pre>
       {:else if entry.message}
-        <p class="message">{entry.message}</p>
+        <p class="message"><Linked text={entry.message} refs={refs('message')} {found} onref={show} /></p>
       {/if}
-      {#if entry.error && !entry.message.includes(entry.error)}<p class="error">{entry.error}</p>{/if}
+      {#if entry.error && !entry.message.includes(entry.error)}<p class="error"><Linked text={entry.error} refs={refs('error')} {found} onref={show} /></p>{/if}
 
       <dl class="facts">
         {#if entry.time}
@@ -154,7 +175,7 @@
           <dd><span>{entry.level}{#if entry.rawLevel && entry.rawLevel !== entry.level}<span class="muted"> ({entry.rawLevel})</span>{/if}</span><ValueActions key="level" value={entry.level} /></dd>
         {/if}
         {#each [['step', 'Step', entry.step], ['source', 'Source', entry.source], ['logger', 'Logger', entry.logger], ['caller', 'Caller', entry.caller], ['trace', 'Trace', entry.traceId]] as [key, label, v] (key)}
-          {#if v}<dt>{label}</dt><dd><span>{v}</span><ValueActions key={key!} value={v} /></dd>{/if}
+          {#if v}<dt>{label}</dt><dd><span>{#if key === 'caller'}<Linked text={v} refs={refs('caller')} {found} onref={show} />{:else}{v}{/if}</span><ValueActions key={key!} value={v} /></dd>{/if}
         {/each}
         <dt>From</dt>
         <dd><span>{entry.file}, line {entry.line}{entry.lines > 1 ? `–${entry.line + entry.lines - 1}` : ''} <span class="muted">· {entry.format}</span></span></dd>
@@ -162,7 +183,7 @@
 
       {#if entry.stack}
         <h3>Stack trace</h3>
-        <StackTrace text={entry.stack} />
+        <StackTrace text={entry.stack} refs={refs('stack')} {found} onref={show} />
       {/if}
 
       {#if entry.fields.length}
@@ -193,9 +214,14 @@
       </div>
 
       <h3>As read</h3>
-      <pre class="raw">{entry.raw}{#if entry.rawCut}<span class="muted"> … (cut at 1 MB)</span>{/if}</pre>
+      <pre class="raw"><Linked text={entry.raw} refs={refs('raw')} {found} onref={show} />{#if entry.rawCut}<span class="muted"> … (cut at 1 MB)</span>{/if}</pre>
     {/if}
   </div>
+  {#if source}
+    <div class="source">
+      <SourceDrawer title="{source.path}:{source.line}" items={sourceItems} onclose={() => (source = null)} />
+    </div>
+  {/if}
 </aside>
 
 <style>
@@ -354,5 +380,12 @@
   }
   .err {
     color: var(--err);
+  }
+  .source {
+    flex: none;
+    height: 55%;
+    min-height: 160px;
+    overflow: hidden;
+    border-radius: 0 0 var(--r-md) var(--r-md);
   }
 </style>
