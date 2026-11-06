@@ -6,6 +6,15 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- **Commands** (Utilities): type or paste a command line and every part
+  of it is explained — subcommand, flags and their values, arguments,
+  pipes and redirections — with risky parts marked and a safer way; a
+  Build form shows the same command and changing either side changes
+  the other. Values from the open folder (namespaces, resources,
+  labels, charts) are offered; Copy for PowerShell quotes it that way.
+
 ## [3.9.0] - 2026-11-06
 
 From a log line to the code that wrote it, and the Log viewer reads

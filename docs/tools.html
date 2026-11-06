@@ -155,6 +155,10 @@
 </ul>
 <p>On the command line: <code>codec time</code> (<code>--in</code> for other zones, <code>--formats</code>) and <code>codec cron</code> (see <a href="cli.html#time">CLI</a>).</p>
 
+<h2 id="commands">Commands<a class="anchor" href="#commands">#</a></h2>
+<p><strong>Commands</strong> explains a command line and builds one. Type or paste a command at the top: the <strong>Explanation</strong> gives every part a sentence — the command and its subcommand, each flag and its value (what a chosen value means: <code>-o yaml</code>), the arguments, pipes, <code>&amp;&amp;</code> and redirections like <code>2&gt;&amp;1</code> — and each command one sentence for the whole. The <strong>Build</strong> form shows the same command: its subcommand to pick, its arguments, and its flags (the common ones first, the rest under <em>More flags</em> with a filter). Change either side and the other follows; what the form doesn't own, such as <code>NAME=value</code>, <code>sudo</code>, redirections and unknown flags, stays as you wrote it.</p>
+<p>Risky parts are underlined — a force push, <code>reset --hard</code>, a delete — with what they can break and a safer way to copy (<code>git push --force-with-lease</code>). Values from the open folder are offered as you type: its Kubernetes namespaces, resources and labels, and its Helm charts. <strong>Copy</strong> copies the line; <strong>Copy for PowerShell</strong> quotes it PowerShell's way and turns <code>NAME=value</code> into <code>$env:</code>. Nothing is run. The descriptions are codec's own, checked against each tool's <code>--help</code>; a flag codec doesn't know is said to be so.</p>
+
 <h2 id="regex">Regex<a class="anchor" href="#regex">#</a></h2>
 <p>Under <strong>Utilities</strong>: a tester and an explainer on one screen. Type a pattern and some test text; matches light up in the text as you type.</p>
 <ul>

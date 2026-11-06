@@ -147,6 +147,33 @@ func TestExplainSays(t *testing.T) {
 	}
 }
 
+// What the builder reads: the flags with their values in every
+// spelling, the arguments, and what it keeps as written.
+func TestUse(t *testing.T) {
+	line := `LANG=C git -C repo commit -am "fix it" --frobnicate -- a.go > out 2>&1`
+	u := Explain(line).Segments[0].Use
+	var flags []string
+	for _, f := range u.Flags {
+		flags = append(flags, fmt.Sprintf("%s=%q/%v", f.Ref, f.Value, f.Valued))
+	}
+	var keep []string
+	for _, k := range u.Keep {
+		keep = append(keep, line[k.Start:k.End])
+	}
+	if got, want := strings.Join(flags, " "), `-C="repo"/true -a=""/false -m="fix it"/true`; got != want {
+		t.Errorf("flags %s, want %s", got, want)
+	}
+	if strings.Join(u.Args, ",") != "a.go" || strings.Join(keep, ",") != "--frobnicate,> out,2>&1" || line[:u.ToolStart] != "LANG=C " || u.End != len(line) {
+		t.Errorf("args %q keep %q prefix %q end %d", u.Args, keep, line[:u.ToolStart], u.End)
+	}
+	if u := Explain("kubectl -nshop logs --tail=50 web").Segments[0].Use; fmt.Sprint(u.Flags) != "[{-n shop true} {--tail 50 true}]" {
+		t.Errorf("attached values: %v", u.Flags)
+	}
+	if u := Explain("grep x").Segments[0].Use; u != nil {
+		t.Errorf("unknown command has a use: %+v", u)
+	}
+}
+
 // Every pack loads and passes the checks.
 func TestPacks(t *testing.T) {
 	tools, err := Tools()

@@ -15,6 +15,33 @@ type Part struct {
 	// For a flag: its first name as the reference writes it, so the
 	// builder can find it; for an argument, the argument's name.
 	Ref string
+	// Flags are the flags a flag part stands for: one, or several written
+	// together (-am), with a value written in the same word (--tail=50,
+	// -nshop).
+	Flags []FlagUse
+}
+
+// FlagUse is a flag as a command line uses it.
+type FlagUse struct {
+	Ref    string `json:"ref"`   // the flag's first name in the reference
+	Value  string `json:"value"` // its value, when it has one
+	Valued bool   `json:"valued"`
+}
+
+// Span is a piece of the line kept as written.
+type Span struct {
+	Start int `json:"start"`
+	End   int `json:"end"`
+}
+
+// Use is a known command as the builder reads it: what it sets, and what
+// the builder keeps as written when it writes the command again.
+type Use struct {
+	Start, End int       // the command's span in the line
+	ToolStart  int       // where the tool's word starts; what is before it (NAME=value, sudo …) is kept
+	Flags      []FlagUse // in the order written
+	Args       []string  // the positional arguments, in order
+	Keep       []Span    // unknown flags, redirections and comments
 }
 
 // The kinds of part.
@@ -42,6 +69,7 @@ type Segment struct {
 	Path     []string // tool and subcommands: git, stash, push
 	Summary  string   // what the command does
 	Danger   *Danger  // the gravest of its command's and flags'
+	Use      *Use     // for a command codec knows
 }
 
 // Explanation is a whole line explained.
@@ -260,7 +288,34 @@ func (ex *Explanation) segment(toks []Token, tools map[string]*Tool) {
 	}
 	seg.Summary, seg.Danger = cmd.Summary, worst
 	seg.To = len(ex.Parts)
+	seg.Use = use(ex.Parts[seg.From:seg.To], toks[0].Start, toks[len(toks)-1].End)
 	ex.Segments = append(ex.Segments, seg)
+}
+
+// use reads a known command's parts into what the builder needs.
+func use(parts []Part, start, end int) *Use {
+	u := &Use{Start: start, End: end, Flags: []FlagUse{}, Args: []string{}, Keep: []Span{}}
+	for i, p := range parts {
+		switch p.Kind {
+		case KindTool:
+			u.ToolStart = p.Start
+		case KindFlag:
+			u.Flags = append(u.Flags, p.Flags...)
+		case KindValue:
+			if n := len(u.Flags); n > 0 {
+				u.Flags[n-1].Value, u.Flags[n-1].Valued = p.Text, true
+			}
+		case KindArg:
+			u.Args = append(u.Args, p.Text)
+		case KindUnknown, KindRedirect, KindComment:
+			u.Keep = append(u.Keep, Span{p.Start, p.End})
+		case KindTarget:
+			if i > 0 && len(u.Keep) > 0 {
+				u.Keep[len(u.Keep)-1].End = p.End // the file goes with its redirection
+			}
+		}
+	}
+	return u
 }
 
 // arg explains a positional argument by the command's arguments, in
@@ -332,6 +387,7 @@ func (ex *Explanation) flag(toks []Token, i int, chain []*Command, atRoot bool) 
 			var parts []string
 			for _, g := range flags {
 				parts = append(parts, short(g)+": "+g.Summary)
+				p.Flags = append(p.Flags, FlagUse{Ref: g.Names[0]})
 				if g.Danger != nil && (p.Danger == nil || g.Danger.Level == "danger") {
 					p.Danger = g.Danger // the gravest of them
 				}
@@ -340,6 +396,7 @@ func (ex *Explanation) flag(toks []Token, i int, chain []*Command, atRoot bool) 
 			last := flags[len(flags)-1]
 			if rest != "" {
 				p.Summary += " (" + last.Value + " " + rest + ")"
+				p.Flags[len(p.Flags)-1].Value, p.Flags[len(p.Flags)-1].Valued = rest, true
 			}
 			ex.Parts = append(ex.Parts, p)
 			if last.Value != "" && !last.OptionalValue && rest == "" && i+1 < len(toks) && toks[i+1].Kind == Word {
@@ -354,7 +411,8 @@ func (ex *Explanation) flag(toks []Token, i int, chain []*Command, atRoot bool) 
 }
 
 func flagPart(t Token, f *Flag, value string, hasValue bool) Part {
-	p := Part{Start: t.Start, End: t.End, Kind: KindFlag, Text: t.Text, Summary: f.Summary, Danger: f.Danger, Ref: f.Names[0]}
+	p := Part{Start: t.Start, End: t.End, Kind: KindFlag, Text: t.Text, Summary: f.Summary, Danger: f.Danger, Ref: f.Names[0],
+		Flags: []FlagUse{{Ref: f.Names[0], Value: value, Valued: hasValue}}}
 	if hasValue {
 		if c := choice(f.Choices, value); c != nil && c.Summary != "" {
 			p.Summary += " (" + value + ": " + c.Summary + ")"

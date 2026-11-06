@@ -1,6 +1,7 @@
 package web
 
 import (
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -32,5 +33,28 @@ func TestCommandsAPI(t *testing.T) {
 	}
 	if code, _ := send(s, "POST", "/api/v2/commands/explain", "application/json", `{"line":"`+strings.Repeat("x", 70000)+`"}`); code != 422 {
 		t.Errorf("long line: %d", code)
+	}
+	// The builder's reading, in the same units: "é" again.
+	_, v = send(s, "POST", "/api/v2/commands/explain", "application/json", `{"line":"A=é git -C r log"}`)
+	u := v["segments"].([]any)[0].(map[string]any)["use"].(map[string]any)
+	if u["toolStart"] != 4.0 || u["end"] != 16.0 || u["flags"].([]any)[0].(map[string]any)["value"] != "r" {
+		t.Errorf("use: %v", u)
+	}
+}
+
+func TestCommandSuggest(t *testing.T) {
+	opts := testOptions(false)
+	opts.SampleDir = filepath.Join(t.TempDir(), "sample") // not the user's own sample folder
+	s := New(opts)
+	defer s.Close()
+	if _, v := send(s, "GET", "/api/v2/commands/suggest", "", ""); len(v["namespaces"].([]any)) != 0 {
+		t.Errorf("no folder: %v", v)
+	}
+	if err := s.OpenSample(); err != nil {
+		t.Fatal(err)
+	}
+	_, v := send(s, "GET", "/api/v2/commands/suggest", "", "")
+	if len(v["resources"].([]any)) == 0 || len(v["charts"].([]any)) == 0 || v["charts"].([]any)[0] != "./charts/shop" {
+		t.Errorf("sample: %v", v)
 	}
 }
