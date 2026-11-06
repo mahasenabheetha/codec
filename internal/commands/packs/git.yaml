@@ -1,4 +1,4 @@
-# git: a seed for the engine's tests (3.10.0 T1); T4 adds the rest.
+# git, in codec's words and checked against `git <command> -h` (2.55).
 name: git
 group: git
 summary: Git, the version control system.
@@ -12,7 +12,186 @@ flags:
     summary: sets a configuration value for this command only
   - names: [--no-pager]
     summary: prints the output straight away instead of through a pager
+  - names: [-P]
+    summary: prints the output straight away instead of through a pager
+  - names: [-p, --paginate]
+    summary: sends the output through a pager even when it is short
+  - names: [--git-dir]
+    value: path
+    summary: uses this .git folder
+  - names: [--work-tree]
+    value: path
+    summary: uses this folder as the working tree
 commands:
+  - name: init
+    summary: Makes a new, empty repository here, or in the folder named.
+    flags:
+      - names: [-b, --initial-branch]
+        value: name
+        common: true
+        summary: names the first branch, such as main
+      - names: [--bare]
+        summary: makes a repository with no working tree, as a server keeps
+      - names: [-q, --quiet]
+        summary: prints only errors and warnings
+    args:
+      - name: directory
+        optional: true
+        summary: the folder to make it in
+  - name: clone
+    summary: Copies a repository, with its history, into a new folder.
+    flags:
+      - names: [-b, --branch]
+        value: branch
+        common: true
+        summary: checks out this branch instead of the remote's default
+      - names: [--depth]
+        value: depth
+        common: true
+        summary: copies only the last this-many commits, which is faster
+      - names: [--single-branch]
+        summary: copies only one branch's history
+      - names: [--recurse-submodules]
+        value: pathspec
+        optionalValue: true
+        summary: clones the submodules too
+      - names: [--bare]
+        summary: makes a bare copy, with no working tree
+      - names: [-o, --origin]
+        value: name
+        summary: names the remote this instead of origin
+      - names: [--filter]
+        value: filter
+        summary: leaves out some objects until they are needed, such as blob:none
+      - names: [-q, --quiet]
+        summary: prints only errors
+    args:
+      - name: repository
+        summary: the URL or path of the repository to copy
+      - name: directory
+        optional: true
+        summary: the new folder; by default the repository's name
+  - name: status
+    summary: Shows which files are changed, staged and untracked, and how the branch stands against its upstream.
+    flags:
+      - names: [-s, --short]
+        common: true
+        summary: one line per file, with two status letters
+      - names: [-b, --branch]
+        common: true
+        summary: shows the branch and how far ahead or behind it is, with --short too
+      - names: [-u, --untracked-files]
+        value: mode
+        optionalValue: true
+        summary: which untracked files to show
+        choices:
+          - {value: "no", summary: none}
+          - {value: normal, summary: files and folders}
+          - {value: all, summary: every file inside untracked folders too}
+      - names: [--ignored]
+        value: mode
+        optionalValue: true
+        summary: shows ignored files too
+      - names: [-v, --verbose]
+        summary: shows the staged changes as a diff too
+      - names: [--porcelain]
+        value: version
+        optionalValue: true
+        summary: a steady format for scripts
+    args:
+      - name: pathspec
+        optional: true
+        repeat: true
+        summary: only these files or folders
+  - name: add
+    summary: Stages changes, so the next commit records them.
+    flags:
+      - names: [-A, --all]
+        common: true
+        summary: stages every change in the repository, deletions and new files too
+      - names: [-u, --update]
+        common: true
+        summary: stages changes to files git already tracks, not new ones
+      - names: [-p, --patch]
+        common: true
+        summary: asks hunk by hunk what to stage
+      - names: [-n, --dry-run]
+        summary: shows what would be staged without staging it
+      - names: [-f, --force]
+        summary: stages files that .gitignore leaves out
+      - names: [-N, --intent-to-add]
+        summary: records that a new file will be added, so diff shows it
+      - names: [-v, --verbose]
+        summary: names each file as it is added
+    args:
+      - name: pathspec
+        optional: true
+        repeat: true
+        summary: the files or folders to stage; . is everything here
+  - name: rm
+    summary: Removes files from the working tree and stages their deletion.
+    danger:
+      level: caution
+      note: the files are deleted from disk too unless --cached is given
+      safer: git rm --cached
+    flags:
+      - names: [--cached]
+        common: true
+        summary: stops tracking the files but keeps them on disk
+      - names: [-r]
+        common: true
+        summary: removes folders and what is in them
+      - names: [-f, --force]
+        summary: removes files with changes that aren't committed
+        danger:
+          level: danger
+          note: changes in those files that aren't committed are lost
+      - names: [-n, --dry-run]
+        summary: shows what would be removed without removing it
+    args:
+      - name: pathspec
+        repeat: true
+        summary: the files to remove
+  - name: mv
+    summary: Moves or renames a file, and stages the move.
+    flags:
+      - names: [-f, --force]
+        summary: overwrites the target if it exists
+        danger:
+          level: caution
+          note: the file at the target is replaced
+      - names: [-n, --dry-run]
+        summary: shows what would happen without moving anything
+    args:
+      - name: source
+        repeat: true
+        summary: the file or files to move, then where to
+  - name: restore
+    summary: Puts files back as they were in the index or a commit, throwing away changes.
+    danger:
+      level: caution
+      note: changes in the working tree that aren't committed are lost
+      safer: git stash push -- {file}
+    flags:
+      - names: [-S, --staged]
+        common: true
+        summary: unstages instead, leaving the files on disk as they are
+      - names: [-W, --worktree]
+        summary: restores the working tree (the default; with --staged, both)
+      - names: [-s, --source]
+        value: tree
+        common: true
+        summary: takes the files from this commit or branch
+      - names: [-p, --patch]
+        summary: asks hunk by hunk what to restore
+      - names: [--ours]
+        summary: in a conflict, takes our side
+      - names: [--theirs]
+        summary: in a conflict, takes their side
+    args:
+      - name: pathspec
+        repeat: true
+        summary: the files to restore; . is everything here
   - name: commit
     summary: Records the staged changes as a new commit.
     flags:
@@ -34,11 +213,612 @@ commands:
         summary: keeps the message as it is, without opening an editor
       - names: [-n, --no-verify]
         summary: skips the pre-commit and commit-msg hooks
+      - names: [-F, --file]
+        value: file
+        summary: takes the message from this file
+      - names: [-s, --signoff]
+        summary: adds a Signed-off-by line
+      - names: [-S, --gpg-sign]
+        value: key-id
+        optionalValue: true
+        summary: signs the commit with GPG
+      - names: [--fixup]
+        value: commit
+        summary: makes a commit that rebase --autosquash folds into that one
+      - names: [--allow-empty]
+        summary: commits even with no changes
+      - names: [--author]
+        value: author
+        summary: records someone else as the author, as "Name <email>"
+      - names: [--date]
+        value: date
+        summary: records this date as when it was written
+      - names: [-p, --patch]
+        summary: asks hunk by hunk what to commit
+      - names: [-v, --verbose]
+        summary: shows the diff in the editor while you write the message
     args:
       - name: pathspec
         optional: true
         repeat: true
         summary: commits only the changes in these files
+  - name: diff
+    summary: Shows changes, between the working tree, the index and commits.
+    flags:
+      - names: [--staged, --cached]
+        common: true
+        summary: what is staged, against the last commit
+      - names: [--stat]
+        value: width
+        optionalValue: true
+        common: true
+        summary: how many lines changed in each file, not the lines themselves
+      - names: [--name-only]
+        common: true
+        summary: only the names of the changed files
+      - names: [--name-status]
+        summary: the names of the changed files, with A, M or D
+      - names: [-w, --ignore-all-space]
+        summary: ignores changes in whitespace
+      - names: [--word-diff]
+        value: mode
+        optionalValue: true
+        summary: marks changed words instead of whole lines
+      - names: [-U, --unified]
+        value: lines
+        summary: shows this many lines of context
+      - names: [--color-words]
+        summary: shows changed words in colour
+      - names: [--no-index]
+        summary: compares two files or folders outside any repository
+      - names: [--merge-base]
+        summary: compares against where the branches parted
+    args:
+      - name: commit
+        optional: true
+        repeat: true
+        summary: what to compare, such as main or main..feature, then -- and files
+  - name: log
+    summary: Shows the commit history.
+    flags:
+      - names: [--oneline]
+        common: true
+        summary: one line per commit
+      - names: [-<n>, -n, --max-count]
+        value: number
+        common: true
+        summary: shows only this many commits
+      - names: [--graph]
+        common: true
+        summary: draws the branches and merges beside the commits
+      - names: [--all]
+        summary: every branch and tag, not only the current one
+      - names: [-p, --patch]
+        summary: shows each commit's changes
+      - names: [--stat]
+        value: width
+        optionalValue: true
+        summary: how many lines each commit changed, by file
+      - names: [--author]
+        value: pattern
+        summary: only commits by an author matching this
+      - names: [--grep]
+        value: pattern
+        summary: only commits whose message matches this
+      - names: [-S]
+        value: text
+        summary: only commits that add or remove this text
+      - names: [-G]
+        value: regex
+        summary: only commits whose changes match this
+      - names: [--since, --after]
+        value: date
+        summary: only commits after this date, such as "2 weeks ago"
+      - names: [--until, --before]
+        value: date
+        summary: only commits before this date
+      - names: [--follow]
+        summary: follows one file across renames
+      - names: [--decorate]
+        value: style
+        optionalValue: true
+        summary: shows branch and tag names next to their commits
+      - names: [--first-parent]
+        summary: follows only the first parent of merges
+      - names: [--no-merges]
+        summary: leaves out merge commits
+      - names: [--format, --pretty]
+        value: format
+        summary: prints each commit this way, such as "%h %an %s"
+      - names: [--reverse]
+        summary: oldest first
+    args:
+      - name: revision range
+        optional: true
+        summary: which commits, such as main..feature, then -- and files
+  - name: show
+    summary: Shows a commit (its message and changes), or a tag, or a file at a commit.
+    flags:
+      - names: [--stat]
+        value: width
+        optionalValue: true
+        common: true
+        summary: how many lines changed by file, not the lines themselves
+      - names: [--name-only]
+        common: true
+        summary: only the names of the changed files
+      - names: [--oneline]
+        summary: the commit in one line
+      - names: [-s, --no-patch]
+        summary: leaves out the changes
+      - names: [--format, --pretty]
+        value: format
+        summary: prints it this way
+    args:
+      - name: object
+        optional: true
+        repeat: true
+        summary: what to show; HEAD by default, main:README.md for a file at a commit
+  - name: branch
+    summary: Lists, creates, renames and deletes branches.
+    flags:
+      - names: [-a, --all]
+        common: true
+        summary: lists the remote-tracking branches too
+      - names: [-r, --remotes]
+        summary: lists only the remote-tracking branches
+      - names: [-v, --verbose]
+        common: true
+        repeat: true
+        summary: shows each branch's last commit (twice for its upstream)
+      - names: [-d, --delete]
+        common: true
+        summary: deletes a branch that is merged
+      - names: [-D]
+        summary: deletes a branch even if it isn't merged
+        danger:
+          level: danger
+          note: commits only on that branch are left with no name; the reflog still has them for a while
+          safer: git branch -d
+      - names: [-m, --move]
+        summary: renames a branch
+      - names: [-M]
+        summary: renames a branch even if the new name is taken
+        danger:
+          level: caution
+          note: the branch with the new name is replaced
+      - names: [-c, --copy]
+        summary: copies a branch
+      - names: [-u, --set-upstream-to]
+        value: upstream
+        summary: sets which remote branch this one tracks
+      - names: [--unset-upstream]
+        summary: stops tracking a remote branch
+      - names: [--merged]
+        value: commit
+        optionalValue: true
+        summary: only branches already merged into HEAD, or this commit
+      - names: [--no-merged]
+        value: commit
+        optionalValue: true
+        summary: only branches not merged yet
+      - names: [--contains]
+        value: commit
+        summary: only branches that have this commit
+      - names: [--show-current]
+        summary: prints the name of the current branch
+      - names: [-f, --force]
+        summary: moves an existing branch to a new start
+        danger:
+          level: caution
+          note: the branch is moved; commits only on it are left with no name
+      - names: [-l, --list]
+        summary: lists the branches matching a pattern
+      - names: [--sort]
+        value: key
+        summary: sorts by this, such as -committerdate for newest first
+    args:
+      - name: branch
+        optional: true
+        repeat: true
+        summary: the branch to create, delete or rename, then where it starts
+  - name: switch
+    summary: Switches to another branch.
+    flags:
+      - names: [-c, --create]
+        value: new-branch
+        common: true
+        summary: creates this branch and switches to it
+      - names: [-C, --force-create]
+        value: new-branch
+        summary: creates it, or moves it here if it exists
+        danger:
+          level: caution
+          note: a branch of that name is moved; commits only on it are left with no name
+      - names: [-d, --detach]
+        summary: switches to a commit, not a branch
+      - names: [-f, --force, --discard-changes]
+        summary: switches even with changes in the way, throwing them away
+        danger:
+          level: danger
+          note: changes that aren't committed are lost
+          safer: git stash
+      - names: [-m, --merge]
+        summary: carries local changes over, merging them
+      - names: [-t, --track]
+        value: mode
+        optionalValue: true
+        summary: sets the new branch to track the remote one
+      - names: [--orphan]
+        value: new-branch
+        summary: starts a branch with no history
+    args:
+      - name: branch
+        optional: true
+        summary: the branch to switch to; - is the one before
+      - name: start-point
+        optional: true
+        summary: where a new branch starts
+  - name: checkout
+    aliases: [co]
+    summary: Switches branches, or puts files back as they were; switch and restore do each of these on its own.
+    flags:
+      - names: [-b]
+        value: new-branch
+        common: true
+        summary: creates this branch and switches to it
+      - names: [-B]
+        value: new-branch
+        summary: creates it, or moves it here if it exists
+        danger:
+          level: caution
+          note: a branch of that name is moved
+      - names: [-f, --force]
+        summary: switches even with changes in the way, throwing them away
+        danger:
+          level: danger
+          note: changes that aren't committed are lost
+          safer: git stash
+      - names: [-t, --track]
+        value: mode
+        optionalValue: true
+        summary: sets the new branch to track the remote one
+      - names: [--detach]
+        summary: checks out a commit, not a branch
+      - names: [--ours]
+        summary: in a conflict, takes our side of the files
+      - names: [--theirs]
+        summary: in a conflict, takes their side of the files
+      - names: [-p, --patch]
+        summary: asks hunk by hunk what to put back
+    args:
+      - name: branch
+        optional: true
+        repeat: true
+        summary: a branch or commit; after --, files to put back as in the index
+  - name: merge
+    summary: Joins another branch's history into the current branch.
+    flags:
+      - names: [--no-ff]
+        common: true
+        summary: always makes a merge commit, even when the branch could just move
+      - names: [--ff-only]
+        common: true
+        summary: only moves the branch forward; stops if a merge commit is needed
+      - names: [--squash]
+        summary: stages the changes as one, for you to commit, without a merge
+      - names: [-m]
+        value: message
+        summary: uses this as the merge commit's message
+      - names: [--no-commit]
+        summary: merges but stops before committing
+      - names: [--abort]
+        common: true
+        summary: gives up a merge with conflicts, going back to before it
+      - names: [--continue]
+        summary: finishes a merge after the conflicts are resolved
+      - names: [-X, --strategy-option]
+        value: option
+        summary: an option for the strategy, such as ours or theirs for conflicts
+      - names: [--no-edit]
+        summary: takes the merge message as it is
+    args:
+      - name: commit
+        optional: true
+        repeat: true
+        summary: the branch or commits to merge in
+  - name: rebase
+    summary: Replays the current branch's commits on top of another, as new commits.
+    danger:
+      level: caution
+      note: rewrites the branch's commits; if they were pushed, pushing again needs a force push
+      safer: git merge
+    flags:
+      - names: [-i, --interactive]
+        common: true
+        summary: lists the commits first, to reorder, squash, edit or drop them
+      - names: [--onto]
+        value: newbase
+        summary: replays them onto this, starting after the upstream
+      - names: [--continue]
+        common: true
+        summary: goes on after conflicts are resolved
+      - names: [--abort]
+        common: true
+        summary: gives up and puts the branch back as before
+      - names: [--skip]
+        summary: drops the commit that stopped it and goes on
+      - names: [--autosquash]
+        summary: folds fixup! and squash! commits into the ones they name
+      - names: [--autostash]
+        summary: stashes local changes first and brings them back after
+      - names: [-r, --rebase-merges]
+        value: mode
+        optionalValue: true
+        summary: keeps the branch's merges instead of flattening them
+      - names: [-x, --exec]
+        value: command
+        repeat: true
+        summary: runs this after each commit, such as the tests
+      - names: [--root]
+        summary: rebases every commit, back to the first
+      - names: [--update-refs]
+        summary: moves other branches that point into the rebased commits too
+    args:
+      - name: upstream
+        optional: true
+        summary: the branch to rebase onto; the upstream by default
+      - name: branch
+        optional: true
+        summary: switches to this branch first
+  - name: cherry-pick
+    summary: Applies the changes of existing commits as new commits here.
+    flags:
+      - names: [-n, --no-commit]
+        common: true
+        summary: applies the changes without committing them
+      - names: [-x]
+        common: true
+        summary: notes in the message which commit it came from
+      - names: [-e, --edit]
+        summary: lets you edit the message
+      - names: [-m, --mainline]
+        value: parent-number
+        summary: for a merge commit, which parent counts as the base (usually 1)
+      - names: [--continue]
+        summary: goes on after conflicts are resolved
+      - names: [--abort]
+        summary: gives up and goes back to before it
+      - names: [--skip]
+        summary: skips the commit that stopped it
+    args:
+      - name: commit
+        repeat: true
+        summary: the commits to apply, or a range such as a..b
+  - name: revert
+    summary: Makes a new commit that undoes an earlier one, keeping history as it is.
+    flags:
+      - names: [-n, --no-commit]
+        common: true
+        summary: undoes the changes without committing
+      - names: [--no-edit]
+        summary: takes the message as it is
+      - names: [-m, --mainline]
+        value: parent-number
+        summary: for a merge commit, which parent to go back to (usually 1)
+      - names: [--continue]
+        summary: goes on after conflicts are resolved
+      - names: [--abort]
+        summary: gives up and goes back to before it
+    args:
+      - name: commit
+        repeat: true
+        summary: the commits to undo
+  - name: reset
+    summary: Moves the current branch to another commit, and changes the staging area and files to match as asked.
+    flags:
+      - names: [--soft]
+        common: true
+        summary: keeps your changes staged
+      - names: [--mixed]
+        summary: keeps your changes, unstaged (the default)
+      - names: [--hard]
+        common: true
+        summary: throws away the staged and unstaged changes to tracked files
+        danger:
+          level: danger
+          note: uncommitted changes to tracked files are lost
+          safer: git stash
+      - names: [--keep]
+        summary: like --hard, but stops if it would lose local changes
+      - names: [-p, --patch]
+        summary: asks hunk by hunk what to unstage
+      - names: [-q, --quiet]
+        summary: prints only errors
+    args:
+      - name: commit
+        optional: true
+        summary: the commit to move to; HEAD~1 is the one before the last
+      - name: pathspec
+        optional: true
+        repeat: true
+        summary: after --, unstages only these files
+  - name: stash
+    summary: Puts uncommitted changes aside and cleans the working tree.
+    commands:
+      - name: push
+        summary: Saves the changes as a new stash.
+        flags:
+          - names: [-m, --message]
+            value: message
+            common: true
+            summary: describes the stash
+          - names: [-u, --include-untracked]
+            common: true
+            summary: stashes untracked files too
+          - names: [-a, --all]
+            summary: stashes untracked and ignored files too
+          - names: [-k, --keep-index]
+            summary: keeps the staged changes in place
+          - names: [-S, --staged]
+            summary: stashes only the staged changes
+          - names: [-p, --patch]
+            summary: asks hunk by hunk what to stash
+        args:
+          - name: pathspec
+            optional: true
+            repeat: true
+            summary: after --, only these files
+      - name: pop
+        summary: Applies the latest stash (or the one named) and drops it.
+        flags:
+          - names: [--index]
+            summary: restores what was staged as staged
+        args:
+          - name: stash
+            optional: true
+            summary: which stash, as stash@{n}
+      - name: apply
+        summary: Applies a stash and keeps it.
+        flags:
+          - names: [--index]
+            summary: restores what was staged as staged
+        args:
+          - name: stash
+            optional: true
+            summary: which stash, as stash@{n}
+      - name: list
+        summary: Lists the stashes.
+      - name: show
+        summary: Shows what a stash changes.
+        flags:
+          - names: [-p, --patch]
+            summary: shows the changes themselves, not only the files
+          - names: [-u, --include-untracked]
+            summary: shows its untracked files too
+        args:
+          - name: stash
+            optional: true
+            summary: which stash, as stash@{n}
+      - name: drop
+        summary: Deletes a stash.
+        danger:
+          level: caution
+          note: the stash is gone; its commit can be found for a while with git fsck
+        args:
+          - name: stash
+            optional: true
+            summary: which stash, as stash@{n}
+      - name: clear
+        summary: Deletes every stash.
+        danger:
+          level: danger
+          note: every stash is gone
+          safer: git stash list
+      - name: branch
+        summary: Makes a branch from where a stash was made, and applies it there.
+        args:
+          - name: branch
+            summary: the new branch
+          - name: stash
+            optional: true
+            summary: which stash, as stash@{n}
+  - name: tag
+    summary: Lists, creates and deletes tags, names that stay on one commit.
+    flags:
+      - names: [-a, --annotate]
+        common: true
+        summary: makes an annotated tag, with a message, author and date
+      - names: [-m, --message]
+        value: message
+        common: true
+        summary: the tag's message (makes it annotated)
+      - names: [-d, --delete]
+        summary: deletes the tag here (not on the remote)
+      - names: [-l, --list]
+        summary: lists the tags matching a pattern
+      - names: [-f, --force]
+        summary: moves an existing tag
+        danger:
+          level: caution
+          note: the tag points somewhere else now; anyone who fetched it keeps the old one
+      - names: [-s, --sign]
+        summary: signs the tag with GPG
+      - names: [-n]
+        value: lines
+        optionalValue: true
+        summary: shows this many lines of each tag's message
+      - names: [--sort]
+        value: key
+        summary: sorts by this, such as -v:refname for the newest version first
+      - names: [--contains]
+        value: commit
+        summary: only tags that have this commit
+      - names: [--points-at]
+        value: object
+        summary: only tags on this commit
+    args:
+      - name: tagname
+        optional: true
+        summary: the tag to create or delete
+      - name: commit
+        optional: true
+        summary: the commit to tag; HEAD by default
+  - name: fetch
+    summary: Downloads commits, branches and tags from a remote, without changing your branches.
+    flags:
+      - names: [--all]
+        common: true
+        summary: fetches from every remote
+      - names: [-p, --prune]
+        common: true
+        summary: forgets remote branches that no longer exist there
+      - names: [-t, --tags]
+        summary: fetches every tag too
+      - names: [--depth]
+        value: depth
+        summary: only this many commits of history
+      - names: [--unshallow]
+        summary: fetches the rest of the history of a shallow clone
+      - names: [-f, --force]
+        summary: lets a local branch be overwritten when fetching into it
+      - names: [-v, --verbose]
+        summary: says more about what it does
+    args:
+      - name: repository
+        optional: true
+        summary: the remote, such as origin
+      - name: refspec
+        optional: true
+        repeat: true
+        summary: which branches or tags
+  - name: pull
+    summary: Fetches from the remote and merges (or rebases) into the current branch.
+    flags:
+      - names: [-r, --rebase]
+        value: mode
+        optionalValue: true
+        common: true
+        summary: rebases your commits on top instead of merging
+      - names: [--ff-only]
+        common: true
+        summary: only moves the branch forward; stops if your commits differ
+      - names: [--no-rebase]
+        summary: merges, even if the config says rebase
+      - names: [--autostash]
+        summary: stashes local changes first and brings them back after
+      - names: [-p, --prune]
+        summary: forgets remote branches that no longer exist there
+      - names: [--tags]
+        summary: fetches every tag too
+    args:
+      - name: repository
+        optional: true
+        summary: the remote, such as origin
+      - name: refspec
+        optional: true
+        repeat: true
+        summary: which branch
   - name: push
     summary: Sends local commits to a remote repository.
     flags:
@@ -56,13 +836,32 @@ commands:
         value: ref
         optionalValue: true
         summary: overwrites the remote branch only if it is where you last saw it
+      - names: [--force-if-includes]
+        summary: with --force-with-lease, also checks you have seen what is there
       - names: [--tags]
         summary: pushes every tag too
+      - names: [--follow-tags]
+        summary: pushes the annotated tags on the pushed commits
       - names: [-d, --delete]
         summary: deletes the named branches or tags on the remote
         danger:
           level: danger
           note: deletes the branch on the remote for everyone
+      - names: [-n, --dry-run]
+        summary: shows what would be pushed without pushing
+      - names: [--all, --branches]
+        summary: pushes every branch
+      - names: [--mirror]
+        summary: makes the remote the same as here, every ref, deleting what isn't here
+        danger:
+          level: danger
+          note: branches and tags on the remote that aren't here are deleted
+      - names: [--no-verify]
+        summary: skips the pre-push hook
+      - names: [-o, --push-option]
+        value: option
+        repeat: true
+        summary: passes an option to the server, such as merge_request.create on GitLab
     args:
       - name: remote
         optional: true
@@ -71,60 +870,334 @@ commands:
         optional: true
         repeat: true
         summary: the branches or tags to push
-  - name: reset
-    summary: Moves the current branch to another commit, and changes the staging area and files to match as asked.
+  - name: remote
+    summary: Lists, adds and changes the remotes, the repositories you fetch from and push to.
     flags:
-      - names: [--soft]
+      - names: [-v, --verbose]
         common: true
-        summary: keeps your changes staged
-      - names: [--mixed]
-        summary: keeps your changes, unstaged (the default)
-      - names: [--hard]
+        summary: shows each remote's URLs
+    commands:
+      - name: add
+        summary: Adds a remote.
+        flags:
+          - names: [-f]
+            summary: fetches from it straight away
+        args:
+          - name: name
+            summary: what to call it, such as upstream
+          - name: url
+            summary: where it is
+      - name: remove
+        aliases: [rm]
+        summary: Removes a remote and its remote-tracking branches.
+        args:
+          - name: name
+            summary: the remote
+      - name: rename
+        summary: Renames a remote.
+        args:
+          - name: old
+            summary: its name now
+          - name: new
+            summary: its new name
+      - name: set-url
+        summary: Changes a remote's URL.
+        flags:
+          - names: [--push]
+            summary: changes only the URL pushed to
+        args:
+          - name: name
+            summary: the remote
+          - name: newurl
+            summary: the new URL
+      - name: show
+        summary: Shows a remote's branches and how they are tracked.
+        args:
+          - name: name
+            summary: the remote
+      - name: prune
+        summary: Forgets remote-tracking branches that no longer exist on the remote.
+        flags:
+          - names: [-n, --dry-run]
+            summary: shows what would go without removing it
+        args:
+          - name: name
+            summary: the remote
+  - name: clean
+    summary: Deletes untracked files from the working tree.
+    danger:
+      level: danger
+      note: the files are deleted, not moved; git has no copy of them
+      safer: git clean -n
+    flags:
+      - names: [-n, --dry-run]
         common: true
-        summary: throws away the staged and unstaged changes to tracked files
+        summary: shows what would be deleted without deleting it
+      - names: [-f, --force]
+        common: true
+        summary: deletes (git won't without it)
+      - names: [-d]
+        common: true
+        summary: deletes untracked folders too
+      - names: [-x]
+        summary: deletes ignored files too, such as build output
         danger:
           level: danger
-          note: uncommitted changes to tracked files are lost
-          safer: git stash
+          note: ignored files are deleted too, such as .env and local settings
+      - names: [-X]
+        summary: deletes only ignored files
+      - names: [-i, --interactive]
+        summary: asks about each one
+      - names: [-e, --exclude]
+        value: pattern
+        repeat: true
+        summary: keeps files that match this
     args:
-      - name: commit
+      - name: pathspec
         optional: true
-        summary: the commit to move to; HEAD~1 is the one before the last
-  - name: stash
-    summary: Puts uncommitted changes aside and cleans the working tree.
+        repeat: true
+        summary: only in these files or folders
+  - name: bisect
+    summary: Finds the commit that brought in a bug, by halving the commits until one is left.
     commands:
-      - name: push
-        summary: Saves the changes as a new stash.
-        flags:
-          - names: [-m, --message]
-            value: message
-            summary: describes the stash
-          - names: [-u, --include-untracked]
-            summary: stashes untracked files too
-      - name: pop
-        summary: Applies the latest stash (or the one named) and drops it.
+      - name: start
+        summary: Starts; then mark commits good or bad.
         args:
-          - name: stash
+          - name: bad
             optional: true
-            summary: which stash, as stash@{n}
-      - name: list
-        summary: Lists the stashes.
-  - name: log
-    summary: Shows the commit history.
+            summary: a commit with the bug
+          - name: good
+            optional: true
+            repeat: true
+            summary: commits without it
+      - name: good
+        aliases: [old]
+        summary: Marks the commit (the current one by default) as without the bug.
+        args:
+          - name: commit
+            optional: true
+            repeat: true
+            summary: the commit
+      - name: bad
+        aliases: [new]
+        summary: Marks the commit (the current one by default) as with the bug.
+        args:
+          - name: commit
+            optional: true
+            summary: the commit
+      - name: skip
+        summary: Skips a commit that can't be tested.
+        args:
+          - name: commit
+            optional: true
+            repeat: true
+            summary: the commit
+      - name: reset
+        summary: Ends the search and goes back to where you started.
+        args:
+          - name: commit
+            optional: true
+            summary: goes to this commit instead
+      - name: run
+        summary: Finds it on its own, running a command on each commit; exit 0 is good.
+        args:
+          - name: command
+            repeat: true
+            summary: the command and its arguments
+      - name: log
+        summary: Shows what has been marked so far.
+  - name: reflog
+    summary: Shows where HEAD (or a branch) has been, for finding commits a reset or rebase left behind.
     flags:
-      - names: [--oneline]
-        common: true
-        summary: one line per commit
-      - names: [-<n>, -n, --max-count]
+      - names: [-<n>, -n]
         value: number
-        summary: shows only this many commits
-      - names: [--graph]
-        summary: draws the branches and merges beside the commits
+        summary: shows only this many entries
+      - names: [--date]
+        value: format
+        summary: shows when, such as --date=relative
     args:
-      - name: revision range
+      - name: ref
         optional: true
-        summary: which commits, such as main..feature
+        summary: whose history; HEAD by default
+  - name: blame
+    summary: Shows who last changed each line of a file, and in which commit.
+    flags:
+      - names: [-L]
+        value: range
+        repeat: true
+        common: true
+        summary: only these lines, such as 10,20 or :funcname
+      - names: [-w]
+        common: true
+        summary: ignores whitespace changes
+      - names: [-C]
+        summary: finds lines moved or copied from other files too
+      - names: [-M]
+        summary: finds lines moved within the file
+      - names: [-e, --show-email]
+        summary: shows the email instead of the name
+      - names: [--ignore-rev]
+        value: rev
+        repeat: true
+        summary: looks past this commit, such as a reformat
+    args:
+      - name: rev
+        optional: true
+        summary: blames the file as it was at this commit
+      - name: file
+        summary: the file
+  - name: worktree
+    summary: Checks out more branches at once, each in its own folder.
+    commands:
+      - name: add
+        summary: Makes a new working tree in a folder.
+        flags:
+          - names: [-b]
+            value: new-branch
+            common: true
+            summary: creates this branch for it
+          - names: [-B]
+            value: new-branch
+            summary: creates it, or moves it if it exists
+          - names: [-d, --detach]
+            summary: checks out a commit, not a branch
+          - names: [-f, --force]
+            summary: even if the branch is checked out elsewhere
+        args:
+          - name: path
+            summary: the folder to make
+          - name: commit-ish
+            optional: true
+            summary: the branch or commit to check out
+      - name: list
+        summary: Lists the working trees.
+        flags:
+          - names: [-v, --verbose]
+            summary: says why one is locked or can be pruned
+      - name: remove
+        summary: Removes a working tree and its folder.
+        flags:
+          - names: [-f, --force]
+            summary: even with changes or untracked files in it
+            danger:
+              level: danger
+              note: changes in that working tree that aren't committed are lost
+        args:
+          - name: worktree
+            summary: the working tree's folder
+      - name: prune
+        summary: Forgets working trees whose folders were deleted.
+        flags:
+          - names: [-n, --dry-run]
+            summary: shows what would go without removing it
+      - name: move
+        summary: Moves a working tree to another folder.
+        args:
+          - name: worktree
+            summary: the working tree's folder
+          - name: new-path
+            summary: where to
+  - name: config
+    summary: Reads and sets options, for this repository, for you, or for the whole machine.
+    flags:
+      - names: [--global]
+        common: true
+        summary: your own settings (~/.gitconfig), for every repository
+      - names: [--local]
+        summary: this repository's settings (the default for setting)
+      - names: [--system]
+        summary: the whole machine's settings
+      - names: [-l, --list]
+        common: true
+        summary: lists every setting
+      - names: [--show-origin]
+        summary: shows which file each setting came from
+      - names: [--get]
+        summary: prints one setting
+      - names: [--unset]
+        summary: removes a setting
+      - names: [-e, --edit]
+        summary: opens the settings file in your editor
+    commands:
+      - name: list
+        summary: Lists the settings.
+        flags:
+          - names: [--global]
+            summary: only yours
+          - names: [--show-origin]
+            summary: shows which file each came from
+      - name: get
+        summary: Prints a setting.
+        flags:
+          - names: [--global]
+            summary: from your own settings
+          - names: [--all]
+            summary: every value of a setting that has several
+        args:
+          - name: name
+            summary: the setting, such as user.email
+      - name: set
+        summary: Sets a setting.
+        flags:
+          - names: [--global]
+            summary: in your own settings
+          - names: [--all]
+            summary: replaces every value of a setting that has several
+        args:
+          - name: name
+            summary: the setting, such as user.email
+          - name: value
+            summary: its value
+      - name: unset
+        summary: Removes a setting.
+        flags:
+          - names: [--global]
+            summary: from your own settings
+        args:
+          - name: name
+            summary: the setting
+      - name: edit
+        summary: Opens the settings file in your editor.
+        flags:
+          - names: [--global]
+            summary: your own settings file
+    args:
+      - name: name
+        optional: true
+        summary: the setting, such as user.name
+      - name: value
+        optional: true
+        summary: its new value; without one, prints it
+  - name: grep
+    summary: Searches the tracked files for text.
+    flags:
+      - names: [-n, --line-number]
+        common: true
+        summary: shows line numbers
+      - names: [-i, --ignore-case]
+        common: true
+        summary: ignores case
+      - names: [-w, --word-regexp]
+        summary: only whole words
+      - names: [-l, --files-with-matches]
+        summary: only the names of files that match
+      - names: [-c, --count]
+        summary: how many lines match in each file
+      - names: [-E, --extended-regexp]
+        summary: reads the pattern as an extended regular expression
+      - names: [-F, --fixed-strings]
+        summary: reads the pattern as plain text
+      - names: [--untracked]
+        summary: searches untracked files too
+    args:
+      - name: pattern
+        summary: what to search for
+      - name: tree
+        optional: true
+        repeat: true
+        summary: a commit to search in, then -- and files
 recipes:
+  # Undoing
   - title: Undo the last commit and keep its changes
     command: git reset --soft HEAD~1
     words: [uncommit, take back, last commit, mistake]
@@ -133,6 +1206,30 @@ recipes:
     command: git reset --hard
     words: [discard, start over, clean, lose]
     note: changes to tracked files are lost; git stash keeps them instead
+  - title: Throw away the changes to one file
+    command: git restore {file}
+    words: [discard file, revert file, undo edits, put back]
+    note: the changes are lost
+  - title: Unstage a file, keeping its changes
+    command: git restore --staged {file}
+    words: [unadd, remove from index, take out of commit]
+  - title: Undo a pushed commit with a new commit
+    command: git revert {commit}
+    words: [shared branch, safe undo, back out]
+    note: history stays as it is, so nobody else has to fix theirs
+  - title: Find a commit a reset or rebase lost
+    command: git reflog -20
+    words: [recover, lost commit, undo reset, get back]
+    note: then git reset --hard or git branch to the one you want
+  - title: Go back to where the branch was before a bad rebase
+    command: git reset --hard ORIG_HEAD
+    words: [undo rebase, undo merge, oops]
+    note: uncommitted changes are lost
+  - title: Make a local branch the same as the remote one
+    command: git reset --hard origin/{branch}
+    words: [match remote, discard local commits, sync with origin]
+    note: fetch first; local commits on it are left with no name
+  # Committing
   - title: Fix the last commit's message
     command: git commit --amend -m {message}
     words: [rename commit, reword, typo, change message]
@@ -142,21 +1239,169 @@ recipes:
   - title: Commit every change to tracked files
     command: git commit -am {message}
     words: [save work, snapshot]
+  - title: Stage parts of a file
+    command: git add -p {file}
+    words: [hunk, partial, some changes, interactive]
+  - title: Stage everything, new files and deletions too
+    command: git add -A
+    words: [add all, every file]
+  - title: Stop tracking a file but keep it on disk
+    command: git rm --cached {file}
+    words: [untrack, gitignore, remove from repo, keep local]
+  - title: Make a fixup for an older commit, to squash in later
+    command: git commit --fixup {commit}
+    words: [amend older commit, autosquash]
+  # Stashing
   - title: Put changes aside for later
     command: git stash push -m {description}
     words: [shelve, save temporarily, switch branch, work in progress]
+  - title: Put changes aside, new files too
+    command: git stash push -u
+    words: [untracked, stash everything]
   - title: Bring back the changes put aside
     command: git stash pop
     words: [unstash, restore stash, get back]
+  - title: See what is in a stash
+    command: git stash show -p stash@{0}
+    words: [inspect stash, stash diff]
+  # Branches
+  - title: Make a branch and switch to it
+    command: git switch -c {branch}
+    words: [new branch, create branch, start feature]
+  - title: Go back to the branch you were on
+    command: git switch -
+    words: [previous branch, toggle, last branch]
+  - title: Rename the current branch
+    command: git branch -m {new-name}
+    words: [rename branch, move branch]
+  - title: Delete a merged branch
+    command: git branch -d {branch}
+    words: [remove branch, clean up branches]
+  - title: List branches with their last commit
+    command: git branch -vv
+    words: [show branches, which branches, tracking]
+  - title: List branches already merged into this one
+    command: git branch --merged
+    words: [stale branches, safe to delete]
+  - title: Delete a branch on the remote
+    command: git push origin --delete {branch}
+    words: [remove remote branch]
+  - title: Forget remote branches deleted on the server
+    command: git fetch --prune
+    words: [clean remote branches, stale, prune]
+  # Sharing
   - title: Push a new branch and remember where it goes
     command: git push -u origin {branch}
     words: [first push, upstream, track, publish branch]
   - title: Force-push without losing someone else's commits
     command: git push --force-with-lease
     words: [after rebase, after amend, overwrite safely]
-  - title: Delete a branch on the remote
-    command: git push origin --delete {branch}
-    words: [remove remote branch]
+  - title: Get the latest and put your commits on top
+    command: git pull --rebase
+    words: [update branch, sync, no merge commit]
+  - title: Update from the remote only if nothing needs merging
+    command: git pull --ff-only
+    words: [fast forward, safe pull]
+  - title: Copy a repository with only recent history
+    command: git clone --depth 1 {url}
+    words: [shallow clone, fast clone, download repo]
+  - title: Add another remote, such as the original of a fork
+    command: git remote add upstream {url}
+    words: [fork, upstream remote]
+  - title: Change where origin points
+    command: git remote set-url origin {url}
+    words: [move repo, new url, change remote]
+  # Combining
+  - title: Rebase the branch on the latest main
+    command: git rebase origin/main
+    words: [update with main, catch up, linear history]
+    note: fetch first; pushing again needs --force-with-lease
+  - title: Squash the last few commits into one
+    command: git rebase -i HEAD~{n}
+    words: [combine commits, clean up history, squash]
+    note: in the list, change pick to squash or fixup on the commits to fold in
+  - title: Merge a branch, always with a merge commit
+    command: git merge --no-ff {branch}
+    words: [join branch, integrate]
+  - title: Give up a merge with conflicts
+    command: git merge --abort
+    words: [cancel merge, conflict, start over]
+  - title: Give up a rebase
+    command: git rebase --abort
+    words: [cancel rebase, conflict, stop rebase]
+  - title: Copy a commit from another branch
+    command: git cherry-pick -x {commit}
+    words: [take one commit, port, backport]
+  - title: In a conflict, keep their version of a file
+    command: git checkout --theirs {file}
+    words: [resolve conflict, take theirs, accept incoming]
+  # History
   - title: See the history as a graph
     command: git log --oneline --graph -20
     words: [tree, branches, history, recent commits]
+  - title: See every branch's history as a graph
+    command: git log --oneline --graph --all
+    words: [whole tree, all branches]
+  - title: Find the commits that added or removed some text
+    command: git log -S {text} --oneline
+    words: [pickaxe, when was this added, who removed]
+  - title: See a file's history, across renames
+    command: git log --follow -p -- {file}
+    words: [file history, changes to file]
+  - title: See commits on this branch that main doesn't have
+    command: git log --oneline main..HEAD
+    words: [what is new, ahead, unmerged commits]
+  - title: See who changed each line of a file
+    command: git blame -w {file}
+    words: [who wrote, author, annotate]
+  - title: See what a commit changed
+    command: git show --stat {commit}
+    words: [inspect commit, files changed]
+  - title: See a file as it was in another commit
+    command: git show {commit}:{file}
+    words: [old version, file at commit, previous version]
+  - title: See what is staged
+    command: git diff --staged
+    words: [staged changes, what will be committed]
+  - title: See which files differ from main
+    command: git diff --name-only main...HEAD
+    words: [changed files, compare branch]
+  - title: Find the commit that brought in a bug
+    command: git bisect start {bad} {good}
+    words: [regression, when did it break, binary search]
+    note: then mark each commit with git bisect good or bad; git bisect reset when done
+  # Tags
+  - title: Tag a release
+    command: git tag -a {version} -m {message}
+    words: [release, version, annotated tag]
+  - title: Push the tags
+    command: git push --follow-tags
+    words: [publish tags, share release]
+  - title: List tags, newest version first
+    command: git tag --sort=-v:refname
+    words: [versions, releases, latest tag]
+  # Cleaning
+  - title: See which untracked files a clean would delete
+    command: git clean -nd
+    words: [preview clean, try first, before deleting]
+  - title: Delete untracked files and folders
+    command: git clean -fd
+    words: [remove untracked, clean build output]
+    note: they are deleted for good; run with -n first
+  # Setup
+  - title: Set your name and email for every repository
+    command: git config --global user.email {email}
+    words: [identity, author, setup git]
+    note: and user.name the same way
+  - title: See every setting and where it comes from
+    command: git config --list --show-origin
+    words: [show config, settings]
+  - title: Check out another branch in its own folder
+    command: git worktree add {path} {branch}
+    words: [two branches at once, parallel, worktree]
+  - title: Search the tracked files for text
+    command: git grep -n {text}
+    words: [find in repo, search code]
+  - title: Start a repository with main as the first branch
+    command: git init -b main
+    words: [new repo, create repository]

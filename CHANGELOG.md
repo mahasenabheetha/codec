@@ -19,6 +19,12 @@ All notable changes to codec are documented here. The format follows
   flags are ranked, each with what matched — the word, a synonym or a
   typo fixed; with nothing asked, recipes by tool. A pick goes on the
   line with its values to fill in marked; Tab moves between them.
+- **git** in Commands: 32 commands — status, add, commit, diff, log,
+  show, branch, switch, checkout, merge, rebase, cherry-pick, revert,
+  reset, restore, stash, tag, fetch, pull, push, remote, clean, bisect,
+  reflog, blame, worktree, config, grep, init, clone, rm, mv — with
+  their flags checked against git 2.55, the risky ones marked, and 62
+  recipes.
 
 ## [3.9.0] - 2026-11-06
 

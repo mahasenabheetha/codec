@@ -314,6 +314,10 @@ func TestSearch(t *testing.T) {
 		{"stash pop", "", "git stash pop"},
 		{"restart", "git", ""}, // nothing in git restarts
 		{"pusj new branch", "", "git push -u origin {branch}"}, // a typo
+		{"discard changes to a file", "", "git restore {file}"},
+		{"who wrote this line", "", "git blame -w {file}"},
+		{"find when a bug started", "", "git bisect start {bad} {good}"},
+		{"see old version of a file", "", "git show {commit}:{file}"},
 	} {
 		got, err := Search(c.query, c.tool, 10)
 		if err != nil {
