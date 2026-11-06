@@ -430,7 +430,7 @@
             bind:value={session.buffer}
             syncDelay={100}
             label={path}
-            language={editorLang(session.disk!.lang, kind)}
+            language={editorLang(session.disk!.lang, kind, session.disk!.path)}
             extensions={session.isYAML ? intel : []}
           />
         </div>

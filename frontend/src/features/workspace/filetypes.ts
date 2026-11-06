@@ -10,6 +10,8 @@ import File from '@lucide/svelte/icons/file'
 import SquareTerminal from '@lucide/svelte/icons/square-terminal'
 import Workflow from '@lucide/svelte/icons/workflow'
 import type { FileEntry } from '../../lib/api/workspace'
+import type { Language } from '../../lib/components/CodeView.svelte'
+import { langForPath } from '../../lib/components/languages'
 
 // Logos are bundled as raw SVG text (see assets/logos/SOURCES.md). The
 // <title> is dropped so it doesn't pop up as a tooltip on every row.
@@ -82,8 +84,10 @@ export function isSpecific(kind: string): boolean {
   return kind in types && kind !== 'yaml'
 }
 
-/** CodeMirror language for a file; Helm templates get the template mode. */
-export function editorLang(lang: string, kind = ''): 'yaml' | 'yaml-template' | 'json' | 'text' {
+/** CodeMirror language for a file; Helm templates get the template
+ *  mode, code its language by the file's name (3.9.0 T7). */
+export function editorLang(lang: string, kind = '', path = ''): Language {
   if (kind === 'helm-template') return 'yaml-template'
-  return lang === 'yaml' || lang === 'json' ? lang : 'text'
+  if (lang === 'yaml' || lang === 'json') return lang
+  return langForPath(path) ?? 'text'
 }

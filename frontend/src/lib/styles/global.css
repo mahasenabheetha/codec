@@ -265,3 +265,17 @@ svg.lucide-icon[width='28'] {
     transform: translate(-50%, -4px);
   }
 }
+
+/* Static code's colours, the editor's tokens: the syn-* classes that
+   syntax.ts gives highlighted blocks (Markdown code, the source peek). */
+.syn-key { color: var(--syn-key); }
+.syn-string { color: var(--syn-string); }
+.syn-number { color: var(--syn-number); }
+.syn-bool { color: var(--syn-bool); }
+.syn-comment { color: var(--syn-comment); font-style: italic; }
+.syn-anchor { color: var(--syn-anchor); }
+.syn-tag { color: var(--syn-tag); }
+.syn-func { color: var(--syn-func); }
+.syn-punct { color: var(--syn-punct); }
+.syn-accent { color: var(--accent); }
+.syn-err { color: var(--err); }

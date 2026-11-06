@@ -110,6 +110,7 @@
 
 <h2 id="editor">The editor<a class="anchor" href="#editor">#</a></h2>
 <p>YAML files open in a CodeMirror editor with codec's analysis on top. Analysis runs on the server a moment after you stop typing; nothing is saved.</p>
+<p>Code is coloured too, read-only as every file: Go, Java, Kotlin, Scala, C#, C and C++, JavaScript and TypeScript, Python, Ruby, Rust, Swift, Groovy and Jenkinsfiles, Lua, Perl, R, shell and PowerShell, SQL, HTML, XML, CSS, SCSS and Less, TOML and INI files, Dockerfiles, Terraform and HCL, Nginx, CMake, Protobuf, diffs and Jinja templates, by the file's name. A language is loaded the first time a file needs it. Code folds by indentation. The same colours show in Markdown code blocks and the Log viewer's source peek.</p>
 
 <h3 id="expressions">Templates and expressions<a class="anchor" href="#expressions">#</a></h3>
 <p>Real-world YAML is full of things that aren't YAML. codec recognises them instead of reporting parse errors, and tints them so they stand out:</p>
@@ -147,7 +148,7 @@
 </ul>
 
 <h3 id="markdown">Markdown preview<a class="anchor" href="#markdown">#</a></h3>
-<p><code>.md</code> files have a <strong>Source / Preview</strong> switch in the file toolbar (also "Show Markdown preview" in the palette). Preview shows the file rendered the way GitHub does: headings, tables, task lists, strikethrough, and YAML, JSON and shell code blocks coloured as in the editor. It renders what is in the editor, so what-if edits show too. Settings → General → Open Markdown as picks which view new tabs start in.</p>
+<p><code>.md</code> files have a <strong>Source / Preview</strong> switch in the file toolbar (also "Show Markdown preview" in the palette). Preview shows the file rendered the way GitHub does: headings, tables, task lists, strikethrough, and code blocks coloured as in the editor (by the fence's language: <code>go</code>, <code>python</code>, <code>ts</code>, <code>yaml</code>…). It renders what is in the editor, so what-if edits show too. Settings → General → Open Markdown as picks which view new tabs start in.</p>
 <ul>
   <li><strong>Links</strong> — a heading link scrolls; a link to another file opens it in a tab (and scrolls to its heading when that tab is in Preview); a folder link shows it in the explorer. Web and mail links open in your browser.</li>
   <li><strong>Images</strong> — images in the open folder show (PNG, JPEG, GIF, WebP, SVG, up to 10 MB). Images from the internet stay hidden until you click <strong>Load images</strong>, because loading one tells that server the file was opened; the choice lasts for the file until codec closes.</li>

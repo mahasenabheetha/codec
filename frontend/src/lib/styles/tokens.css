@@ -46,6 +46,7 @@
   --syn-comment: #7a8497; /* 4.6:1 on bg-2 */
   --syn-anchor: #4fd1c5;
   --syn-tag: #e5b449;
+  --syn-func: #dcd393; /* function names: a pale yellow, apart from the gold of types */
   --syn-punct: var(--fg-2);
   --syn-expr-tpl: #f7c873;
   --syn-expr-tpl-bg: rgb(247 200 115 / 0.08);
@@ -238,6 +239,7 @@
   --syn-comment: #626b7a; /* 5.4:1 on bg-2 */
   --syn-anchor: #0b7268;
   --syn-tag: #8a5d00;
+  --syn-func: #9a3b12;
   --syn-expr-tpl: #875400;
   --syn-expr-tpl-bg: rgb(214 150 0 / 0.12);
   --syn-expr-rt: #b0246f;
@@ -313,6 +315,7 @@
   --syn-comment: #9497ab;
   --syn-anchor: #89cdc3;
   --syn-tag: #dcc188;
+  --syn-func: #e6df9f;
   --syn-expr-tpl: #e6c58f;
   --syn-expr-tpl-bg: rgb(230 197 143 / 0.09);
   --syn-expr-rt: #e8a7cb;

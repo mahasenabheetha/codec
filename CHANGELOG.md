@@ -10,7 +10,7 @@ All notable changes to codec are documented here. The format follows
 
 From a log line to the code that wrote it, and the Log viewer reads
 the logs of pipelines, builds and platforms: their steps, errors and
-fields.
+fields. Code in some 40 languages is coloured where codec shows it.
 
 ### Added
 
@@ -53,6 +53,12 @@ fields.
   table or JSON; the Kubernetes audit log.
 - Smart paste offers every one of these logs to the Log viewer, and
   says how many steps it found.
+- **Code colours**: Go, Java, Kotlin, C#, JavaScript and TypeScript,
+  Python, Rust, SQL, Terraform and some 30 more languages are coloured
+  in the Files view, Markdown code blocks and the Log viewer's source
+  peek; each language loads the first time a file needs it, and code
+  folds by indentation. Function and other defined names have a colour
+  of their own in every theme.
 
 ## [3.8.1] - 2026-11-03
 

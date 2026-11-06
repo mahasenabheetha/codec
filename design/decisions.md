@@ -559,3 +559,14 @@ Settled unless the user reopens them. Add new ones at the bottom:
     dropped: every line stays in exactly one entry. A line's own source
     (syslog's app, an upstream) stays when no prefix gives one. Smart
     paste counts a step or a tool's line as a sign of a log (2026-11-06).
+103. Code colours in 3.9.0 (asked for 2026-11-06, as T7): CodeMirror's
+    legacy modes, line tokenisers already in the bundle's dependencies,
+    over the full Lezer language packages: codec only shows files, so
+    colours matter more than a parse tree, and no new package is
+    downloaded. Each language is its own chunk, loaded the first time a
+    file, code block or peek needs it; YAML and JSON keep their parsers.
+    Code folds by indentation. One new token, --syn-func, for names
+    being defined or called; the rest map onto the YAML tokens
+    (keywords the purple of booleans, types the gold of tags). A Lezer
+    package can replace one language later where folding by structure
+    is worth it (2026-11-06).

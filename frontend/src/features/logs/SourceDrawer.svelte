@@ -25,6 +25,8 @@
   import Badge from '../../lib/components/Badge.svelte'
   import Button from '../../lib/components/Button.svelte'
   import IconButton from '../../lib/components/IconButton.svelte'
+  import { codeLang, langForPath, loadedLanguage, loadLanguage } from '../../lib/components/languages'
+  import { highlightLines } from '../../lib/components/syntax'
   import { layout } from '../../lib/stores/layout.svelte'
   import { editorNav } from '../editor/active.svelte'
   import FileIcon from '../workspace/FileIcon.svelte'
@@ -85,6 +87,25 @@
     return all.slice(from, item.line + around).map((t, i) => ({ n: from + i + 1, t }))
   })
   const past = $derived(text !== null && item ? item.line > text.split(/\r?\n/).length : false)
+
+  // The peek in the file's colours, once its language is loaded. Only
+  // the lines shown are highlighted; a window that starts inside a
+  // block comment may colour its first lines as code.
+  const peekLang = $derived.by(() => {
+    const f = item?.file.toLowerCase() ?? ''
+    if (/\.ya?ml$/.test(f)) return 'yaml'
+    if (/\.json[c5]?$/.test(f)) return 'json'
+    return item ? langForPath(item.file) : undefined
+  })
+  let langLoaded = $state(0) // counts languages loaded, so the colours follow
+  $effect(() => {
+    const c = peekLang && codeLang(peekLang)
+    if (c && !loadedLanguage(c)) loadLanguage(c).then(() => langLoaded++, () => {})
+  })
+  const coloured = $derived.by(() => {
+    void langLoaded
+    return peekLang && lines.length ? highlightLines(lines.map((l) => l.t).join('\n'), peekLang) : null
+  })
 
   let peek = $state<HTMLElement>()
   $effect(() => {
@@ -190,8 +211,8 @@
           <p class="muted">Reading {item.file}…</p>
         {:else}
           {#if past}<p class="muted">The file has fewer lines than {item.line}: it may have changed since the log was written.</p>{/if}
-          {#each lines as l (l.n)}
-            <div class="row" class:hit={l.n === item.line}><span class="n">{l.n}</span><span class="t">{#if l.n === item.line && hitSpan.length}{#each pieces(l.t, hitSpan) as p, j (j)}{#if p.hit}<mark>{p.text}</mark>{:else}{p.text}{/if}{/each}{:else}{l.t}{/if}</span></div>
+          {#each lines as l, i (l.n)}
+            <div class="row" class:hit={l.n === item.line}><span class="n">{l.n}</span><span class="t">{#if l.n === item.line && hitSpan.length}{#each pieces(l.t, hitSpan) as p, j (j)}{#if p.hit}<mark>{p.text}</mark>{:else}{p.text}{/if}{/each}{:else if coloured?.[i]}{#each coloured[i] as p, j (j)}{#if p.cls}<span class={p.cls}>{p.text}</span>{:else}{p.text}{/if}{/each}{:else}{l.t}{/if}</span></div>
           {/each}
         {/if}
       </div>

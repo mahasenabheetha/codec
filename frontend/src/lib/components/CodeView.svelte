@@ -1,7 +1,10 @@
 <script module lang="ts">
+  import type { CodeLang } from './languages'
+
   /** yaml-template: Helm/Go-template YAML; a line-based mode that
-   *  doesn't lose its place after `{{- … }}` lines (decision #32). */
-  export type Language = 'json' | 'yaml' | 'yaml-template' | 'text'
+   *  doesn't lose its place after `{{- … }}` lines (decision #32). A
+   *  code language (languages.ts) loads the first time it is shown. */
+  export type Language = 'json' | 'yaml' | 'yaml-template' | 'text' | CodeLang
 </script>
 
 <script lang="ts">
@@ -30,6 +33,7 @@
   import { tags as t } from '@lezer/highlight'
   import { theme } from '../stores/theme.svelte'
   import { highlightStyle } from './syntax'
+  import { indentFolding, loadedLanguage, loadLanguage } from './languages'
 
   // CodeMirror 6 wrapper used for every code/text surface. Phase 04
   // extends it with engine-driven diagnostics and overlays.
@@ -167,11 +171,16 @@
     tokenTable: { atom: t.propertyName, def: t.meta, meta: t.punctuation, variable: t.labelName, keyword: t.bool },
   })
 
+  /** The language's extension, or [] until a code language is loaded
+   *  (the effect below sets it then). Code languages fold by indentation:
+   *  a line tokeniser knows no blocks. */
   function langExt(l: Language): Extension {
     if (l === 'json') return json()
     if (l === 'yaml') return yaml()
     if (l === 'yaml-template') return yamlTemplate
-    return []
+    if (l === 'text') return []
+    const lang = loadedLanguage(l)
+    return lang ? [lang, indentFolding] : []
   }
 
   function readonlyExt(ro: boolean): Extension {
@@ -259,7 +268,16 @@
   })
 
   $effect(() => {
-    view?.dispatch({ effects: langConf.reconfigure(langExt(language)) })
+    const l = language
+    view?.dispatch({ effects: langConf.reconfigure(langExt(l)) })
+    if (l !== 'json' && l !== 'yaml' && l !== 'yaml-template' && l !== 'text' && !loadedLanguage(l)) {
+      loadLanguage(l)
+        .then(() => {
+          // Still the language asked for: set it now it is here.
+          if (language === l) view?.dispatch({ effects: langConf.reconfigure(langExt(l)) })
+        })
+        .catch(() => {}) // stays plain text
+    }
   })
   $effect(() => {
     view?.dispatch({ effects: readonlyConf.reconfigure(readonlyExt(readonly)) })
