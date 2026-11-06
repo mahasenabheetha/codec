@@ -570,3 +570,16 @@ Settled unless the user reopens them. Add new ones at the bottom:
     (keywords the purple of booleans, types the gold of tags). A Lezer
     package can replace one language later where folding by structure
     is worth it (2026-11-06).
+104. 3.10.0 is one release (agreed 2026-11-06): Commands first, then
+    Quote and Sanitize in Text & data, breaks that rest outside active
+    hours, more sounds and five new themes. Commands is a Utilities
+    tool that explains and builds commands two ways, with a cheat sheet
+    searched by purpose; version 1 covers git, kubectl, helm, docker and
+    compose, and about 35 Linux commands (others later). Its reference is
+    codec's own words, embedded, checked against each tool's `--help`;
+    the search is recipes, word roots and synonyms, not AI. Sanitize
+    replaces each value by the same stand-in by default (masking is an
+    option) and keeps nothing. At the start of active hours each break
+    starts a fresh interval. All five themes (Paper, Forest, Rosé,
+    Ocean, High contrast); the theme picker becomes a dropdown
+    (2026-11-06).

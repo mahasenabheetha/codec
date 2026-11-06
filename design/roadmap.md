@@ -72,6 +72,46 @@ keep the UI consistent and polished. Work efficiently: read only what a
 task needs and run only the tests for packages touched (the full suite
 runs once, at step 4).
 
+### v3.10.0 — Commands, comfort and text
+Agreed 2026-11-06 (decision 104). One release: a command tool that
+explains and builds the commands of git, kubectl, helm, docker and
+Linux, with a cheat sheet searched by what you want to do; quoting and
+sanitizing text; breaks that rest outside active hours; more sounds;
+five new themes. Commands come first. Everything stays local: the
+command reference ships in the binary, no AI, nothing fetched.
+
+**Commands** (Utilities → Commands) is one editable command line with
+two panes: **Build**, a form for the tool's subcommand (flags as
+toggles, values, choices and repeatable values; common flags first) and
+**Explanation**, a sentence per part and one for the whole. Typing in
+the line rewrites the form and the form rewrites the line. Pipelines
+and chains are explained segment by segment. Risky parts get a badge
+(history rewrite, force, cluster-wide, irreversible) and a safer
+alternative where there is one. Copy for bash or PowerShell, quoted
+right. The descriptions are codec's own words, checked against each
+tool's `--help`; a flag codec doesn't know is said to be so.
+
+| # | Task | Main parts | Status |
+|---|---|---|---|
+| T1 | Command engine | `internal/commands` (pure): a shell-like reader (quotes, escapes, `\|`, `&&`, `;`, `VAR=x`, `sudo`, `--`), flags in every form (`-n x`, `-nx`, `--namespace=x`, `-rf`), matched to a reference of subcommands, flags (short and long, value type, choices, needs and conflicts, danger) and positionals in YAML per tool, embedded; the explanation built from it; API; fuzz test of the reader | |
+| T2 | Commands tool | The editable line, Build form and Explanation pane, two-way; danger badges and safer alternatives; Copy for bash or PowerShell; values suggested from the open folder (namespaces, resource names, chart paths from its YAML) | |
+| T3 | Cheat sheet and search by purpose | Recipes per tool (title, description, synonyms, a template with placeholders); search over recipes, flags and commands with word roots and a synonym table (undo → reset, revert, restore), ranked, several suggestions for a vague query with why; browse by tool; a suggestion opens in the builder | |
+| T4 | git | About 25 subcommands: status, log, diff, add, commit, reset, restore, revert, rebase, merge, cherry-pick, stash, branch, switch, tag, fetch, pull, push, remote, clean, bisect, reflog, blame, worktree, config; their recipes | |
+| T5 | kubectl | get, describe, logs, exec, apply, delete, rollout, scale, port-forward, cp, top, config, explain, events, label, annotate, patch, auth can-i, debug, create secret and configmap; recipes | |
+| T6 | helm, docker and compose | helm: install, upgrade, template, lint, list, history, rollback, uninstall, repo, dependency, show, get; docker: build, run, exec, ps, logs, images, rmi, system prune, buildx; compose: up, down, logs, ps, exec, build; recipes | |
+| T7 | Linux | About 35: ls, find, grep, sed, awk, xargs, sort, uniq, wc, head, tail, cut, tr, tar, gzip, curl, wget, ssh, scp, rsync, chmod, chown, ps, kill, top, df, du, free, ss, lsof, systemctl, journalctl, ln, cp, mv, rm, openssl, jq; recipes | |
+| T8 | Commands elsewhere | Smart paste recognises a command and offers Explain; `codec explain "<command>"` | |
+| T9 | Quote | Text & data → Quote: a value quoted for a target with why, both ways: bash and sh (`'…'`, `$'…'`), PowerShell, cmd, JSON, YAML (plain, quoted, block; `no` read as false), `.env`, Makefile, Dockerfile shell and exec forms, Helm `--set`, SQL, regex, Go, XML and HTML; nested layers (bash in `kubectl exec -- sh -c` in `ssh`), each escaped in turn | |
+| T10 | Sanitize | `internal/sanitize` (pure): secrets (the Log viewer's patterns plus AWS, Azure, GitHub tokens, private keys, connection strings, JWTs, passwords in URLs), emails, IPs (private ranges kept if asked), hosts and URLs, UUIDs, Azure ids, user names in paths, words of your own; each value replaced by the same stand-in everywhere (192.0.2.x, user-1@example.com, host-1.example.internal) or masked; a list of what was replaced, each kept with a toggle. Text & data → Sanitize; Sanitize on the Log viewer's copy and export; a Smart paste hint; `codec sanitize` | |
+| T11 | Breaks rest outside active hours | Outside the hours no countdown runs ("Breaks resume at 09:00", or Monday with weekdays only); a reminder due before the end fires, one after it is parked; when the hours start, or codec opens later in them, each reminder starts a fresh interval; a break on screen finishes, a snooze across the end is dropped; focus sessions are not touched; hours across midnight | |
+| T12 | Sounds | More chimes, all made with Web Audio: singing bowl, marimba, kalimba, soft piano, wind chimes, music box, water drop, gong, tick; a sound per moment (break start and end, focus start and end, last seconds), each with a preview; packs that set them together (Calm, Nature, Studio, Minimal, Silent); focus sounds (brown, pink and white noise, rain, ocean, fan) with volume and fades | |
+| T13 | Themes | Settings → Theme as a dropdown with a swatch per theme (System and its dark choice kept); Paper (warm, low-glare light), Forest (green-grey dark), Rosé (pink-violet, from Dusk), Ocean (blue-teal on deep blue), High contrast; each with tool hues, action tones and syntax colours, through the contrast check; the palette and the desktop window follow | |
+| — | Release | Full checks; fuzz the command reader and the sanitizer; a review pass; docs (`tools.html` Commands, Quote and Sanitize, `wellness.html`, `settings.html`, `security.html`: what Sanitize finds and that nothing is kept); CHANGELOG cut as 3.10.0 | |
+
+Later: command packs for terraform, az, argo, gh, PowerShell, crictl
+and kubectx; Copy as from the Commands tool to a script or a Makefile
+target.
+
 ### Later
 The rest of "Next", picked up when it fits.
 
