@@ -6,7 +6,6 @@ import (
 	"io/fs"
 	"os"
 	"path"
-	"path/filepath"
 	"slices"
 	"strings"
 )
@@ -112,7 +111,7 @@ func (w *Workspace) fileInfo(p string, d fs.DirEntry, stack []*ignoreFile) (File
 	case d.Type()&fs.ModeSymlink != 0:
 		// Follow links that stay inside the root (os.Root refuses the
 		// others). Links to directories are skipped so the walk can't loop.
-		info, err = w.dir.Stat(filepath.FromSlash(p))
+		info, err = w.stat(p)
 		if err == nil && !info.Mode().IsRegular() {
 			return File{}, false
 		}
@@ -164,7 +163,7 @@ func (w *Workspace) loadIgnore(dir string, entries []fs.DirEntry, stack []*ignor
 	var f *ignoreFile
 	for _, e := range entries {
 		if e.Name() == ".gitignore" && !e.IsDir() {
-			if data, err := w.dir.ReadFile(filepath.FromSlash(join(dir, ".gitignore"))); err == nil {
+			if data, _, err := w.readFile(join(dir, ".gitignore")); err == nil {
 				f = parseIgnore(dir, data, w.fold)
 			}
 			break

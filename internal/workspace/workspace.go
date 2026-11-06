@@ -5,7 +5,7 @@
 // It is an adapter: it does the I/O and hands content to the pure
 // engine packages (yamlkit, provider). It never writes. The folder is
 // opened through os.Root, which refuses any path that would leave it,
-// including through symlinks.
+// including through symlinks (see open for the one fallback).
 package workspace
 
 import (
@@ -22,6 +22,7 @@ import (
 	"slices"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/mahasenabheetha/codec/v2/internal/provider"
@@ -84,9 +85,14 @@ type entry struct {
 type Workspace struct {
 	root string   // absolute path as opened (display, watching)
 	real string   // root with symlinks resolved (escape checks)
-	dir  *os.Root // every read goes through this
-	fsys fs.FS    // dir as an fs.FS, for fs.WalkDir
+	dir  *os.Root // every read goes through this (see open)
+	fsys fs.FS    // open as an fs.FS, for fs.WalkDir
 	fold bool     // case-insensitive filesystem conventions
+
+	// rootOpen and rootStat are dir.Open and dir.Stat; tests replace
+	// them to act like a virtualised folder (see open).
+	rootOpen func(name string) (*os.File, error)
+	rootStat func(name string) (fs.FileInfo, error)
 
 	scanMu     sync.Mutex // one rescan at a time
 	classifyMu sync.Mutex // one Classify at a time (no duplicate parsing)
@@ -118,14 +124,17 @@ func Open(dir string) (*Workspace, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Workspace{
-		root:    abs,
-		real:    real,
-		dir:     root,
-		fsys:    root.FS(),
-		fold:    runtime.GOOS == "windows" || runtime.GOOS == "darwin",
-		ignores: map[string]*ignoreFile{},
-	}, nil
+	w := &Workspace{
+		root:     abs,
+		real:     real,
+		dir:      root,
+		fold:     runtime.GOOS == "windows" || runtime.GOOS == "darwin",
+		ignores:  map[string]*ignoreFile{},
+		rootOpen: root.Open,
+		rootStat: root.Stat,
+	}
+	w.fsys = rootFS{w}
+	return w, nil
 }
 
 // Root is the absolute path of the folder.
@@ -234,7 +243,7 @@ func (w *Workspace) ReadLog(p string, limit int64) ([]byte, error) {
 	}
 	var data []byte
 	err := retry(func() error { // see Read
-		f, err := w.dir.Open(filepath.FromSlash(p))
+		f, err := w.open(p)
 		if err != nil {
 			return w.wrapErr(p, err)
 		}
@@ -260,11 +269,92 @@ func (w *Workspace) ReadLog(p string, limit int64) ([]byte, error) {
 // readFile reads p through the root, refusing directories, big files
 // and binaries. Every path a client asks for is read this way.
 func (w *Workspace) readFile(p string) ([]byte, fs.FileInfo, error) {
-	f, err := w.dir.Open(filepath.FromSlash(p))
+	f, err := w.open(p)
 	if err != nil {
 		return nil, nil, err
 	}
 	return readAll(f)
+}
+
+// open opens p (a slash path validPath accepted, or ".") through the
+// root. Every content read goes through it.
+//
+// os.Root opens each name relative to a handle of the folder, and
+// asks Windows not to follow any reparse on the way. Folders under a
+// packaged (MSIX) app's view of %LOCALAPPDATA% — the Claude desktop
+// app, so its terminals and the tests they run — are virtualised: what
+// the app wrote lives in a shadow copy under Packages\…\LocalCache, and
+// the file system redirects to it. Opened by path, the folder shows
+// both copies merged (that is what the tree walk lists); opened
+// relative to the handle, the redirect is refused (ELOOP, "too many
+// levels of symbolic links") or the name isn't there (ENOENT). So when
+// os.Root misses, open retries by path, but only after resolving
+// every link in it and checking the result is still inside the root:
+// the same check wrapErr makes, so nothing outside becomes readable.
+func (w *Workspace) open(p string) (*os.File, error) {
+	f, err := w.rootOpen(filepath.FromSlash(p))
+	if err == nil || !rootMiss(err) {
+		return f, err
+	}
+	real, ok := w.resolve(p)
+	if !ok {
+		return nil, err
+	}
+	if f, e := os.Open(real); e == nil {
+		return f, nil
+	}
+	return nil, err // report what os.Root said
+}
+
+// stat is open's counterpart for Stat: through the root, by checked
+// path when the root misses.
+func (w *Workspace) stat(p string) (fs.FileInfo, error) {
+	info, err := w.rootStat(filepath.FromSlash(p))
+	if err == nil || !rootMiss(err) {
+		return info, err
+	}
+	real, ok := w.resolve(p)
+	if !ok {
+		return nil, err
+	}
+	if info, e := os.Stat(real); e == nil {
+		return info, nil
+	}
+	return nil, err
+}
+
+// rootMiss reports an os.Root failure the path-based view may not
+// share (see open). A real symlink never ends up here: os.Root follows
+// those itself and reports an escape as its own error.
+func rootMiss(err error) bool {
+	return errors.Is(err, syscall.ELOOP) || errors.Is(err, fs.ErrNotExist)
+}
+
+// resolve returns p's absolute path with every symlink and junction
+// resolved, if it exists and stays inside the root.
+func (w *Workspace) resolve(p string) (string, bool) {
+	real, err := filepath.EvalSymlinks(w.abs(p))
+	if err != nil || !within(w.real, real) {
+		return "", false
+	}
+	return real, true
+}
+
+// rootFS is the workspace as an fs.FS for fs.WalkDir and fs.ReadFile
+// (ReadTree), so those reads take open's path too. *os.File already
+// has the ReadDir an fs.ReadDirFile needs.
+type rootFS struct{ w *Workspace }
+
+func (r rootFS) Open(name string) (fs.File, error) {
+	if !fs.ValidPath(name) {
+		return nil, &fs.PathError{Op: "open", Path: name, Err: fs.ErrInvalid}
+	}
+	f, err := r.w.open(name)
+	if err != nil {
+		// Return a bare nil: a nil *os.File in an fs.File isn't nil.
+		return nil, err
+	}
+	return f, nil
 }
 
 // readListed reads a file the walk itself found, by its real path.
@@ -426,7 +516,7 @@ func (w *Workspace) Open(p string) (io.ReadCloser, int64, error) {
 	if err := validPath(p); err != nil {
 		return nil, 0, err
 	}
-	f, err := w.dir.Open(filepath.FromSlash(p))
+	f, err := w.open(p)
 	if err != nil {
 		return nil, 0, w.wrapErr(p, err)
 	}
@@ -447,7 +537,7 @@ func (w *Workspace) Stat(p string) (size int64, mod time.Time, err error) {
 	if err := validPath(p); err != nil {
 		return 0, time.Time{}, err
 	}
-	info, err := w.dir.Stat(filepath.FromSlash(p))
+	info, err := w.stat(p)
 	if err != nil {
 		return 0, time.Time{}, w.wrapErr(p, err)
 	}

@@ -6,6 +6,14 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+### Fixed
+
+- Files in subfolders now open when the folder sits in a virtualised
+  `%LOCALAPPDATA%` (the sample, opened from a Claude desktop terminal or
+  its tests): reads failed with "too many levels of symbolic links", or
+  a subfolder created after opening said "not found" until a restart,
+  although the explorer listed the files.
+
 ## [3.9.0] - 2026-11-06
 
 From a log line to the code that wrote it, and the Log viewer reads
