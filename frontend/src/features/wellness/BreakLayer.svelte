@@ -12,6 +12,8 @@
   import StretchGuide from './StretchGuide.svelte'
   import WaterGuide from './WaterGuide.svelte'
   import PostureGuide from './PostureGuide.svelte'
+  import './ambient-driver.svelte'
+  import { ringMoment, wellness } from './wellness.svelte'
 
   // The break on screen, over whatever tool is open: the whole window
   // (dimmed and blurred behind, the guide in the middle) or a card in
@@ -22,6 +24,15 @@
   const t = $derived(c?.timer)
   const Icon = $derived(r ? kindIcon[r.kind] : null)
   const guide = $derived(r ? guideOf(r) : 'none')
+
+  // The last three seconds of a break on screen: its sound once a second
+  // (a tick in the Studio pack; none in most).
+  let lastSecond = -1
+  $effect(() => {
+    const left = t ? Math.ceil(t.left / 1000) : -1
+    if (left >= 1 && left <= 3 && left !== lastSecond && c && !c.test && wellness.sound.moments.lastSeconds !== 'none') ringMoment('lastSeconds', `${r?.name} ending`)
+    lastSecond = left
+  })
 
   function onkeydown(e: KeyboardEvent) {
     if (c && r?.style === 'window' && e.key === 'Escape') {

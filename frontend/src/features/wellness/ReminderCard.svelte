@@ -43,7 +43,7 @@
     { value: 'posture', label: 'Posture' },
     { value: 'none', label: 'None' },
   ]
-  const chimeItems = [{ value: 'default', label: 'As under Sound' }, ...chimes, { value: 'none', label: 'Silent' }]
+  const chimeItems = [{ value: 'default', label: 'As under Sound (a break starts)' }, ...chimes, { value: 'none', label: 'Silent' }]
 
   function every(m: number): string {
     return m >= 60 && m % 60 === 0 ? `${m / 60} h` : `${m} min`

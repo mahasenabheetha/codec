@@ -72,6 +72,13 @@ All notable changes to codec are documented here. The format follows
 
 ### Changed
 
+- **Sounds**: fourteen chimes (singing bowl, gong, marimba, kalimba, soft
+  piano, music box, wind chimes, water drop, tick among the new ones),
+  a sound per moment (break and focus start and end, a break's last
+  seconds) each with Play, packs that set them together (Calm, Nature,
+  Studio, Minimal, Silent), and a focus sound under focus sessions
+  (brown, pink and white noise, rain, ocean, fan) with its own volume
+  and fades. Your old chime is kept for the moments it rang.
 - **Breaks rest outside active hours**: no countdown runs outside them,
   and the status says when breaks resume ("Monday at 09:00"); a reminder
   due after the hours end waits, and each reminder starts a fresh

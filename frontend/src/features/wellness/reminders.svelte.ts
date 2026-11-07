@@ -9,7 +9,7 @@ import { clock, hold, Timer } from './clock.svelte'
 import { nextStart, windowAt, type Hours } from './hours'
 import { focus } from './focus.svelte'
 import { type Chime, unlockAudio } from './sound'
-import { ring } from './wellness.svelte'
+import { ring, ringMoment, wellness } from './wellness.svelte'
 import { notify } from './notify'
 
 /** How a reminder shows: the whole window, a card in the corner, or a
@@ -304,7 +304,7 @@ class Reminders {
 
   /** Show a reminder now. A test leaves the schedule alone. */
   show(r: Reminder, test = false) {
-    if (r.chime !== 'none') ring(test ? `${r.name} (Try it)` : `${r.name} reminder`, r.chime === 'default' ? undefined : r.chime)
+    ring(test ? `${r.name} (Try it)` : `${r.name} reminder`, r.chime === 'default' ? wellness.sound.moments.breakStart : r.chime)
     notify(r.name, r.text, 'codec-break-' + r.id)
     if (r.style === 'toast' || r.length === 0) {
       toasts.show(`${r.name}: ${r.text}`, 'neutral', 9000, {
@@ -332,7 +332,7 @@ class Reminders {
     for (const r of this.enabled) {
       if (r.id !== c.reminder.id && (this.next[r.id] ?? Infinity) <= now && r.length <= c.reminder.length) this.#schedule(r)
     }
-    if (taken && c.reminder.chime !== 'none') ring(`${c.reminder.name} break done`, 'soft') // a gentle "done"
+    if (taken && c.reminder.chime !== 'none') ringMoment('breakEnd', `${c.reminder.name} break done`)
   }
 
   snooze(minutes = 5) {
