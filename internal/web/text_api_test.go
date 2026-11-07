@@ -46,3 +46,21 @@ func TestQuoteAPI(t *testing.T) {
 		t.Errorf("targets: %d %v", code, v)
 	}
 }
+
+func TestSanitizeAPI(t *testing.T) {
+	s := New(testOptions(false))
+	defer s.Close()
+	code, v := send(s, "POST", "/api/v2/text/sanitize", "application/json", `{"text":"password=hunter2 from 10.1.2.3"}`)
+	if code != 200 || v["text"] != "password=[secret-1] from 192.0.2.1" || len(v["findings"].([]any)) != 2 {
+		t.Errorf("all: %d %v", code, v)
+	}
+	code, v = send(s, "POST", "/api/v2/text/sanitize", "application/json", `{"text":"password=hunter2 from 10.1.2.3","options":{"ips":true,"mask":true}}`)
+	if code != 200 || v["text"] != "password=hunter2 from •••" {
+		t.Errorf("options: %d %v", code, v)
+	}
+	// Smart paste says how many secrets it saw, read or not.
+	_, v = send(s, "POST", "/api/transform", "application/json", `{"input":"{\"password\":\"x1\"}","mode":"auto"}`)
+	if v["secrets"] != 1.0 {
+		t.Errorf("smart paste: %v", v)
+	}
+}

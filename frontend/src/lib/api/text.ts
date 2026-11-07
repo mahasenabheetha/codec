@@ -46,3 +46,45 @@ export const quoteValue = (value: string, target: string, layers: QuoteLayer[], 
 
 export const unquoteValue = (value: string, target: string, signal?: AbortSignal) =>
   request<{ value: string }>('POST', '/api/v2/text/quote', { value, target, unquote: true }, signal)
+
+/** What Sanitize takes out, and how. */
+export interface SanitizeOptions {
+  secrets: boolean
+  emails: boolean
+  ips: boolean
+  keepPrivate: boolean
+  hosts: boolean
+  uuids: boolean
+  azure: boolean
+  users: boolean
+  words: string[]
+  mask: boolean
+  /** Values found that stay as they are. */
+  keep: string[]
+}
+
+/** Every kind on, stand-ins, nothing kept: the server's default. */
+export const sanitizeAll = (): SanitizeOptions => ({
+  secrets: true,
+  emails: true,
+  ips: true,
+  keepPrivate: false,
+  hosts: true,
+  uuids: true,
+  azure: true,
+  users: true,
+  words: [],
+  mask: false,
+  keep: [],
+})
+
+export interface SanitizeFinding {
+  kind: 'secret' | 'email' | 'ip' | 'host' | 'uuid' | 'azure' | 'user' | 'word'
+  value: string
+  replacement: string
+  count: number
+  kept: boolean
+}
+
+export const sanitizeText = (text: string, options: SanitizeOptions, signal?: AbortSignal) =>
+  request<{ text: string; findings: SanitizeFinding[] }>('POST', '/api/v2/text/sanitize', { text, options }, signal)

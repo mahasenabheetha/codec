@@ -233,6 +233,7 @@ set       spec.template.spec.containers[0].image=</span></code></pre>
 <div class="table-wrap"><table>
   <tr><th>Command</th><th>What it does</th></tr>
   <tr><td><code>case [text]</code></td><td>A name in camel, Pascal, snake, kebab, CONSTANT, dot, Title, Sentence, lower and path case (acronyms kept); <code>--to snake</code> prints one, for each line when piped; <code>--check</code> tests it against the Kubernetes name and label rules, an env-var name and a Helm release name, with a suggestion that passes (exit 2 when one fails). <code>--json</code></td></tr>
+  <tr><td><code>sanitize [file|-]</code></td><td>The text with secrets, emails, IPs, host names, UUIDs, Azure names and user names taken out, each value the same stand-in throughout; <code>-k secrets,emails</code> for some kinds only, <code>-w acme</code> for words of your own (repeat), <code>--keep-private</code>, <code>--mask</code> for •••, <code>-l</code> lists what was replaced on stderr, <code>--json</code></td></tr>
   <tr><td><code>quote [value]</code></td><td>A value written for a target so it arrives as it is: <code>-f bash</code> (the default), <code>sh</code>, <code>powershell</code>, <code>cmd</code>, <code>json</code>, <code>yaml</code>, <code>env</code>, <code>helm-set</code>, <code>makefile</code>, <code>dockerfile</code>, <code>sql</code>, <code>regex</code>, <code>go</code>, <code>xml</code>, <code>html</code>. <code>--all</code> every way with why and the traps; <code>-u</code> reads one back; <code>--json</code>. The value is the argument or stdin.</td></tr>
 </table></div>
 

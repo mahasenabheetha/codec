@@ -24,6 +24,7 @@ import (
 
 	"github.com/mahasenabheetha/codec/v2/internal/logsrc"
 	"github.com/mahasenabheetha/codec/v2/internal/logview"
+	"github.com/mahasenabheetha/codec/v2/internal/sanitize"
 	"github.com/mahasenabheetha/codec/v2/internal/workspace"
 )
 
@@ -763,6 +764,10 @@ func (s *Server) handleLogExport(w http.ResponseWriter, r *http.Request) {
 		logQuery
 		Format  string   `json:"format"`
 		Columns []string `json:"columns"`
+		// Sanitize, when set, takes secrets, addresses and names out of
+		// what is exported (decision 104), the same stand-in for the same
+		// value throughout the file.
+		Sanitize *sanitize.Options `json:"sanitize"`
 	}
 	if !decode(w, r, &req) {
 		return
@@ -789,6 +794,17 @@ func (s *Server) handleLogExport(w http.ResponseWriter, r *http.Request) {
 	ext, ctype := kind[0], kind[1]
 	w.Header().Set("Content-Type", ctype)
 	w.Header().Set("Content-Disposition", mime.FormatMediaType("attachment", map[string]string{"filename": name + "-filtered" + ext}))
+	if req.Sanitize != nil {
+		var buf bytes.Buffer
+		if err := exportLog(&buf, h.log, m.IDs, req.Format, req.Columns); err != nil {
+			writeError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		w.Header().Set("Content-Disposition", mime.FormatMediaType("attachment", map[string]string{"filename": name + "-sanitized" + ext}))
+		w.WriteHeader(http.StatusOK)
+		io.WriteString(w, sanitize.Sanitize(buf.String(), *req.Sanitize).Text)
+		return
+	}
 	w.WriteHeader(http.StatusOK)
 	if err := exportLog(w, h.log, m.IDs, req.Format, req.Columns); err != nil {
 		log.Printf("export: %v", err)

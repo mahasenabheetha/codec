@@ -5,6 +5,7 @@ import (
 
 	"github.com/mahasenabheetha/codec/v2/internal/names"
 	"github.com/mahasenabheetha/codec/v2/internal/quote"
+	"github.com/mahasenabheetha/codec/v2/internal/sanitize"
 )
 
 // POST /api/v2/text/{kind}: case (a name in every case, its words, and
@@ -74,4 +75,30 @@ func (s *Server) handleQuote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"forms": res.Forms, "notes": res.Notes, "steps": steps})
+}
+
+// maxSanitize bounds a text to sanitize here: a log export is sanitized
+// where it is made, without coming through the page.
+const maxSanitize = 16 << 20
+
+// POST /api/v2/text/sanitize {text, options}: the text with secrets,
+// addresses and names taken out, and a list of each (decision 104).
+// Nothing is kept.
+func (s *Server) handleSanitize(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Text    string            `json:"text"`
+		Options *sanitize.Options `json:"options"`
+	}
+	if !decode(w, r, &req) {
+		return
+	}
+	if len(req.Text) > maxSanitize {
+		writeError(w, http.StatusUnprocessableEntity, "that is more than 16 MB; sanitize a log as you export it from the Log viewer")
+		return
+	}
+	o := sanitize.All()
+	if req.Options != nil {
+		o = *req.Options
+	}
+	writeJSON(w, http.StatusOK, sanitize.Sanitize(req.Text, o))
 }

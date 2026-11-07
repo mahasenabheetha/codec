@@ -62,6 +62,13 @@ All notable changes to codec are documented here. The format follows
   keeping quotes); Read back goes the other way, and Layers quotes
   through a command inside a command (`sh -c` in `kubectl exec` in
   `ssh`). `codec quote` on the command line.
+- **Sanitize** (Text & data): secrets, emails, IP addresses, host names,
+  UUIDs, Azure resource names, user names in paths and words of your
+  own taken out of a text before you share it, each value the same
+  stand-in throughout (192.0.2.1, user-1@example.com) or masked, with a
+  list of what was found to keep any of it. The Log viewer's export can
+  sanitize the file; Smart paste offers it when it sees secrets;
+  `codec sanitize` on the command line.
 
 ### Fixed
 

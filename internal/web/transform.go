@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/mahasenabheetha/codec/v2/internal/codec"
+	"github.com/mahasenabheetha/codec/v2/internal/sanitize"
 	"github.com/mahasenabheetha/codec/v2/internal/version"
 )
 
@@ -36,6 +37,9 @@ type transformResponse struct {
 	Task    *codec.ParsedTask `json:"task,omitempty"`
 	JWT     *jwtView          `json:"jwt,omitempty"`
 	Utility *codec.Utility    `json:"utility,omitempty"` // smart paste: input for a Utilities tool
+	// Secrets is how many smart paste found in the input, to offer
+	// Sanitize before it is shared (decision 104).
+	Secrets int `json:"secrets,omitempty"`
 }
 
 // jwtView is the wire form of codec.JWT. The engine type has no JSON
@@ -61,11 +65,16 @@ func handleTransform(w http.ResponseWriter, r *http.Request) {
 		mode = codec.ModeAuto
 	}
 
+	secrets := 0
+	if mode == codec.ModeAuto {
+		secrets = sanitize.Secrets(req.Input)
+	}
+
 	// Smart paste: epoch numbers, URL-encoded text and cron expressions
 	// go to the Utilities tools (checked first: an epoch is valid JSON).
 	if mode == codec.ModeAuto {
 		if u, ok := codec.DetectUtility(req.Input, time.Now()); ok {
-			writeJSON(w, http.StatusOK, transformResponse{Output: u.Summary, Kind: u.Kind, Utility: u})
+			writeJSON(w, http.StatusOK, transformResponse{Output: u.Summary, Kind: u.Kind, Utility: u, Secrets: secrets})
 			return
 		}
 	}
@@ -84,7 +93,7 @@ func handleTransform(w http.ResponseWriter, r *http.Request) {
 			status = http.StatusBadRequest
 		}
 
-		resp := errorResponse{Error: err.Error()}
+		resp := errorResponse{Error: err.Error(), Secrets: secrets}
 
 		// If the failure was a JSON syntax error, surface the
 		// position as structured fields — this is why SyntaxError
@@ -98,7 +107,7 @@ func handleTransform(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp := transformResponse{Output: out, Kind: kind.String()}
+	resp := transformResponse{Output: out, Kind: kind.String(), Secrets: secrets}
 
 	// Attach structured forms for rich views, whether the user picked
 	// the mode explicitly or auto-detect found it. The second parse is

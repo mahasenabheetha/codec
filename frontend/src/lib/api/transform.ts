@@ -52,6 +52,8 @@ export interface JwtParts {
 }
 
 export interface TransformResponse {
+  /** How many secrets Smart paste saw in the input, to offer Sanitize. */
+  secrets?: number
   output: string
   kind: Kind
   task?: AnsibleTask

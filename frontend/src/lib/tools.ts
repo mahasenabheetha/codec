@@ -10,6 +10,7 @@ import KeyRound from '@lucide/svelte/icons/key-round'
 import SquareAsterisk from '@lucide/svelte/icons/square-asterisk'
 import QuoteIcon from '@lucide/svelte/icons/quote'
 import ScrollText from '@lucide/svelte/icons/scroll-text'
+import ShieldCheck from '@lucide/svelte/icons/shield-check'
 import Logs from '@lucide/svelte/icons/logs'
 import Clock from '@lucide/svelte/icons/clock'
 import CalendarClock from '@lucide/svelte/icons/calendar-clock'
@@ -313,7 +314,7 @@ export const tools: ToolDef[] = [
     id: 'text',
     title: 'Text & data',
     group: 'Utilities',
-    description: 'Compare two texts, change the case of names, quote a value for a shell or a format, read CSV or TSV as a table, and make test data.',
+    description: 'Compare two texts, change the case of names, quote a value for a shell or a format, sanitize a text before sharing it, read CSV or TSV as a table, and make test data.',
     icon: Type,
     hue: 'violet',
     keywords: ['text'],
@@ -338,6 +339,13 @@ export const tools: ToolDef[] = [
         description: 'A value written so a shell, JSON, YAML, .env, Helm --set, a Makefile, a Dockerfile, SQL or a regex reads it back exactly, with why; read back the other way; quoted through layers.',
         icon: QuoteIcon,
         keywords: ['quote', 'escape', 'unescape', 'shell', 'bash', 'powershell', 'yaml', 'sql', 'regex', 'string literal', 'nested', 'ssh', 'sh -c'],
+      },
+      {
+        id: 'sanitize',
+        title: 'Sanitize',
+        description: 'Secrets, emails, IP addresses, host names, UUIDs, Azure names and user names taken out of a text before you share it, each the same stand-in wherever it is.',
+        icon: ShieldCheck,
+        keywords: ['sanitize', 'redact', 'anonymize', 'scrub', 'mask', 'secrets', 'pii', 'share', 'ticket', 'password', 'token', 'ip address', 'email'],
       },
       {
         id: 'table',

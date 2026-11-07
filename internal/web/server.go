@@ -196,6 +196,7 @@ func (s *Server) routes() http.Handler {
 	mux.HandleFunc("POST /api/v2/json/{kind}", s.handleJSON)
 	mux.HandleFunc("POST /api/v2/http/{kind}", s.handleHTTP)
 	mux.HandleFunc("POST /api/v2/text/quote", s.handleQuote)
+	mux.HandleFunc("POST /api/v2/text/sanitize", s.handleSanitize)
 	mux.HandleFunc("GET /api/v2/text/quote/targets", s.handleQuoteTargets)
 	mux.HandleFunc("POST /api/v2/text/{kind}", s.handleText)
 	mux.HandleFunc("POST /api/v2/table/{kind}", s.handleTable)
@@ -305,6 +306,9 @@ type errorResponse struct {
 	Line   int    `json:"line,omitempty"`
 	Column int    `json:"column,omitempty"`
 	Code   string `json:"code,omitempty"` // machine-readable, e.g. "stale-token"
+	// Secrets: Smart paste found this many in what it couldn't read, to
+	// offer Sanitize.
+	Secrets int `json:"secrets,omitempty"`
 }
 
 func writeError(w http.ResponseWriter, status int, msg string) {

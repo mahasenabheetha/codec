@@ -66,6 +66,12 @@
     uuid: 'Open in UUID',
     '': 'Open in Colour',
   }
+  // Secrets in what was pasted: offer Sanitize before it goes anywhere.
+  const secrets = $derived(session.result?.secrets ?? (session.error?.body?.secrets as number | undefined) ?? 0)
+  function openSanitize() {
+    handoff.send('text', 'sanitize', session.input)
+  }
+
   function openUtility() {
     const u = session.result?.utility
     if (u) handoff.send(u.tool, u.tab, session.input.trim())
@@ -127,6 +133,9 @@
     >
       {#snippet badges()}
         {#if session.result}<Badge tone="accent" icon={Sparkles}>{detectedLabel[session.result.kind]}</Badge>{/if}
+        {#if secrets}
+          <button type="button" class="open warn" onclick={openSanitize} title="It has secrets: take them out before you share it">{secrets} {secrets === 1 ? 'secret' : 'secrets'} · Sanitize <ArrowRight size={12} strokeWidth={2} /></button>
+        {/if}
         {#if session.result?.utility}
           <button type="button" class="open" onclick={openUtility}>{openLabel[session.result.utility.tab]} <ArrowRight size={12} strokeWidth={2} /></button>
         {/if}
@@ -156,6 +165,10 @@
     background: transparent;
     border: 1px solid var(--accent);
     border-radius: var(--r-full);
+  }
+  .open.warn {
+    color: var(--warn);
+    border-color: var(--warn);
   }
   .open:hover {
     color: var(--accent-fg);

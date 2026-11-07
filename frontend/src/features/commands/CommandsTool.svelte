@@ -44,6 +44,7 @@
   // A command handed over by Smart paste.
   $effect(() => {
     void handoff.pending
+    if (!active) return // the tab on screen takes it
     const v = handoff.take('commands', 'explain')
     if (v !== null) untrack(() => pick(v))
   })
