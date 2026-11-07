@@ -113,22 +113,31 @@ func kindLabel(kind string) string {
 // reference, used with a subcommand, a flag or an operator (so "find
 // the bug" stays prose), and few parts codec can't place.
 func LooksLikeCommand(text string) bool {
+	_, ok := Detect(text)
+	return ok
+}
+
+// Detect is LooksLikeCommand with the explanation it made, so Smart
+// paste doesn't explain the line twice. A line break is no sign of a
+// command: two lines of prose that start with a tool's name ("top 10
+// tips" then "for go") stay prose.
+func Detect(text string) (Explanation, bool) {
 	text = strings.TrimSpace(text)
 	if text == "" || strings.Count(text, "\n") > 3 || len(text) > 2000 {
-		return false
+		return Explanation{}, false
 	}
 	ex := Explain(text)
 	if len(ex.Segments) == 0 || ex.Segments[0].Tool == "" {
-		return false
+		return Explanation{}, false
 	}
 	used, unknown := false, 0
 	for _, p := range ex.Parts {
-		switch p.Kind {
-		case KindCommand, KindFlag, KindOp:
+		switch {
+		case p.Kind == KindCommand, p.Kind == KindFlag, p.Kind == KindOp && p.Text != "\n":
 			used = true
-		case KindUnknown:
+		case p.Kind == KindUnknown:
 			unknown++
 		}
 	}
-	return used && unknown*4 <= len(ex.Parts)
+	return ex, used && unknown*4 <= len(ex.Parts)
 }

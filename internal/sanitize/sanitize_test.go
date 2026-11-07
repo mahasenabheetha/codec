@@ -1,6 +1,7 @@
 package sanitize
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 )
@@ -25,6 +26,9 @@ func TestSanitize(t *testing.T) {
 		{"azure id", "/subscriptions/3f2504e0-4f89-11d3-9a0c-0305e82c3301/resourceGroups/rg-shop-prod/providers/Microsoft.KeyVault/vaults/kv-shop", "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/name-1/providers/Microsoft.KeyVault/vaults/name-2"},
 		{"user paths", `/home/alice/app and C:\Users\Bob\src and C:\Users\Public`, `/home/user-1/app and C:\Users\user-2\src and C:\Users\Public`},
 		{"ipv6", "from 2a01:111:f400::1 and ::1", "from 2001:db8::1 and ::1"},
+		{"secrets that start like a template", "password=%40Xk9z2Lq DB_PASSWORD=$uper5ecret!\npw: <Xk9z2Lq>\npassphrase: <your-passphrase>", "password=[secret-1] DB_PASSWORD=[secret-2]\npw: [secret-3]\npassphrase: <your-passphrase>"},
+		{"names below a public domain", "call api.github.com and learn.microsoft.com", "call api.github.com and learn.microsoft.com"},
+		{"names below an owned suffix", "acct.blob.core.windows.net orders.shop.svc.cluster.local", "host-1.example.internal host-2.example.internal"},
 		// What stays.
 		{"not a secret field", `max_tokens=500 passed=3 key=name`, `max_tokens=500 passed=3 key=name`},
 		{"templated values", `password: ${DB_PASSWORD}` + "\n" + `token: "{{ .Values.token }}"`, `password: ${DB_PASSWORD}` + "\n" + `token: "{{ .Values.token }}"`},
@@ -36,6 +40,35 @@ func TestSanitize(t *testing.T) {
 		if got := Sanitize(c.in, All()).Text; got != c.want {
 			t.Errorf("%s:\n got %s\nwant %s", c.name, got, c.want)
 		}
+	}
+}
+
+// A word of yours at the start of a token takes the whole token with
+// it, as a secret: nothing of it is left behind.
+func TestOverlapTakesTheWhole(t *testing.T) {
+	o := All()
+	o.Words = []string{"acme"}
+	if got, want := Sanitize("token=acme-9f8e7d6c5b4a3210 at acme", o).Text, "token=[secret-1] at word-1"; got != want {
+		t.Errorf("got %s, want %s", got, want)
+	}
+}
+
+// Every address has its own stand-in, past the 762 of the
+// documentation ranges too.
+func TestStandInsDontRepeat(t *testing.T) {
+	var b strings.Builder
+	for i := range 1000 {
+		fmt.Fprintf(&b, "8.%d.%d.1 ", i/250+1, i%250)
+	}
+	seen := map[string]bool{}
+	for _, f := range Sanitize(b.String(), All()).Findings {
+		if seen[f.Replacement] {
+			t.Fatalf("%s is the stand-in of two addresses", f.Replacement)
+		}
+		seen[f.Replacement] = true
+	}
+	if testNet(763) != "198.18.0.1" || testNet(762+256) != "198.18.1.0" || testNet(762+65536) != "198.19.0.0" {
+		t.Errorf("testNet: %s %s %s", testNet(763), testNet(762+256), testNet(762+65536))
 	}
 }
 

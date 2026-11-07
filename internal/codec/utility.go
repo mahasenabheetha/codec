@@ -102,8 +102,8 @@ func DetectUtility(s string, now time.Time) (*Utility, bool) {
 	if u, ok := networkUtility(s); ok {
 		return u, true
 	}
-	if commands.LooksLikeCommand(s) {
-		return &Utility{Kind: "command", Tool: "commands", Tab: "explain", Summary: commands.Describe(commands.Explain(s))}, true
+	if ex, ok := commands.Detect(s); ok {
+		return &Utility{Kind: "command", Tool: "commands", Tab: "explain", Summary: commands.Describe(ex)}, true
 	}
 	if u, ok := idUtility(s); ok {
 		return u, true

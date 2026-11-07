@@ -490,6 +490,9 @@ func TestLooksLikeCommand(t *testing.T) {
 		{"git frob --x --y --z", false}, // mostly parts codec can't place
 		{"hello world", false},
 		{"", false},
+		{"top 10 tips\nfor go", false},   // a line break is no sign of a command
+		{"sort these\nby name", false},   // the same
+		{"git status\ngit log -3", true}, // two commands, a line each
 	} {
 		if got := LooksLikeCommand(c.text); got != c.want {
 			t.Errorf("LooksLikeCommand(%q) = %v", c.text, got)

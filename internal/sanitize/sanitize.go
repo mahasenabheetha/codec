@@ -79,6 +79,41 @@ type hit struct {
 
 // Sanitize takes out of text what o asks for.
 func Sanitize(text string, o Options) Result {
+	z := New(o)
+	out := z.Text(text)
+	return Result{Text: out, Findings: z.Findings()}
+}
+
+// A Sanitizer takes values out of one text given in pieces (a log
+// export, a chunk at a time), each value the same stand-in throughout.
+type Sanitizer struct {
+	o        Options
+	keep     map[string]bool
+	st       *standins
+	index    map[[2]string]int
+	findings []Finding
+}
+
+// New makes a Sanitizer for o.
+func New(o Options) *Sanitizer {
+	keep := map[string]bool{}
+	for _, k := range o.Keep {
+		keep[k] = true
+	}
+	return &Sanitizer{o: o, keep: keep, st: newStandins(), index: map[[2]string]int{}}
+}
+
+// Findings are the values taken out so far, in the order first found.
+func (z *Sanitizer) Findings() []Finding {
+	if z.findings == nil {
+		return []Finding{}
+	}
+	return z.findings
+}
+
+// Text is the next piece of text with its values taken out.
+func (z *Sanitizer) Text(text string) string {
+	o := z.o
 	var hits []hit
 	add := func(kind string, prio int, start, end int) {
 		if end > start {
@@ -145,54 +180,58 @@ func Sanitize(text string, o Options) Result {
 		}
 	}
 
-	// The first to start wins; where two start together, the one that
-	// matters more (a secret over a host), then the longer.
+	// Hits that overlap are taken out as one, from the first one's start
+	// to the furthest end, so no part of a longer value is left behind
+	// (a word of yours at the start of a token). It is a secret when any
+	// of them is; otherwise the first to start, and where two start
+	// together the one that matters more, then the longer.
 	slices.SortFunc(hits, func(a, b hit) int {
 		return cmp.Or(cmp.Compare(a.start, b.start), cmp.Compare(a.prio, b.prio), cmp.Compare(b.end, a.end))
 	})
-	keep := map[string]bool{}
-	for _, k := range o.Keep {
-		keep[k] = true
+	merged := hits[:0]
+	for _, h := range hits {
+		if n := len(merged); n > 0 && h.start < merged[n-1].end {
+			m := &merged[n-1]
+			m.end = max(m.end, h.end)
+			if h.kind == KindSecret {
+				m.kind = KindSecret
+			}
+			continue
+		}
+		merged = append(merged, h)
 	}
-	st := newStandins()
+	hits = merged
 	var b strings.Builder
-	var findings []Finding
-	index := map[[2]string]int{}
+	b.Grow(len(text))
 	at := 0
 	for _, h := range hits {
-		if h.start < at {
-			continue // inside one already taken
-		}
 		v := text[h.start:h.end]
 		key := [2]string{h.kind, v}
 		if h.kind != KindSecret {
 			key[1] = strings.ToLower(v) // ACME and acme are one word, one host
 		}
-		i, seen := index[key]
+		i, seen := z.index[key]
 		if !seen {
-			f := Finding{Kind: h.kind, Value: v, Kept: keep[v]}
+			f := Finding{Kind: h.kind, Value: v, Kept: z.keep[v]}
 			switch {
 			case f.Kept:
 				f.Replacement = v
 			case o.Mask:
 				f.Replacement = "•••"
 			default:
-				f.Replacement = st.next(h.kind, v)
+				f.Replacement = z.st.next(h.kind, v)
 			}
-			i = len(findings)
-			index[key] = i
-			findings = append(findings, f)
+			i = len(z.findings)
+			z.index[key] = i
+			z.findings = append(z.findings, f)
 		}
-		findings[i].Count++
+		z.findings[i].Count++
 		b.WriteString(text[at:h.start])
-		b.WriteString(findings[i].Replacement)
+		b.WriteString(z.findings[i].Replacement)
 		at = h.end
 	}
 	b.WriteString(text[at:])
-	if findings == nil {
-		findings = []Finding{}
-	}
-	return Result{Text: b.String(), Findings: findings}
+	return b.String()
 }
 
 // Secrets counts the secrets in text, for a hint that it has some.
@@ -259,11 +298,19 @@ func (s *standins) next(kind, v string) string {
 }
 
 // testNet is the n-th address of the ranges kept for documentation
-// (RFC 5737): 192.0.2.x, then 198.51.100.x, then 203.0.113.x.
+// (RFC 5737): 192.0.2.x, then 198.51.100.x, then 203.0.113.x; after
+// those 762, the benchmarking range 198.18.0.0/15 (RFC 2544), so two
+// addresses never share a stand-in. Past its 131,070, a name.
 func testNet(n int) string {
-	nets := []string{"192.0.2", "198.51.100", "203.0.113"}
-	i := (n - 1) / 254
-	return fmt.Sprintf("%s.%d", nets[i%len(nets)], (n-1)%254+1)
+	if n <= 762 {
+		nets := []string{"192.0.2", "198.51.100", "203.0.113"}
+		return fmt.Sprintf("%s.%d", nets[(n-1)/254], (n-1)%254+1)
+	}
+	k := n - 762 // 198.18.0.1 on
+	if k > 131070 {
+		return fmt.Sprintf("ip-%d.example.internal", n)
+	}
+	return fmt.Sprintf("198.%d.%d.%d", 18+k>>16, k>>8&255, k&255)
 }
 
 // Recognisers
@@ -286,13 +333,39 @@ var publicHosts = map[string]bool{
 	"golang.org": true, "go.dev": true, "proxy.golang.org": true, "google.com": true, "microsoft.com": true, "azure.com": true, "mcr.microsoft.com": true,
 	"amazonaws.com": true, "cloudflare.com": true, "ubuntu.com": true, "debian.org": true, "alpinelinux.org": true, "githubusercontent.com": true,
 	"raw.githubusercontent.com": true, "objects.githubusercontent.com": true, "w3.org": true, "schema.org": true, "json-schema.org": true,
-	"cluster.local": true, "svc.cluster.local": true,
-	// Azure's own suffixes: an account or vault name before them is yours.
+	"cluster.local": true, "svc.cluster.local": true, "login.microsoftonline.com": true,
+	// Azure's own suffixes, as they are; a name below one is yours (ownedSuffixes).
 	"core.windows.net": true, "blob.core.windows.net": true, "database.windows.net": true, "servicebus.windows.net": true,
-	"azurewebsites.net": true, "vault.azure.net": true, "azurecr.io": true, "azmk8s.io": true, "login.microsoftonline.com": true,
+	"azurewebsites.net": true, "vault.azure.net": true, "azurecr.io": true, "azmk8s.io": true,
 }
 
-func publicHost(h string) bool { return publicHosts[h] }
+// ownedSuffixes are public domains whose names below them are someone's
+// own: an account, a vault, a cluster (myacct.blob.core.windows.net) or
+// a service in a namespace (orders.shop.svc.cluster.local).
+var ownedSuffixes = []string{
+	".windows.net", ".azure.net", ".azurecr.io", ".azmk8s.io", ".azurewebsites.net", ".cloudapp.azure.com",
+	".amazonaws.com", ".cluster.local",
+}
+
+// publicHost: a public name or a name below one (api.github.com,
+// learn.microsoft.com), unless names below that domain are your own.
+func publicHost(h string) bool {
+	for _, s := range ownedSuffixes {
+		if strings.HasSuffix(h, s) {
+			return publicHosts[h]
+		}
+	}
+	for d := h; ; {
+		if publicHosts[d] {
+			return true
+		}
+		dot := strings.IndexByte(d, '.')
+		if dot < 0 {
+			return false
+		}
+		d = d[dot+1:]
+	}
+}
 
 // documentation: the names and addresses kept for examples (RFC 2606,
 // 5737, 3849), which a stand-in itself is.
@@ -334,4 +407,5 @@ func ipToHide(s string, keepPrivate bool) bool {
 var docNets = []netip.Prefix{
 	netip.MustParsePrefix("192.0.2.0/24"), netip.MustParsePrefix("198.51.100.0/24"),
 	netip.MustParsePrefix("203.0.113.0/24"), netip.MustParsePrefix("2001:db8::/32"),
+	netip.MustParsePrefix("198.18.0.0/15"), // benchmarking, and the stand-ins after the first 762
 }

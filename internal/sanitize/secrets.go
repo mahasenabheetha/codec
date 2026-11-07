@@ -141,17 +141,18 @@ func nameWords(s string) []string {
 	return out
 }
 
+// placeholderShape is a whole value that is a variable or a template:
+// ${NAME}, $(command), $NAME, %NAME%, {{ .Values.x }}, <your-password>.
+// Only the whole value counts: a password that starts with $, % or <
+// ($uper5ecret!, %40bc as a URL writes @bc) is still a password.
+var placeholderShape = regexp.MustCompile(`^(?:\$\{[^}]*\}|\$\([^)]*\)|\$[A-Za-z_]\w*|%[A-Za-z_]\w*%|\{\{.*\}\}|<[A-Za-z][A-Za-z _.-]*>)$`)
+
 // placeholder: a value that is already no secret: empty, masked, a
 // variable or a template to fill in.
 func placeholder(v string) bool {
 	v = strings.TrimSpace(v)
-	if v == "" || strings.Trim(v, "*•x.") == "" || strings.HasPrefix(v, "[secret-") {
+	if v == "" || strings.Trim(v, "*•x.") == "" || strings.HasPrefix(v, "[secret-") || placeholderShape.MatchString(v) {
 		return true
-	}
-	for _, p := range []string{"${", "$(", "{{", "<", "%", "$"} {
-		if strings.HasPrefix(v, p) {
-			return true
-		}
 	}
 	switch strings.ToLower(v) {
 	case "null", "none", "true", "false", "changeme", "redacted", "<redacted>", "hidden", "***":

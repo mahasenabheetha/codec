@@ -13,7 +13,8 @@ All notable changes to codec are documented here. The format follows
   pipes and redirections — with risky parts marked and a safer way; a
   Build form shows the same command and changing either side changes
   the other. Values from the open folder (namespaces, resources,
-  labels, charts) are offered; Copy for PowerShell quotes it that way.
+  labels, charts) are offered; Copy for PowerShell, in the toolbar's …
+  menu, quotes it that way.
 - **Cheat sheet** (Commands): find a command by what you want to do,
   in your own words ("undo my last commit"). Recipes, commands and
   flags are ranked, each with what matched — the word, a synonym or a

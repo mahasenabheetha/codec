@@ -795,14 +795,18 @@ func (s *Server) handleLogExport(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", ctype)
 	w.Header().Set("Content-Disposition", mime.FormatMediaType("attachment", map[string]string{"filename": name + "-filtered" + ext}))
 	if req.Sanitize != nil {
-		var buf bytes.Buffer
-		if err := exportLog(&buf, h.log, m.IDs, req.Format, req.Columns); err != nil {
-			writeError(w, http.StatusInternalServerError, err.Error())
-			return
-		}
+		// Streamed through the sanitizer a chunk of lines at a time, so a
+		// big export isn't held in memory.
 		w.Header().Set("Content-Disposition", mime.FormatMediaType("attachment", map[string]string{"filename": name + "-sanitized" + ext}))
 		w.WriteHeader(http.StatusOK)
-		io.WriteString(w, sanitize.Sanitize(buf.String(), *req.Sanitize).Text)
+		sw := sanitize.NewWriter(w, *req.Sanitize)
+		err := exportLog(sw, h.log, m.IDs, req.Format, req.Columns)
+		if err == nil {
+			err = sw.Close()
+		}
+		if err != nil {
+			log.Printf("export: %v", err)
+		}
 		return
 	}
 	w.WriteHeader(http.StatusOK)

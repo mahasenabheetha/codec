@@ -1,5 +1,6 @@
 <script lang="ts">
   import Copy from '@lucide/svelte/icons/copy'
+  import Ellipsis from '@lucide/svelte/icons/ellipsis'
   import Eraser from '@lucide/svelte/icons/eraser'
   import SquareTerminal from '@lucide/svelte/icons/square-terminal'
   import { tick, untrack } from 'svelte'
@@ -9,6 +10,7 @@
   import CodeView from '../../lib/components/CodeView.svelte'
   import EmptyState from '../../lib/components/EmptyState.svelte'
   import IconButton from '../../lib/components/IconButton.svelte'
+  import Popover from '../../lib/components/Popover.svelte'
   import SegmentedControl from '../../lib/components/SegmentedControl.svelte'
   import SplitPane from '../../lib/components/SplitPane.svelte'
   import { handoff } from '../../lib/stores/handoff.svelte'
@@ -38,6 +40,7 @@
   // The left pane: the form, or the cheat sheet to find a command in.
   let view = $state<'build' | 'sheet'>('sheet')
   let sheetQuery = $state('')
+  let more = $state(false) // the toolbar's … menu
   let sheetTool = $state('')
   let left = $state<HTMLElement>()
 
@@ -189,7 +192,16 @@
     </div>
     <div class="controls">
       <Button size="sm" variant="ghost" tone="copy" icon={Copy} disabled={!line.trim()} onclick={() => copy('bash')}>Copy</Button>
-      <Button size="sm" variant="ghost" tone="copy" icon={Copy} disabled={!line.trim()} onclick={() => copy('powershell')}>Copy for PowerShell</Button>
+      <Popover side="bottom" align="end" bind:open={more}>
+        {#snippet trigger(props)}
+          <IconButton {...props} icon={Ellipsis} label="More" size="sm" />
+        {/snippet}
+        <div class="menu">
+          <button type="button" disabled={!line.trim()} onclick={() => ((more = false), copy('powershell'))}>
+            <Copy size={14} strokeWidth={1.75} /> Copy for PowerShell <span class="muted">PowerShell 7: quoted its way, NAME=value as $env:</span>
+          </button>
+        </div>
+      </Popover>
       <IconButton icon={Eraser} tone="clear" label="Clear" size="sm" disabled={!line} onclick={() => (line = '')} />
     </div>
   </header>
@@ -296,6 +308,35 @@
     align-items: center;
     gap: var(--s-2);
     margin-left: auto;
+  }
+  .menu {
+    display: flex;
+    flex-direction: column;
+    width: 260px;
+  }
+  .menu button {
+    display: grid;
+    grid-template-columns: 14px 1fr;
+    column-gap: var(--s-2);
+    align-items: center;
+    padding: var(--s-1) var(--s-2);
+    font-size: var(--fs-sm);
+    text-align: left;
+    color: var(--fg-0);
+    background: none;
+    border: none;
+    border-radius: var(--r-sm);
+  }
+  .menu button:hover:not(:disabled) {
+    background: var(--bg-3);
+  }
+  .menu button:disabled {
+    color: var(--fg-2);
+  }
+  .menu .muted {
+    grid-column: 2;
+    font-size: var(--fs-xs);
+    color: var(--fg-2);
   }
   .line {
     flex: none;

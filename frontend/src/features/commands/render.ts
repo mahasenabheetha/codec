@@ -24,7 +24,9 @@ export function quote(word: string, shell: Shell = 'bash'): string {
   // A recipe's {placeholder} stays as it is in bash, where braces
   // without a comma are plain text, so the line still shows it as one.
   if (shell === 'bash' && word !== '' && plain.test(word.replace(placeholderRe, 'x'))) return word
-  if (word !== '' && plain.test(word) && !(shell === 'powershell' && /^[@-]?$/.test(word))) return word
+  // PowerShell reads more of these as its own: a lone -, @name
+  // (splatting) and a,b (an array, so two arguments).
+  if (word !== '' && plain.test(word) && !(shell === 'powershell' && (word === '-' || /^@|,/.test(word)))) return word
   if (shell === 'powershell') return `'${word.replaceAll("'", "''")}'`
   // A substitution ($HOME, $(…), `…`) was meant to be expanded: double
   // quotes keep that; anything else is safest in single quotes.
@@ -145,10 +147,25 @@ export function forPowerShell(line: string, parts: Part[]): string {
       case 'comment':
         out.push(p.text)
         break
-      default:
-        // A word with a substitution can't be carried over; keep it.
-        out.push(/\$\(|`/.test(line.slice(p.start, p.end)) ? line.slice(p.start, p.end) : quote(p.text, 'powershell'))
+      default: {
+        const raw = line.slice(p.start, p.end)
+        // A word with a substitution can't be carried over; keep it. One
+        // with a variable ($NS, "${HOME}/x"), outside single quotes, is
+        // expanded there too, from the environment.
+        if (/\$\(|`/.test(raw)) out.push(raw)
+        else if (/\$[{A-Za-z_]/.test(raw) && !raw.includes("'")) out.push(psExpanding(p.text))
+        else out.push(quote(p.text, 'powershell'))
+      }
     }
   }
   return [...env, out.join(' ')].join(' ')
+}
+
+/** A word in PowerShell double quotes, its $NAME and ${NAME} read from
+ *  the environment (${env:NAME}); any other $, " and ` as themselves. */
+export function psExpanding(text: string): string {
+  const body = text
+    .replace(/[`"]/g, '`$&')
+    .replace(/\$(?:\{([A-Za-z_]\w*)\}|([A-Za-z_]\w*))|\$/g, (_m, a?: string, b?: string) => (a || b ? `\${env:${a || b}}` : '`$'))
+  return `"${body}"`
 }

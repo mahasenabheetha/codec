@@ -61,7 +61,12 @@
             error = null
           })
           .catch((e) => {
-            if (!isAbort(e)) error = e instanceof Error ? e.message : String(e)
+            if (isAbort(e)) return
+            // Not the last text's result: it isn't this one's, and Copy
+            // mustn't hand it over as if it were.
+            output = ''
+            findings = []
+            error = e instanceof Error ? e.message : String(e)
           })
       },
       now ? 0 : 200,
