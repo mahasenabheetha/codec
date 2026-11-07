@@ -340,7 +340,7 @@ func TestSearch(t *testing.T) {
 		{"restart deployment", "", "kubectl rollout restart deployment/{name} -n {namespace}"},
 		{"--force-with-lease", "", "git push --force-with-lease"},
 		{"stash pop", "", "git stash pop"},
-		{"restart", "git", ""}, // nothing in git restarts
+		{"restart", "git", ""},                                 // nothing in git restarts
 		{"pusj new branch", "", "git push -u origin {branch}"}, // a typo
 		{"discard changes to a file", "", "git restore {file}"},
 		{"who wrote this line", "", "git blame -w {file}"},
