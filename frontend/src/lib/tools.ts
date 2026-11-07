@@ -8,6 +8,7 @@ import Binary from '@lucide/svelte/icons/binary'
 import Braces from '@lucide/svelte/icons/braces'
 import KeyRound from '@lucide/svelte/icons/key-round'
 import SquareAsterisk from '@lucide/svelte/icons/square-asterisk'
+import QuoteIcon from '@lucide/svelte/icons/quote'
 import ScrollText from '@lucide/svelte/icons/scroll-text'
 import Logs from '@lucide/svelte/icons/logs'
 import Clock from '@lucide/svelte/icons/clock'
@@ -312,7 +313,7 @@ export const tools: ToolDef[] = [
     id: 'text',
     title: 'Text & data',
     group: 'Utilities',
-    description: 'Compare two texts, change the case of names, read CSV or TSV as a table, and make test data.',
+    description: 'Compare two texts, change the case of names, quote a value for a shell or a format, read CSV or TSV as a table, and make test data.',
     icon: Type,
     hue: 'violet',
     keywords: ['text'],
@@ -330,6 +331,13 @@ export const tools: ToolDef[] = [
         description: 'camelCase, snake_case, kebab-case and more, with Kubernetes, environment-variable and Helm name rules.',
         icon: CaseSensitive,
         keywords: ['camel', 'snake', 'kebab', 'pascal', 'constant', 'dns-1123', 'k8s name', 'env var'],
+      },
+      {
+        id: 'quote',
+        title: 'Quote',
+        description: 'A value written so a shell, JSON, YAML, .env, Helm --set, a Makefile, a Dockerfile, SQL or a regex reads it back exactly, with why; read back the other way; quoted through layers.',
+        icon: QuoteIcon,
+        keywords: ['quote', 'escape', 'unescape', 'shell', 'bash', 'powershell', 'yaml', 'sql', 'regex', 'string literal', 'nested', 'ssh', 'sh -c'],
       },
       {
         id: 'table',

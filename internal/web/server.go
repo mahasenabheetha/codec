@@ -195,6 +195,8 @@ func (s *Server) routes() http.Handler {
 	mux.HandleFunc("POST /api/v2/net/{kind}", s.handleNet)
 	mux.HandleFunc("POST /api/v2/json/{kind}", s.handleJSON)
 	mux.HandleFunc("POST /api/v2/http/{kind}", s.handleHTTP)
+	mux.HandleFunc("POST /api/v2/text/quote", s.handleQuote)
+	mux.HandleFunc("GET /api/v2/text/quote/targets", s.handleQuoteTargets)
 	mux.HandleFunc("POST /api/v2/text/{kind}", s.handleText)
 	mux.HandleFunc("POST /api/v2/table/{kind}", s.handleTable)
 	mux.HandleFunc("POST /api/v2/time/{kind}", s.handleTime)

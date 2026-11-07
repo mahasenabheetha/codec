@@ -55,6 +55,13 @@ All notable changes to codec are documented here. The format follows
   knows and explains it, with Open in Commands; `codec explain "<line>"`
   explains one in the terminal, and `codec how <what you want to do>`
   searches the cheat sheet (both with `--json`).
+- **Quote** (Text & data): a value written so a target reads it back
+  exactly — bash, sh, PowerShell, cmd, JSON, YAML, .env, Helm `--set`,
+  Makefile, Dockerfile, SQL, regular expressions, Go, XML, HTML — every
+  way it can be, with why and the traps (YAML's `no`, `--env-file`
+  keeping quotes); Read back goes the other way, and Layers quotes
+  through a command inside a command (`sh -c` in `kubectl exec` in
+  `ssh`). `codec quote` on the command line.
 
 ### Fixed
 

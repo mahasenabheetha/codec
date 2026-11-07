@@ -5,7 +5,10 @@
 // binary; this is a pure engine package that runs nothing.
 package commands
 
-import "strings"
+import (
+	"strconv"
+	"strings"
+)
 
 // TokenKind is what a token of a command line is.
 type TokenKind uint8
@@ -197,6 +200,23 @@ func ansiC(line string, i int, b *strings.Builder, t *Token) int {
 		case c == '\'':
 			return i + 1
 		case c == '\\' && i+1 < len(line):
+			// \xHH, \uHHHH, \UHHHHHHHH and octal \nnn, as bash reads them.
+			if base, most, skip := numericEscape(line[i+1]); most > 0 {
+				j := i + 1 + skip
+				for j < len(line) && j-(i+1+skip) < most && isDigit(line[j], base) {
+					j++
+				}
+				if j > i+1+skip {
+					n, _ := strconv.ParseUint(line[i+1+skip:j], base, 32)
+					if line[i+1] == 'u' || line[i+1] == 'U' {
+						b.WriteRune(rune(n))
+					} else {
+						b.WriteByte(byte(n))
+					}
+					i = j
+					continue
+				}
+			}
 			if r, ok := esc[line[i+1]]; ok {
 				b.WriteByte(r)
 			} else {
@@ -242,4 +262,28 @@ func nested(line string, i int, b *strings.Builder, t *Token) int {
 	b.WriteString(line[i:])
 	t.Unclosed = true
 	return len(line)
+}
+
+// numericEscape says how a $'…' escape that starts with c is read: in
+// what base, at most how many digits, and how many letters come before
+// them (x, u, U; none for octal).
+func numericEscape(c byte) (base, most, skip int) {
+	switch {
+	case c == 'x':
+		return 16, 2, 1
+	case c == 'u':
+		return 16, 4, 1
+	case c == 'U':
+		return 16, 8, 1
+	case c >= '0' && c <= '7':
+		return 8, 3, 0
+	}
+	return 0, 0, 0
+}
+
+func isDigit(c byte, base int) bool {
+	if base == 8 {
+		return c >= '0' && c <= '7'
+	}
+	return c >= '0' && c <= '9' || c >= 'a' && c <= 'f' || c >= 'A' && c <= 'F'
 }

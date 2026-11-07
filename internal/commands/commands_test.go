@@ -514,3 +514,10 @@ func TestDescribe(t *testing.T) {
 		t.Errorf("the risk is said %d times:\n%s", n, got)
 	}
 }
+
+// Regression: $'…' kept \xHH, \uHHHH and octal escapes as written.
+func TestReadNumericEscapes(t *testing.T) {
+	if got := Read(`$'\x11aé\101\0'`)[0].Text; got != "\x11aéA\x00" {
+		t.Errorf("%q", got)
+	}
+}

@@ -22,6 +22,9 @@ internal/
   yamlkit/            ENGINE YAML core: parse, positions, docs, detect,
                       outline, paths, format, convert, diagnostics,
                       semantic diff, layered merge with origins (CI, Compose)
+  quote/              ENGINE Quote: a value written for a shell, a data
+                      format, a build file or a language, read back, and
+                      quoted through layers
   names/              ENGINE "did you mean" (edit distance) for every lens;
                       a name in every case and the Kubernetes, Helm and
                       env-var naming rules (Case & names)

@@ -18,3 +18,31 @@ export interface NameCheck {
 }
 
 export const caseOf = (input: string) => request<{ words: string[]; cases: NameCase[]; checks: NameCheck[] }>('POST', '/api/v2/text/case', { input })
+
+/** Somewhere a value can be quoted for. */
+export interface QuoteTarget {
+  id: string
+  name: string
+  group: string
+}
+
+/** One way to write a value for a target, with what it does. */
+export interface QuoteForm {
+  label: string
+  value: string
+  why: string
+}
+
+/** A wrapping: the value so far quoted for target, after before. */
+export interface QuoteLayer {
+  target: string
+  before: string
+}
+
+export const quoteTargets = (signal?: AbortSignal) => request<{ targets: QuoteTarget[] }>('GET', '/api/v2/text/quote/targets', undefined, signal)
+
+export const quoteValue = (value: string, target: string, layers: QuoteLayer[], signal?: AbortSignal) =>
+  request<{ forms: QuoteForm[]; notes: string[]; steps: { target: string; value: string }[] }>('POST', '/api/v2/text/quote', { value, target, layers }, signal)
+
+export const unquoteValue = (value: string, target: string, signal?: AbortSignal) =>
+  request<{ value: string }>('POST', '/api/v2/text/quote', { value, target, unquote: true }, signal)
