@@ -2,6 +2,7 @@ package commands
 
 import (
 	"path"
+	"slices"
 	"strings"
 )
 
@@ -80,6 +81,7 @@ type Segment struct {
 type Explanation struct {
 	Parts    []Part
 	Segments []Segment
+	line     string // for a value of several words, kept as written
 }
 
 // wrapper is a command that runs the command after it: its own options
@@ -121,7 +123,7 @@ var opSummaries = map[string]string{
 // a command codec doesn't know is still split into its parts.
 func Explain(line string) Explanation {
 	tools, _ := load() // a pack that fails to load is caught by the tests
-	var ex Explanation
+	ex := Explanation{line: line}
 	toks := Read(line)
 	start := 0
 	for i := 0; i <= len(toks); i++ {
@@ -362,6 +364,11 @@ func (ex *Explanation) flag(toks []Token, i int, chain []*Command, atRoot bool) 
 	}
 	if f != nil {
 		ex.Parts = append(ex.Parts, flagPart(t, f, level, value, hasValue))
+		if !hasValue {
+			if n := ex.words(toks[i+1:], f); n > 0 {
+				return 1 + n
+			}
+		}
 		if f.Value != "" && !hasValue && !f.OptionalValue && i+1 < len(toks) && toks[i+1].Kind == Word {
 			v := toks[i+1]
 			ex.Parts = append(ex.Parts, valuePart(v, f))
@@ -383,7 +390,9 @@ func (ex *Explanation) flag(toks []Token, i int, chain []*Command, atRoot bool) 
 			}
 			flags = append(flags, g)
 			levels = append(levels, level)
-			if g.Value != "" && !g.OptionalValue {
+			// A value after the letter: -nshop, and for a short flag
+			// whose value is optional, -i.bak (sed).
+			if g.Value != "" && (!g.OptionalValue || k+1 < len(s)) {
 				rest = s[k+1:]
 				break
 			}
@@ -414,6 +423,33 @@ func (ex *Explanation) flag(toks []Token, i int, chain []*Command, atRoot bool) 
 	}
 	ex.Parts = append(ex.Parts, Part{Start: t.Start, End: t.End, Kind: KindUnknown, Text: s, Summary: "codec's reference doesn't have this flag"})
 	return 1
+}
+
+// words takes the value of a flag whose value is several words (Count,
+// or up to one of Until) as one value part, written as it is in the
+// line; it returns how many tokens that was, 0 for any other flag.
+func (ex *Explanation) words(toks []Token, f *Flag) int {
+	n := 0
+	switch {
+	case len(f.Until) > 0:
+		for n < len(toks) && toks[n].Kind == Word {
+			n++
+			if slices.Contains(f.Until, toks[n-1].Text) {
+				break
+			}
+		}
+	case f.Count > 0:
+		for n < len(toks) && n < f.Count && toks[n].Kind == Word {
+			n++
+		}
+	}
+	if n == 0 {
+		return 0
+	}
+	first, last := toks[0], toks[n-1]
+	ex.Parts = append(ex.Parts, Part{Start: first.Start, End: last.End, Kind: KindValue, Text: ex.line[first.Start:last.End],
+		Summary: "the " + f.Value + " for " + short(f), Ref: f.Names[0]})
+	return n
 }
 
 func flagPart(t Token, f *Flag, level int, value string, hasValue bool) Part {

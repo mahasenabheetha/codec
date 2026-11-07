@@ -90,19 +90,29 @@ function place(u: FlagUse, cmds: Command[]): { f: Flag; at: number } | null {
  *  is written that way; the others as two words. */
 function words(b: Built, cmds: Command[], shell: Shell): string[] {
   const at: string[][] = cmds.map(() => []) // the flags after each command's word
-  for (const u of b.flags) {
+  // Actions after the rest, keeping each group's order: find -name x
+  // -type f -delete, whichever was ticked first.
+  const isAction = (u: FlagUse) => !!place(u, cmds)?.f.action
+  const flags = [...b.flags.filter((u) => !isAction(u)), ...b.flags.filter(isAction)]
+  for (const u of flags) {
     const p = place(u, cmds)
     if (!p) continue // not a flag of this command any more
     const { f } = p
     const w = at[p.at]
     if (!f.value) w.push(u.ref)
-    else if (f.optionalValue) w.push(u.valued && u.value !== '' ? `${u.ref}=${quote(u.value, shell)}` : u.ref)
+    else if (f.count || f.until?.length) w.push(u.ref, u.value) // several words, as written
+    else if (f.optionalValue && u.valued && u.value !== '')
+      // A short flag takes it attached (sed -i.bak), a long one after "=".
+      w.push(/^-[^-]$/.test(u.ref) ? u.ref + quote(u.value, shell) : `${u.ref}=${quote(u.value, shell)}`)
+    else if (f.optionalValue) w.push(u.ref)
     else w.push(u.ref, quote(u.value, shell))
   }
-  const out = [b.tool, ...at[0]]
-  b.path.forEach((name, i) => out.push(name, ...(at[i + 1] ?? [])))
-  for (const a of b.args) out.push(quote(a, shell))
-  return out
+  const args = b.args.map((a) => quote(a, shell))
+  const last = at.length - 1
+  const own = cmds[last]?.argsFirst ? [...args, ...at[last]] : [...at[last], ...args]
+  const out = [b.tool, ...(last === 0 ? [] : at[0])]
+  b.path.forEach((name, i) => out.push(name, ...(i + 1 === last ? [] : (at[i + 1] ?? []))))
+  return [...out, ...own]
 }
 
 /** The line with seg's command written again from b. */

@@ -1,0 +1,2037 @@
+# The common Linux commands, one per document, in codec's words and
+# checked against their --help on Ubuntu (GNU coreutils, findutils,
+# grep, sed, gawk, tar, procps-ng, iproute2, systemd, OpenSSH, curl).
+# Files and folders
+name: ls
+group: linux
+summary: Lists the files in a folder.
+flags:
+  - names: [-l]
+    common: true
+    summary: one per line, with permissions, owner, size and date
+  - names: [-a, --all]
+    common: true
+    summary: hidden files too (those starting with .)
+  - names: [-A, --almost-all]
+    summary: hidden files too, but not . and ..
+  - names: [-h, --human-readable]
+    common: true
+    summary: sizes as 1K, 234M, 2G
+  - names: [-t]
+    common: true
+    summary: newest first
+  - names: [-r, --reverse]
+    summary: in reverse order
+  - names: [-S]
+    summary: largest first
+  - names: [-R, --recursive]
+    summary: the folders inside too, all the way down
+  - names: [-d, --directory]
+    summary: the folder itself, not what is in it
+  - names: ["-1"]
+    summary: one name per line
+  - names: [-i, --inode]
+    summary: each file's inode number
+  - names: [-F, --classify]
+    summary: marks folders with /, programs with * and links with @
+  - names: [--color]
+    value: when
+    optionalValue: true
+    summary: colours by type
+    choices: [always, auto, never]
+  - names: [--group-directories-first]
+    summary: folders before files
+args:
+  - name: file
+    optional: true
+    repeat: true
+    summary: the folders or files; the current folder by default
+recipes:
+  - title: List files with sizes, hidden ones too
+    command: ls -lah
+    words: [show files, directory listing, details]
+  - title: List the newest files first
+    command: ls -lt
+    words: [recent files, latest, modified]
+  - title: List the largest files first
+    command: ls -lhS
+    words: [big files, size, sort by size]
+---
+name: find
+group: linux
+summary: Finds files by name, type, size, age and more, and can act on each.
+argsFirst: true
+flags:
+  - names: [-name]
+    value: pattern
+    common: true
+    summary: whose name matches this, such as '*.log' (quote it)
+  - names: [-iname]
+    value: pattern
+    summary: whose name matches, ignoring case
+  - names: [-type]
+    value: type
+    common: true
+    summary: only this kind
+    choices:
+      - {value: f, summary: files}
+      - {value: d, summary: folders}
+      - {value: l, summary: symbolic links}
+  - names: [-path]
+    value: pattern
+    summary: whose whole path matches this
+  - names: [-mtime]
+    value: days
+    common: true
+    summary: changed this many days ago; -7 is within a week, +30 longer ago
+  - names: [-mmin]
+    value: minutes
+    summary: changed this many minutes ago; -60 is within the hour
+  - names: [-newer]
+    value: file
+    summary: changed after this file
+  - names: [-size]
+    value: size
+    summary: of this size; +100M is bigger than 100 MB
+  - names: [-empty]
+    summary: empty files and folders
+  - names: [-maxdepth]
+    value: levels
+    common: true
+    summary: goes at most this many folders down
+  - names: [-mindepth]
+    value: levels
+    summary: starts this many folders down
+  - names: [-user]
+    value: user
+    summary: owned by this user
+  - names: [-perm]
+    value: mode
+    summary: with these permissions
+  - names: [-not]
+    summary: the opposite of the test after it
+  - names: [-o, -or]
+    summary: either the test before or the one after
+  - names: [-prune]
+    summary: doesn't go into the folder just matched
+  - names: [-print]
+    action: true
+    summary: prints each name (what it does when nothing else is asked)
+  - names: [-print0]
+    action: true
+    summary: prints names ending with a null, for xargs -0, safe with spaces
+  - names: [-delete]
+    action: true
+    summary: deletes what it finds
+    danger:
+      level: danger
+      note: everything matched is deleted at once; run it without -delete first to see what that is
+  - names: [-exec]
+    action: true
+    value: command
+    until: [";", "+"]
+    summary: runs a command on each, {} standing for the file; ends with \; (one at a time) or + (many at once)
+  - names: [-execdir]
+    action: true
+    value: command
+    until: [";", "+"]
+    summary: like -exec, run in the file's folder
+  - names: [-ls]
+    action: true
+    summary: lists each one as ls -dils would
+args:
+  - name: starting-point
+    optional: true
+    repeat: true
+    summary: the folders to search; the current one by default
+recipes:
+  - title: Find files by name
+    command: find . -name {pattern}
+    words: [search file, locate, where is file]
+  - title: Find files changed in the last day
+    command: find . -type f -mtime -1
+    words: [recent files, modified today, new files]
+  - title: Find files bigger than 100 MB
+    command: find . -type f -size +100M
+    words: [large files, disk space, big files]
+  - title: Find empty folders
+    command: find . -type d -empty
+    words: [empty directories, clean up]
+  - title: Delete files older than 30 days
+    command: find {folder} -type f -mtime +30 -delete
+    words: [clean old files, purge logs, rotate]
+    note: run it without -delete first to see what goes
+  - title: Run a command on every file found
+    command: find . -name {pattern} -exec {command} {} +
+    words: [for each file, batch]
+  - title: Search the text of every file found
+    command: find . -name '*.yaml' -exec grep -l {text} {} +
+    words: [grep in files, search content]
+  - title: Delete the files found, safe with spaces in names
+    command: find . -name {pattern} -print0 | xargs -0 rm
+    words: [spaces in names, pipe to xargs, delete found files]
+---
+name: grep
+group: linux
+summary: Prints the lines that match a pattern.
+flags:
+  - names: [-i, --ignore-case]
+    common: true
+    summary: ignores case
+  - names: [-r, --recursive]
+    common: true
+    summary: searches the folders given, all the way down
+  - names: [-R, --dereference-recursive]
+    summary: like -r, following symbolic links
+  - names: [-n, --line-number]
+    common: true
+    summary: shows the line numbers
+  - names: [-v, --invert-match]
+    common: true
+    summary: the lines that don't match
+  - names: [-l, --files-with-matches]
+    summary: only the names of files that match
+  - names: [-L, --files-without-match]
+    summary: only the names of files that don't
+  - names: [-c, --count]
+    summary: how many lines match in each file
+  - names: [-w, --word-regexp]
+    summary: only whole words
+  - names: [-x, --line-regexp]
+    summary: only whole lines
+  - names: [-E, --extended-regexp]
+    common: true
+    summary: reads the pattern as an extended regular expression (| + ? without backslashes)
+  - names: [-F, --fixed-strings]
+    summary: reads the pattern as plain text
+  - names: [-P, --perl-regexp]
+    summary: reads the pattern as a Perl regular expression (\d, lookarounds)
+  - names: [-o, --only-matching]
+    summary: prints only the matching part
+  - names: [-A, --after-context]
+    value: lines
+    summary: this many lines after each match too
+  - names: [-B, --before-context]
+    value: lines
+    summary: this many lines before each match too
+  - names: [-C, --context]
+    value: lines
+    summary: this many lines around each match
+  - names: [-h, --no-filename]
+    summary: leaves out the file names
+  - names: [-H, --with-filename]
+    summary: puts the file name before each line
+  - names: [-q, --quiet]
+    summary: prints nothing; the exit code says whether it matched
+  - names: [-s, --no-messages]
+    summary: hides errors about files it can't read
+  - names: [-m, --max-count]
+    value: number
+    summary: stops after this many matches
+  - names: [-e, --regexp]
+    value: pattern
+    repeat: true
+    summary: a pattern; several match any of them
+  - names: [-f, --file]
+    value: file
+    summary: the patterns in this file, one per line
+  - names: [-I]
+    summary: skips binary files
+  - names: [--include]
+    value: glob
+    repeat: true
+    summary: searches only files that match, such as '*.go'
+  - names: [--exclude]
+    value: glob
+    repeat: true
+    summary: skips files that match
+  - names: [--exclude-dir]
+    value: glob
+    repeat: true
+    summary: skips folders that match, such as node_modules
+  - names: [--color]
+    value: when
+    optionalValue: true
+    summary: colours the matches
+    choices: [always, auto, never]
+args:
+  - name: pattern
+    summary: what to look for, a regular expression unless -F
+  - name: file
+    optional: true
+    repeat: true
+    summary: the files; input by default
+recipes:
+  - title: Search the files here for text
+    command: grep -rn {text} .
+    words: [find in files, search code, recursive search]
+  - title: Search ignoring case, with lines around
+    command: grep -i -C 3 {text} {file}
+    words: [context, case insensitive]
+  - title: List the files that contain text
+    command: grep -rl {text} .
+    words: [which files, file names]
+  - title: Search only some kinds of file
+    command: grep -rn --include='*.yaml' {text} .
+    words: [file type, extension]
+  - title: Search, skipping folders like node_modules
+    command: grep -rn --exclude-dir=node_modules --exclude-dir=.git {text} .
+    words: [ignore folder, exclude]
+  - title: Show the lines that don't match
+    command: grep -v {text} {file}
+    words: [invert, filter out, exclude lines, without]
+  - title: Count the lines that match
+    command: grep -c {text} {file}
+    words: [how many, count matches]
+  - title: Match any of several words
+    command: grep -E 'error|warn|fatal' {file}
+    words: [or, alternatives, multiple patterns]
+---
+name: sed
+group: linux
+summary: Edits text line by line, most often to replace one thing with another.
+flags:
+  - names: [-i, --in-place]
+    value: suffix
+    optionalValue: true
+    common: true
+    summary: changes the files themselves; with a suffix (-i.bak) keeps the old ones
+    danger:
+      level: caution
+      note: the files are changed; without a suffix there is no copy of the old ones
+  - names: [-n, --quiet, --silent]
+    common: true
+    summary: prints only what p asks for
+  - names: [-E, -r, --regexp-extended]
+    common: true
+    summary: extended regular expressions (groups and + without backslashes)
+  - names: [-e, --expression]
+    value: script
+    repeat: true
+    summary: a script to run; several run in order
+  - names: [-f, --file]
+    value: file
+    summary: runs the script in this file
+  - names: [-s, --separate]
+    summary: treats each file on its own, not as one stream
+  - names: [-z, --null-data]
+    summary: lines end with a null instead of a newline
+args:
+  - name: script
+    summary: what to do, such as s/old/new/g (quote it)
+  - name: file
+    optional: true
+    repeat: true
+    summary: the files; input by default
+recipes:
+  - title: Replace text in a file
+    command: sed -i 's/{old}/{new}/g' {file}
+    words: [find and replace, substitute, change text]
+    note: the file is changed; -i.bak keeps a copy
+  - title: Replace text, keeping a backup
+    command: sed -i.bak 's/{old}/{new}/g' {file}
+    words: [backup, safe replace]
+  - title: Print some lines of a file
+    command: sed -n '10,20p' {file}
+    words: [line range, lines 10 to 20, extract lines]
+  - title: Delete the lines that match
+    command: sed '/{pattern}/d' {file}
+    words: [remove lines, filter]
+  - title: Delete empty lines
+    command: sed '/^$/d' {file}
+    words: [blank lines, clean up]
+---
+name: awk
+group: linux
+summary: Runs a small program on each line, split into fields, such as to print some columns.
+flags:
+  - names: [-F, --field-separator]
+    value: separator
+    common: true
+    summary: splits fields at this instead of spaces, such as , or ':'
+  - names: [-v, --assign]
+    value: name=value
+    repeat: true
+    summary: sets a variable before the program runs
+  - names: [-f, --file]
+    value: file
+    summary: runs the program in this file
+args:
+  - name: program
+    summary: what to do, such as '{print $1}' (quote it)
+  - name: file
+    optional: true
+    repeat: true
+    summary: the files; input by default
+recipes:
+  - title: Print one column
+    command: awk '{print $2}' {file}
+    words: [column, field, extract]
+  - title: Print columns of a CSV
+    command: awk -F, '{print $1, $3}' {file}
+    words: [csv, comma separated, fields]
+  - title: Add up a column
+    command: awk '{sum += $1} END {print sum}' {file}
+    words: [total, sum, add numbers]
+  - title: Print the lines where a column matches
+    command: awk '$3 == "{value}"' {file}
+    words: [filter rows, where]
+---
+name: sort
+group: linux
+summary: Sorts lines.
+flags:
+  - names: [-n, --numeric-sort]
+    common: true
+    summary: as numbers
+  - names: [-r, --reverse]
+    common: true
+    summary: largest or last first
+  - names: [-h, --human-numeric-sort]
+    common: true
+    summary: as sizes like 2K and 1G
+  - names: [-k, --key]
+    value: field
+    common: true
+    summary: by this field, such as 2 or 2,2
+  - names: [-t, --field-separator]
+    value: separator
+    summary: fields are split at this
+  - names: [-u, --unique]
+    summary: only one of lines that are the same
+  - names: [-f, --ignore-case]
+    summary: ignores case
+  - names: [-V, --version-sort]
+    summary: as versions, so 1.10 comes after 1.9
+  - names: [-s, --stable]
+    summary: keeps lines that sort the same in their order
+  - names: [-o, --output]
+    value: file
+    summary: writes to this file, which may be the input
+  - names: [-R, --random-sort]
+    summary: in random order
+args:
+  - name: file
+    optional: true
+    repeat: true
+    summary: the files; input by default
+recipes:
+  - title: Sort numbers, largest first
+    command: sort -nr {file}
+    words: [descending, biggest]
+  - title: Count how often each line appears
+    command: sort {file} | uniq -c | sort -rn
+    words: [frequency, top, most common, histogram]
+  - title: Sort by a column
+    command: sort -k 2 -t , {file}
+    words: [column, field, csv]
+  - title: Sort and drop repeated lines
+    command: sort -u {file}
+    words: [unique, deduplicate, distinct]
+---
+name: uniq
+group: linux
+summary: Drops or counts repeated lines next to each other; sort first to catch all.
+flags:
+  - names: [-c, --count]
+    common: true
+    summary: puts how many times before each line
+  - names: [-d, --repeated]
+    summary: only lines that repeat
+  - names: [-u, --unique]
+    summary: only lines that don't repeat
+  - names: [-i, --ignore-case]
+    summary: ignores case
+  - names: [-f, --skip-fields]
+    value: number
+    summary: compares after this many fields
+args:
+  - name: input
+    optional: true
+    summary: the file; input by default
+  - name: output
+    optional: true
+    summary: writes here instead
+recipes:
+  - title: Show only the lines that repeat
+    command: uniq -d {file}
+    words: [duplicates, repeated]
+---
+name: wc
+group: linux
+summary: Counts lines, words and bytes.
+flags:
+  - names: [-l, --lines]
+    common: true
+    summary: lines only
+  - names: [-w, --words]
+    summary: words only
+  - names: [-c, --bytes]
+    summary: bytes only
+  - names: [-m, --chars]
+    summary: characters only
+  - names: [-L, --max-line-length]
+    summary: the length of the longest line
+args:
+  - name: file
+    optional: true
+    repeat: true
+    summary: the files; input by default
+recipes:
+  - title: Count the lines of a file
+    command: wc -l {file}
+    words: [how many lines, line count, length]
+---
+name: head
+group: linux
+summary: Prints the first lines of a file.
+flags:
+  - names: [-<n>, -n, --lines]
+    value: lines
+    common: true
+    summary: this many lines (10 by default); -n -5 is all but the last 5
+  - names: [-c, --bytes]
+    value: bytes
+    summary: this many bytes
+  - names: [-q, --quiet]
+    summary: no file names between files
+args:
+  - name: file
+    optional: true
+    repeat: true
+    summary: the files; input by default
+recipes:
+  - title: See the first lines of a file
+    command: head -n 20 {file}
+    words: [top, beginning, start of file, preview]
+---
+name: tail
+group: linux
+summary: Prints the last lines of a file, or follows it as it grows.
+flags:
+  - names: [-<n>, -n, --lines]
+    value: lines
+    common: true
+    summary: this many lines (10 by default); -n +5 starts at line 5
+  - names: [-f, --follow]
+    common: true
+    summary: keeps printing lines as they are added
+  - names: [-F]
+    summary: follows, even when the file is rotated or made again
+  - names: [-c, --bytes]
+    value: bytes
+    summary: this many bytes
+  - names: [--pid]
+    value: pid
+    summary: with -f, stops when this process ends
+  - names: [-q, --quiet]
+    summary: no file names between files
+args:
+  - name: file
+    optional: true
+    repeat: true
+    summary: the files; input by default
+recipes:
+  - title: Follow a log file
+    command: tail -F {file}
+    words: [watch log, live, stream, monitor log]
+  - title: See the last lines of a file
+    command: tail -n 100 {file}
+    words: [end of file, latest lines, bottom]
+  - title: Follow a log, showing only errors
+    command: tail -F {file} | grep -i error
+    words: [watch errors, filter log]
+---
+name: cut
+group: linux
+summary: Prints some columns or characters of each line.
+flags:
+  - names: [-d, --delimiter]
+    value: delimiter
+    common: true
+    summary: fields are split at this, such as , or ':' (a tab by default)
+  - names: [-f, --fields]
+    value: list
+    common: true
+    summary: these fields, such as 1,3 or 2-
+  - names: [-c, --characters]
+    value: list
+    summary: these characters, such as 1-10
+  - names: [-b, --bytes]
+    value: list
+    summary: these bytes
+  - names: [--complement]
+    summary: everything but those
+  - names: [-s, --only-delimited]
+    summary: skips lines without the delimiter
+  - names: [--output-delimiter]
+    value: text
+    summary: joins the fields with this
+args:
+  - name: file
+    optional: true
+    repeat: true
+    summary: the files; input by default
+recipes:
+  - title: Print fields of a delimited file
+    command: "cut -d : -f 1 /etc/passwd"
+    words: [column, field, split]
+---
+name: tr
+group: linux
+summary: Changes or deletes characters in its input.
+flags:
+  - names: [-d, --delete]
+    common: true
+    summary: deletes the characters of the first set
+  - names: [-s, --squeeze-repeats]
+    common: true
+    summary: makes runs of the same character one
+  - names: [-c, --complement]
+    summary: every character not in the first set
+args:
+  - name: set1
+    summary: the characters to change, such as a-z or '[:upper:]'
+  - name: set2
+    optional: true
+    summary: what they become
+recipes:
+  - title: Make text lower case
+    command: tr '[:upper:]' '[:lower:]'
+    words: [lowercase, case]
+  - title: Delete Windows line endings
+    command: tr -d '\r'
+    words: [crlf, carriage return, dos2unix]
+---
+name: tar
+group: linux
+summary: Packs files into an archive, or unpacks one, often compressed (.tar.gz).
+flags:
+  - names: [-c, --create]
+    common: true
+    summary: makes an archive
+  - names: [-x, --extract, --get]
+    common: true
+    summary: unpacks an archive
+  - names: [-t, --list]
+    common: true
+    summary: lists what is in an archive
+  - names: [-f, --file]
+    value: archive
+    common: true
+    summary: the archive file (- is input or output)
+  - names: [-z, --gzip]
+    common: true
+    summary: compressed with gzip (.tar.gz, .tgz)
+  - names: [-j, --bzip2]
+    summary: compressed with bzip2 (.tar.bz2)
+  - names: [-J, --xz]
+    summary: compressed with xz (.tar.xz)
+  - names: [--zstd]
+    summary: compressed with zstd (.tar.zst)
+  - names: [-a, --auto-compress]
+    summary: compresses as the archive's name says
+  - names: [-v, --verbose]
+    common: true
+    summary: names each file
+  - names: [-C, --directory]
+    value: folder
+    summary: works in this folder, such as where to unpack
+  - names: [--exclude]
+    value: pattern
+    repeat: true
+    summary: leaves out files that match
+  - names: [--strip-components]
+    value: number
+    summary: drops this many folders from the front of each name when unpacking
+  - names: [-p, --preserve-permissions]
+    summary: keeps the permissions when unpacking
+  - names: [-k, --keep-old-files]
+    summary: doesn't overwrite files when unpacking
+  - names: [-O, --to-stdout]
+    summary: unpacks to the output, not to files
+args:
+  - name: file
+    optional: true
+    repeat: true
+    summary: the files to pack, or which ones to unpack
+recipes:
+  - title: Unpack a .tar.gz
+    command: tar -xzf {archive}.tar.gz
+    words: [extract, untar, decompress, unzip]
+  - title: Unpack into a folder
+    command: tar -xzf {archive}.tar.gz -C {folder}
+    words: [extract to directory, destination]
+  - title: Pack a folder into a .tar.gz
+    command: tar -czf {archive}.tar.gz {folder}
+    words: [compress, archive, create tarball, zip folder]
+  - title: See what is in an archive
+    command: tar -tzf {archive}.tar.gz
+    words: [list contents, inspect archive]
+---
+name: gzip
+group: linux
+summary: Compresses files to .gz, replacing them, or decompresses them.
+flags:
+  - names: [-d, --decompress]
+    common: true
+    summary: decompresses
+  - names: [-k, --keep]
+    common: true
+    summary: keeps the original file
+  - names: [-c, --stdout]
+    summary: writes to the output, keeping the file
+  - names: [-r, --recursive]
+    summary: every file in the folders given
+  - names: [-l, --list]
+    summary: shows how much each file shrank
+  - names: [-t, --test]
+    summary: checks the files are whole
+  - names: [-<n>]
+    value: level
+    summary: how hard to compress, 1 (fast) to 9 (small)
+  - names: [-f, --force]
+    summary: overwrites, and compresses links
+args:
+  - name: file
+    optional: true
+    repeat: true
+    summary: the files
+recipes:
+  - title: Compress a file, keeping it
+    command: gzip -k {file}
+    words: [compress, gz, shrink]
+  - title: Decompress a .gz file
+    command: gzip -d {file}.gz
+    words: [gunzip, extract, uncompress]
+---
+name: ln
+group: linux
+summary: Makes links to files.
+flags:
+  - names: [-s, --symbolic]
+    common: true
+    summary: a symbolic link, which points to the path (the usual kind)
+  - names: [-f, --force]
+    common: true
+    summary: replaces a file or link there
+    danger:
+      level: caution
+      note: a file at the link's name is replaced
+  - names: [-n, --no-dereference]
+    summary: treats a link to a folder as a file, to replace it
+  - names: [-r, --relative]
+    summary: makes the link's path relative
+  - names: [-v, --verbose]
+    summary: names each link
+args:
+  - name: target
+    summary: what the link points to
+  - name: link-name
+    optional: true
+    summary: the link; the target's name here by default
+recipes:
+  - title: Make a symbolic link
+    command: ln -s {target} {link}
+    words: [symlink, shortcut, alias]
+  - title: Point an existing link somewhere else
+    command: ln -sfn {target} {link}
+    words: [update symlink, switch version]
+---
+name: cp
+group: linux
+summary: Copies files and folders.
+flags:
+  - names: [-r, -R, --recursive]
+    common: true
+    summary: copies folders and what is in them
+  - names: [-a, --archive]
+    common: true
+    summary: copies everything as it is, links, permissions and dates (folders too)
+  - names: [-i, --interactive]
+    common: true
+    summary: asks before overwriting
+  - names: [-n, --no-clobber]
+    summary: never overwrites
+  - names: [-u, --update]
+    summary: only when the source is newer
+  - names: [-v, --verbose]
+    summary: names each file
+  - names: [-p]
+    summary: keeps permissions, owner and dates
+  - names: [-f, --force]
+    summary: replaces files it can't open for writing
+  - names: [-l, --link]
+    summary: makes hard links instead of copying
+  - names: [-s, --symbolic-link]
+    summary: makes symbolic links instead of copying
+  - names: [-t, --target-directory]
+    value: folder
+    summary: copies everything into this folder
+  - names: [--backup]
+    value: control
+    optionalValue: true
+    summary: keeps a copy of each file it overwrites
+args:
+  - name: source
+    repeat: true
+    summary: the files to copy, then where to
+recipes:
+  - title: Copy a folder and everything in it
+    command: cp -a {source} {destination}
+    words: [copy directory, duplicate folder, backup]
+  - title: Copy without overwriting
+    command: cp -n {source} {destination}
+    words: [safe copy, no clobber]
+---
+name: mv
+group: linux
+summary: Moves or renames files and folders.
+flags:
+  - names: [-i, --interactive]
+    common: true
+    summary: asks before overwriting
+  - names: [-n, --no-clobber]
+    summary: never overwrites
+  - names: [-f, --force]
+    summary: never asks
+  - names: [-u, --update]
+    summary: only when the source is newer
+  - names: [-v, --verbose]
+    summary: names each file
+  - names: [-t, --target-directory]
+    value: folder
+    summary: moves everything into this folder
+  - names: [--backup]
+    value: control
+    optionalValue: true
+    summary: keeps a copy of each file it overwrites
+args:
+  - name: source
+    repeat: true
+    summary: the files to move, then where to
+recipes:
+  - title: Rename a file, asking before overwriting
+    command: mv -i {old} {new}
+    words: [rename, move file]
+---
+name: rm
+group: linux
+summary: Deletes files, and folders with -r.
+danger:
+  level: danger
+  note: deleted for good; there is no recycle bin
+  safer: rm -i
+flags:
+  - names: [-r, -R, --recursive]
+    common: true
+    summary: deletes folders and everything in them
+    danger:
+      level: danger
+      note: the whole folder is deleted
+  - names: [-f, --force]
+    common: true
+    summary: never asks, and no error for files that aren't there
+    danger:
+      level: danger
+      note: no question is asked, even for protected files
+  - names: [-i]
+    common: true
+    summary: asks about each file
+  - names: [-I]
+    summary: asks once, before deleting more than three files or going into folders
+  - names: [-d, --dir]
+    summary: deletes empty folders
+  - names: [-v, --verbose]
+    summary: names each file
+  - names: [--no-preserve-root]
+    summary: lets it delete / itself
+    danger:
+      level: danger
+      note: can delete the whole system
+args:
+  - name: file
+    repeat: true
+    summary: the files
+recipes:
+  - title: Delete a folder and what is in it, asking once
+    command: rm -rI {folder}
+    words: [remove directory, delete folder]
+    note: it is gone for good
+  - title: Delete a file, asking first
+    command: rm -i {file}
+    words: [remove file, safe delete]
+---
+name: chmod
+group: linux
+summary: Changes who may read, write and run files.
+flags:
+  - names: [-R, --recursive]
+    common: true
+    summary: the folders and everything in them
+    danger:
+      level: caution
+      note: changes every file below; folders and files usually need different modes
+  - names: [-v, --verbose]
+    summary: names each file
+  - names: [-c, --changes]
+    summary: names each file it changes
+  - names: [--reference]
+    value: file
+    summary: copies this file's mode
+args:
+  - name: mode
+    summary: such as u+x, 644 (rw-r--r--) or 755 (rwxr-xr-x)
+  - name: file
+    repeat: true
+    summary: the files
+recipes:
+  - title: Make a script runnable
+    command: chmod +x {file}
+    words: [executable, permission denied, run script]
+  - title: Make a key file private
+    command: chmod 600 {file}
+    words: [ssh key, private, unprotected private key, permissions too open]
+---
+name: chown
+group: linux
+summary: Changes who owns files.
+flags:
+  - names: [-R, --recursive]
+    common: true
+    summary: the folders and everything in them
+  - names: [-h, --no-dereference]
+    summary: changes a link itself, not what it points to
+  - names: [-v, --verbose]
+    summary: names each file
+  - names: [--reference]
+    value: file
+    summary: copies this file's owner
+args:
+  - name: owner
+    summary: user, user:group or :group
+  - name: file
+    repeat: true
+    summary: the files
+recipes:
+  - title: Give a folder to a user
+    command: chown -R {user}:{group} {folder}
+    words: [ownership, owner, permission denied]
+---
+name: du
+group: linux
+summary: Shows how much disk files and folders use.
+flags:
+  - names: [-s, --summarize]
+    common: true
+    summary: one total for each one given
+  - names: [-h, --human-readable]
+    common: true
+    summary: sizes as 1K, 234M, 2G
+  - names: [-d, --max-depth]
+    value: levels
+    common: true
+    summary: totals for folders at most this many down
+  - names: [-c, --total]
+    summary: adds a grand total
+  - names: [-a, --all]
+    summary: files too, not only folders
+  - names: [-x, --one-file-system]
+    summary: stays on this file system
+  - names: [--exclude]
+    value: pattern
+    repeat: true
+    summary: leaves out files that match
+  - names: [--apparent-size]
+    summary: the files' sizes, not the disk they take
+args:
+  - name: file
+    optional: true
+    repeat: true
+    summary: the folders or files; the current folder by default
+recipes:
+  - title: See which folders here are biggest
+    command: du -h -d 1 | sort -hr
+    words: [disk usage, large folders, what uses space, disk full]
+  - title: See how big a folder is
+    command: du -sh {folder}
+    words: [folder size, directory size]
+---
+name: df
+group: linux
+summary: Shows how full each file system is.
+flags:
+  - names: [-h, --human-readable]
+    common: true
+    summary: sizes as 1K, 234M, 2G
+  - names: [-T, --print-type]
+    summary: shows each file system's type
+  - names: [-i, --inodes]
+    summary: inodes instead of space
+  - names: [-t, --type]
+    value: type
+    repeat: true
+    summary: only file systems of this type
+  - names: [-x, --exclude-type]
+    value: type
+    repeat: true
+    summary: leaves out file systems of this type, such as tmpfs
+  - names: [--total]
+    summary: adds a grand total
+args:
+  - name: file
+    optional: true
+    repeat: true
+    summary: only the file systems these are on
+recipes:
+  - title: See how full the disks are
+    command: df -h
+    words: [disk space, free space, disk full, storage]
+  - title: See if a disk ran out of inodes
+    command: df -i
+    words: [no space left, inodes, many small files]
+---
+name: free
+group: linux
+summary: Shows how much memory is used and free.
+flags:
+  - names: [-h, --human]
+    common: true
+    summary: sizes as 1.2Gi
+  - names: [-m, --mebi]
+    summary: in MiB
+  - names: [-g, --gibi]
+    summary: in GiB
+  - names: [-s, --seconds]
+    value: seconds
+    summary: again every this-many seconds
+  - names: [-t, --total]
+    summary: adds a total of memory and swap
+  - names: [-w, --wide]
+    summary: buffers and cache in their own columns
+recipes:
+  - title: See how much memory is free
+    command: free -h
+    words: [ram, memory usage, available memory]
+---
+name: ps
+group: linux
+summary: Lists processes.
+flags:
+  - names: [-e, -A]
+    common: true
+    summary: every process
+  - names: [-f]
+    common: true
+    summary: full lines, with the parent and the whole command
+  - names: [-u, --user]
+    value: user
+    summary: only this user's
+  - names: [-p, --pid]
+    value: pid
+    summary: only these processes
+  - names: [-C]
+    value: name
+    summary: only processes with this command name
+  - names: [-o, --format]
+    value: columns
+    summary: these columns, such as pid,ppid,%cpu,%mem,cmd
+  - names: [--sort]
+    value: key
+    summary: sorts by this, such as -%mem for most memory first
+  - names: [--forest]
+    summary: draws which process started which
+  - names: [-L]
+    summary: shows threads too
+args:
+  - name: bsd-options
+    optional: true
+    summary: options in the old style, without a dash
+    choices:
+      - {value: aux, summary: "every process, with its user, CPU and memory"}
+      - {value: auxf, summary: "every process, as a tree"}
+      - {value: ax, summary: every process}
+recipes:
+  - title: List every process
+    command: ps aux
+    words: [all processes, running programs, task list]
+  - title: Find a process by name
+    command: ps aux | grep {name}
+    words: [is it running, find pid, search process]
+  - title: List the processes using the most memory
+    command: ps aux --sort=-%mem | head -n 10
+    words: [memory hog, top memory, ram usage]
+  - title: List the processes using the most CPU
+    command: ps aux --sort=-%cpu | head -n 10
+    words: [cpu hog, busy, slow machine]
+  - title: See which process started which
+    command: ps -ef --forest
+    words: [tree, parent process, children]
+---
+name: kill
+group: linux
+summary: Sends a signal to processes; by default asks them to stop.
+flags:
+  - names: [-s, --signal]
+    value: signal
+    summary: sends this signal, such as TERM, KILL or HUP
+  - names: [-<n>]
+    value: signal
+    summary: sends this signal by number; 9 kills at once, 15 asks to stop
+  - names: [-KILL, -SIGKILL]
+    summary: kills it at once, without letting it clean up
+    danger:
+      level: caution
+      note: the process can't save its work or clean up
+      safer: kill {pid}
+  - names: [-TERM, -SIGTERM]
+    summary: asks it to stop (the default)
+  - names: [-HUP, -SIGHUP]
+    summary: hangs up; many services read their settings again
+  - names: [-INT, -SIGINT]
+    summary: interrupts it, as Ctrl+C does
+  - names: [-l, --list]
+    summary: lists the signals
+args:
+  - name: pid
+    repeat: true
+    summary: the process IDs, as ps shows them
+recipes:
+  - title: Ask a process to stop
+    command: kill {pid}
+    words: [stop process, end task, terminate]
+  - title: Kill a process that won't stop
+    command: kill -9 {pid}
+    words: [force kill, hung, frozen, unresponsive]
+    note: try a plain kill first, so it can clean up
+---
+name: top
+group: linux
+summary: Shows the busiest processes and the machine's load, live.
+flags:
+  - names: [-b]
+    summary: prints plain text, for a file or script
+  - names: [-n]
+    value: number
+    summary: stops after this many updates
+  - names: [-d]
+    value: seconds
+    summary: updates every this-many seconds
+  - names: [-p]
+    value: pid
+    summary: only these processes
+  - names: [-u]
+    value: user
+    summary: only this user's processes
+  - names: [-o]
+    value: field
+    summary: sorts by this, such as %MEM
+  - names: [-c]
+    summary: shows whole command lines
+  - names: [-H]
+    summary: shows threads
+recipes:
+  - title: See what is using the CPU, once, as text
+    command: top -b -n 1 | head -n 20
+    words: [snapshot, load, busy processes]
+  - title: Watch one user's processes
+    command: top -u {user}
+    words: [monitor, live]
+---
+name: ss
+group: linux
+summary: Lists network connections and listening ports.
+flags:
+  - names: [-t, --tcp]
+    common: true
+    summary: TCP
+  - names: [-u, --udp]
+    summary: UDP
+  - names: [-l, --listening]
+    common: true
+    summary: only ports listening for connections
+  - names: [-n, --numeric]
+    common: true
+    summary: numbers, not names, for addresses and ports
+  - names: [-p, --processes]
+    common: true
+    summary: which process has each (root sees them all)
+  - names: [-a, --all]
+    summary: listening ports and connections
+  - names: [-s, --summary]
+    summary: counts by kind
+  - names: ["-4", --ipv4]
+    summary: IPv4 only
+  - names: ["-6", --ipv6]
+    summary: IPv6 only
+  - names: [-o, --options]
+    summary: timer details
+args:
+  - name: filter
+    optional: true
+    repeat: true
+    summary: such as state established, or sport = :443
+recipes:
+  - title: See which ports are listening, and by what
+    command: ss -tlnp
+    words: [open ports, what is listening, port in use, netstat]
+  - title: See what is using a port
+    command: ss -tlnp sport = :{port}
+    words: [port in use, address already in use, who has port]
+  - title: List open connections
+    command: ss -tn state established
+    words: [connections, established, network]
+---
+name: lsof
+group: linux
+summary: Lists open files, which on Linux includes network connections.
+flags:
+  - names: [-i]
+    value: address
+    common: true
+    summary: network files matching this, such as :8080 or tcp
+  - names: [-p]
+    value: pid
+    summary: files this process has open
+  - names: [-u]
+    value: user
+    summary: files this user has open
+  - names: [-c]
+    value: name
+    summary: files of processes whose name starts with this
+  - names: [-t]
+    summary: prints only process IDs, for kill
+  - names: [-n]
+    summary: numbers, not host names
+  - names: [-P]
+    summary: numbers, not port names
+args:
+  - name: file
+    optional: true
+    repeat: true
+    summary: only these files
+recipes:
+  - title: See which process has a port open
+    command: lsof -i :{port}
+    words: [port in use, who uses port, address already in use]
+  - title: Find who holds a deleted file open
+    command: lsof {file}
+    words: [file in use, busy, can't unmount]
+---
+# Network
+name: curl
+group: linux
+summary: Sends requests to URLs, such as web APIs, and prints the answer.
+flags:
+  - names: [-X, --request]
+    value: method
+    common: true
+    summary: uses this method instead of GET
+    choices: [GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS]
+  - names: [-H, --header]
+    value: header
+    repeat: true
+    common: true
+    summary: "sends this header, such as 'Content-Type: application/json'"
+  - names: [-d, --data]
+    value: data
+    repeat: true
+    common: true
+    summary: sends this as the body, as a POST; @file reads a file
+  - names: [--json]
+    value: data
+    summary: sends this JSON as the body, with JSON headers
+  - names: [--data-raw]
+    value: data
+    summary: like -d, where @ is just a character
+  - names: [--data-urlencode]
+    value: data
+    repeat: true
+    summary: sends this URL-encoded
+  - names: [-F, --form]
+    value: name=content
+    repeat: true
+    summary: sends a form field; name=@file uploads a file
+  - names: [-o, --output]
+    value: file
+    common: true
+    summary: writes the answer to this file
+  - names: [-O, --remote-name]
+    summary: writes the answer to a file named as in the URL
+  - names: [-L, --location]
+    common: true
+    summary: follows redirects
+  - names: [-s, --silent]
+    common: true
+    summary: no progress or errors
+  - names: [-S, --show-error]
+    summary: with -s, still shows errors
+  - names: [-f, --fail]
+    summary: fails on HTTP errors (400 and up), printing no body
+  - names: [-i, --include]
+    summary: prints the answer's headers too
+  - names: [-I, --head]
+    summary: asks only for the headers
+  - names: [-v, --verbose]
+    summary: shows the whole exchange, the TLS handshake and headers both ways
+  - names: [-u, --user]
+    value: user:password
+    summary: signs in with these
+    danger:
+      level: caution
+      note: the password stays in your shell history
+  - names: [-k, --insecure]
+    summary: doesn't check the server's certificate
+    danger:
+      level: caution
+      note: anyone in between could read or change what is sent
+      safer: curl --cacert {ca-file}
+  - names: [--cacert]
+    value: file
+    summary: trusts the certificates in this file
+  - names: [-w, --write-out]
+    value: format
+    summary: prints this after, such as '%{http_code}'
+  - names: [-m, --max-time]
+    value: seconds
+    summary: gives up after this long
+  - names: [--connect-timeout]
+    value: seconds
+    summary: gives up connecting after this long
+  - names: [--retry]
+    value: number
+    summary: tries again this many times on a passing error
+  - names: [-x, --proxy]
+    value: proxy
+    summary: goes through this proxy
+  - names: [--resolve]
+    value: host:port:address
+    repeat: true
+    summary: sends a host's requests to this address, bypassing DNS
+  - names: [-A, --user-agent]
+    value: agent
+    summary: says it is this browser or client
+  - names: [-b, --cookie]
+    value: cookies
+    summary: sends these cookies, or those in a file
+  - names: [-c, --cookie-jar]
+    value: file
+    summary: saves cookies to this file
+  - names: [-T, --upload-file]
+    value: file
+    summary: uploads this file, as a PUT
+  - names: [-G, --get]
+    summary: sends -d data in the URL, as a GET
+  - names: [--compressed]
+    summary: asks for a compressed answer and unpacks it
+args:
+  - name: url
+    repeat: true
+    summary: the URL
+recipes:
+  - title: Send JSON to an API
+    command: "curl -X POST -H 'Content-Type: application/json' -d '{\"name\":\"x\"}' {url}"
+    words: [post json, api request, rest call]
+  - title: See an answer's status and headers
+    command: curl -sI {url}
+    words: [http status, headers, check url]
+  - title: Get just the status code
+    command: curl -s -o /dev/null -w '%{http_code}' {url}
+    words: [http code, health check, is it up]
+  - title: Download a file, following redirects
+    command: curl -LO {url}
+    words: [download, save file, fetch]
+  - title: Call an API with a bearer token
+    command: 'curl -H "Authorization: Bearer $TOKEN" {url}'
+    words: [auth header, token, authenticated request]
+  - title: See where the time goes in a request
+    command: curl -s -o /dev/null -w 'dns %{time_namelookup} connect %{time_connect} tls %{time_appconnect} total %{time_total}\n' {url}
+    words: [slow request, latency, timing]
+  - title: See the whole exchange, TLS included
+    command: curl -v {url}
+    words: [debug request, verbose, handshake, certificate]
+  - title: Upload a file in a form
+    command: curl -F file=@{file} {url}
+    words: [multipart, form upload]
+  - title: Test a host before DNS points to it
+    command: curl --resolve {host}:443:{address} https://{host}/
+    words: [bypass dns, new server, hosts file]
+---
+name: wget
+group: linux
+summary: Downloads files from the web.
+flags:
+  - names: [-O, --output-document]
+    value: file
+    common: true
+    summary: saves to this file (- prints it)
+  - names: [-q, --quiet]
+    common: true
+    summary: prints nothing
+  - names: [-c, --continue]
+    common: true
+    summary: carries on a download that stopped
+  - names: [-P, --directory-prefix]
+    value: folder
+    summary: saves into this folder
+  - names: [-r, --recursive]
+    summary: follows links and downloads those too
+  - names: [-np, --no-parent]
+    summary: never goes up to the parent folder
+  - names: [-m, --mirror]
+    summary: copies a site, recursively and only what changed
+  - names: [-k, --convert-links]
+    summary: changes links to point at the local copies
+  - names: [-N, --timestamping]
+    summary: only when newer than the local file
+  - names: [--spider]
+    summary: checks it is there without downloading
+  - names: [-i, --input-file]
+    value: file
+    summary: downloads the URLs in this file
+  - names: [--header]
+    value: header
+    repeat: true
+    summary: sends this header
+  - names: [-t, --tries]
+    value: number
+    summary: tries this many times
+  - names: [-T, --timeout]
+    value: seconds
+    summary: gives up after this long
+  - names: [--limit-rate]
+    value: rate
+    summary: downloads at most this fast, such as 1m
+args:
+  - name: url
+    repeat: true
+    summary: the URLs
+recipes:
+  - title: Carry on a download that stopped
+    command: wget -c {url}
+    words: [resume download, continue]
+  - title: Download a file under another name
+    command: wget -O {file} {url}
+    words: [save as, download]
+---
+name: ssh
+group: linux
+summary: Opens a shell on another machine, or runs a command there, over an encrypted connection.
+flags:
+  - names: [-i]
+    value: key-file
+    common: true
+    summary: signs in with this private key
+  - names: [-p]
+    value: port
+    common: true
+    summary: connects to this port (22 by default)
+  - names: [-L]
+    value: local-port:host:port
+    repeat: true
+    common: true
+    summary: forwards a port here to a host reachable from there
+  - names: [-R]
+    value: remote-port:host:port
+    repeat: true
+    summary: forwards a port there to a host reachable from here
+  - names: [-D]
+    value: port
+    summary: opens a SOCKS proxy here that goes out from there
+  - names: [-J]
+    value: jump-host
+    summary: goes through this host first
+  - names: [-N]
+    summary: runs no command, only forwards ports
+  - names: [-f]
+    summary: goes into the background after signing in
+  - names: [-A]
+    summary: lets the remote end use your SSH agent
+    danger:
+      level: caution
+      note: root on that machine can use your keys while you are connected
+      safer: ssh -J {jump-host} {destination}
+  - names: [-o]
+    value: option
+    repeat: true
+    summary: sets an option, such as StrictHostKeyChecking=accept-new
+  - names: [-l]
+    value: user
+    summary: signs in as this user
+  - names: [-t]
+    summary: gives the command a terminal, for programs like top
+  - names: [-v]
+    repeat: true
+    summary: says what happens while connecting (more v's say more)
+  - names: [-C]
+    summary: compresses the traffic
+  - names: [-q]
+    summary: hides warnings
+  - names: [-F]
+    value: config-file
+    summary: reads this config file instead of ~/.ssh/config
+args:
+  - name: destination
+    summary: user@host, or a Host from ~/.ssh/config
+  - name: command
+    optional: true
+    repeat: true
+    summary: runs this there instead of opening a shell
+recipes:
+  - title: Sign in with a key
+    command: ssh -i {key-file} {user}@{host}
+    words: [connect, remote login, server]
+  - title: Reach a remote port from here
+    command: ssh -N -L 8080:localhost:{port} {user}@{host}
+    words: [tunnel, port forward, database, localhost]
+  - title: Go through a jump host
+    command: ssh -J {jump-host} {user}@{host}
+    words: [bastion, proxy jump, hop]
+  - title: Run one command on another machine
+    command: ssh {user}@{host} {command}
+    words: [remote command, execute remotely]
+  - title: See why a connection fails
+    command: ssh -vvv {user}@{host}
+    words: [debug ssh, permission denied, verbose]
+---
+name: scp
+group: linux
+summary: Copies files to and from other machines over SSH.
+flags:
+  - names: [-r]
+    common: true
+    summary: copies folders and what is in them
+  - names: [-P]
+    value: port
+    common: true
+    summary: connects to this port
+  - names: [-i]
+    value: key-file
+    summary: signs in with this private key
+  - names: [-p]
+    summary: keeps dates and permissions
+  - names: [-C]
+    summary: compresses the traffic
+  - names: [-J]
+    value: jump-host
+    summary: goes through this host first
+  - names: [-q]
+    summary: no progress
+  - names: [-o]
+    value: option
+    repeat: true
+    summary: sets an SSH option
+args:
+  - name: source
+    repeat: true
+    summary: the files, as path or user@host:path, then where to
+recipes:
+  - title: Copy a file to another machine
+    command: scp {file} {user}@{host}:{path}
+    words: [upload, send file, transfer]
+  - title: Copy a file from another machine
+    command: scp {user}@{host}:{path} .
+    words: [download, fetch file, transfer]
+---
+name: rsync
+group: linux
+summary: Copies files, here or over SSH, sending only what changed.
+flags:
+  - names: [-a, --archive]
+    common: true
+    summary: copies folders and keeps links, permissions and dates
+  - names: [-v, --verbose]
+    common: true
+    summary: names each file
+  - names: [-z, --compress]
+    common: true
+    summary: compresses what is sent
+  - names: [-n, --dry-run]
+    common: true
+    summary: shows what would be copied without copying
+  - names: [-h, --human-readable]
+    summary: sizes easy to read
+  - names: [-P]
+    summary: shows progress and keeps partial files, to resume
+  - names: [--progress]
+    summary: shows progress
+  - names: [--delete]
+    summary: deletes files at the destination that aren't in the source
+    danger:
+      level: danger
+      note: files only at the destination are deleted; a wrong path empties it
+      safer: rsync -n --delete
+  - names: [--exclude]
+    value: pattern
+    repeat: true
+    summary: leaves out files that match
+  - names: [--include]
+    value: pattern
+    repeat: true
+    summary: keeps files that match, before an --exclude
+  - names: [-e, --rsh]
+    value: command
+    summary: connects with this, such as 'ssh -p 2222'
+  - names: [-u, --update]
+    summary: skips files newer at the destination
+  - names: [-c, --checksum]
+    summary: compares contents, not size and date
+  - names: [--bwlimit]
+    value: rate
+    summary: sends at most this fast, such as 5m
+  - names: [--remove-source-files]
+    summary: deletes the source files once copied
+    danger:
+      level: caution
+      note: the source files are deleted
+args:
+  - name: source
+    repeat: true
+    summary: the files or folders, then where to; a source ending in / copies what is in it
+recipes:
+  - title: Copy a folder to another machine, only what changed
+    command: rsync -avz {folder}/ {user}@{host}:{path}
+    words: [sync, backup, upload folder, deploy files]
+    note: the / after the folder copies what is in it, not the folder itself
+  - title: Make a folder the same as another, deleting extras
+    command: rsync -av --delete {source}/ {destination}/
+    words: [mirror, sync exactly]
+    note: run it with -n first to see what would be deleted
+  - title: See what a sync would do
+    command: rsync -avn {source}/ {destination}/
+    words: [dry run, preview sync]
+---
+name: openssl
+group: linux
+summary: Works with certificates, keys and TLS.
+commands:
+  - name: x509
+    summary: Reads, prints and converts certificates.
+    flags:
+      - names: [-in]
+        value: file
+        common: true
+        summary: the certificate
+      - names: [-noout]
+        common: true
+        summary: doesn't print the certificate itself
+      - names: [-text]
+        common: true
+        summary: prints everything in it
+      - names: [-subject]
+        summary: prints who it is for
+      - names: [-issuer]
+        summary: prints who signed it
+      - names: [-dates]
+        summary: prints when it starts and ends
+      - names: [-enddate]
+        summary: prints when it ends
+      - names: [-fingerprint]
+        summary: prints its fingerprint
+      - names: [-ext]
+        value: extensions
+        summary: prints these extensions, such as subjectAltName
+      - names: [-checkend]
+        value: seconds
+        summary: says whether it ends within this many seconds
+      - names: [-inform]
+        value: format
+        summary: the format it is in
+        choices: [PEM, DER]
+      - names: [-outform]
+        value: format
+        summary: the format to write
+        choices: [PEM, DER]
+      - names: [-out]
+        value: file
+        summary: writes it to this file
+  - name: s_client
+    summary: Connects to a TLS server, to see its certificates and test the connection.
+    flags:
+      - names: [-connect]
+        value: host:port
+        common: true
+        summary: the server, such as example.com:443
+      - names: [-servername]
+        value: name
+        common: true
+        summary: the name to ask for (SNI); usually the host
+      - names: [-showcerts]
+        summary: prints the whole chain the server sends
+      - names: [-CAfile]
+        value: file
+        summary: trusts the certificates in this file
+      - names: [-starttls]
+        value: protocol
+        summary: starts TLS inside this protocol first, such as smtp
+  - name: req
+    summary: Makes certificate requests, and self-signed certificates.
+    flags:
+      - names: [-new]
+        summary: makes a new request
+      - names: [-x509]
+        summary: makes a self-signed certificate instead of a request
+      - names: [-newkey]
+        value: kind
+        summary: makes a new key too, such as rsa:4096 or ec
+      - names: [-nodes, -noenc]
+        summary: doesn't encrypt the key
+      - names: [-keyout]
+        value: file
+        summary: writes the key here
+      - names: [-out]
+        value: file
+        summary: writes the request or certificate here
+      - names: [-days]
+        value: days
+        summary: how long the certificate lasts
+      - names: [-subj]
+        value: subject
+        summary: who it is for, such as /CN=example.com
+      - names: [-addext]
+        value: extension
+        repeat: true
+        summary: adds an extension, such as subjectAltName=DNS:example.com
+      - names: [-in]
+        value: file
+        summary: reads this request
+      - names: [-text]
+        summary: prints it as text
+      - names: [-noout]
+        summary: doesn't print it encoded
+  - name: rand
+    summary: Prints random bytes.
+    flags:
+      - names: [-hex]
+        summary: as hex
+      - names: [-base64]
+        summary: as base64
+    args:
+      - name: bytes
+        summary: how many bytes
+  - name: dgst
+    summary: Prints a file's hash.
+    flags:
+      - names: [-sha256]
+        summary: SHA-256
+      - names: [-sha512]
+        summary: SHA-512
+      - names: [-md5]
+        summary: MD5 (not for security)
+    args:
+      - name: file
+        optional: true
+        repeat: true
+        summary: the files
+  - name: verify
+    summary: Checks a certificate against the trusted ones.
+    flags:
+      - names: [-CAfile]
+        value: file
+        summary: trusts the certificates in this file
+      - names: [-untrusted]
+        value: file
+        summary: the intermediate certificates
+    args:
+      - name: certificate
+        repeat: true
+        summary: the certificates
+  - name: pkcs12
+    summary: Packs or unpacks a .pfx/.p12 file of a key and certificates.
+    flags:
+      - names: [-in]
+        value: file
+        summary: the file to read
+      - names: [-out]
+        value: file
+        summary: the file to write
+      - names: [-export]
+        summary: makes a .pfx from a key and certificate
+      - names: [-inkey]
+        value: file
+        summary: the key to put in
+      - names: [-nodes, -noenc]
+        summary: doesn't encrypt the key it writes
+      - names: [-nokeys]
+        summary: writes only the certificates
+recipes:
+  - title: See when a site's certificate ends
+    command: openssl s_client -connect {host}:443 -servername {host} | openssl x509 -noout -dates
+    words: [certificate expiry, ssl expires, tls check]
+  - title: See what is in a certificate file
+    command: openssl x509 -in {file} -noout -text
+    words: [inspect certificate, decode cert, read pem]
+  - title: See a certificate's names and dates
+    command: openssl x509 -in {file} -noout -subject -issuer -dates
+    words: [subject, issuer, expiry]
+  - title: See the chain a server sends
+    command: openssl s_client -connect {host}:443 -servername {host} -showcerts
+    words: [certificate chain, intermediate, tls debug]
+  - title: Make a self-signed certificate
+    command: openssl req -x509 -newkey rsa:4096 -nodes -keyout key.pem -out cert.pem -days 365 -subj /CN={host}
+    words: [self signed, test certificate, localhost https]
+  - title: Make a random secret
+    command: openssl rand -base64 32
+    words: [password, random key, token, secret]
+  - title: Get the certificate and key out of a .pfx
+    command: openssl pkcs12 -in {file}.pfx -out {file}.pem -nodes
+    words: [p12, pfx to pem, convert certificate]
+---
+name: jq
+group: linux
+summary: Picks and reshapes JSON.
+flags:
+  - names: [-r, --raw-output]
+    common: true
+    summary: prints strings without quotes
+  - names: [-c, --compact-output]
+    common: true
+    summary: one line per result
+  - names: [-s, --slurp]
+    summary: reads every input into one array
+  - names: [-n, --null-input]
+    summary: reads no input; the filter makes the output
+  - names: [-e, --exit-status]
+    summary: fails when the last result is false or null
+  - names: [-S, --sort-keys]
+    summary: sorts the keys of objects
+  - names: [--arg]
+    value: name value
+    count: 2
+    repeat: true
+    summary: sets $name to this string
+  - names: [--argjson]
+    value: name json
+    count: 2
+    repeat: true
+    summary: sets $name to this JSON
+  - names: [--tab]
+    summary: indents with tabs
+args:
+  - name: filter
+    summary: what to pick, such as .items[].name (quote it)
+  - name: file
+    optional: true
+    repeat: true
+    summary: the files; input by default
+recipes:
+  - title: Pretty-print JSON
+    command: jq . {file}
+    words: [format json, prettify, indent]
+  - title: Pick a field from every item
+    command: jq -r '.items[].metadata.name' {file}
+    words: [extract field, select, names]
+  - title: Keep the items that match
+    command: jq '.[] | select(.status == "failed")' {file}
+    words: [filter json, where, search json]
+  - title: Use a shell value in a filter
+    command: jq --arg name {name} '.[] | select(.name == $name)' {file}
+    words: [variable, parameter]
+  - title: Count the items
+    command: jq length {file}
+    words: [how many, count array]
+---
+# Services and logs
+name: systemctl
+group: linux
+summary: Starts, stops and inspects systemd services.
+flags:
+  - names: [--user]
+    persistent: true
+    summary: your own services, not the system's
+  - names: [--now]
+    persistent: true
+    summary: with enable or disable, starts or stops it too
+  - names: [-l, --full]
+    persistent: true
+    summary: doesn't shorten lines
+  - names: [--no-pager]
+    persistent: true
+    summary: prints straight away
+  - names: [-t, --type]
+    value: type
+    persistent: true
+    summary: only units of this type, such as service or timer
+  - names: [--state]
+    value: state
+    persistent: true
+    summary: only units in this state, such as failed
+  - names: [--failed]
+    persistent: true
+    summary: only failed units
+commands:
+  - name: status
+    summary: Shows whether a service runs, with its last log lines.
+    args:
+      - name: unit
+        optional: true
+        repeat: true
+        summary: the services
+  - name: start
+    summary: Starts services.
+    args:
+      - name: unit
+        repeat: true
+        summary: the services
+  - name: stop
+    summary: Stops services.
+    args:
+      - name: unit
+        repeat: true
+        summary: the services
+  - name: restart
+    summary: Stops and starts services.
+    args:
+      - name: unit
+        repeat: true
+        summary: the services
+  - name: reload
+    summary: Asks services to read their settings again, without stopping.
+    args:
+      - name: unit
+        repeat: true
+        summary: the services
+  - name: enable
+    summary: Starts services at boot.
+    args:
+      - name: unit
+        repeat: true
+        summary: the services
+  - name: disable
+    summary: Stops starting services at boot.
+    args:
+      - name: unit
+        repeat: true
+        summary: the services
+  - name: is-active
+    summary: Says whether services are running, in words and the exit code.
+    args:
+      - name: unit
+        repeat: true
+        summary: the services
+  - name: list-units
+    summary: Lists the units systemd has loaded.
+  - name: list-unit-files
+    summary: Lists the unit files and whether each starts at boot.
+  - name: list-timers
+    summary: Lists the timers and when each runs next.
+  - name: daemon-reload
+    summary: Reads the unit files again, after you changed one.
+  - name: cat
+    summary: Prints a unit's file, with its overrides.
+    args:
+      - name: unit
+        repeat: true
+        summary: the units
+  - name: edit
+    summary: Opens an override file for a unit in your editor.
+    args:
+      - name: unit
+        summary: the unit
+  - name: mask
+    summary: Stops a unit from being started at all.
+    args:
+      - name: unit
+        repeat: true
+        summary: the units
+  - name: unmask
+    summary: Lets a masked unit be started again.
+    args:
+      - name: unit
+        repeat: true
+        summary: the units
+recipes:
+  - title: See whether a service runs, and why not
+    command: systemctl status {service}
+    words: [service status, is it running, check service]
+  - title: Restart a service
+    command: sudo systemctl restart {service}
+    words: [bounce service, apply config]
+  - title: Start a service now and at boot
+    command: sudo systemctl enable --now {service}
+    words: [autostart, on boot, startup]
+  - title: List the failed services
+    command: systemctl --failed
+    words: [broken services, errors]
+  - title: Load a changed unit file
+    command: sudo systemctl daemon-reload
+    words: [unit file changed, reload systemd]
+---
+name: journalctl
+group: linux
+summary: Reads the systemd journal, the log of services and the system.
+flags:
+  - names: [-u, --unit]
+    value: unit
+    repeat: true
+    common: true
+    summary: only this service's lines
+  - names: [-f, --follow]
+    common: true
+    summary: keeps printing new lines as they come
+  - names: [-n, --lines]
+    value: lines
+    common: true
+    summary: only the last this-many lines
+  - names: [--since]
+    value: time
+    common: true
+    summary: only lines after this, such as "1 hour ago" or today
+  - names: [--until]
+    value: time
+    summary: only lines before this
+  - names: [-p, --priority]
+    value: priority
+    summary: only this important or more
+    choices: [emerg, alert, crit, err, warning, notice, info, debug]
+  - names: [-b, --boot]
+    value: boot
+    optionalValue: true
+    summary: only since this boot; -1 is the one before
+  - names: [-k, --dmesg]
+    summary: only the kernel's messages
+  - names: [-r, --reverse]
+    summary: newest first
+  - names: [-e, --pager-end]
+    summary: opens at the end
+  - names: [-x, --catalog]
+    summary: adds explanations to lines that have them
+  - names: [-g, --grep]
+    value: pattern
+    summary: only lines whose message matches
+  - names: [-o, --output]
+    value: format
+    summary: prints in this format
+    choices: [short, short-iso, verbose, json, json-pretty, cat]
+  - names: [--no-pager]
+    summary: prints straight away
+  - names: [--disk-usage]
+    summary: shows how much disk the journal uses
+  - names: [--vacuum-size]
+    value: size
+    summary: deletes old logs until the journal is this small
+    danger:
+      level: caution
+      note: the oldest logs are deleted
+  - names: [--vacuum-time]
+    value: time
+    summary: deletes logs older than this, such as 2weeks
+    danger:
+      level: caution
+      note: older logs are deleted
+recipes:
+  - title: Follow a service's logs
+    command: journalctl -u {service} -f
+    words: [service logs, tail, live, stream]
+  - title: See a service's logs from the last hour
+    command: journalctl -u {service} --since "1 hour ago"
+    words: [recent logs, time range]
+  - title: See the errors since the last boot
+    command: journalctl -b -p err
+    words: [errors, boot problems, what failed]
+  - title: See why the last boot ended
+    command: journalctl --boot=-1 -e
+    words: [crash, previous boot, reboot reason]
+  - title: Shrink the journal
+    command: sudo journalctl --vacuum-size=500M
+    words: [disk full, clean logs, free space]

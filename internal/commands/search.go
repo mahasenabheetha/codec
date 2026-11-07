@@ -185,12 +185,16 @@ func (ix *index) search(query, tool string, limit int) []Result {
 	var terms []term
 	hinted := map[string]bool{} // tools the query names
 	seen := map[string]bool{}
+	onlyTools := true // "git", "docker compose": browse their recipes
 	for _, w := range wordsOf(query) {
+		// A tool's name is a hint, and a word too: "free disk space"
+		// asks about space, not only about the free command.
 		if ts, ok := ix.tools[w]; ok {
 			for _, t := range ts {
 				hinted[t] = true
 			}
-			continue
+		} else if !stopword[w] {
+			onlyTools = false
 		}
 		r := stem(w)
 		if stopword[w] || seen[r] {
@@ -200,7 +204,7 @@ func (ix *index) search(query, tool string, limit int) []Result {
 		terms = append(terms, ix.expand(w, r))
 	}
 
-	if len(terms) == 0 && len(flags) == 0 {
+	if len(flags) == 0 && (len(terms) == 0 || onlyTools && len(hinted) > 0) {
 		var out []Result
 		for _, d := range ix.docs {
 			if d.Kind == "recipe" && (tool == "" || d.Tool == tool) && (len(hinted) == 0 || hinted[d.Tool]) {
@@ -438,6 +442,7 @@ var synonymGroups = [][]string{
 	{"force", "overwrite", "override"},
 	{"secret", "password", "credential", "token"},
 	{"login", "signin", "sign", "authenticate", "credentials"},
+	{"server", "machine", "host", "remote", "box", "vm"},
 	{"config", "configuration", "settings", "setting", "context"},
 	{"scale", "replicas", "replica", "instances", "resize"},
 	{"namespace", "namespaces", "ns", "project"},

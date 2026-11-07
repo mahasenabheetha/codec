@@ -26,6 +26,11 @@ export interface Flag {
   danger?: Danger
   persistent?: boolean
   common?: boolean
+  /** A value of several words: this many, or up to one of until. */
+  count?: number
+  until?: string[]
+  /** Acts on what the flags before it chose (find -exec): written last. */
+  action?: boolean
 }
 
 export interface Arg {
@@ -37,6 +42,8 @@ export interface Arg {
 }
 
 export interface Command {
+  /** The builder writes the arguments before the flags (find . -name). */
+  argsFirst?: boolean
   name: string
   aliases?: string[]
   summary: string

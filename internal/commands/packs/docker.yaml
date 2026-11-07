@@ -68,7 +68,7 @@ shared:
       summary: how progress is shown
       choices:
         - {value: auto, summary: as fits the terminal}
-        - {value: plain, summary: every line, for logs and CI}
+        - {value: plain, summary: "every line, for logs and CI"}
         - {value: tty, summary: updated in place}
         - {value: quiet, summary: nothing}
         - {value: rawjson, summary: as JSON}
@@ -184,8 +184,8 @@ commands:
         choices:
           - {value: "no", summary: never}
           - {value: on-failure, summary: when it exits with an error}
-          - {value: always, summary: always, and when docker starts}
-          - {value: unless-stopped, summary: always, unless you stopped it}
+          - {value: always, summary: "always, and when docker starts"}
+          - {value: unless-stopped, summary: "always, unless you stopped it"}
       - names: [-P, --publish-all]
         summary: publishes every port the image exposes, on random ports
       - names: [--platform]
@@ -932,7 +932,7 @@ commands:
             value: which
             summary: removes the images too
             choices:
-              - {value: local, summary: only those built here, with no tag}
+              - {value: local, summary: "only those built here, with no tag"}
               - {value: all, summary: every image the services use}
           - names: [--remove-orphans]
             summary: removes containers of services no longer in the file

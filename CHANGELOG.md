@@ -42,6 +42,15 @@ All notable changes to codec are documented here. The format follows
   template, lint, list, status, history, rollback, uninstall, get, show,
   repo, search, dependency, pull, push, package, create and test, with
   27 recipes. helm wasn't installed to check its flags against.
+- **Linux commands** in Commands: ls, find, grep, sed, awk, sort, uniq,
+  wc, head, tail, cut, tr, tar, gzip, ln, cp, mv, rm, chmod, chown, du,
+  df, free, ps, kill, top, ss, lsof, curl, wget, ssh, scp, rsync,
+  openssl, jq, systemctl and journalctl — checked against their help on
+  Ubuntu — with 119 recipes, some of them pipelines (`sort | uniq -c |
+  sort -rn`). `find -exec … \;` and `jq --arg name value` are read with
+  their whole value, `sed -i.bak` with its suffix, and the form writes
+  find's folder first and its actions (`-exec`, `-delete`) last, so a
+  test added later still limits what they act on.
 
 ### Fixed
 

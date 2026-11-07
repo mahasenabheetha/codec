@@ -1,8 +1,10 @@
 package commands
 
 import (
+	"bytes"
 	"embed"
 	"fmt"
+	"io"
 	"io/fs"
 	"path"
 	"slices"
@@ -49,6 +51,9 @@ type Command struct {
 	// Commands are its subcommands ("git stash push", "kubectl rollout
 	// restart").
 	Commands []*Command `yaml:"commands" json:"commands,omitempty"`
+	// ArgsFirst: the builder writes the arguments before the flags, for
+	// a command whose flags are an expression after them (find . -name).
+	ArgsFirst bool `yaml:"argsFirst" json:"argsFirst,omitempty"`
 }
 
 // Flag is an option: "-m", "--message".
@@ -72,6 +77,14 @@ type Flag struct {
 	Persistent bool `yaml:"persistent" json:"persistent,omitempty"`
 	// Common flags are shown first in the builder; the rest are folded.
 	Common bool `yaml:"common" json:"common,omitempty"`
+	// A value of several words: Count words (jq --arg name value), or
+	// every word up to and with one of Until (find -exec rm {} \;).
+	Count int      `yaml:"count" json:"count,omitempty"`
+	Until []string `yaml:"until" json:"until,omitempty"`
+	// Action flags act on what the flags before them chose (find -exec,
+	// -delete); the builder writes them after the others, so a test
+	// added later still limits what they act on.
+	Action bool `yaml:"action" json:"action,omitempty"`
 }
 
 // Choice is one value a flag or argument takes, with what it means.
@@ -80,11 +93,18 @@ type Choice struct {
 	Summary string `yaml:"summary" json:"summary,omitempty"`
 }
 
-// UnmarshalYAML takes a choice written as a plain value too ("yaml").
+// UnmarshalYAML takes a choice written as a plain value too ("yaml"),
+// and refuses any other key: in {value: x, summary: a, b} the comma ends
+// the summary, and the rest would be lost without a word.
 func (c *Choice) UnmarshalYAML(n *yaml.Node) error {
 	if n.Kind == yaml.ScalarNode {
 		c.Value = n.Value
 		return nil
+	}
+	for i := 0; i+1 < len(n.Content); i += 2 {
+		if k := n.Content[i].Value; k != "value" && k != "summary" {
+			return fmt.Errorf("line %d: a choice has only a value and a summary, not %q (quote a summary with a comma)", n.Content[i].Line, k)
+		}
 	}
 	type plain Choice
 	return n.Decode((*plain)(c))
@@ -113,7 +133,8 @@ var packFS embed.FS
 
 var load = sync.OnceValues(func() (map[string]*Tool, error) { return readPacks(packFS) })
 
-// readPacks reads and checks every pack.
+// readPacks reads and checks every pack. A file holds one tool, or
+// several as YAML documents (the Linux commands, one per document).
 func readPacks(fsys fs.FS) (map[string]*Tool, error) {
 	files, err := fs.Glob(fsys, "packs/*.yaml")
 	if err != nil {
@@ -125,21 +146,26 @@ func readPacks(fsys fs.FS) (map[string]*Tool, error) {
 		if err != nil {
 			return nil, err
 		}
-		var t Tool
-		if err := yaml.Unmarshal(data, &t); err != nil {
-			return nil, fmt.Errorf("%s: %w", path.Base(f), err)
-		}
-		if err := check(&t.Command, t.Name); err != nil {
-			return nil, fmt.Errorf("%s: %w", path.Base(f), err)
-		}
-		if err := checkRecipes(&t); err != nil {
-			return nil, fmt.Errorf("%s: %w", path.Base(f), err)
-		}
-		for _, n := range append([]string{t.Name}, t.Aliases...) {
-			if _, dup := tools[n]; dup {
-				return nil, fmt.Errorf("%s: %q is another tool's name too", path.Base(f), n)
+		dec := yaml.NewDecoder(bytes.NewReader(data))
+		for {
+			t := new(Tool)
+			if err := dec.Decode(t); err == io.EOF {
+				break
+			} else if err != nil {
+				return nil, fmt.Errorf("%s: %w", path.Base(f), err)
 			}
-			tools[n] = &t
+			if err := check(&t.Command, t.Name); err != nil {
+				return nil, fmt.Errorf("%s: %w", path.Base(f), err)
+			}
+			if err := checkRecipes(t); err != nil {
+				return nil, fmt.Errorf("%s %s: %w", path.Base(f), t.Name, err)
+			}
+			for _, n := range append([]string{t.Name}, t.Aliases...) {
+				if _, dup := tools[n]; dup {
+					return nil, fmt.Errorf("%s: %q is another tool's name too", path.Base(f), n)
+				}
+				tools[n] = t
+			}
 		}
 	}
 	return tools, nil
@@ -164,6 +190,9 @@ func check(c *Command, where string) error {
 				return fmt.Errorf("%s: flag %s twice", where, n)
 			}
 			seen[n] = true
+		}
+		if (f.Count > 0 || len(f.Until) > 0) && f.Value == "" {
+			return fmt.Errorf("%s %s: a value of several words needs a name", where, f.Names[0])
 		}
 		if f.OptionalValue && f.Value == "" {
 			return fmt.Errorf("%s %s: an optional value needs a name", where, f.Names[0])
@@ -211,7 +240,7 @@ func checkRecipes(t *Tool) error {
 			return fmt.Errorf("recipe %q twice", r.Title)
 		}
 		titles[r.Title] = true
-		first, _, _ := strings.Cut(r.Command, " ")
+		first, _, _ := strings.Cut(strings.TrimPrefix(r.Command, "sudo "), " ")
 		if first != t.Name && !slices.Contains(t.Aliases, first) {
 			return fmt.Errorf("recipe %q: the command must start with %s", r.Title, t.Name)
 		}

@@ -46,7 +46,7 @@ shared:
     choices:
       - {value: none, summary: really does it}
       - {value: client, summary: checked here only}
-      - {value: server, summary: checked by the cluster, then not saved}
+      - {value: server, summary: "checked by the cluster, then not saved"}
   container: &container
     names: [-c, --container]
     value: container
@@ -809,9 +809,9 @@ commands:
         common: true
         summary: how the patch is read
         choices:
-          - {value: strategic, summary: Kubernetes' own merge, lists by key (the default)}
-          - {value: merge, summary: JSON merge patch, lists replaced}
-          - {value: json, summary: JSON patch, a list of operations}
+          - {value: strategic, summary: "Kubernetes' own merge, lists by key (the default)"}
+          - {value: merge, summary: "JSON merge patch, lists replaced"}
+          - {value: json, summary: "JSON patch, a list of operations"}
       - names: [--patch-file]
         value: file
         summary: reads the change from this file

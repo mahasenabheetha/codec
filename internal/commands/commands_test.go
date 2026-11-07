@@ -100,8 +100,8 @@ func TestExplain(t *testing.T) {
 			"git push | tool:git command:push flag:-f!danger arg:origin arg:main"},
 		{"after -- everything is an argument", "git commit -- -file",
 			"git commit | tool:git command:commit end:-- arg:-file"},
-		{"pipeline", "kubectl get po -A | grep Crash",
-			"kubectl get | tool:kubectl command:get arg:po flag:-A\n | unknown:grep arg:Crash"},
+		{"pipeline", "kubectl get po -A | frob Crash",
+			"kubectl get | tool:kubectl command:get arg:po flag:-A\n | unknown:frob arg:Crash"},
 		{"env, sudo and a redirect", "LANG=C sudo -u bob git log > out.txt 2>&1",
 			"git log | env:LANG=C wrapper:sudo wrapper:-u wrapper:bob tool:git command:log redirect:> target:out.txt redirect:2>&1"},
 		{"timeout's duration", "timeout 5s kubectl logs -f web",
@@ -169,7 +169,7 @@ func TestUse(t *testing.T) {
 	if u := Explain("kubectl -nshop logs --tail=50 web").Segments[0].Use; fmt.Sprint(u.Flags) != "[{-n shop true 0} {--tail 50 true 1}]" {
 		t.Errorf("attached values: %v", u.Flags)
 	}
-	if u := Explain("grep x").Segments[0].Use; u != nil {
+	if u := Explain("frob x").Segments[0].Use; u != nil {
 		t.Errorf("unknown command has a use: %+v", u)
 	}
 }
@@ -273,9 +273,11 @@ func TestRecipes(t *testing.T) {
 		tool, _ := Lookup(ti.Name)
 		for _, r := range tool.Recipes {
 			n++
+			// A recipe may be a pipeline (ps aux | grep x): it starts with
+			// its tool, and every command in it is one codec knows.
 			ex := Explain(r.Command)
-			if len(ex.Segments) != 1 || ex.Segments[0].Tool != tool.Name {
-				t.Errorf("%s: %q isn't one %s command", ti.Name, r.Command, tool.Name)
+			if len(ex.Segments) == 0 || ex.Segments[0].Tool != tool.Name {
+				t.Errorf("%s: %q doesn't start with %s", ti.Name, r.Command, tool.Name)
 				continue
 			}
 			for _, p := range ex.Parts {
@@ -356,6 +358,15 @@ func TestSearch(t *testing.T) {
 		{"undo helm upgrade", "", "helm rollback {release} -n {namespace}"},
 		{"see chart default values", "", "helm show values {chart}"},
 		{"what values did i install with", "", "helm get values {release} -n {namespace}"},
+		{"what is using port 8080", "", "ss -tlnp sport = :{port}"},
+		{"disk full", "", "df -h"},
+		{"find large files", "", "find . -type f -size +100M"},
+		{"replace text in file", "", "sed -i 's/{old}/{new}/g' {file}"},
+		{"extract tar.gz", "", "tar -xzf {archive}.tar.gz"},
+		{"make script executable", "", "chmod +x {file}"},
+		{"pretty print json", "", "jq . {file}"},
+		{"copy file to server", "", "scp {file} {user}@{host}:{path}"},
+		{"delete old files", "", "find {folder} -type f -mtime +30 -delete"},
 	} {
 		got, err := Search(c.query, c.tool, 10)
 		if err != nil {
@@ -400,9 +411,11 @@ func TestSearchVague(t *testing.T) {
 // Regression: "--dry-run" in a recipe's command made it the answer to
 // "what is running".
 func TestSearchIgnoresFlagWords(t *testing.T) {
-	got, _ := Search("see what is running", "", 3)
-	if len(got) == 0 || !strings.HasPrefix(got[0].Command, "kubectl get pods") {
-		t.Errorf("first: %+v", got)
+	got, _ := Search("see what is running", "", 5)
+	for _, r := range got {
+		if strings.Contains(r.Command, "--dry-run") || strings.HasPrefix(r.Command, "git clean -n") {
+			t.Errorf("%s answers it", r.Command)
+		}
 	}
 }
 
@@ -429,4 +442,33 @@ func FuzzSearch(f *testing.F) {
 			}
 		}
 	})
+}
+
+// Flags whose value is several words: up to ; or + (find -exec), or a
+// count (jq --arg name value); and a short flag's optional value
+// written after it (sed -i.bak).
+func TestSeveralWordValues(t *testing.T) {
+	for _, c := range []struct{ line, want string }{
+		{`find . -name '*.tmp' -exec rm -f {} \; -print`,
+			`tool:find arg:. flag:-name value:*.tmp flag:-exec value:rm -f {} \; flag:-print`},
+		{`jq --arg n web '.[] | select(.name == $n)' f.json`,
+			`tool:jq flag:--arg value:n web arg:.[] | select(.name == $n) arg:f.json`},
+		{`sed -i.bak 's/a/b/' f`, `tool:sed flag:-i.bak!caution arg:s/a/b/ arg:f`},
+	} {
+		ex := Explain(c.line)
+		var got []string
+		for _, p := range ex.Parts {
+			s := p.Kind + ":" + p.Text
+			if p.Danger != nil {
+				s += "!" + p.Danger.Level
+			}
+			got = append(got, s)
+		}
+		if g := strings.Join(got, " "); g != c.want {
+			t.Errorf("%s\n got %s\nwant %s", c.line, g, c.want)
+		}
+	}
+	if u := Explain(`sed -i.bak x f`).Segments[0].Use; u.Flags[0].Value != ".bak" {
+		t.Errorf("-i.bak: %+v", u.Flags)
+	}
 }
