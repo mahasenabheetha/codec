@@ -8,6 +8,7 @@
   import Select from '../../lib/components/Select.svelte'
   import Toggle from '../../lib/components/Toggle.svelte'
   import { clock, formatClock } from './clock.svelte'
+  import { nextStart, startLabel } from './hours'
   import { kindIcon } from './kinds'
   import { reminders, screenLength, type Guide, type Reminder, type Style } from './reminders.svelte'
   import { chimes } from './sound'
@@ -23,6 +24,10 @@
   const at = $derived(reminders.next[r.id])
   const left = $derived(at ? Math.max(0, at - clock.now) : 0)
   const done = $derived(at ? 1 - left / (r.every * 60_000) : 0)
+  // Outside the hours, or due after they end: it waits for the next start.
+  const waits = $derived(r.enabled && (!!reminders.resting || (!!at && !reminders.dueInHours(at))))
+  const time = (t: number) => new Date(t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  const resumes = $derived(waits ? startLabel(reminders.resting?.until ?? nextStart(reminders.prefs.hours, clock.now), clock.now, time) : '')
   const paused = $derived(reminders.pausedUntil > clock.now)
 
   const styles: { value: Style; label: string; title: string }[] = [
@@ -78,8 +83,8 @@
 
   {#if r.enabled}
     <div class="next">
-      <div class="bar" aria-hidden="true"><span style:width="{Math.min(100, done * 100)}%"></span></div>
-      <span>{paused ? 'Paused' : at ? `in ${formatClock(left)}` : ''}</span>
+      <div class="bar" aria-hidden="true"><span style:width="{waits ? 0 : Math.min(100, done * 100)}%"></span></div>
+      <span>{paused ? 'Paused' : waits ? `resumes ${resumes}` : at ? `in ${formatClock(left)}` : ''}</span>
     </div>
   {/if}
 

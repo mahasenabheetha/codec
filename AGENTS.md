@@ -58,6 +58,7 @@ improvements are the common work. User docs: [docs/](docs/index.html).
 go vet ./... && go test ./internal/<pkg>/...   # backend
 npm --prefix frontend ci                        # once, installs UI deps
 npm --prefix frontend run check                 # UI type-check
+npm --prefix frontend test                      # UI unit tests (Node's runner, *.test.mjs)
 npm --prefix frontend run build                 # builds into internal/web/dist/app
 go build -o codec ./cmd/codec                   # binary (needs the UI built)
 scripts/dev.sh build|run|ui [port]              # all of the above in one step

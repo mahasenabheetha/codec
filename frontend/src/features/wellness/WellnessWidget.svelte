@@ -82,7 +82,7 @@
         type="button"
         class="widget"
         class:rest={isBreak && focus.active}
-        title={focus.active ? `${phaseLabel[focus.phase]}: ${formatClock(focus.left)} left` : up && !paused ? `${up.reminder.name} in ${formatClock(up.at - clock.now)}` : 'Focus & breaks'}
+        title={focus.active ? `${phaseLabel[focus.phase]}: ${formatClock(focus.left)} left` : up && !paused ? `${up.reminder.name} in ${formatClock(up.at - clock.now)}` : reminders.resting ? 'Breaks resting until your active hours' : 'Focus & breaks'}
       >
         {#if focus.active}
           <svg viewBox="0 0 16 16" aria-hidden="true">

@@ -5,7 +5,8 @@
 // reminders run whichever tool is open.
 import { persisted } from '../../lib/stores/persist.svelte'
 import { toasts } from '../../lib/stores/toast.svelte'
-import { hold, Timer } from './clock.svelte'
+import { clock, hold, Timer } from './clock.svelte'
+import { nextStart, windowAt, type Hours } from './hours'
 import { focus } from './focus.svelte'
 import { type Chime, unlockAudio } from './sound'
 import { ring } from './wellness.svelte'
@@ -128,7 +129,7 @@ interface Prefs {
   /** Wait for a focus session to end before reminding. */
   holdDuringFocus: boolean
   rhythm: Rhythm
-  hours: { on: boolean; from: number; to: number; weekdays: boolean }
+  hours: Hours
 }
 
 const PREFS_VERSION = 2
@@ -166,6 +167,10 @@ const prefsStore = persisted<Prefs>('wellness.reminders', defaults, { sync: true
 const nextStore = persisted<Record<string, number>>('wellness.reminders.next', {}, { sync: true })
 /** Reminders paused until then (0: not paused). */
 const pauseStore = persisted<number>('wellness.reminders.pause', 0, { sync: true })
+/** The start of the active-hours window the schedule was made in: when
+ *  the hours begin again (or codec opens in a later window), every
+ *  reminder starts a fresh interval. */
+const windowStore = persisted<number>('wellness.reminders.window', 0, { sync: true })
 
 /** A reminder due this long ago (the laptop slept) is skipped, not shown
  *  late: the time away was a break. */
@@ -198,12 +203,27 @@ class Reminders {
 
   enabled = $derived(this.prefs.list.filter((r) => r.enabled))
 
-  /** The reminder due soonest, and when. */
+  /** Outside active hours: nothing counts down, and the reminders wait
+   *  for the hours to start again at `until`. Null within the hours. */
+  resting = $derived.by(() => {
+    const h = this.prefs.hours
+    const now = clock.now
+    return h.on && !windowAt(h, now) ? { until: nextStart(h, now) } : null
+  })
+
+  /** Whether a reminder due at `at` comes before the hours end: one due
+   *  after it waits for the next window, and starts fresh there. */
+  dueInHours(at: number): boolean {
+    const w = windowAt(this.prefs.hours, clock.now)
+    return !!w && at < w.end
+  }
+
+  /** The reminder due soonest within the hours, and when. */
   upcoming = $derived.by(() => {
     let best: { reminder: Reminder; at: number } | null = null
     for (const r of this.enabled) {
       const at = this.next[r.id]
-      if (at && (!best || at < best.at)) best = { reminder: r, at }
+      if (at && this.dueInHours(at) && (!best || at < best.at)) best = { reminder: r, at }
     }
     return best
   })
@@ -221,7 +241,9 @@ class Reminders {
       // rewrite it back and forth through the storage events.
       $effect(() => {
         const on = this.enabled
-        if (this.leader) {
+        // Outside the hours nothing new is scheduled: it starts fresh
+        // when they begin.
+        if (this.leader && windowAt(this.prefs.hours, Date.now())) {
           const next = { ...nextStore.value }
           let changed = false
           for (const r of on) {
@@ -240,13 +262,7 @@ class Reminders {
 
   /** True when reminders may show now (not paused, within active hours). */
   allowed(now = Date.now()): boolean {
-    if (this.pausedUntil > now) return false
-    const h = this.prefs.hours
-    if (!h.on) return true
-    const d = new Date(now)
-    if (h.weekdays && (d.getDay() === 0 || d.getDay() === 6)) return false
-    const hour = d.getHours() + d.getMinutes() / 60
-    return hour >= h.from && hour < h.to
+    return this.pausedUntil <= now && !!windowAt(this.prefs.hours, now)
   }
 
   #schedule(r: Reminder, fromNow = r.every * 60_000) {
@@ -256,11 +272,23 @@ class Reminders {
   #tick() {
     if (!this.leader) return
     const now = Date.now()
+    // Active hours (3.10.0): outside them nothing counts down or shows (a
+    // break on screen finishes on its own; focus sessions aren't ours).
+    // A new window, entered by the clock or by opening codec later in
+    // it, starts every reminder on a fresh interval; what was due after
+    // the last window ended, a snooze across it included, is dropped.
+    const w = windowAt(this.prefs.hours, now)
+    if (!w) return
+    if (this.prefs.hours.on && windowStore.value !== w.start) {
+      windowStore.value = w.start
+      for (const r of this.enabled) this.#schedule(r)
+      return
+    }
     for (const r of this.enabled) {
       const at = this.next[r.id]
       if (!at || at > now) continue
-      if (now - at > LATE_MS || !this.allowed(now)) {
-        this.#schedule(r) // asleep or outside hours: start the interval over
+      if (now - at > LATE_MS || this.pausedUntil > now) {
+        this.#schedule(r) // asleep or paused: start the interval over
         continue
       }
       if (focus.active && focus.phase !== 'focus') {

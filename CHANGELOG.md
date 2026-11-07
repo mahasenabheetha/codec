@@ -70,6 +70,15 @@ All notable changes to codec are documented here. The format follows
   sanitize the file; Smart paste offers it when it sees secrets;
   `codec sanitize` on the command line.
 
+### Changed
+
+- **Breaks rest outside active hours**: no countdown runs outside them,
+  and the status says when breaks resume ("Monday at 09:00"); a reminder
+  due after the hours end waits, and each reminder starts a fresh
+  interval when the hours begin or codec opens later in them. A break on
+  screen finishes, a snooze past the end is dropped, focus sessions are
+  untouched; hours may cross midnight.
+
 ### Fixed
 
 - **Commands**: the Build form wrote every flag after the last
