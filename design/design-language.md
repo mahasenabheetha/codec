@@ -77,9 +77,21 @@ chroma), the borders (`#1e2e46`, `#2d405d`), `--fg-0 #cbcfdc` (a touch
 dimmer, to stay under 12:1 on the darker ground), `--accent-fg`, the
 shadow and the overlay.
 
-Dusk's and Midnight's text stays between 7:1 and 12:1 on their surfaces: readable, never
-glaring. `npm --prefix frontend run contrast` (`frontend/scripts/contrast.mjs`)
-checks every rule here for all three themes.
+Forest, Rosé and Ocean (3.10.0) are Dusk on other grounds in the same
+way: green-grey (`--bg-2 #1c2520`, accent a misty blue `#a6c2e6` so it
+never reads as ok), pink-violet (`--bg-2 #2b2330`, accent rose `#e8a8d0`)
+and deep blue (`--bg-2 #122532`, accent aqua `#76cfd6`, rest a soft green
+`#9fd3a6` so a break doesn't look like the accent). Paper is a warm,
+low-glare light theme: cream surfaces (`--bg-2 #f9f5ee`), text at most
+14:1, and its own dark hues (`#4c5cb4` … `#1f6a8a`) with the tints at
+100%, so tools show their colours on it. High contrast is black, white
+and bright colours, every text, accent, status and syntax colour at
+least 7:1 (WCAG AAA), with firm borders and the tints at 0%.
+
+Dusk's, Midnight's, Forest's, Rosé's and Ocean's text stays between 7:1
+and 12:1 on their surfaces: readable, never glaring.
+`npm --prefix frontend run contrast` (`frontend/scripts/contrast.mjs`)
+checks every rule here for all nine themes.
 
 All themes meet the same rules: text ≥ 4.5:1 on `--bg-0`…`--bg-3` and
 on its own `-soft` background, logos ≥ 3:1. A new colour token gets a

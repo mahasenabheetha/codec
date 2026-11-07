@@ -274,7 +274,10 @@
 }
 
 :root[data-theme='dusk'],
-:root[data-theme='midnight'] {
+:root[data-theme='midnight'],
+:root[data-theme='forest'],
+:root[data-theme='rose'],
+:root[data-theme='ocean'] {
   color-scheme: dark;
 
   /* Dusk (decision 94): soft and colourful. A muted blue-violet ground,
@@ -381,4 +384,245 @@
 
   --shadow-pop: 0 10px 30px rgb(2 6 16 / 0.55), 0 0 0 1px var(--border-strong);
   --overlay: rgb(2 6 16 / 0.55);
+}
+
+/* Forest (3.10.0): Dusk's colours on a green-grey ground, a misty blue
+   accent so it never reads as "ok". */
+:root[data-theme='forest'] {
+  --bg-0: #141a17;
+  --bg-1: #18201c;
+  --bg-2: #1c2520;
+  --bg-3: #243029;
+  --bg-4: #2c3a32;
+
+  --border: #28342d;
+  --border-strong: #37473e;
+
+  --fg-0: #cbd5cd;
+  --fg-1: #adbab0;
+  --fg-2: #98a69c;
+
+  --accent: #a6c2e6;
+  --accent-hover: #b8d0ef;
+  --accent-soft: rgb(166 194 230 / 0.16);
+  --accent-fg: #141a17;
+
+  --editor-selection: rgb(166 194 230 / 0.18);
+  --editor-selection-focused: rgb(166 194 230 / 0.28);
+  --editor-selection-match: rgb(166 194 230 / 0.13);
+
+  --shadow-pop: 0 10px 30px rgb(4 10 6 / 0.5), 0 0 0 1px var(--border-strong);
+  --overlay: rgb(4 10 6 / 0.55);
+}
+
+/* Rosé (3.10.0): Dusk turned pink-violet, a rose accent. */
+:root[data-theme='rose'] {
+  --bg-0: #211b25;
+  --bg-1: #261f2a;
+  --bg-2: #2b2330;
+  --bg-3: #342b3a;
+  --bg-4: #3e3345;
+
+  --border: #3a3040;
+  --border-strong: #4c4054;
+
+  --fg-0: #e2d5e1;
+  --fg-1: #bcadbd;
+  --fg-2: #ab9bad;
+
+  --accent: #e8a8d0;
+  --accent-hover: #f2bbdc;
+  --accent-soft: rgb(232 168 208 / 0.16);
+  --accent-fg: #211b25;
+
+  --editor-selection: rgb(232 168 208 / 0.17);
+  --editor-selection-focused: rgb(232 168 208 / 0.27);
+  --editor-selection-match: rgb(232 168 208 / 0.12);
+
+  --shadow-pop: 0 10px 30px rgb(14 6 16 / 0.5), 0 0 0 1px var(--border-strong);
+  --overlay: rgb(14 6 16 / 0.55);
+}
+
+/* Ocean (3.10.0): blue-teal on deep blue, an aqua accent; rest is a soft
+   green so a break doesn't look like the accent. */
+:root[data-theme='ocean'] {
+  --bg-0: #0b1a24;
+  --bg-1: #0e1f2b;
+  --bg-2: #122532;
+  --bg-3: #19303f;
+  --bg-4: #213a4b;
+
+  --border: #1e3443;
+  --border-strong: #2c4759;
+
+  --fg-0: #c3d5dd;
+  --fg-1: #a5bcc7;
+  --fg-2: #90a8b4;
+
+  --accent: #76cfd6;
+  --accent-hover: #8edbe1;
+  --accent-soft: rgb(118 207 214 / 0.15);
+  --accent-fg: #0b1a24;
+
+  --rest: #9fd3a6;
+  --rest-soft: rgb(159 211 166 / 0.15);
+
+  --editor-selection: rgb(118 207 214 / 0.17);
+  --editor-selection-focused: rgb(118 207 214 / 0.27);
+  --editor-selection-match: rgb(118 207 214 / 0.12);
+
+  --shadow-pop: 0 10px 30px rgb(2 8 14 / 0.55), 0 0 0 1px var(--border-strong);
+  --overlay: rgb(2 8 14 / 0.55);
+}
+
+/* Paper (3.10.0): a warm, low-glare light theme, cream rather than
+   white, with the tool hues dark enough to read on it. */
+:root[data-theme='paper'] {
+  color-scheme: light;
+
+  --bg-0: #ede7dc;
+  --bg-1: #f3eee5;
+  --bg-2: #f9f5ee;
+  --bg-3: #e7e0d3;
+  --bg-4: #dcd4c4;
+
+  --border: #dad1c1;
+  --border-strong: #c7bca8;
+
+  --fg-0: #2a251f;
+  --fg-1: #574e43;
+  --fg-2: #685e51;
+
+  --accent: #2f5d9e;
+  --accent-hover: #264f88;
+  --accent-soft: rgb(47 93 158 / 0.12);
+  --accent-fg: #ffffff;
+
+  --ok: #2d6a2e;
+  --ok-soft: rgb(45 106 46 / 0.12);
+  --warn: #7f5600;
+  --warn-soft: rgb(127 86 0 / 0.12);
+  --err: #b2302c;
+  --err-soft: rgb(178 48 44 / 0.12);
+  --err-border: rgb(178 48 44 / 0.35);
+  --info: #225f9c;
+  --info-soft: rgb(34 95 156 / 0.12);
+
+  --rest: #1d6b64;
+  --rest-soft: rgb(29 107 100 / 0.12);
+
+  --syn-key: #2a5494;
+  --syn-string: #3b6824;
+  --syn-number: #974709;
+  --syn-bool: #723f99;
+  --syn-comment: #6a6153;
+  --syn-anchor: #1d6b64;
+  --syn-tag: #7f5600;
+  --syn-func: #8a3a13;
+  --syn-expr-tpl: #7a5000;
+  --syn-expr-tpl-bg: rgb(200 140 0 / 0.12);
+  --syn-expr-rt: #a0285e;
+  --syn-expr-rt-bg: rgb(190 40 120 / 0.08);
+
+  --diff-add-bg: rgb(45 106 46 / 0.1);
+  --diff-del-bg: rgb(178 48 44 / 0.09);
+  --diff-chg-bg: rgb(150 100 0 / 0.1);
+  --diff-add-strong: rgb(45 106 46 / 0.25);
+  --diff-del-strong: rgb(178 48 44 / 0.22);
+
+  --brand-kubernetes: #326ce5;
+  --brand-helm: #3346c9;
+  --brand-argo: #c9521f;
+  --brand-github: #1f6feb;
+  --brand-gitlab: #c94414;
+  --brand-azure: #0067b3;
+  --brand-ansible: #c22a27;
+  --brand-docker: #1d63ed;
+  --brand-terraform: #7b42bc;
+
+  --hue-indigo: #4c5cb4;
+  --hue-violet: #734eac;
+  --hue-pink: #a3427a;
+  --hue-peach: #a0552a;
+  --hue-lime: #557024;
+  --hue-teal: #21716a;
+  --hue-cyan: #1f6a8a;
+  --hours-together-fg: #ffffff;
+  --tint-tool: 100%;
+  --tint-action: 100%;
+  --tint-fill: 100%;
+
+  --editor-active-line: rgb(60 40 10 / 0.04);
+  --editor-selection: rgb(47 93 158 / 0.14);
+  --editor-selection-focused: rgb(47 93 158 / 0.22);
+  --editor-selection-match: rgb(47 93 158 / 0.1);
+  --editor-search-match: rgb(200 140 0 / 0.25);
+  --editor-search-match-current: rgb(200 140 0 / 0.5);
+
+  --shadow-pop: 0 8px 28px rgb(50 35 15 / 0.14), 0 0 0 1px var(--border-strong);
+  --overlay: rgb(50 35 15 / 0.3);
+}
+
+/* High contrast (3.10.0): black, white and bright colours, every text at
+   least 7:1 (WCAG AAA), firm borders. The tool hues stay out of the way. */
+:root[data-theme='contrast'] {
+  --bg-0: #000000;
+  --bg-1: #050505;
+  --bg-2: #0a0a0a;
+  --bg-3: #1a1a1a;
+  --bg-4: #2b2b2b;
+
+  --border: #707070;
+  --border-strong: #a0a0a0;
+
+  --fg-0: #ffffff;
+  --fg-1: #e8e8e8;
+  --fg-2: #cccccc;
+
+  --accent: #5cc8ff;
+  --accent-hover: #85d6ff;
+  --accent-soft: rgb(92 200 255 / 0.18);
+  --accent-fg: #000000;
+
+  --ok: #5ee87c;
+  --ok-soft: rgb(94 232 124 / 0.16);
+  --warn: #ffd54d;
+  --warn-soft: rgb(255 213 77 / 0.16);
+  --err: #ff8585;
+  --err-soft: rgb(255 133 133 / 0.16);
+  --err-border: rgb(255 133 133 / 0.6);
+  --info: #74c6ff;
+  --info-soft: rgb(116 198 255 / 0.16);
+
+  --rest: #5ef0dc;
+  --rest-soft: rgb(94 240 220 / 0.16);
+
+  --syn-key: #91caff;
+  --syn-string: #b8f08c;
+  --syn-number: #ffbb70;
+  --syn-bool: #e8adff;
+  --syn-comment: #b8b8b8;
+  --syn-anchor: #5ef0dc;
+  --syn-tag: #ffd54d;
+  --syn-func: #fff27a;
+  --syn-expr-tpl: #ffd88a;
+  --syn-expr-tpl-bg: rgb(255 216 138 / 0.12);
+  --syn-expr-rt: #ffa8d8;
+  --syn-expr-rt-bg: rgb(255 168 216 / 0.12);
+
+  --diff-add-bg: rgb(94 232 124 / 0.18);
+  --diff-del-bg: rgb(255 133 133 / 0.18);
+  --diff-chg-bg: rgb(255 213 77 / 0.16);
+  --diff-add-strong: rgb(94 232 124 / 0.45);
+  --diff-del-strong: rgb(255 133 133 / 0.45);
+
+  --editor-active-line: rgb(255 255 255 / 0.06);
+  --editor-selection: rgb(92 200 255 / 0.3);
+  --editor-selection-focused: rgb(92 200 255 / 0.42);
+  --editor-selection-match: rgb(92 200 255 / 0.2);
+  --editor-search-match: rgb(255 213 77 / 0.35);
+  --editor-search-match-current: rgb(255 213 77 / 0.6);
+
+  --shadow-pop: 0 0 0 2px var(--border-strong);
+  --overlay: rgb(0 0 0 / 0.75);
 }

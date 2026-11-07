@@ -72,6 +72,11 @@ All notable changes to codec are documented here. The format follows
 
 ### Changed
 
+- **Themes**: Paper (warm, low-glare light), Forest (green-grey),
+  Rosé (pink-violet), Ocean (blue-teal on deep blue) and High contrast
+  (every text at least 7:1), each through the contrast check. Settings
+  → Theme is a menu with a swatch for each; System has a light choice as
+  well as a dark one; the palette has "Theme: …" for each.
 - **Sounds**: fourteen chimes (singing bowl, gong, marimba, kalimba, soft
   piano, music box, wind chimes, water drop, tick among the new ones),
   a sound per moment (break and focus start and end, a break's last
