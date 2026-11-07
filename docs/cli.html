@@ -242,6 +242,13 @@ set       spec.template.spec.containers[0].image=</span></code></pre>
   <tr><td><code>cron &lt;expression&gt;</code></td><td>Plain words, field by field, and the next runs (<code>-n</code>, <code>--zone</code>, UTC by default); <code>@daily</code>-style shortcuts and a <code>CRON_TZ=</code> prefix work; Quartz and Jenkins expressions are named as such. <code>--json</code> on both</td></tr>
 </table></div>
 
+<h2 id="explain">Commands<a class="anchor" href="#explain">#</a></h2>
+<div class="table-wrap"><table>
+  <tr><th>Command</th><th>What it does</th></tr>
+  <tr><td><code>explain "&lt;command line&gt;"</code></td><td>Each part of a command line in plain words: the command and subcommand, each flag and its value, the arguments, pipes and redirections; risky parts marked <code>!</code> with a safer way. Quote the line or pipe it in. Nothing is run. <code>--json</code></td></tr>
+  <tr><td><code>how &lt;what you want to do&gt;</code></td><td>The cheat sheet: recipes, commands and flags that do it, best first, with what matched. <code>codec how undo my last commit</code>; <code>-t kubectl</code> for one tool, <code>-n</code> for how many (5; <code>0</code> for all), <code>--json</code>. A tool's name alone lists its recipes.</td></tr>
+</table></div>
+
 <h2 id="regex">Regex<a class="anchor" href="#regex">#</a></h2>
 <div class="table-wrap"><table>
   <tr><th>Command</th><th>What it does</th></tr>

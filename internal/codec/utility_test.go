@@ -121,3 +121,28 @@ func TestDetectPlatformAndBuildLogs(t *testing.T) {
 		}
 	}
 }
+
+// A command line is explained, for Commands; prose that starts with a
+// tool's name isn't one, and curl keeps its own kind (HTTP).
+func TestDetectCommand(t *testing.T) {
+	now := time.Now()
+	for _, c := range []struct{ in, kind string }{
+		{"git push --force origin main", "command"},
+		{"kubectl get pods -n shop -o wide", "command"},
+		{"find the bug in this code", ""},
+		{"curl -s https://example.com/api", "curl"},
+	} {
+		u, ok := DetectUtility(c.in, now)
+		got := ""
+		if ok {
+			got = u.Kind
+		}
+		if got != c.kind {
+			t.Errorf("%q: %q, want %q", c.in, got, c.kind)
+		}
+	}
+	u, _ := DetectUtility("git push --force origin main", now)
+	if u.Tool != "commands" || u.Tab != "explain" || !strings.Contains(u.Summary, "safer: git push --force-with-lease") {
+		t.Errorf("%+v", u)
+	}
+}

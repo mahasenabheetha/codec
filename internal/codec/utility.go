@@ -10,6 +10,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	"github.com/mahasenabheetha/codec/v2/internal/commands"
 	"github.com/mahasenabheetha/codec/v2/internal/cron"
 	"github.com/mahasenabheetha/codec/v2/internal/encode"
 	"github.com/mahasenabheetha/codec/v2/internal/httpkit"
@@ -25,7 +26,7 @@ import (
 // address or a curl command. Smart paste shows the
 // summary and offers to open the tool on the right tab.
 type Utility struct {
-	Kind    string `json:"kind"` // epoch, url, cron, log, cidr, ip, curl
+	Kind    string `json:"kind"` // epoch, url, cron, log, cidr, ip, curl, command
 	Tool    string `json:"tool"` // time, encode, logs, network
 	Tab     string `json:"tab"`  // timestamp, url, cron, viewer, cidr, ip, http
 	Summary string `json:"summary"`
@@ -100,6 +101,9 @@ func DetectUtility(s string, now time.Time) (*Utility, bool) {
 	}
 	if u, ok := networkUtility(s); ok {
 		return u, true
+	}
+	if commands.LooksLikeCommand(s) {
+		return &Utility{Kind: "command", Tool: "commands", Tab: "explain", Summary: commands.Describe(commands.Explain(s))}, true
 	}
 	if u, ok := idUtility(s); ok {
 		return u, true

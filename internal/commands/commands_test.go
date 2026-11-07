@@ -472,3 +472,45 @@ func TestSeveralWordValues(t *testing.T) {
 		t.Errorf("-i.bak: %+v", u.Flags)
 	}
 }
+
+// What Smart paste takes for a command, and the prose it leaves alone.
+func TestLooksLikeCommand(t *testing.T) {
+	for _, c := range []struct {
+		text string
+		want bool
+	}{
+		{"git push --force origin main", true},
+		{"kubectl get pods -n shop", true},
+		{"ps aux | grep java", true},
+		{"tar -xzf a.tar.gz", true},
+		{"find the bug", false},         // prose that starts with a tool's name
+		{"sort these lines out", false}, // the same
+		{"ls", false},                   // nothing used: too little to say
+		{"frobnicate --all", false},     // not in the reference
+		{"git frob --x --y --z", false}, // mostly parts codec can't place
+		{"hello world", false},
+		{"", false},
+	} {
+		if got := LooksLikeCommand(c.text); got != c.want {
+			t.Errorf("LooksLikeCommand(%q) = %v", c.text, got)
+		}
+	}
+}
+
+func TestDescribe(t *testing.T) {
+	got := Describe(Explain("git push --force origin main | tee out"))
+	for _, want := range []string{
+		"git push --force origin main\nSends local commits to a remote repository.\n",
+		"  --force  flag        overwrites the remote branch with the local one !\n",
+		"\n|  passes this command's output to the next one as its input\n",
+		"Sends local commits to a remote repository.\n! danger: commits on the remote that you don't have locally are lost\n  safer: git push --force-with-lease\n",
+	} {
+		if !strings.Contains(got, want) {
+			t.Errorf("missing %q in\n%s", want, got)
+		}
+	}
+	// The flag's risk is the command's: said once.
+	if n := strings.Count(got, "! danger:"); n != 1 {
+		t.Errorf("the risk is said %d times:\n%s", n, got)
+	}
+}

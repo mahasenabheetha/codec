@@ -51,6 +51,10 @@ All notable changes to codec are documented here. The format follows
   their whole value, `sed -i.bak` with its suffix, and the form writes
   find's folder first and its actions (`-exec`, `-delete`) last, so a
   test added later still limits what they act on.
+- **Commands elsewhere**: Smart paste recognises a command line codec
+  knows and explains it, with Open in Commands; `codec explain "<line>"`
+  explains one in the terminal, and `codec how <what you want to do>`
+  searches the cheat sheet (both with `--json`).
 
 ### Fixed
 

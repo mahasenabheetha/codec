@@ -2,7 +2,7 @@
   import Copy from '@lucide/svelte/icons/copy'
   import Eraser from '@lucide/svelte/icons/eraser'
   import SquareTerminal from '@lucide/svelte/icons/square-terminal'
-  import { tick } from 'svelte'
+  import { tick, untrack } from 'svelte'
   import { isAbort } from '../../lib/api/client'
   import { commandSuggestions, commandTool, commandTools, explainCommand, type Explanation, type Suggestions, type Tool, type ToolInfo } from '../../lib/api/commands'
   import Button from '../../lib/components/Button.svelte'
@@ -11,6 +11,7 @@
   import IconButton from '../../lib/components/IconButton.svelte'
   import SegmentedControl from '../../lib/components/SegmentedControl.svelte'
   import SplitPane from '../../lib/components/SplitPane.svelte'
+  import { handoff } from '../../lib/stores/handoff.svelte'
   import { toolById } from '../../lib/tools'
   import { copyText } from '../../lib/utils/clipboard'
   import Pane from '../shared/Pane.svelte'
@@ -39,6 +40,13 @@
   let sheetQuery = $state('')
   let sheetTool = $state('')
   let left = $state<HTMLElement>()
+
+  // A command handed over by Smart paste.
+  $effect(() => {
+    void handoff.pending
+    const v = handoff.take('commands', 'explain')
+    if (v !== null) untrack(() => pick(v))
+  })
 
   // A line typed into an empty one is something to build on.
   let wasEmpty = true

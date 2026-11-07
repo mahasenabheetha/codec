@@ -48,6 +48,7 @@
     uuid: 'UUID → read',
     ulid: 'ULID → read',
     colour: 'Hex colour → described',
+    command: 'Command → explained',
     unknown: 'unrecognised',
   }
   // Where the full tool for a Utilities kind lives.
@@ -61,6 +62,7 @@
     http: 'Open in HTTP',
     table: 'Open in CSV & TSV',
     format: 'Open in JSON & YAML',
+    explain: 'Open in Commands',
     uuid: 'Open in UUID',
     '': 'Open in Colour',
   }
@@ -109,7 +111,7 @@
       bind:editor
       onclear={clear}
       language="auto"
-      placeholder="Paste JSON, base64, a JWT, an Ansible task log, an epoch timestamp, URL-encoded text or a cron expression — codec figures out which"
+      placeholder="Paste JSON, base64, a JWT, an Ansible task log, an epoch timestamp, URL-encoded text, a cron expression or a command line — codec figures out which"
       onpaste={run}
     />
   {/snippet}
@@ -118,7 +120,7 @@
       {session}
       emptyIcon={Sparkles}
       emptyTitle="The obvious transformation appears here"
-      emptyDescription="JSON is encoded, base64 decoded (JSON inside is pretty-printed), JWTs expanded, Ansible logs analysed; epoch timestamps, URL-encoded text and cron expressions are read and open in their tools; a log — an app's, a pipeline's or a build's, an access log, syslog, Kubernetes events — opens in the Log viewer."
+      emptyDescription="JSON is encoded, base64 decoded (JSON inside is pretty-printed), JWTs expanded, Ansible logs analysed; epoch timestamps, URL-encoded text and cron expressions are read and open in their tools; a log — an app's, a pipeline's or a build's, an access log, syslog, Kubernetes events — opens in the Log viewer; a command line (git, kubectl, docker, Linux…) is explained part by part."
       onsample={sample}
       onswap={swap}
       view={session.result?.jwt || session.result?.task ? rich : undefined}
