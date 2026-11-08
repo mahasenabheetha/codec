@@ -289,6 +289,9 @@ Implemented in `internal/web/security.go`; every route passes the guard.
   a foreign `Origin` are rejected.
 - Client-supplied paths are slash paths validated with `fs.ValidPath`
   and read through `os.Root`, which refuses `..` and symlink escapes.
+  Where `os.Root` misses a file the path-based view has (Windows app
+  file-system virtualisation), the read retries by path after
+  `EvalSymlinks` confirms it stays inside the root.
   The tree walk lists with `os.ReadDir` (no symlinked directories
   followed); background classification reads walked paths directly and
   exposes only the file type (decision #26). Never write to workspace files.

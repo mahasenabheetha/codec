@@ -106,6 +106,11 @@ fourteen sounds and focus sounds; five new themes.
   Each flag is now written back where it belongs, and the form lists
   the ones that go before a subcommand, marked so
   (`docker compose -f a.yml up`).
+- Files in subfolders now open when the folder sits in a virtualised
+  `%LOCALAPPDATA%` (the sample, opened from a Claude desktop terminal or
+  its tests): reads failed with "too many levels of symbolic links", or
+  a subfolder created after opening said "not found" until a restart,
+  although the explorer listed the files.
 
 ## [3.9.0] - 2026-11-06
 
