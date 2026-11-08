@@ -14,7 +14,7 @@
         var d = JSON.parse(localStorage.getItem('codec:darkStyle') || '"dark"')
         var l = JSON.parse(localStorage.getItem('codec:lightStyle') || '"light"')
         if (p === 'system') p = matchMedia('(prefers-color-scheme: light)').matches ? l : d
-        var known = ['dark', 'dusk', 'midnight', 'forest', 'rose', 'ocean', 'contrast', 'light', 'paper']
+        var known = ['dark', 'dusk', 'midnight', 'forest', 'rose', 'ocean', 'contrast', 'light', 'paper', 'mist']
         document.documentElement.dataset.theme = known.indexOf(p) >= 0 ? p : 'dark'
       } catch (e) {
         document.documentElement.dataset.theme = 'dark'

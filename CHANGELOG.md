@@ -83,9 +83,11 @@ fourteen sounds and focus sounds; five new themes.
 
 ### Changed
 
-- **Themes**: Paper (warm, low-glare light), Forest (green-grey),
-  Rosé (pink-violet), Ocean (blue-teal on deep blue) and High contrast
-  (every text at least 7:1), each through the contrast check. Settings
+- **Themes**: Paper (warm, low-glare light), Mist (light dimmed to soft
+  grey, for long days), Forest (green-grey), Rosé (pink-violet), Ocean
+  (blue-teal on deep blue) and High contrast (every text at least 7:1,
+  and each tool in its own bright colour on the rail and tabs), each
+  through the contrast check. Settings
   → Theme is a menu with a swatch for each; System has a light choice as
   well as a dark one; the palette has "Theme: …" for each.
 - **Sounds**: fourteen chimes (singing bowl, gong, marimba, kalimba, soft

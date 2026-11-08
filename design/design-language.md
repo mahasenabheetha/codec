@@ -84,14 +84,19 @@ and deep blue (`--bg-2 #122532`, accent aqua `#76cfd6`, rest a soft green
 `#9fd3a6` so a break doesn't look like the accent). Paper is a warm,
 low-glare light theme: cream surfaces (`--bg-2 #f9f5ee`), text at most
 14:1, and its own dark hues (`#4c5cb4` … `#1f6a8a`) with the tints at
-100%, so tools show their colours on it. High contrast is black, white
-and bright colours, every text, accent, status and syntax colour at
-least 7:1 (WCAG AAA), with firm borders and the tints at 0%.
+100%, so tools show their colours on it. Mist is Light dimmed: grey
+surfaces well below white (`--bg-2 #d1d4da`), text at most 12:1, deep
+hues (`#36438f` … `#15516b`) and the tints at 100%; it shares Light's
+block and overrides its colours. High contrast is black, white and
+bright colours, every text, accent, status and syntax colour at least
+7:1 (WCAG AAA), with firm borders; its tool hues are bright too
+(`#aab6ff` … `#92ddff`, at least 7:1 on black, black text on them) with
+the tints at 100%, so tools keep their colours.
 
 Dusk's, Midnight's, Forest's, Rosé's and Ocean's text stays between 7:1
 and 12:1 on their surfaces: readable, never glaring.
 `npm --prefix frontend run contrast` (`frontend/scripts/contrast.mjs`)
-checks every rule here for all nine themes.
+checks every rule here for all ten themes.
 
 All themes meet the same rules: text ≥ 4.5:1 on `--bg-0`…`--bg-3` and
 on its own `-soft` background, logos ≥ 3:1. A new colour token gets a

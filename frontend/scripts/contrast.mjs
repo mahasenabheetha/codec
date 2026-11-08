@@ -31,6 +31,7 @@ const themes = {
   ocean: { ...base, ...block(":root[data-theme='ocean']") },
   paper: { ...base, ...block(":root[data-theme='paper']") },
   contrast: { ...base, ...block(":root[data-theme='contrast']") },
+  mist: { ...base, ...block(":root[data-theme='mist']") },
 }
 
 // A colour as [r, g, b, a], following var() within the theme.
@@ -112,10 +113,21 @@ for (const h of hues) {
   check('paper', '--accent-fg', h, 4.5)
 }
 for (const bg of surfaces) check('paper', '--fg-0', bg, 7, 14)
+// Mist is Light dimmed: the hues read on its grey, and body text stays
+// soft, at most 12:1, on grounds well below white.
+for (const h of hues) {
+  check('mist', h, '--bg-2', 4.5)
+  check('mist', '--accent-fg', h, 4.5)
+}
+for (const bg of surfaces) check('mist', '--fg-0', bg, 7, 12)
 // High contrast: every text, accent, status and syntax colour at least
-// 7:1 (WCAG AAA).
+// 7:1 (WCAG AAA), and its bright tool hues too, with black on them.
 for (const bg of surfaces) for (const fg of ['--fg-0', '--fg-1', '--fg-2', '--accent', ...status]) check('contrast', fg, bg, 7)
 for (const syn of Object.keys(themes.contrast).filter((k) => k.startsWith('--syn-') && !k.endsWith('-bg'))) check('contrast', syn, '--bg-2', 7)
+for (const h of hues) {
+  for (const bg of surfaces) check('contrast', h, bg, 7)
+  check('contrast', '--accent-fg', h, 7)
+}
 
 console.log(failed ? `${failed} pair(s) fail` : `All contrast pairs pass in ${Object.keys(themes).join(', ')}.`)
 process.exit(failed ? 1 : 0)

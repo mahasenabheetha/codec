@@ -198,7 +198,8 @@
   --control-h-sm: 32px;
 }
 
-:root[data-theme='light'] {
+:root[data-theme='light'],
+:root[data-theme='mist'] {
   color-scheme: light;
 
   --bg-0: #f2f3f6; /* app background, rail */
@@ -563,8 +564,89 @@
   --overlay: rgb(50 35 15 / 0.3);
 }
 
+/* Mist (3.10.0): a light theme dimmed, for long days: soft grey grounds
+   well below white, dark text at most 12:1 (Light is about 16:1), and
+   the tools' colours, deep enough to read on grey. Light's block above
+   gives it the rest. */
+:root[data-theme='mist'] {
+  --bg-0: #c3c7ce;
+  --bg-1: #cacdd4;
+  --bg-2: #d1d4da;
+  --bg-3: #bfc3cb;
+  --bg-4: #b3b8c1;
+
+  --border: #b2b7c0;
+  --border-strong: #9aa0ab;
+
+  --fg-0: #1e222a;
+  --fg-1: #333944;
+  --fg-2: #3f4651;
+
+  --accent: #22488a;
+  --accent-hover: #1b3c75;
+  --accent-soft: rgb(34 72 138 / 0.14);
+  --accent-fg: #ffffff;
+
+  --ok: #1a5422;
+  --ok-soft: rgb(26 84 34 / 0.14);
+  --warn: #5e3f00;
+  --warn-soft: rgb(94 63 0 / 0.14);
+  --err: #8a1f1c;
+  --err-soft: rgb(138 31 28 / 0.12);
+  --err-border: rgb(138 31 28 / 0.4);
+  --info: #1a4a7c;
+  --info-soft: rgb(26 74 124 / 0.14);
+
+  --rest: #13524c;
+  --rest-soft: rgb(19 82 76 / 0.14);
+
+  --syn-key: #1c4480;
+  --syn-string: #2a5217;
+  --syn-number: #773605;
+  --syn-bool: #562d79;
+  --syn-comment: #444b57;
+  --syn-anchor: #13524c;
+  --syn-tag: #5e3f00;
+  --syn-func: #6e2c0d;
+  --syn-expr-tpl: #5e3d00;
+  --syn-expr-tpl-bg: rgb(160 110 0 / 0.14);
+  --syn-expr-rt: #7f1c49;
+  --syn-expr-rt-bg: rgb(160 30 90 / 0.1);
+
+  --brand-kubernetes: #1f4fae;
+  --brand-helm: #263697;
+  --brand-argo: #9a3d14;
+  --brand-github: #1650ad;
+  --brand-gitlab: #96330e;
+  --brand-azure: #00538f;
+  --brand-ansible: #951f1d;
+  --brand-docker: #1548b0;
+  --brand-terraform: #5d3191;
+
+  --hue-indigo: #36438f;
+  --hue-violet: #563888;
+  --hue-pink: #7e2f5c;
+  --hue-peach: #7b3e1c;
+  --hue-lime: #3d5417;
+  --hue-teal: #155650;
+  --hue-cyan: #15516b;
+  --hours-work-fg: #ffffff;
+  --hours-together-fg: #ffffff;
+  --tint-tool: 100%;
+  --tint-action: 100%;
+  --tint-fill: 100%;
+
+  --editor-active-line: rgb(20 30 60 / 0.05);
+  --editor-selection: rgb(34 72 138 / 0.18);
+  --editor-selection-focused: rgb(34 72 138 / 0.26);
+  --editor-selection-match: rgb(34 72 138 / 0.12);
+
+  --shadow-pop: 0 8px 28px rgb(20 28 45 / 0.18), 0 0 0 1px var(--border-strong);
+}
+
 /* High contrast (3.10.0): black, white and bright colours, every text at
-   least 7:1 (WCAG AAA), firm borders. The tool hues stay out of the way. */
+   least 7:1 (WCAG AAA), firm borders. The tools' colours are bright too,
+   at least 7:1 on black, so the rail and tabs still tell tools apart. */
 :root[data-theme='contrast'] {
   --bg-0: #000000;
   --bg-1: #050505;
@@ -615,6 +697,17 @@
   --diff-chg-bg: rgb(255 213 77 / 0.16);
   --diff-add-strong: rgb(94 232 124 / 0.45);
   --diff-del-strong: rgb(255 133 133 / 0.45);
+
+  --hue-indigo: #aab6ff;
+  --hue-violet: #cdb8ff;
+  --hue-pink: #ffb3da;
+  --hue-peach: #ffc7a3;
+  --hue-lime: #c6ef93;
+  --hue-teal: #82ead8;
+  --hue-cyan: #92ddff;
+  --tint-tool: 100%;
+  --tint-action: 100%;
+  --tint-fill: 100%;
 
   --editor-active-line: rgb(255 255 255 / 0.06);
   --editor-selection: rgb(92 200 255 / 0.3);
