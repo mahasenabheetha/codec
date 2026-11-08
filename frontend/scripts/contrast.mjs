@@ -113,13 +113,13 @@ for (const h of hues) {
   check('paper', '--accent-fg', h, 4.5)
 }
 for (const bg of surfaces) check('paper', '--fg-0', bg, 7, 14)
-// Mist is Light dimmed: the hues read on its grey, and body text stays
-// soft, at most 12:1, on grounds well below white.
+// Mist is Light dimmed: the hues read on its grey, and body text is
+// firm but below Light's glare, at most 14:1, on grounds well below white.
 for (const h of hues) {
   check('mist', h, '--bg-2', 4.5)
   check('mist', '--accent-fg', h, 4.5)
 }
-for (const bg of surfaces) check('mist', '--fg-0', bg, 7, 12)
+for (const bg of surfaces) check('mist', '--fg-0', bg, 7, 14)
 // High contrast: every text, accent, status and syntax colour at least
 // 7:1 (WCAG AAA), and its bright tool hues too, with black on them.
 for (const bg of surfaces) for (const fg of ['--fg-0', '--fg-1', '--fg-2', '--accent', ...status]) check('contrast', fg, bg, 7)

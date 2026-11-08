@@ -27,7 +27,7 @@ export const themes: { value: Theme; label: string; light: boolean; note: string
   { value: 'contrast', label: 'High contrast', light: false, note: 'black and white, 7:1 everywhere', swatch: ['#000000', '#ffffff', '#5cc8ff', '#ffb3da'] },
   { value: 'light', label: 'Light', light: true, note: 'neutral, bright', swatch: ['#ffffff', '#1b1f27', '#2b5cd6', '#0b7268'] },
   { value: 'paper', label: 'Paper', light: true, note: 'warm, low glare', swatch: ['#f9f5ee', '#2a251f', '#2f5d9e', '#a3427a'] },
-  { value: 'mist', label: 'Mist', light: true, note: 'light, dimmed to soft grey', swatch: ['#d1d4da', '#1e222a', '#22488a', '#7e2f5c'] },
+  { value: 'mist', label: 'Mist', light: true, note: 'light, dimmed to soft grey', swatch: ['#c2c5cc', '#07090c', '#1b3b74', '#7e2f5c'] },
 ]
 
 const known = (v: string): v is Theme => themes.some((t) => t.value === v)

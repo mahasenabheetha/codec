@@ -85,7 +85,7 @@ and deep blue (`--bg-2 #122532`, accent aqua `#76cfd6`, rest a soft green
 low-glare light theme: cream surfaces (`--bg-2 #f9f5ee`), text at most
 14:1, and its own dark hues (`#4c5cb4` … `#1f6a8a`) with the tints at
 100%, so tools show their colours on it. Mist is Light dimmed: grey
-surfaces well below white (`--bg-2 #d1d4da`), text at most 12:1, deep
+surfaces well below white (`--bg-2 #c2c5cc`), near-black text at most 14:1, deep
 hues (`#36438f` … `#15516b`) and the tints at 100%; it shares Light's
 block and overrides its colours. High contrast is black, white and
 bright colours, every text, accent, status and syntax colour at least

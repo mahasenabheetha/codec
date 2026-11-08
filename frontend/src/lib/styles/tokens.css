@@ -564,41 +564,41 @@
   --overlay: rgb(50 35 15 / 0.3);
 }
 
-/* Mist (3.10.0): a light theme dimmed, for long days: soft grey grounds
-   well below white, dark text at most 12:1 (Light is about 16:1), and
+/* Mist (3.10.0): a light theme dimmed, for long days: grey grounds well
+   below white, near-black text at most 14:1 (Light is about 16:1), and
    the tools' colours, deep enough to read on grey. Light's block above
    gives it the rest. */
 :root[data-theme='mist'] {
-  --bg-0: #c3c7ce;
-  --bg-1: #cacdd4;
-  --bg-2: #d1d4da;
-  --bg-3: #bfc3cb;
-  --bg-4: #b3b8c1;
+  --bg-0: #b4b8c0;
+  --bg-1: #bbbfc6;
+  --bg-2: #c2c5cc;
+  --bg-3: #b0b4bc;
+  --bg-4: #a4a9b2;
 
-  --border: #b2b7c0;
-  --border-strong: #9aa0ab;
+  --border: #a3a8b1;
+  --border-strong: #898f9b;
 
-  --fg-0: #1e222a;
-  --fg-1: #333944;
-  --fg-2: #3f4651;
+  --fg-0: #07090c;
+  --fg-1: #1f242c;
+  --fg-2: #2b313a;
 
-  --accent: #22488a;
-  --accent-hover: #1b3c75;
-  --accent-soft: rgb(34 72 138 / 0.14);
+  --accent: #1b3b74;
+  --accent-hover: #163262;
+  --accent-soft: rgb(27 59 116 / 0.12);
   --accent-fg: #ffffff;
 
-  --ok: #1a5422;
-  --ok-soft: rgb(26 84 34 / 0.14);
+  --ok: #15481c;
+  --ok-soft: rgb(21 72 28 / 0.12);
   --warn: #5e3f00;
   --warn-soft: rgb(94 63 0 / 0.14);
-  --err: #8a1f1c;
+  --err: #7a1a17;
   --err-soft: rgb(138 31 28 / 0.12);
   --err-border: rgb(138 31 28 / 0.4);
-  --info: #1a4a7c;
-  --info-soft: rgb(26 74 124 / 0.14);
+  --info: #153f6a;
+  --info-soft: rgb(21 63 106 / 0.12);
 
-  --rest: #13524c;
-  --rest-soft: rgb(19 82 76 / 0.14);
+  --rest: #0f4741;
+  --rest-soft: rgb(15 71 65 / 0.12);
 
   --syn-key: #1c4480;
   --syn-string: #2a5217;
