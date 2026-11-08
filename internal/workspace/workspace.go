@@ -296,8 +296,11 @@ func (w *Workspace) open(p string) (*os.File, error) {
 	if err == nil || !rootMiss(err) {
 		return f, err
 	}
-	real, ok := w.resolve(p)
-	if !ok {
+	real, e := w.resolve(p)
+	if errors.Is(e, ErrOutside) {
+		return nil, e
+	}
+	if e != nil {
 		return nil, err
 	}
 	if f, e := os.Open(real); e == nil {
@@ -313,8 +316,11 @@ func (w *Workspace) stat(p string) (fs.FileInfo, error) {
 	if err == nil || !rootMiss(err) {
 		return info, err
 	}
-	real, ok := w.resolve(p)
-	if !ok {
+	real, e := w.resolve(p)
+	if errors.Is(e, ErrOutside) {
+		return nil, e
+	}
+	if e != nil {
 		return nil, err
 	}
 	if info, e := os.Stat(real); e == nil {
@@ -331,13 +337,19 @@ func rootMiss(err error) bool {
 }
 
 // resolve returns p's absolute path with every symlink and junction
-// resolved, if it exists and stays inside the root.
-func (w *Workspace) resolve(p string) (string, bool) {
+// resolved, if it exists; ErrOutside when that leaves the root. The
+// caller reports ErrOutside as it is: os.Root's own miss may say "not
+// found", which wrapErr takes as final and wouldn't check for an
+// escape (a link out of the folder must say it is outside).
+func (w *Workspace) resolve(p string) (string, error) {
 	real, err := filepath.EvalSymlinks(w.abs(p))
-	if err != nil || !within(w.real, real) {
-		return "", false
+	if err != nil {
+		return "", err
 	}
-	return real, true
+	if !within(w.real, real) {
+		return "", ErrOutside
+	}
+	return real, nil
 }
 
 // rootFS is the workspace as an fs.FS for fs.WalkDir and fs.ReadFile
