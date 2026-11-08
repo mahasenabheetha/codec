@@ -17,7 +17,7 @@
   import { toolById } from '../../lib/tools'
   import { copyText } from '../../lib/utils/clipboard'
   import Pane from '../shared/Pane.svelte'
-  import { toolCommands, toolStatus } from '../shared/tool.svelte'
+  import { toolCommands, toolShortcuts, toolStatus } from '../shared/tool.svelte'
   import { workspace as ws } from '../workspace/workspace.svelte'
   import BuildForm from './BuildForm.svelte'
   import CheatSheet from './CheatSheet.svelte'
@@ -139,10 +139,12 @@
 
   // A command from the cheat sheet goes on the line with its first
   // placeholder selected, so typing fills it in; Tab goes to the next.
-  async function pick(command: string) {
+  // The sheet stays open beside its explanation; `build` opens the form.
+  async function pick(command: string, build = false) {
+    wasEmpty = false // picked, not typed: the effect above leaves the view
     line = command
     focus = 0
-    view = 'build'
+    if (build) view = 'build'
     await tick()
     const v = editor?.getView()
     if (!v) return
@@ -154,6 +156,11 @@
     view = 'sheet'
     await tick()
     left?.querySelector<HTMLInputElement>('input[type=search]')?.focus()
+  }
+
+  function clear() {
+    line = ''
+    editor?.focus()
   }
 
   function copy(shell: 'bash' | 'powershell') {
@@ -170,9 +177,12 @@
   toolCommands(() => active, () => [
     { id: 'commands.copy', title: 'Commands: Copy the command', group: 'Commands', run: () => copy('bash') },
     { id: 'commands.copy-ps', title: 'Commands: Copy for PowerShell', group: 'Commands', run: () => copy('powershell') },
-    { id: 'commands.clear', title: 'Commands: Clear', group: 'Commands', run: () => (line = '') },
+    { id: 'commands.clear', title: 'Commands: Clear', group: 'Commands', run: clear },
     { id: 'commands.search', title: 'Commands: Search the cheat sheet', group: 'Commands', run: openSheet },
   ])
+  // Esc clears the line (a menu or the cheat sheet's search box that
+  // uses Esc itself keeps it); Alt+C copies; Mod+Enter goes to the line.
+  toolShortcuts(() => active, { run: () => editor?.focus(), copy: () => line.trim() && copy('bash'), clear })
   toolStatus(() => active, () => {
     if (!line.trim()) return { text: 'Type, paste or build a command' }
     if (error) return { text: error, tone: 'err' }
@@ -202,7 +212,7 @@
           </button>
         </div>
       </Popover>
-      <IconButton icon={Eraser} tone="clear" label="Clear" size="sm" disabled={!line} onclick={() => (line = '')} />
+      <Button size="sm" variant="ghost" tone="clear" icon={Eraser} disabled={!line} title="Clear the line (Esc)" onclick={clear}>Clear</Button>
     </div>
   </header>
 
@@ -226,7 +236,7 @@
             />
           {/snippet}
           {#if view === 'sheet'}
-            <CheatSheet {tools} bind:query={sheetQuery} bind:tool={sheetTool} onpick={pick} onstart={start} />
+            <CheatSheet {tools} bind:query={sheetQuery} bind:tool={sheetTool} onpick={(c) => pick(c)} onbuild={(c) => pick(c, true)} onstart={start} />
           {:else if ref && built}
             <BuildForm tool={ref} {built} {suggest} onchange={change} />
           {:else if seg && !seg.tool && line.trim()}

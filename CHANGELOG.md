@@ -25,8 +25,11 @@ fourteen sounds and focus sounds; five new themes.
 - **Cheat sheet** (Commands): find a command by what you want to do,
   in your own words ("undo my last commit"). Recipes, commands and
   flags are ranked, each with what matched — the word, a synonym or a
-  typo fixed; with nothing asked, recipes by tool. A pick goes on the
-  line with its values to fill in marked; Tab moves between them.
+  typo fixed; with nothing asked, recipes by tool. A click anywhere on
+  one puts it on the line, explained beside the sheet, with its values
+  to fill in marked (Tab moves between them); its … menu opens it in
+  Build. Commands are coloured by part: tool, subcommand, flags,
+  quoted values. Esc clears the line (in the search box, the search).
 - **git** in Commands: 32 commands — status, add, commit, diff, log,
   show, branch, switch, checkout, merge, rebase, cherry-pick, revert,
   reset, restore, stash, tag, fetch, pull, push, remote, clean, bisect,
