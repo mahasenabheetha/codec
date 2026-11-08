@@ -16,6 +16,7 @@
   import Toggle from '../../lib/components/Toggle.svelte'
   import { statFile } from '../../lib/api/workspace'
   import { exportLog, logGroups } from '../../lib/api/logs'
+  import { sanitizeAll } from '../../lib/api/text'
   import { shortcut } from '../../lib/stores/shortcuts.svelte'
   import { toast } from '../../lib/stores/toast.svelte'
   import { copyText } from '../../lib/utils/clipboard'
@@ -196,10 +197,15 @@
     else await selectAt(pos)
   }
 
+  // Export sanitized (decision 104): secrets, addresses and names taken
+  // out where the file is made, the same stand-in throughout.
+  let sanitizeExport = $state(false)
+
   async function exportAs(format: 'text' | 'ndjson' | 'csv') {
     try {
-      const blob = await viewer.withLog((id) => exportLog(id, { ...viewer.applied, format, columns: viewer.columns }))
-      const name = (viewer.sources.length === 1 ? sourceName(viewer.sources[0]).replace(/\.[^.]+$/, '') : 'log') + '-filtered'
+      const sanitize = sanitizeExport ? sanitizeAll() : undefined
+      const blob = await viewer.withLog((id) => exportLog(id, { ...viewer.applied, format, columns: viewer.columns, sanitize }))
+      const name = (viewer.sources.length === 1 ? sourceName(viewer.sources[0]).replace(/\.[^.]+$/, '') : 'log') + (sanitize ? '-sanitized' : '-filtered')
       const url = URL.createObjectURL(blob)
       Object.assign(document.createElement('a'), { href: url, download: `${name}.${format === 'text' ? 'log' : format}` }).click()
       setTimeout(() => URL.revokeObjectURL(url), 1000)
@@ -343,6 +349,7 @@
           <button type="button" onclick={() => exportAs('text')}>Lines as read <span class="muted">.log</span></button>
           <button type="button" onclick={() => exportAs('ndjson')}>One JSON object each <span class="muted">.ndjson</span></button>
           <button type="button" onclick={() => exportAs('csv')}>A table <span class="muted">.csv, with your columns</span></button>
+          <div class="sanitize"><Toggle bind:checked={sanitizeExport} label="Sanitize" title="Take secrets, emails, IP addresses, host names, UUIDs and user names out, each the same stand-in throughout" /></div>
         </div>
       </Popover>
     </div>
@@ -693,5 +700,10 @@
   .columns p {
     margin: 0;
     font-size: var(--fs-sm);
+  }
+  .sanitize {
+    margin-top: var(--s-1);
+    padding-top: var(--s-2);
+    border-top: 1px solid var(--border);
   }
 </style>

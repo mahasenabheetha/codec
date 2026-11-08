@@ -1,0 +1,1170 @@
+# kubectl, in codec's words and checked against `kubectl <command> --help`
+# (1.36). Flags many commands share are written once under shared and
+# used by name (*output); the pack reader ignores that key itself.
+shared:
+  output: &output
+    names: [-o, --output]
+    value: format
+    common: true
+    summary: prints in this format
+    choices:
+      - {value: wide, summary: more columns}
+      - {value: yaml, summary: the full resource as YAML}
+      - {value: json, summary: the full resource as JSON}
+      - {value: name, summary: only kind/name}
+      - {value: "jsonpath=", summary: "only the fields a JSONPath picks, such as {.items[*].metadata.name}"}
+      - {value: "custom-columns=", summary: "your own columns, such as NAME:.metadata.name"}
+  filename: &filename
+    names: [-f, --filename]
+    value: file
+    repeat: true
+    summary: the resources in this file, folder or URL (- reads stdin)
+  kustomize: &kustomize
+    names: [-k, --kustomize]
+    value: folder
+    summary: the resources a kustomization folder builds
+  recursive: &recursive
+    names: [-R, --recursive]
+    summary: reads the folders given with -f all the way down
+  selector: &selector
+    names: [-l, --selector]
+    value: selector
+    common: true
+    summary: only resources whose labels match, such as app=web
+  fieldSelector: &fieldSelector
+    names: [--field-selector]
+    value: selector
+    summary: only resources whose fields match, such as status.phase=Running
+  allNamespaces: &allNamespaces
+    names: [-A, --all-namespaces]
+    summary: works across every namespace
+  dryRun: &dryRun
+    names: [--dry-run]
+    value: strategy
+    optionalValue: true
+    summary: shows what would happen without changing the cluster
+    choices:
+      - {value: none, summary: really does it}
+      - {value: client, summary: checked here only}
+      - {value: server, summary: "checked by the cluster, then not saved"}
+  container: &container
+    names: [-c, --container]
+    value: container
+    summary: the container in the pod, when it has more than one
+  watch: &watch
+    names: [-w, --watch]
+    summary: keeps watching and prints changes as they happen
+  timeout: &timeout
+    names: [--timeout]
+    value: duration
+    summary: gives up after this long, such as 60s
+resources: &resources
+  - {value: pods, summary: the pods}
+  - {value: po, summary: the pods}
+  - {value: deployments, summary: the deployments}
+  - {value: deploy, summary: the deployments}
+  - {value: services, summary: the services}
+  - {value: svc, summary: the services}
+  - {value: statefulsets, summary: the stateful sets}
+  - {value: sts, summary: the stateful sets}
+  - {value: daemonsets, summary: the daemon sets}
+  - {value: ds, summary: the daemon sets}
+  - {value: replicasets, summary: the replica sets}
+  - {value: rs, summary: the replica sets}
+  - {value: jobs, summary: the jobs}
+  - {value: cronjobs, summary: the cron jobs}
+  - {value: cj, summary: the cron jobs}
+  - {value: configmaps, summary: the config maps}
+  - {value: cm, summary: the config maps}
+  - {value: secrets, summary: the secrets}
+  - {value: ingresses, summary: the ingresses}
+  - {value: ing, summary: the ingresses}
+  - {value: persistentvolumeclaims, summary: the volume claims}
+  - {value: pvc, summary: the volume claims}
+  - {value: persistentvolumes, summary: the volumes}
+  - {value: pv, summary: the volumes}
+  - {value: nodes, summary: the nodes}
+  - {value: no, summary: the nodes}
+  - {value: namespaces, summary: the namespaces}
+  - {value: ns, summary: the namespaces}
+  - {value: serviceaccounts, summary: the service accounts}
+  - {value: sa, summary: the service accounts}
+  - {value: events, summary: the events}
+  - {value: ev, summary: the events}
+  - {value: all, summary: the common workload kinds at once}
+
+name: kubectl
+aliases: [k]
+group: kubernetes
+summary: kubectl, the Kubernetes command-line client.
+flags:
+  - names: [-n, --namespace]
+    value: namespace
+    persistent: true
+    summary: works in this namespace
+  - names: [--context]
+    value: context
+    persistent: true
+    summary: uses this context from your kubeconfig
+  - names: [--kubeconfig]
+    value: file
+    persistent: true
+    summary: reads this kubeconfig file instead of ~/.kube/config
+  - names: [--cluster]
+    value: cluster
+    persistent: true
+    summary: uses this cluster from your kubeconfig
+  - names: [--user]
+    value: user
+    persistent: true
+    summary: uses this user from your kubeconfig
+  - names: [-s, --server]
+    value: address
+    persistent: true
+    summary: talks to the API server at this address
+  - names: [--as]
+    value: user
+    persistent: true
+    summary: acts as this user, to see what they may do
+  - names: [--request-timeout]
+    value: duration
+    persistent: true
+    summary: gives up on a request after this long
+  - names: [-v, --v]
+    value: level
+    persistent: true
+    summary: logs this much about what it does; 6 shows the requests, 9 their bodies
+commands:
+  - name: get
+    summary: Lists resources, or shows one.
+    flags:
+      - *output
+      - *selector
+      - *watch
+      - *allNamespaces
+      - *fieldSelector
+      - *filename
+      - *kustomize
+      - *recursive
+      - names: [--show-labels]
+        summary: adds a column with the labels
+      - names: [-L, --label-columns]
+        value: label
+        repeat: true
+        summary: adds a column for this label's value
+      - names: [--sort-by]
+        value: jsonpath
+        summary: sorts by this field, such as .metadata.creationTimestamp
+      - names: [--no-headers]
+        summary: leaves out the header line
+      - names: [--ignore-not-found]
+        summary: prints nothing, without an error, when it isn't there
+      - names: [--watch-only]
+        summary: prints only the changes, not the list first
+      - names: [--show-kind]
+        summary: adds the kind to each name
+      - names: [--raw]
+        value: path
+        summary: prints what the API returns at this path
+    args:
+      - name: resource
+        summary: the kind of resource, such as pods or deploy, or kind/name
+        choices: *resources
+      - name: name
+        optional: true
+        repeat: true
+        summary: only these by name
+  - name: describe
+    summary: Shows a resource in detail, with its recent events.
+    flags:
+      - *selector
+      - *allNamespaces
+      - *filename
+      - *kustomize
+      - *recursive
+      - names: [--show-events]
+        value: bool
+        optionalValue: true
+        summary: shows the events (on by default)
+    args:
+      - name: resource
+        summary: the kind of resource, or kind/name
+        choices: *resources
+      - name: name
+        optional: true
+        repeat: true
+        summary: which ones; all of the kind without names
+  - name: logs
+    summary: Prints the logs of a container in a pod.
+    flags:
+      - names: [-f, --follow]
+        common: true
+        summary: keeps printing new lines as they come
+      - *container
+      - names: [--tail]
+        value: lines
+        common: true
+        summary: only the last this-many lines
+      - names: [-p, --previous]
+        common: true
+        summary: the logs of the container before it last restarted, as after a crash
+      - names: [--since]
+        value: duration
+        summary: only lines from this long ago, such as 1h
+      - names: [--since-time]
+        value: time
+        summary: only lines after this time, in RFC 3339
+      - names: [--timestamps]
+        summary: puts the time before each line
+      - names: [--all-containers]
+        summary: every container in the pod
+      - names: [--prefix]
+        summary: puts the pod and container before each line
+      - *selector
+      - names: [--max-log-requests]
+        value: number
+        summary: with a selector, follows at most this many pods at once
+    args:
+      - name: pod
+        summary: the pod, or kind/name to pick one of its pods (deploy/web)
+      - name: container
+        optional: true
+        summary: the container
+  - name: exec
+    summary: Runs a command in a container.
+    flags:
+      - names: [-i, --stdin]
+        common: true
+        summary: passes your input to it
+      - names: [-t, --tty]
+        common: true
+        summary: gives it a terminal, for a shell
+      - *container
+      - names: [-q, --quiet]
+        summary: prints only the command's output
+    args:
+      - name: pod
+        summary: the pod, or kind/name to pick one of its pods
+      - name: command
+        repeat: true
+        summary: after --, the command and its arguments, such as -- sh
+  - name: apply
+    summary: Makes the cluster match the files, creating or updating what they describe.
+    danger:
+      level: caution
+      note: changes what runs in the cluster
+      safer: kubectl diff -f {file}
+    flags:
+      - *filename
+      - *kustomize
+      - *recursive
+      - *dryRun
+      - names: [--server-side]
+        summary: lets the cluster work out the change, tracking who owns each field
+      - names: [--force-conflicts]
+        summary: with --server-side, takes fields that others own
+      - names: [--prune]
+        summary: deletes resources that were applied before but aren't in the files now
+        danger:
+          level: danger
+          note: deletes the resources that aren't in the files
+      - *selector
+      - names: [--wait]
+        summary: waits until the resources are ready
+      - *output
+  - name: diff
+    summary: Shows what apply would change, without changing anything.
+    flags:
+      - *filename
+      - *kustomize
+      - *recursive
+      - names: [--server-side]
+        summary: compares as server-side apply would
+      - *selector
+  - name: create
+    summary: Creates a resource, from a file or from flags.
+    flags:
+      - *filename
+      - *dryRun
+      - *output
+    commands:
+      - name: namespace
+        aliases: [ns]
+        summary: Creates a namespace.
+        flags:
+          - *dryRun
+          - *output
+        args:
+          - name: name
+            summary: the namespace
+      - name: secret
+        summary: Creates a secret.
+        commands:
+          - name: generic
+            summary: Creates a secret from files, a .env file or values.
+            flags:
+              - names: [--from-literal]
+                value: key=value
+                repeat: true
+                common: true
+                summary: a key and its value
+              - names: [--from-file]
+                value: "[key=]path"
+                repeat: true
+                common: true
+                summary: a file, its name the key unless given
+              - names: [--from-env-file]
+                value: file
+                repeat: true
+                summary: the KEY=value lines of a .env file
+              - names: [--type]
+                value: type
+                summary: the secret's type
+              - *dryRun
+              - *output
+            args:
+              - name: name
+                summary: the secret
+          - name: tls
+            summary: Creates a TLS secret from a certificate and its key.
+            flags:
+              - names: [--cert]
+                value: file
+                common: true
+                summary: the certificate, PEM
+              - names: [--key]
+                value: file
+                common: true
+                summary: its private key, PEM
+              - *dryRun
+              - *output
+            args:
+              - name: name
+                summary: the secret
+          - name: docker-registry
+            summary: Creates a secret for pulling images from a private registry.
+            flags:
+              - names: [--docker-server]
+                value: server
+                common: true
+                summary: the registry
+              - names: [--docker-username]
+                value: user
+                common: true
+                summary: the user name
+              - names: [--docker-password]
+                value: password
+                common: true
+                summary: the password or token; it stays in your shell history
+              - names: [--docker-email]
+                value: email
+                summary: the email
+              - *dryRun
+              - *output
+            args:
+              - name: name
+                summary: the secret
+      - name: configmap
+        aliases: [cm]
+        summary: Creates a config map from files, a .env file or values.
+        flags:
+          - names: [--from-literal]
+            value: key=value
+            repeat: true
+            common: true
+            summary: a key and its value
+          - names: [--from-file]
+            value: "[key=]path"
+            repeat: true
+            common: true
+            summary: a file, its name the key unless given
+          - names: [--from-env-file]
+            value: file
+            repeat: true
+            summary: the KEY=value lines of a .env file
+          - *dryRun
+          - *output
+        args:
+          - name: name
+            summary: the config map
+      - name: deployment
+        aliases: [deploy]
+        summary: Creates a deployment of an image.
+        flags:
+          - names: [--image]
+            value: image
+            repeat: true
+            common: true
+            summary: the image to run
+          - names: [-r, --replicas]
+            value: number
+            summary: how many pods
+          - names: [--port]
+            value: port
+            summary: the port the container listens on
+          - *dryRun
+          - *output
+        args:
+          - name: name
+            summary: the deployment
+      - name: job
+        summary: Creates a job, from an image or from a cron job's template.
+        flags:
+          - names: [--from]
+            value: cronjob
+            common: true
+            summary: runs a cron job now, as cronjob/name
+          - names: [--image]
+            value: image
+            summary: the image to run
+          - *dryRun
+          - *output
+        args:
+          - name: name
+            summary: the job
+          - name: command
+            optional: true
+            repeat: true
+            summary: after --, the command to run
+  - name: run
+    summary: Starts a pod running an image.
+    flags:
+      - names: [--image]
+        value: image
+        common: true
+        summary: the image to run
+      - names: [--rm]
+        common: true
+        summary: deletes the pod when it ends, with -it
+      - names: [-i, --stdin]
+        common: true
+        summary: passes your input to it
+      - names: [-t, --tty]
+        common: true
+        summary: gives it a terminal
+      - names: [--restart]
+        value: policy
+        summary: when the pod restarts
+        choices: [Always, OnFailure, Never]
+      - names: [--env]
+        value: name=value
+        repeat: true
+        summary: sets an environment variable
+      - names: [--port]
+        value: port
+        summary: the port it listens on
+      - names: [--command]
+        summary: the words after -- replace the image's command, not its arguments
+      - *dryRun
+      - *output
+    args:
+      - name: name
+        summary: the pod
+      - name: command
+        optional: true
+        repeat: true
+        summary: after --, its arguments (or command, with --command)
+  - name: delete
+    summary: Deletes resources.
+    danger:
+      level: danger
+      note: the resources are gone; anything not kept elsewhere can't be brought back
+      safer: kubectl delete --dry-run=client …
+    flags:
+      - *dryRun
+      - *filename
+      - *kustomize
+      - *recursive
+      - *selector
+      - *allNamespaces
+      - *fieldSelector
+      - names: [--all]
+        summary: every resource of the kind in the namespace
+        danger:
+          level: danger
+          note: deletes all of them
+      - names: [--force]
+        summary: removes it at once, without waiting for it to stop
+        danger:
+          level: danger
+          note: the pod may still be running somewhere while a new one starts
+      - names: [--grace-period]
+        value: seconds
+        summary: gives it this long to stop; 0 with --force is immediate
+      - names: [--now]
+        summary: stops it straight away (a grace period of 1)
+      - names: [--ignore-not-found]
+        summary: no error when it isn't there
+      - names: [-i, --interactive]
+        summary: asks before deleting each one
+      - names: [--wait]
+        value: bool
+        optionalValue: true
+        summary: waits until they are gone (on by default)
+      - names: [--cascade]
+        value: strategy
+        optionalValue: true
+        summary: what happens to what it owns
+        choices:
+          - {value: background, summary: deleted after it}
+          - {value: foreground, summary: deleted first}
+          - {value: orphan, summary: kept}
+    args:
+      - name: resource
+        summary: the kind of resource, or kind/name
+        choices: *resources
+      - name: name
+        optional: true
+        repeat: true
+        summary: which ones by name
+  - name: edit
+    summary: Opens a resource in your editor and saves the changes to the cluster.
+    danger:
+      level: caution
+      note: changes the cluster straight away; the change isn't in your files
+    flags:
+      - *filename
+      - *output
+    args:
+      - name: resource
+        summary: the kind and name, such as deploy/web
+        choices: *resources
+      - name: name
+        optional: true
+        summary: its name
+  - name: rollout
+    summary: Manages a rollout of a deployment, daemon set or stateful set.
+    commands:
+      - name: restart
+        summary: Restarts the pods one by one, by changing the template's annotation.
+        flags:
+          - *selector
+          - *filename
+        args:
+          - name: resource
+            summary: the workload, such as deployment/web
+      - name: undo
+        summary: Goes back to the previous revision.
+        danger:
+          level: caution
+          note: changes what runs in the cluster
+        flags:
+          - names: [--to-revision]
+            value: revision
+            summary: goes back to this revision instead (see rollout history)
+          - *dryRun
+        args:
+          - name: resource
+            summary: the workload, such as deployment/web
+      - name: status
+        summary: Waits for a rollout to finish and says how it is going.
+        flags:
+          - *timeout
+          - names: [-w, --watch]
+            value: bool
+            optionalValue: true
+            summary: keeps watching until it is done (on by default)
+          - names: [--revision]
+            value: revision
+            summary: waits for this revision
+        args:
+          - name: resource
+            summary: the workload, such as deployment/web
+      - name: history
+        summary: Lists the revisions of a workload.
+        flags:
+          - names: [--revision]
+            value: revision
+            summary: shows this revision's template
+          - *output
+        args:
+          - name: resource
+            summary: the workload, such as deployment/web
+      - name: pause
+        summary: Stops a deployment rolling out changes until resumed.
+        args:
+          - name: resource
+            summary: the deployment
+      - name: resume
+        summary: Lets a paused deployment roll out again.
+        args:
+          - name: resource
+            summary: the deployment
+  - name: scale
+    summary: Sets how many pods a deployment, stateful set or replica set runs.
+    danger:
+      level: caution
+      note: changes what runs in the cluster; 0 stops every pod
+    flags:
+      - names: [--replicas]
+        value: number
+        common: true
+        summary: how many pods to run
+      - names: [--current-replicas]
+        value: number
+        summary: only if it runs this many now
+      - *selector
+      - *filename
+      - *dryRun
+      - *timeout
+    args:
+      - name: resource
+        summary: the workload, such as deployment/web
+        choices: *resources
+      - name: name
+        optional: true
+        repeat: true
+        summary: which ones by name
+  - name: port-forward
+    summary: Forwards local ports to a pod, until stopped with Ctrl+C.
+    flags:
+      - names: [--address]
+        value: address
+        repeat: true
+        summary: listens on this address; localhost by default
+    args:
+      - name: pod
+        summary: the pod, or kind/name such as svc/web
+      - name: ports
+        repeat: true
+        summary: local:remote, such as 8080:80, or one port for both
+  - name: cp
+    summary: Copies files between your machine and a container.
+    flags:
+      - *container
+      - names: [--no-preserve]
+        summary: doesn't keep the files' owner and permissions
+      - names: [--retries]
+        value: number
+        summary: tries again this many times if the copy breaks
+    args:
+      - name: source
+        summary: a local path, or pod:path (namespace/pod:path)
+      - name: destination
+        summary: a local path, or pod:path
+  - name: top
+    summary: Shows how much CPU and memory pods or nodes use (needs the metrics server).
+    commands:
+      - name: pod
+        aliases: [pods, po]
+        summary: Shows CPU and memory by pod.
+        flags:
+          - *allNamespaces
+          - *selector
+          - names: [--containers]
+            summary: by container in each pod
+          - names: [--sort-by]
+            value: field
+            summary: sorts by this
+            choices: [cpu, memory]
+          - names: [--sum]
+            summary: adds a total
+        args:
+          - name: name
+            optional: true
+            summary: only this pod
+      - name: node
+        aliases: [nodes, no]
+        summary: Shows CPU and memory by node.
+        flags:
+          - *selector
+          - names: [--sort-by]
+            value: field
+            summary: sorts by this
+            choices: [cpu, memory]
+        args:
+          - name: name
+            optional: true
+            summary: only this node
+  - name: config
+    summary: Reads and changes your kubeconfig, its clusters, users and contexts.
+    commands:
+      - name: get-contexts
+        summary: Lists the contexts, marking the current one.
+        flags:
+          - names: [-o, --output]
+            value: format
+            summary: prints only the names
+            choices: [name]
+      - name: current-context
+        summary: Prints the current context.
+      - name: use-context
+        aliases: [use]
+        summary: Switches to another context.
+        args:
+          - name: context
+            summary: the context
+      - name: set-context
+        summary: Changes a context, such as its namespace.
+        flags:
+          - names: [--current]
+            common: true
+            summary: changes the current context
+          - names: [-n, --namespace]
+            value: namespace
+            common: true
+            summary: sets its namespace
+          - names: [--cluster]
+            value: cluster
+            summary: sets its cluster
+          - names: [--user]
+            value: user
+            summary: sets its user
+        args:
+          - name: context
+            optional: true
+            summary: the context, unless --current
+      - name: view
+        summary: Prints the kubeconfig, without secrets unless asked.
+        flags:
+          - names: [--minify]
+            common: true
+            summary: only the current context and what it uses
+          - names: [--flatten]
+            summary: puts certificates in it, instead of file paths
+          - names: [--raw]
+            summary: shows the secrets too
+          - *output
+      - name: delete-context
+        summary: Removes a context from the kubeconfig.
+        args:
+          - name: context
+            summary: the context
+  - name: explain
+    summary: Describes a resource's fields, from the cluster's own schema.
+    flags:
+      - names: [--recursive]
+        summary: every field below, by name
+      - names: [--api-version]
+        value: version
+        summary: of this API version
+    args:
+      - name: field
+        summary: the kind and field, such as deployment.spec.strategy
+  - name: events
+    summary: Lists events, newest last.
+    flags:
+      - names: [--for]
+        value: kind/name
+        common: true
+        summary: only about this resource
+      - names: [--types]
+        value: type
+        repeat: true
+        summary: only these types
+        choices: [Normal, Warning]
+      - *watch
+      - *allNamespaces
+      - *output
+  - name: label
+    summary: Adds, changes or removes labels on resources.
+    flags:
+      - names: [--overwrite]
+        common: true
+        summary: changes a label that has a value already
+      - names: [--list]
+        summary: lists the labels
+      - *selector
+      - names: [--all]
+        summary: every resource of the kind
+      - *dryRun
+    args:
+      - name: resource
+        summary: the kind and name, such as pod/web
+        choices: *resources
+      - name: labels
+        repeat: true
+        summary: key=value to set, key- to remove
+  - name: annotate
+    summary: Adds, changes or removes annotations on resources.
+    flags:
+      - names: [--overwrite]
+        common: true
+        summary: changes an annotation that has a value already
+      - names: [--list]
+        summary: lists the annotations
+      - *selector
+      - names: [--all]
+        summary: every resource of the kind
+      - *dryRun
+    args:
+      - name: resource
+        summary: the kind and name, such as deploy/web
+        choices: *resources
+      - name: annotations
+        repeat: true
+        summary: key=value to set, key- to remove
+  - name: patch
+    summary: Changes some fields of a resource in the cluster.
+    danger:
+      level: caution
+      note: changes the cluster straight away; the change isn't in your files
+    flags:
+      - names: [-p, --patch]
+        value: patch
+        common: true
+        summary: the change, as JSON or YAML
+      - names: [--type]
+        value: type
+        common: true
+        summary: how the patch is read
+        choices:
+          - {value: strategic, summary: "Kubernetes' own merge, lists by key (the default)"}
+          - {value: merge, summary: "JSON merge patch, lists replaced"}
+          - {value: json, summary: "JSON patch, a list of operations"}
+      - names: [--patch-file]
+        value: file
+        summary: reads the change from this file
+      - *dryRun
+      - *output
+    args:
+      - name: resource
+        summary: the kind and name, such as deploy/web
+        choices: *resources
+      - name: name
+        optional: true
+        summary: its name
+  - name: auth
+    summary: Checks what you may do in the cluster.
+    commands:
+      - name: can-i
+        summary: Says yes or no to whether you may do something.
+        flags:
+          - names: [--list]
+            summary: lists everything you may do
+          - *allNamespaces
+          - names: [-q, --quiet]
+            summary: answers only with the exit code
+        args:
+          - name: verb
+            summary: such as get, create, delete or "*"
+            choices: [get, list, watch, create, update, patch, delete]
+          - name: resource
+            optional: true
+            summary: the kind, such as pods, or kind/name
+      - name: whoami
+        summary: Shows who the cluster thinks you are.
+  - name: debug
+    summary: Starts a debugging container next to a pod's, or on a node, or a copy of a pod.
+    flags:
+      - names: [-i, --stdin]
+        common: true
+        summary: passes your input to it
+      - names: [-t, --tty]
+        common: true
+        summary: gives it a terminal
+      - names: [--image]
+        value: image
+        common: true
+        summary: the image of the debugging container, such as busybox
+      - names: [--target]
+        value: container
+        common: true
+        summary: shares this container's processes, to see them
+      - names: [--copy-to]
+        value: name
+        summary: debugs a copy of the pod with this name instead
+      - *container
+      - names: [--profile]
+        value: profile
+        summary: what the debugging container may do
+        choices: [legacy, general, baseline, netadmin, restricted, sysadmin]
+      - names: [--share-processes]
+        summary: with --copy-to, lets the containers see each other's processes
+    args:
+      - name: target
+        summary: the pod, or node/name to debug a node
+      - name: command
+        optional: true
+        repeat: true
+        summary: after --, the command to run in it
+  - name: drain
+    summary: Moves every pod off a node, for maintenance, and stops new ones landing there.
+    danger:
+      level: danger
+      note: every pod on the node is evicted; what has nowhere else to run stops
+      safer: kubectl drain --dry-run=client {node}
+    flags:
+      - names: [--ignore-daemonsets]
+        common: true
+        summary: goes on when the node has daemon set pods, which stay
+      - names: [--delete-emptydir-data]
+        summary: evicts pods that keep data in an emptyDir, which is lost
+        danger:
+          level: danger
+          note: the data in those emptyDir volumes is lost
+      - names: [--force]
+        summary: evicts pods that no controller will start again
+        danger:
+          level: danger
+          note: those pods are gone for good
+      - names: [--grace-period]
+        value: seconds
+        summary: gives each pod this long to stop
+      - *timeout
+      - *dryRun
+      - *selector
+    args:
+      - name: node
+        summary: the node
+  - name: cordon
+    summary: Stops new pods landing on a node; the ones there stay.
+    flags:
+      - *dryRun
+      - *selector
+    args:
+      - name: node
+        summary: the node
+  - name: uncordon
+    summary: Lets new pods land on a node again.
+    flags:
+      - *dryRun
+      - *selector
+    args:
+      - name: node
+        summary: the node
+  - name: wait
+    summary: Waits until resources are in a state, such as ready or deleted.
+    flags:
+      - names: [--for]
+        value: condition
+        repeat: true
+        common: true
+        summary: what to wait for, such as condition=Ready, delete or jsonpath=…
+      - *timeout
+      - *selector
+      - names: [--all]
+        summary: every resource of the kind
+      - *filename
+    args:
+      - name: resource
+        summary: the kind and name, such as pod/web, or a kind with -l
+        choices: *resources
+      - name: name
+        optional: true
+        repeat: true
+        summary: which ones by name
+  - name: api-resources
+    summary: Lists the kinds of resource the cluster has, with their short names.
+    flags:
+      - names: [--namespaced]
+        value: bool
+        optionalValue: true
+        summary: only kinds that live in a namespace (or, =false, those that don't)
+      - names: [--api-group]
+        value: group
+        summary: only this API group
+      - names: [-o, --output]
+        value: format
+        summary: prints in this format
+        choices: [wide, name]
+  - name: cluster-info
+    summary: Shows where the control plane and core services are.
+  - name: version
+    summary: Shows the version of kubectl and of the cluster.
+    flags:
+      - names: [--client]
+        summary: only kubectl's
+      - *output
+recipes:
+  # Looking
+  - title: List the pods in a namespace
+    command: kubectl get pods -n {namespace}
+    words: [show pods, what is running]
+  - title: List the pods with their node and IP
+    command: kubectl get pods -o wide -n {namespace}
+    words: [where pods run, node, ip address]
+  - title: List every pod in every namespace
+    command: kubectl get pods -A
+    words: [all pods, whole cluster]
+  - title: Find the pods of an app by label
+    command: kubectl get pods -l app={app} -n {namespace}
+    words: [selector, filter pods]
+  - title: List the pods that aren't running
+    command: kubectl get pods -A --field-selector=status.phase!=Running
+    words: [failing pods, pending, broken, unhealthy]
+  - title: Watch pods change as they happen
+    command: kubectl get pods -w -n {namespace}
+    words: [live, monitor, wait]
+  - title: See everything in a namespace
+    command: kubectl get all -n {namespace}
+    words: [overview, list resources]
+  - title: See a resource's full YAML
+    command: kubectl get {kind} {name} -o yaml -n {namespace}
+    words: [manifest, spec, export, definition]
+  - title: List just the pod names
+    command: kubectl get pods -o name -n {namespace}
+    words: [names only, for a script]
+  - title: Sort pods by when they started
+    command: kubectl get pods --sort-by=.metadata.creationTimestamp -n {namespace}
+    words: [newest, oldest, age]
+  - title: See why a pod isn't starting
+    command: kubectl describe pod {pod} -n {namespace}
+    words: [pending, crashloop, events, imagepullbackoff, stuck]
+  - title: See the latest warnings in a namespace
+    command: kubectl events --types=Warning -n {namespace}
+    words: [errors, problems, what went wrong]
+  - title: See the events of one resource
+    command: kubectl events --for={kind}/{name} -n {namespace}
+    words: [history of pod, what happened]
+  - title: See which pods use the most memory
+    command: kubectl top pod --sort-by=memory -n {namespace}
+    words: [resource usage, cpu, heavy pods]
+  - title: See how busy the nodes are
+    command: kubectl top node
+    words: [node usage, capacity, cpu]
+  - title: Describe a field of a resource
+    command: kubectl explain {kind}.spec --recursive
+    words: [schema, documentation, what fields]
+  - title: List the kinds of resource and their short names
+    command: kubectl api-resources
+    words: [short names, abbreviations, crds]
+  # Logs
+  - title: Follow a pod's logs
+    command: kubectl logs -f --tail=100 {pod} -n {namespace}
+    words: [stream logs, tail logs, live output]
+  - title: Read the logs of the crashed container
+    command: kubectl logs -p {pod} -n {namespace}
+    words: [crashloop, previous logs, restarted, why did it crash]
+  - title: Read the logs of a deployment's pod
+    command: kubectl logs deploy/{name} -n {namespace}
+    words: [app logs, without pod name]
+  - title: Follow the logs of every pod of an app
+    command: kubectl logs -f -l app={app} --prefix --max-log-requests=10 -n {namespace}
+    words: [all replicas, many pods, label logs]
+  - title: Read the last hour of logs, with times
+    command: kubectl logs --since=1h --timestamps {pod} -n {namespace}
+    words: [recent logs, time]
+  - title: Read one container's logs in a pod
+    command: kubectl logs {pod} -c {container} -n {namespace}
+    words: [sidecar, init container, which container]
+  # Working inside
+  - title: Open a shell in a pod
+    command: kubectl exec -it {pod} -n {namespace} -- sh
+    words: [ssh into pod, bash, terminal, get inside]
+  - title: Run one command in a pod
+    command: kubectl exec {pod} -n {namespace} -- {command}
+    words: [execute, remote command]
+  - title: Reach a service from your machine
+    command: kubectl port-forward svc/{service} 8080:80 -n {namespace}
+    words: [localhost, locally, access service, tunnel, connect, test service, open port]
+  - title: Copy a file out of a pod
+    command: kubectl cp {namespace}/{pod}:{path} ./{file}
+    words: [download file, get file from container]
+  - title: Copy a file into a pod
+    command: kubectl cp ./{file} {namespace}/{pod}:{path}
+    words: [upload file, put file in container]
+  - title: Start a throwaway pod with a shell
+    command: kubectl run tmp --rm -it --restart=Never --image=busybox -n {namespace} -- sh
+    words: [debug pod, test network, curl from inside, temporary]
+  - title: Debug a running pod with a tools container
+    command: kubectl debug -it {pod} --image=busybox --target={container} -n {namespace}
+    words: [ephemeral container, distroless, no shell]
+  # Changing
+  - title: See what applying a file would change
+    command: kubectl diff -f {file}
+    words: [preview apply, compare with cluster, what changed]
+  - title: Apply a file
+    command: kubectl apply -f {file}
+    words: [deploy, create or update, install manifest]
+  - title: Apply a kustomization
+    command: kubectl apply -k {folder}
+    words: [kustomize, overlay]
+  - title: Check a file without applying it
+    command: kubectl apply -f {file} --dry-run=server
+    words: [validate, test manifest]
+  - title: Restart a deployment's pods
+    command: kubectl rollout restart deployment/{name} -n {namespace}
+    words: [bounce, recreate pods, reload config]
+  - title: Wait for a rollout to finish
+    command: kubectl rollout status deployment/{name} -n {namespace} --timeout=120s
+    words: [deploy done, ready, progress]
+  - title: Roll back a deployment to the previous version
+    command: kubectl rollout undo deployment/{name} -n {namespace}
+    words: [rollback, revert deploy, bad release, go back]
+  - title: See a deployment's revisions
+    command: kubectl rollout history deployment/{name} -n {namespace}
+    words: [versions, past releases]
+  - title: Scale a deployment
+    command: kubectl scale deployment/{name} --replicas={n} -n {namespace}
+    words: [more pods, fewer pods, replicas, scale down]
+  - title: Stop an app without deleting it
+    command: kubectl scale deployment/{name} --replicas=0 -n {namespace}
+    words: [pause app, turn off, scale to zero]
+  - title: Change a deployment's image
+    command: kubectl patch deployment {name} -p {patch} -n {namespace}
+    words: [update image, change spec]
+  - title: Label a resource
+    command: kubectl label {kind}/{name} {key}={value} -n {namespace}
+    words: [add label, tag resource]
+  - title: Remove a label
+    command: kubectl label {kind}/{name} {key}- -n {namespace}
+    words: [delete label, unlabel]
+  - title: Run a cron job now
+    command: kubectl create job {name} --from=cronjob/{cronjob} -n {namespace}
+    words: [trigger cronjob, manual run]
+  - title: Wait until the pods of an app are ready
+    command: kubectl wait --for=condition=Ready pod -l app={app} -n {namespace} --timeout=120s
+    words: [ready, until up, block]
+  # Secrets and config
+  - title: Make a secret from values
+    command: kubectl create secret generic {name} --from-literal={key}={value} -n {namespace}
+    words: [password, credentials, create secret]
+    note: the value stays in your shell history; --from-file avoids that
+  - title: Make a secret from a .env file
+    command: kubectl create secret generic {name} --from-env-file=.env -n {namespace}
+    words: [env file, environment variables]
+  - title: Make a TLS secret from a certificate
+    command: kubectl create secret tls {name} --cert={cert-file} --key={key-file} -n {namespace}
+    words: [certificate, https, ingress tls]
+  - title: Make a secret to pull from a private registry
+    command: kubectl create secret docker-registry {name} --docker-server={server} --docker-username={user} --docker-password={password} -n {namespace}
+    words: [image pull secret, acr, ecr, registry login]
+    note: the password stays in your shell history
+  - title: Write a secret's YAML without creating it
+    command: kubectl create secret generic {name} --from-file={file} --dry-run=client -o yaml
+    words: [generate manifest, sealed secret, gitops]
+  - title: Make a config map from a file
+    command: kubectl create configmap {name} --from-file={file} -n {namespace}
+    words: [config file, settings]
+  - title: Read a value from a secret
+    command: kubectl get secret {name} -o jsonpath={.data.KEY} -n {namespace}
+    words: [show password, decode secret]
+    note: the value is base64; pipe it to base64 -d
+  # Contexts
+  - title: See which cluster you are on
+    command: kubectl config current-context
+    words: [which context, where am i]
+  - title: List your contexts
+    command: kubectl config get-contexts
+    words: [clusters, kubeconfig]
+  - title: Switch to another cluster
+    command: kubectl config use-context {context}
+    words: [change cluster, switch context]
+  - title: Make a namespace the default for this context
+    command: kubectl config set-context --current --namespace={namespace}
+    words: [default namespace, switch namespace, kubens]
+  - title: Check whether you may do something
+    command: kubectl auth can-i {verb} {resource} -n {namespace}
+    words: [permission, rbac, allowed, forbidden]
+  - title: See who the cluster thinks you are
+    command: kubectl auth whoami
+    words: [identity, user, account]
+  # Removing
+  - title: See what a delete would remove, without deleting
+    command: kubectl delete --dry-run=client {resource} -n {namespace}
+    words: [preview delete, safe delete, what would happen]
+  - title: Delete a pod so its deployment starts a new one
+    command: kubectl delete pod {pod} -n {namespace}
+    words: [recreate pod, kill pod, restart one pod]
+  - title: Delete what a file created
+    command: kubectl delete -f {file}
+    words: [uninstall manifest, remove resources]
+  # Nodes
+  - title: Empty a node for maintenance
+    command: kubectl drain {node} --ignore-daemonsets
+    words: [maintenance, evict, upgrade node]
+    note: kubectl uncordon brings it back
+  - title: Stop new pods landing on a node
+    command: kubectl cordon {node}
+    words: [unschedulable, mark node]

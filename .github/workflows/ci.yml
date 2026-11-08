@@ -37,6 +37,10 @@ jobs:
       - name: Frontend type-check
         run: npm --prefix frontend run check
 
+      # Node's own test runner on the pure TypeScript modules; no deps.
+      - name: Frontend tests
+        run: npm --prefix frontend test
+
       - name: Frontend build
         run: npm --prefix frontend run build
 

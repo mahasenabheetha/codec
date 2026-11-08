@@ -22,6 +22,11 @@ internal/
   yamlkit/            ENGINE YAML core: parse, positions, docs, detect,
                       outline, paths, format, convert, diagnostics,
                       semantic diff, layered merge with origins (CI, Compose)
+  sanitize/           ENGINE Sanitize: secrets, addresses and names found
+                      in a text and replaced by consistent stand-ins
+  quote/              ENGINE Quote: a value written for a shell, a data
+                      format, a build file or a language, read back, and
+                      quoted through layers
   names/              ENGINE "did you mean" (edit distance) for every lens;
                       a name in every case and the Kubernetes, Helm and
                       env-var naming rules (Case & names)
@@ -59,6 +64,10 @@ internal/
                       line as ECS/JSON (own order-keeping reader), logfmt, klog
                       or text; stack traces joined to their entry, per source;
                       pipeline steps and levels from CI marks
+  commands/           ENGINE Commands tool: a shell-like reader of command lines,
+                      the embedded reference of tools (packs/*.yaml) and what
+                      every part of a line does; the cheat sheet's search by
+                      purpose over recipes, commands and flags
   logsrc/             ENGINE Log to source: file and line references in log
                       text (frames, compiler and tool errors), matched to the
                       folder's files by trailing folders
@@ -280,6 +289,9 @@ Implemented in `internal/web/security.go`; every route passes the guard.
   a foreign `Origin` are rejected.
 - Client-supplied paths are slash paths validated with `fs.ValidPath`
   and read through `os.Root`, which refuses `..` and symlink escapes.
+  Where `os.Root` misses a file the path-based view has (Windows app
+  file-system virtualisation), the read retries by path after
+  `EvalSymlinks` confirms it stays inside the root.
   The tree walk lists with `os.ReadDir` (no symlinked directories
   followed); background classification reads walked paths directly and
   exposes only the file type (decision #26). Never write to workspace files.

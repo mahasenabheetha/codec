@@ -6,7 +6,7 @@
 import { persisted } from '../../lib/stores/persist.svelte'
 import { Timer, type TimerSnapshot } from './clock.svelte'
 import { today } from './today.svelte'
-import { ring } from './wellness.svelte'
+import { ringMoment } from './wellness.svelte'
 import { unlockAudio } from './sound'
 import { notify } from './notify'
 
@@ -138,6 +138,7 @@ class Focus {
     this.notice = null
     this.#startedAt = Date.now()
     this.timer.start(this.length(this.phase))
+    if (this.phase === 'focus') ringMoment('focusStart', 'Focus session started')
   }
 
   toggle() {
@@ -197,7 +198,7 @@ class Focus {
     }
     if (phase === 'focus') today.addFocus(this.#startedAt, Date.now(), this.timer.duration, true)
     else today.addBreak(this.#startedAt, Date.now())
-    ring(phase === 'focus' ? 'Focus session done' : phase === 'long' ? 'Long break over' : 'Break over')
+    ringMoment(phase === 'focus' ? 'focusEnd' : 'breakEnd', phase === 'focus' ? 'Focus session done' : phase === 'long' ? 'Long break over' : 'Break over')
     this.#advance()
     this.timer.reset()
     this.notice = { kind: 'ended', phase, next: this.phase }

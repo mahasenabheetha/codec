@@ -23,6 +23,7 @@ const kindName: Record<Kind, string> = {
   uuid: 'UUID',
   ulid: 'ULID',
   colour: 'Colour',
+  command: 'Command',
   unknown: '',
 }
 

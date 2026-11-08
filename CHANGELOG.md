@@ -6,6 +6,123 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+## [3.10.0] - 2026-11-08
+
+Commands explained, built and found by what you want to do, for git,
+kubectl, helm, docker and Linux; text quoted for where it goes and
+sanitized before it is shared; breaks that rest outside your hours,
+fourteen sounds and focus sounds; five new themes.
+
+### Added
+
+- **Commands** (Utilities): type or paste a command line and every part
+  of it is explained — subcommand, flags and their values, arguments,
+  pipes and redirections — with risky parts marked and a safer way; a
+  Build form shows the same command and changing either side changes
+  the other. Values from the open folder (namespaces, resources,
+  labels, charts) are offered; Copy for PowerShell, in the toolbar's …
+  menu, quotes it that way.
+- **Cheat sheet** (Commands): find a command by what you want to do,
+  in your own words ("undo my last commit"). Recipes, commands and
+  flags are ranked, each with what matched — the word, a synonym or a
+  typo fixed; with nothing asked, recipes by tool. A click anywhere on
+  one puts it on the line, explained beside the sheet, with its values
+  to fill in marked (Tab moves between them); its … menu opens it in
+  Build. Commands are coloured by part: tool, subcommand, flags,
+  quoted values. Esc clears the line (in the search box, the search).
+  Browsing goes by area (Git, Kubernetes, Containers, Linux), each
+  folding, Linux folded at first and its 37 tools under six kinds
+  (files and folders, text, archives, permissions, processes and
+  services, network); the Tool menu offers an area or a kind as well
+  as a tool, as does `codec how -t`; Build's start screen is grouped
+  the same way.
+- **git** in Commands: 32 commands — status, add, commit, diff, log,
+  show, branch, switch, checkout, merge, rebase, cherry-pick, revert,
+  reset, restore, stash, tag, fetch, pull, push, remote, clean, bisect,
+  reflog, blame, worktree, config, grep, init, clone, rm, mv — with
+  their flags checked against git 2.55, the risky ones marked, and 62
+  recipes.
+- **kubectl** in Commands: get, describe, logs, exec, apply, diff,
+  create (namespace, secret generic, tls and docker-registry, configmap,
+  deployment, job), run, delete, edit, rollout, scale, port-forward, cp,
+  top, config, explain, events, label, annotate, patch, auth can-i and
+  whoami, debug, drain, cordon, wait, api-resources — checked against
+  kubectl 1.36, with 63 recipes. A flag value written as a kind
+  (`-o jsonpath=…`) is explained, and the form offers the formats in a
+  text box rather than a fixed list.
+- **docker, compose and helm** in Commands: docker's run, exec, ps,
+  logs, build, images, pull, push, tag, login, stop, rm, rmi, inspect,
+  cp, stats, save and load, with image, container, network, volume,
+  system, builder, buildx, context and compose (up, down, ps, logs,
+  exec, run, build, restart, config, watch…) — checked against Docker
+  29.9 and Compose 5.6, with 46 recipes; helm's install, upgrade,
+  template, lint, list, status, history, rollback, uninstall, get, show,
+  repo, search, dependency, pull, push, package, create and test, with
+  27 recipes. helm wasn't installed to check its flags against.
+- **Linux commands** in Commands: ls, find, grep, sed, awk, sort, uniq,
+  wc, head, tail, cut, tr, tar, gzip, ln, cp, mv, rm, chmod, chown, du,
+  df, free, ps, kill, top, ss, lsof, curl, wget, ssh, scp, rsync,
+  openssl, jq, systemctl and journalctl — checked against their help on
+  Ubuntu — with 119 recipes, some of them pipelines (`sort | uniq -c |
+  sort -rn`). `find -exec … \;` and `jq --arg name value` are read with
+  their whole value, `sed -i.bak` with its suffix, and the form writes
+  find's folder first and its actions (`-exec`, `-delete`) last, so a
+  test added later still limits what they act on.
+- **Commands elsewhere**: Smart paste recognises a command line codec
+  knows and explains it, with Open in Commands; `codec explain "<line>"`
+  explains one in the terminal, and `codec how <what you want to do>`
+  searches the cheat sheet (both with `--json`).
+- **Quote** (Text & data): a value written so a target reads it back
+  exactly — bash, sh, PowerShell, cmd, JSON, YAML, .env, Helm `--set`,
+  Makefile, Dockerfile, SQL, regular expressions, Go, XML, HTML — every
+  way it can be, with why and the traps (YAML's `no`, `--env-file`
+  keeping quotes); Read back goes the other way, and Layers quotes
+  through a command inside a command (`sh -c` in `kubectl exec` in
+  `ssh`). `codec quote` on the command line.
+- **Sanitize** (Text & data): secrets, emails, IP addresses, host names,
+  UUIDs, Azure resource names, user names in paths and words of your
+  own taken out of a text before you share it, each value the same
+  stand-in throughout (192.0.2.1, user-1@example.com) or masked, with a
+  list of what was found to keep any of it. The Log viewer's export can
+  sanitize the file; Smart paste offers it when it sees secrets;
+  `codec sanitize` on the command line.
+
+### Changed
+
+- **Themes**: Paper (warm, low-glare light), Mist (light dimmed to soft
+  grey, for long days), Forest (green-grey), Rosé (pink-violet), Ocean
+  (blue-teal on deep blue) and High contrast (every text at least 7:1,
+  and each tool in its own bright colour on the rail and tabs), each
+  through the contrast check. Settings
+  → Theme is a menu with a swatch for each; System has a light choice as
+  well as a dark one; the palette has "Theme: …" for each.
+- **Sounds**: fourteen chimes (singing bowl, gong, marimba, kalimba, soft
+  piano, music box, wind chimes, water drop, tick among the new ones),
+  a sound per moment (break and focus start and end, a break's last
+  seconds) each with Play, packs that set them together (Calm, Nature,
+  Studio, Minimal, Silent), and a focus sound under focus sessions
+  (brown, pink and white noise, rain, ocean, fan) with its own volume
+  and fades. Your old chime is kept for the moments it rang.
+- **Breaks rest outside active hours**: no countdown runs outside them,
+  and the status says when breaks resume ("Monday at 09:00"); a reminder
+  due after the hours end waits, and each reminder starts a fresh
+  interval when the hours begin or codec opens later in them. A break on
+  screen finishes, a snooze past the end is dropped, focus sessions are
+  untouched; hours may cross midnight.
+
+### Fixed
+
+- **Commands**: the Build form wrote every flag after the last
+  subcommand and dropped the tool's own (`git -C repo log` lost `-C`).
+  Each flag is now written back where it belongs, and the form lists
+  the ones that go before a subcommand, marked so
+  (`docker compose -f a.yml up`).
+- Files in subfolders now open when the folder sits in a virtualised
+  `%LOCALAPPDATA%` (the sample, opened from a Claude desktop terminal or
+  its tests): reads failed with "too many levels of symbolic links", or
+  a subfolder created after opening said "not found" until a restart,
+  although the explorer listed the files.
+
 ## [3.9.0] - 2026-11-06
 
 From a log line to the code that wrote it, and the Log viewer reads
@@ -1047,7 +1164,10 @@ First tagged release: codec as it stood before the 2.0 work began.
 - Release pipeline: pushing a `v*` tag publishes binaries for Linux,
   Windows and macOS (amd64/arm64) to GitHub Releases via GoReleaser.
 
-[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v3.8.0...HEAD
+[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v3.10.0...HEAD
+[3.10.0]: https://github.com/mahasenabheetha/codec/compare/v3.9.0...v3.10.0
+[3.9.0]: https://github.com/mahasenabheetha/codec/compare/v3.8.1...v3.9.0
+[3.8.1]: https://github.com/mahasenabheetha/codec/compare/v3.8.0...v3.8.1
 [3.8.0]: https://github.com/mahasenabheetha/codec/compare/v3.7.0...v3.8.0
 [3.7.0]: https://github.com/mahasenabheetha/codec/compare/v3.6.0...v3.7.0
 [3.6.0]: https://github.com/mahasenabheetha/codec/compare/v3.5.0...v3.6.0

@@ -81,7 +81,7 @@ export function fileIconUrl(path: string | undefined, kind: string): string | nu
   if (!m || own.has(kind)) return null
   if (types[kind]) return url(types[kind])
   if (!path) return url(langs[kind] ?? 'file')
-  const light = theme.resolved === 'light'
+  const light = !theme.dark
   const lower = path.toLowerCase()
   const name = lower.slice(lower.lastIndexOf('/') + 1)
   // As VS Code reads the set: an exact name (some are folder/name), then
@@ -104,7 +104,7 @@ export function folderIconUrl(name: string, open: boolean): string | null {
   const m = ready()
   if (!m) return null
   const lower = name.toLowerCase()
-  const light = theme.resolved === 'light'
+  const light = !theme.dark
   const hit = (light && m.light.folderNames[lower]) || m.folderNames[lower] || 'folder'
   return url(open ? hit + '-open' : hit)
 }

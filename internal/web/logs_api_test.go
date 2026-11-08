@@ -160,6 +160,15 @@ func TestLogsAPI(t *testing.T) {
 	if code, _, _ := exp("xml"); code != 400 {
 		t.Errorf("bad format: %d", code)
 	}
+	// Sanitized: the same export with your words (and the rest) taken out.
+	req := httptest.NewRequest("POST", "/api/v2/logs/"+id+"/export", strings.NewReader(`{"q":"level:error","format":"csv","sanitize":{"words":["order"]}}`))
+	req.Host = "127.0.0.1:8765"
+	req.Header.Set("X-Codec-Token", s.Token())
+	rec := httptest.NewRecorder()
+	s.Handler().ServeHTTP(rec, req)
+	if out := rec.Body.String(); rec.Code != 200 || rec.Header().Get("Content-Disposition") != `attachment; filename=log-sanitized.csv` || strings.Contains(out, "order") || !strings.Contains(out, "word-1 7 failed") {
+		t.Errorf("sanitized: %d %q", rec.Code, out)
+	}
 
 	if code, _ := send(s, "DELETE", "/api/v2/logs/"+id, "", ""); code != 204 {
 		t.Errorf("delete: %d", code)

@@ -233,6 +233,8 @@ set       spec.template.spec.containers[0].image=</span></code></pre>
 <div class="table-wrap"><table>
   <tr><th>Command</th><th>What it does</th></tr>
   <tr><td><code>case [text]</code></td><td>A name in camel, Pascal, snake, kebab, CONSTANT, dot, Title, Sentence, lower and path case (acronyms kept); <code>--to snake</code> prints one, for each line when piped; <code>--check</code> tests it against the Kubernetes name and label rules, an env-var name and a Helm release name, with a suggestion that passes (exit 2 when one fails). <code>--json</code></td></tr>
+  <tr><td><code>sanitize [file|-]</code></td><td>The text with secrets, emails, IPs, host names, UUIDs, Azure names and user names taken out, each value the same stand-in throughout; <code>-k secrets,emails</code> for some kinds only, <code>-w acme</code> for words of your own (repeat), <code>--keep-private</code>, <code>--mask</code> for •••, <code>-l</code> lists what was replaced on stderr, <code>--json</code></td></tr>
+  <tr><td><code>quote [value]</code></td><td>A value written for a target so it arrives as it is: <code>-f bash</code> (the default), <code>sh</code>, <code>powershell</code>, <code>cmd</code>, <code>json</code>, <code>yaml</code>, <code>env</code>, <code>helm-set</code>, <code>makefile</code>, <code>dockerfile</code>, <code>sql</code>, <code>regex</code>, <code>go</code>, <code>xml</code>, <code>html</code>. <code>--all</code> every way with why and the traps; <code>-u</code> reads one back; <code>--json</code>. The value is the argument or stdin.</td></tr>
 </table></div>
 
 <h2 id="time">Time and cron<a class="anchor" href="#time">#</a></h2>
@@ -240,6 +242,13 @@ set       spec.template.spec.containers[0].image=</span></code></pre>
   <tr><th>Command</th><th>What it does</th></tr>
   <tr><td><code>time [epoch|date]</code></td><td>A moment in UTC, in <code>--zone</code>, as epoch seconds and milliseconds and relative to now; nothing means now. Epoch units are told by size (up to 11 digits are seconds, then ms, µs, ns). <code>--in America/New_York,Asia/Kolkata</code> shows it in other zones (offset, DST, day shift, next clock change; a bare <code>14:00</code> is today in <code>--zone</code>); <code>--formats</code> writes it in RFC 3339, RFC 2822, ISO week and ordinal dates, the HTTP date and Unix s, ms, µs and ns</td></tr>
   <tr><td><code>cron &lt;expression&gt;</code></td><td>Plain words, field by field, and the next runs (<code>-n</code>, <code>--zone</code>, UTC by default); <code>@daily</code>-style shortcuts and a <code>CRON_TZ=</code> prefix work; Quartz and Jenkins expressions are named as such. <code>--json</code> on both</td></tr>
+</table></div>
+
+<h2 id="explain">Commands<a class="anchor" href="#explain">#</a></h2>
+<div class="table-wrap"><table>
+  <tr><th>Command</th><th>What it does</th></tr>
+  <tr><td><code>explain "&lt;command line&gt;"</code></td><td>Each part of a command line in plain words: the command and subcommand, each flag and its value, the arguments, pipes and redirections; risky parts marked <code>!</code> with a safer way. Quote the line or pipe it in. Nothing is run. <code>--json</code></td></tr>
+  <tr><td><code>how &lt;what you want to do&gt;</code></td><td>The cheat sheet: recipes, commands and flags that do it, best first, with what matched. <code>codec how undo my last commit</code>; <code>-t kubectl</code> for one tool (or an area, <code>-t linux</code>, or a kind of Linux tool, <code>-t category:network</code>), <code>-n</code> for how many (5; <code>0</code> for all), <code>--json</code>. A tool's name alone lists its recipes.</td></tr>
 </table></div>
 
 <h2 id="regex">Regex<a class="anchor" href="#regex">#</a></h2>

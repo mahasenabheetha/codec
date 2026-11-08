@@ -1,0 +1,1354 @@
+# docker, with compose and buildx, in codec's words and checked against
+# `docker <command> --help` (Docker 29.9, Compose 5.6). Flags several
+# commands share are written once under shared and used by name.
+shared:
+  format: &format
+    names: [--format]
+    value: format
+    summary: prints each one this way, such as "{{.Names}}" or json
+  quiet: &quiet
+    names: [-q, --quiet]
+    summary: prints only the IDs
+  filter: &filter
+    names: [-f, --filter]
+    value: filter
+    repeat: true
+    summary: only those that match, such as status=exited or label=app=web
+  pruneForce: &pruneForce
+    names: [-f, --force]
+    summary: doesn't ask first
+  pruneFilter: &pruneFilter
+    names: [--filter]
+    value: filter
+    repeat: true
+    summary: only those that match, such as until=24h
+  dryRun: &composeDryRun
+    names: [--dry-run]
+    summary: shows what it would do without doing it
+  composeTimeout: &composeTimeout
+    names: [-t, --timeout]
+    value: seconds
+    summary: waits this long for the containers to stop before killing them
+  buildFlags: &buildFlags
+    - names: [-t, --tag]
+      value: name:tag
+      repeat: true
+      common: true
+      summary: names the image, such as shop/web:1.2
+    - names: [-f, --file]
+      value: Dockerfile
+      common: true
+      summary: uses this Dockerfile instead of the one in the context
+    - names: [--build-arg]
+      value: name=value
+      repeat: true
+      common: true
+      summary: sets a build argument (ARG) in the Dockerfile
+    - names: [--target]
+      value: stage
+      summary: builds only up to this stage of a multi-stage Dockerfile
+    - names: [--no-cache]
+      summary: builds every step again, without the cache
+    - names: [--pull]
+      summary: pulls newer base images first
+    - names: [--platform]
+      value: platform
+      repeat: true
+      summary: builds for this platform, such as linux/amd64 or linux/arm64
+    - names: [--push]
+      summary: pushes the image to its registry when built
+    - names: [--load]
+      summary: loads the image into docker's own images when built
+    - names: [-o, --output]
+      value: output
+      repeat: true
+      summary: where the result goes, such as type=local,dest=out
+    - names: [--progress]
+      value: mode
+      summary: how progress is shown
+      choices:
+        - {value: auto, summary: as fits the terminal}
+        - {value: plain, summary: "every line, for logs and CI"}
+        - {value: tty, summary: updated in place}
+        - {value: quiet, summary: nothing}
+        - {value: rawjson, summary: as JSON}
+    - names: [--secret]
+      value: id=…,src=…
+      repeat: true
+      summary: a secret for RUN --mount=type=secret, kept out of the image
+    - names: [--ssh]
+      value: default
+      repeat: true
+      summary: lets RUN --mount=type=ssh use your SSH agent
+    - names: [--cache-from]
+      value: source
+      repeat: true
+      summary: takes the cache from here, such as type=registry,ref=…
+    - names: [--cache-to]
+      value: destination
+      repeat: true
+      summary: saves the cache there
+    - names: [--network]
+      value: mode
+      summary: the network the RUN steps get
+    - names: [--label]
+      value: name=value
+      repeat: true
+      summary: sets a label on the image
+    - names: [--check]
+      summary: checks the Dockerfile for mistakes, without building
+    - names: [-q, --quiet]
+      summary: prints only the image ID
+  buildArgs: &buildArgs
+    - name: context
+      summary: the folder (or URL) the build reads files from, such as .
+
+name: docker
+group: containers
+summary: Docker, for building and running containers.
+flags:
+  - names: [-c, --context]
+    value: context
+    summary: talks to the Docker engine of this context
+  - names: [-H, --host]
+    value: host
+    repeat: true
+    summary: talks to the Docker engine at this address
+  - names: [-D, --debug]
+    summary: prints debugging output
+  - names: [-l, --log-level]
+    value: level
+    summary: how much to log
+    choices: [debug, info, warn, error, fatal]
+  - names: [--config]
+    value: folder
+    summary: reads the client's settings from this folder
+commands:
+  - name: run
+    summary: Creates a container from an image and starts it.
+    flags:
+      - names: [-d, --detach]
+        common: true
+        summary: runs it in the background and prints its ID
+      - names: [-i, --interactive]
+        common: true
+        summary: keeps its input open, to type into it
+      - names: [-t, --tty]
+        common: true
+        summary: gives it a terminal
+      - names: [--rm]
+        common: true
+        summary: deletes the container when it stops
+      - names: [--name]
+        value: name
+        common: true
+        summary: names the container
+      - names: [-p, --publish]
+        value: host:container
+        repeat: true
+        common: true
+        summary: makes a container port reachable on this machine, such as 8080:80
+      - names: [-e, --env]
+        value: NAME=value
+        repeat: true
+        common: true
+        summary: sets an environment variable
+      - names: [-v, --volume]
+        value: source:target
+        repeat: true
+        common: true
+        summary: mounts a folder or volume, such as ./data:/data or db:/var/lib/db
+      - names: [--env-file]
+        value: file
+        repeat: true
+        summary: sets the variables in this file
+      - names: [--mount]
+        value: mount
+        repeat: true
+        summary: mounts, written out, such as type=bind,src=.,dst=/app
+      - names: [-w, --workdir]
+        value: folder
+        summary: the folder the command runs in, inside the container
+      - names: [--entrypoint]
+        value: command
+        summary: runs this instead of the image's entrypoint
+      - names: [-u, --user]
+        value: user
+        summary: runs as this user, name or uid[:gid]
+      - names: [--network]
+        value: network
+        summary: connects it to this network
+      - names: [--restart]
+        value: policy
+        summary: when docker starts it again
+        choices:
+          - {value: "no", summary: never}
+          - {value: on-failure, summary: when it exits with an error}
+          - {value: always, summary: "always, and when docker starts"}
+          - {value: unless-stopped, summary: "always, unless you stopped it"}
+      - names: [-P, --publish-all]
+        summary: publishes every port the image exposes, on random ports
+      - names: [--platform]
+        value: platform
+        summary: runs the image for this platform, such as linux/amd64
+      - names: [--pull]
+        value: policy
+        summary: when to pull the image first
+        choices: [always, missing, never]
+      - names: [-m, --memory]
+        value: bytes
+        summary: limits its memory, such as 512m
+      - names: [--cpus]
+        value: number
+        summary: limits how many CPUs it may use, such as 1.5
+      - names: [-h, --hostname]
+        value: name
+        summary: the container's host name
+      - names: [--add-host]
+        value: host:ip
+        repeat: true
+        summary: adds a line to its /etc/hosts; host-gateway is this machine
+      - names: [-l, --label]
+        value: name=value
+        repeat: true
+        summary: sets a label on the container
+      - names: [--read-only]
+        summary: mounts its file system read-only
+      - names: [--init]
+        summary: runs a small init first, which passes on signals and reaps processes
+      - names: [--privileged]
+        summary: gives it nearly every power of this machine's kernel
+        danger:
+          level: danger
+          note: the container can reach the host's devices and get out of its box
+          safer: docker run --cap-add {capability}
+      - names: [--cap-add]
+        value: capability
+        repeat: true
+        summary: gives it one more Linux capability, such as NET_ADMIN
+      - names: [--gpus]
+        value: gpus
+        summary: gives it GPUs, such as all
+    args:
+      - name: image
+        summary: the image, such as nginx or nginx:1.27
+      - name: command
+        optional: true
+        repeat: true
+        summary: runs this instead of the image's command
+  - name: exec
+    summary: Runs a command in a running container.
+    flags:
+      - names: [-i, --interactive]
+        common: true
+        summary: keeps its input open
+      - names: [-t, --tty]
+        common: true
+        summary: gives it a terminal
+      - names: [-e, --env]
+        value: NAME=value
+        repeat: true
+        summary: sets an environment variable
+      - names: [-u, --user]
+        value: user
+        summary: runs as this user, such as root
+      - names: [-w, --workdir]
+        value: folder
+        summary: runs in this folder
+      - names: [-d, --detach]
+        summary: runs it in the background
+      - names: [--privileged]
+        summary: gives the command extra powers
+    args:
+      - name: container
+        summary: the container's name or ID
+      - name: command
+        repeat: true
+        summary: the command and its arguments, such as sh
+  - name: ps
+    summary: Lists containers; the running ones unless -a.
+    flags:
+      - names: [-a, --all]
+        common: true
+        summary: stopped ones too
+      - *quiet
+      - *filter
+      - *format
+      - names: [-s, --size]
+        summary: shows how much space each uses
+      - names: [-n, --last]
+        value: number
+        summary: the last this-many created
+      - names: [-l, --latest]
+        summary: only the last created
+      - names: [--no-trunc]
+        summary: doesn't shorten IDs and commands
+  - name: logs
+    summary: Prints a container's output.
+    flags:
+      - names: [-f, --follow]
+        common: true
+        summary: keeps printing new lines as they come
+      - names: [-n, --tail]
+        value: lines
+        common: true
+        summary: only the last this-many lines
+      - names: [--since]
+        value: time
+        summary: only lines after this, such as 10m or 2026-01-01T10:00
+      - names: [--until]
+        value: time
+        summary: only lines before this
+      - names: [-t, --timestamps]
+        summary: puts the time before each line
+    args:
+      - name: container
+        summary: the container's name or ID
+  - name: images
+    summary: Lists the images.
+    flags:
+      - names: [-a, --all]
+        summary: the intermediate ones too
+      - *quiet
+      - *filter
+      - *format
+      - names: [--digests]
+        summary: shows each one's digest
+      - names: [--tree]
+        summary: shows each one's platforms, as a tree
+    args:
+      - name: repository
+        optional: true
+        summary: only this repository, such as nginx
+  - name: build
+    summary: Builds an image from a Dockerfile (with BuildKit, as docker buildx build).
+    flags: *buildFlags
+    args: *buildArgs
+  - name: pull
+    summary: Downloads an image from a registry.
+    flags:
+      - names: [--platform]
+        value: platform
+        summary: the image for this platform
+      - names: [-a, --all-tags]
+        summary: every tag of the repository
+      - names: [-q, --quiet]
+        summary: prints less
+    args:
+      - name: image
+        summary: the image, such as nginx:1.27
+  - name: push
+    summary: Uploads an image to its registry.
+    flags:
+      - names: [-a, --all-tags]
+        summary: every tag of the repository
+      - names: [--platform]
+        value: platform
+        summary: only this platform of the image
+      - names: [-q, --quiet]
+        summary: prints less
+    args:
+      - name: image
+        summary: the image, its name saying the registry, such as ghcr.io/me/web:1.2
+  - name: tag
+    summary: Gives an image another name, such as one for a registry.
+    args:
+      - name: source
+        summary: the image now
+      - name: target
+        summary: its new name
+  - name: login
+    summary: Signs in to a registry, so you can push and pull its private images.
+    flags:
+      - names: [-u, --username]
+        value: user
+        common: true
+        summary: the user name
+      - names: [--password-stdin]
+        common: true
+        summary: reads the password from input, keeping it out of your shell history
+      - names: [-p, --password]
+        value: password
+        summary: the password
+        danger:
+          level: caution
+          note: the password stays in your shell history and is visible to other processes
+          safer: docker login --password-stdin
+    args:
+      - name: server
+        optional: true
+        summary: the registry; Docker Hub by default
+  - name: logout
+    summary: Signs out of a registry.
+    args:
+      - name: server
+        optional: true
+        summary: the registry
+  - name: stop
+    summary: Stops running containers, asking first and killing them after a wait.
+    flags:
+      - names: [-t, --timeout]
+        value: seconds
+        summary: waits this long before killing it
+      - names: [-s, --signal]
+        value: signal
+        summary: asks with this signal instead of SIGTERM
+    args:
+      - name: container
+        repeat: true
+        summary: the containers
+  - name: start
+    summary: Starts stopped containers.
+    flags:
+      - names: [-a, --attach]
+        summary: shows its output
+      - names: [-i, --interactive]
+        summary: connects your input to it
+    args:
+      - name: container
+        repeat: true
+        summary: the containers
+  - name: restart
+    summary: Stops and starts containers.
+    flags:
+      - names: [-t, --timeout]
+        value: seconds
+        summary: waits this long before killing it
+    args:
+      - name: container
+        repeat: true
+        summary: the containers
+  - name: kill
+    summary: Kills running containers at once.
+    flags:
+      - names: [-s, --signal]
+        value: signal
+        summary: sends this signal instead of SIGKILL
+    args:
+      - name: container
+        repeat: true
+        summary: the containers
+  - name: rm
+    summary: Deletes containers.
+    danger:
+      level: caution
+      note: what the container wrote outside its volumes is lost
+    flags:
+      - names: [-f, --force]
+        common: true
+        summary: stops a running one first
+      - names: [-v, --volumes]
+        summary: deletes its anonymous volumes too
+        danger:
+          level: danger
+          note: the data in those volumes is lost
+    args:
+      - name: container
+        repeat: true
+        summary: the containers
+  - name: rmi
+    summary: Deletes images.
+    flags:
+      - names: [-f, --force]
+        summary: even if a container uses it, or it has several names
+      - names: [--no-prune]
+        summary: keeps its untagged parents
+    args:
+      - name: image
+        repeat: true
+        summary: the images
+  - name: inspect
+    summary: Prints everything docker knows about a container, image, network or volume, as JSON.
+    flags:
+      - names: [-f, --format]
+        value: template
+        common: true
+        summary: prints only what this template picks, such as "{{.State.Status}}"
+      - names: [--type]
+        value: type
+        summary: what kind of object it is, when names clash
+        choices: [container, image, network, volume, plugin, node, service, task]
+      - names: [-s, --size]
+        summary: a container's size too
+    args:
+      - name: name
+        repeat: true
+        summary: its name or ID
+  - name: cp
+    summary: Copies files between a container and this machine.
+    flags:
+      - names: [-a, --archive]
+        summary: keeps owners and permissions
+      - names: [-L, --follow-link]
+        summary: copies what a link points to
+    args:
+      - name: source
+        summary: a local path, or container:path
+      - name: destination
+        summary: a local path, or container:path
+  - name: stats
+    summary: Shows the CPU, memory, network and disk each container uses, live.
+    flags:
+      - names: [--no-stream]
+        common: true
+        summary: prints once and stops
+      - names: [-a, --all]
+        summary: stopped containers too
+      - *format
+    args:
+      - name: container
+        optional: true
+        repeat: true
+        summary: only these
+  - name: port
+    summary: Lists a container's published ports.
+    args:
+      - name: container
+        summary: the container
+      - name: port
+        optional: true
+        summary: only this one, such as 80/tcp
+  - name: save
+    summary: Writes images to a tar file, to copy them somewhere without a registry.
+    flags:
+      - names: [-o, --output]
+        value: file
+        common: true
+        summary: the file, instead of the output
+    args:
+      - name: image
+        repeat: true
+        summary: the images
+  - name: load
+    summary: Reads images from a tar file docker save wrote.
+    flags:
+      - names: [-i, --input]
+        value: file
+        common: true
+        summary: the file, instead of input
+  - name: history
+    summary: Lists the layers of an image and the steps that made them.
+    flags:
+      - names: [--no-trunc]
+        summary: shows each step in full
+      - names: [-H, --human]
+        value: bool
+        optionalValue: true
+        summary: sizes and dates easy to read (on by default)
+    args:
+      - name: image
+        summary: the image
+  - name: info
+    summary: Shows how the Docker engine is set up.
+    flags:
+      - names: [-f, --format]
+        value: template
+        summary: prints only what this template picks
+  - name: image
+    summary: Manages images.
+    commands:
+      - name: ls
+        aliases: [list]
+        summary: Lists the images.
+        flags:
+          - names: [-a, --all]
+            summary: the intermediate ones too
+          - *quiet
+          - *filter
+          - *format
+      - name: prune
+        summary: Deletes images no tag names (all unused ones with -a).
+        flags:
+          - names: [-a, --all]
+            common: true
+            summary: every image no container uses, not only the unnamed ones
+            danger:
+              level: caution
+              note: they have to be pulled or built again
+          - *pruneForce
+          - *pruneFilter
+      - name: inspect
+        summary: Prints an image's details as JSON.
+        flags:
+          - names: [-f, --format]
+            value: template
+            summary: prints only what this template picks
+        args:
+          - name: image
+            repeat: true
+            summary: the images
+      - name: rm
+        summary: Deletes images.
+        flags:
+          - names: [-f, --force]
+            summary: even if a container uses it
+        args:
+          - name: image
+            repeat: true
+            summary: the images
+  - name: container
+    summary: Manages containers.
+    commands:
+      - name: ls
+        aliases: [list, ps]
+        summary: Lists containers; the running ones unless -a.
+        flags:
+          - names: [-a, --all]
+            common: true
+            summary: stopped ones too
+          - *quiet
+          - *filter
+          - *format
+      - name: prune
+        summary: Deletes every stopped container.
+        danger:
+          level: caution
+          note: what they wrote outside volumes is lost
+        flags:
+          - *pruneForce
+          - *pruneFilter
+  - name: network
+    summary: Manages networks, which let containers reach each other by name.
+    commands:
+      - name: ls
+        aliases: [list]
+        summary: Lists the networks.
+        flags:
+          - *quiet
+          - *filter
+          - *format
+      - name: create
+        summary: Creates a network.
+        flags:
+          - names: [-d, --driver]
+            value: driver
+            summary: what kind of network
+            choices: [bridge, overlay, macvlan, host, none]
+          - names: [--subnet]
+            value: subnet
+            repeat: true
+            summary: its addresses, such as 172.28.0.0/16
+          - names: [--internal]
+            summary: no way out to the outside
+        args:
+          - name: name
+            summary: the network
+      - name: rm
+        summary: Deletes networks.
+        args:
+          - name: network
+            repeat: true
+            summary: the networks
+      - name: inspect
+        summary: Shows a network's details, with the containers on it.
+        args:
+          - name: network
+            repeat: true
+            summary: the networks
+      - name: connect
+        summary: Connects a running container to a network.
+        flags:
+          - names: [--alias]
+            value: alias
+            repeat: true
+            summary: another name it is reached by on this network
+        args:
+          - name: network
+            summary: the network
+          - name: container
+            summary: the container
+      - name: disconnect
+        summary: Takes a container off a network.
+        args:
+          - name: network
+            summary: the network
+          - name: container
+            summary: the container
+      - name: prune
+        summary: Deletes networks no container uses.
+        flags:
+          - *pruneForce
+          - *pruneFilter
+  - name: volume
+    summary: Manages volumes, where containers keep data.
+    commands:
+      - name: ls
+        aliases: [list]
+        summary: Lists the volumes.
+        flags:
+          - *quiet
+          - *filter
+          - *format
+      - name: create
+        summary: Creates a volume.
+        flags:
+          - names: [-d, --driver]
+            value: driver
+            summary: the volume driver
+        args:
+          - name: name
+            optional: true
+            summary: the volume
+      - name: inspect
+        summary: Shows a volume's details, such as where it is on disk.
+        args:
+          - name: volume
+            repeat: true
+            summary: the volumes
+      - name: rm
+        summary: Deletes volumes and the data in them.
+        danger:
+          level: danger
+          note: the data in the volumes is lost
+        flags:
+          - names: [-f, --force]
+            summary: no error when one isn't there
+        args:
+          - name: volume
+            repeat: true
+            summary: the volumes
+      - name: prune
+        summary: Deletes anonymous volumes no container uses (named ones too with -a).
+        danger:
+          level: danger
+          note: the data in those volumes is lost
+          safer: docker volume ls -f dangling=true
+        flags:
+          - names: [-a, --all]
+            summary: named volumes too
+            danger:
+              level: danger
+              note: every volume no container uses, with its data, is gone
+          - *pruneForce
+          - *pruneFilter
+  - name: system
+    summary: Shows and frees what docker uses.
+    commands:
+      - name: df
+        summary: Shows how much disk images, containers, volumes and the build cache use.
+        flags:
+          - names: [-v, --verbose]
+            summary: by each one
+      - name: prune
+        summary: Deletes stopped containers, unused networks, unnamed images and the build cache.
+        danger:
+          level: caution
+          note: the deleted things are gone; images and cache have to be made again
+          safer: docker system df
+        flags:
+          - names: [-a, --all]
+            common: true
+            summary: every image no container uses, not only the unnamed ones
+          - names: [--volumes]
+            summary: unused volumes too
+            danger:
+              level: danger
+              note: the data in those volumes is lost
+          - *pruneForce
+          - *pruneFilter
+      - name: info
+        summary: Shows how the Docker engine is set up.
+  - name: builder
+    summary: Manages the build cache.
+    commands:
+      - name: prune
+        summary: Deletes the build cache.
+        flags:
+          - names: [-a, --all]
+            summary: all of it, not only what no image uses
+          - *pruneForce
+          - *pruneFilter
+  - name: buildx
+    summary: Builds with BuildKit, for other platforms and with builders of your own.
+    commands:
+      - name: build
+        aliases: [b]
+        summary: Builds an image from a Dockerfile.
+        flags: *buildFlags
+        args: *buildArgs
+      - name: bake
+        summary: Builds several images at once, from a bake file or the compose file.
+        flags:
+          - names: [-f, --file]
+            value: file
+            repeat: true
+            summary: the bake file
+          - names: [--set]
+            value: target.key=value
+            repeat: true
+            summary: changes a setting of a target
+          - names: [--push]
+            summary: pushes the images when built
+          - names: [--load]
+            summary: loads the images into docker when built
+          - names: [--print]
+            summary: prints the plan without building
+          - names: [--no-cache]
+            summary: builds without the cache
+        args:
+          - name: target
+            optional: true
+            repeat: true
+            summary: which targets; default by default
+      - name: ls
+        summary: Lists the builders.
+      - name: create
+        summary: Creates a builder.
+        flags:
+          - names: [--name]
+            value: name
+            summary: names it
+          - names: [--use]
+            summary: uses it from now on
+          - names: [--driver]
+            value: driver
+            summary: where it runs
+            choices: [docker, docker-container, kubernetes, remote]
+          - names: [--platform]
+            value: platform
+            repeat: true
+            summary: the platforms it builds for
+          - names: [--bootstrap]
+            summary: starts it straight away
+      - name: use
+        summary: Uses another builder from now on.
+        flags:
+          - names: [--default]
+            summary: makes it the default for this context
+        args:
+          - name: name
+            summary: the builder
+      - name: du
+        summary: Shows how much disk the build cache uses.
+      - name: prune
+        summary: Deletes the build cache.
+        flags:
+          - names: [-a, --all]
+            summary: all of it
+          - names: [-f, --force]
+            summary: doesn't ask first
+      - name: imagetools
+        summary: Works with images in a registry.
+        commands:
+          - name: inspect
+            summary: Shows an image in a registry, with its platforms.
+            flags:
+              - names: [--raw]
+                summary: the manifest as the registry has it
+            args:
+              - name: image
+                summary: the image
+  - name: context
+    summary: Switches between Docker engines, such as local and remote ones.
+    commands:
+      - name: ls
+        aliases: [list]
+        summary: Lists the contexts, marking the current one.
+      - name: use
+        summary: Uses another context from now on.
+        args:
+          - name: context
+            summary: the context
+      - name: show
+        summary: Prints the current context.
+  - name: compose
+    summary: Runs the services of a compose file together.
+    flags:
+      - names: [-f, --file]
+        value: file
+        repeat: true
+        common: true
+        summary: the compose file; several are merged in order
+      - names: [-p, --project-name]
+        value: name
+        summary: names the project, instead of the folder's name
+      - names: [--profile]
+        value: profile
+        repeat: true
+        summary: turns on the services of this profile
+      - names: [--env-file]
+        value: file
+        repeat: true
+        summary: reads the variables for the file from here instead of .env
+      - names: [--project-directory]
+        value: folder
+        summary: the folder paths in the file are relative to
+      - names: [--progress]
+        value: mode
+        summary: how progress is shown
+        choices: [auto, tty, plain, json, quiet]
+    commands:
+      - name: up
+        summary: Creates and starts the services, building or pulling what is missing.
+        flags:
+          - names: [-d, --detach]
+            common: true
+            summary: runs them in the background
+          - names: [--build]
+            common: true
+            summary: builds the images first
+          - names: [--force-recreate]
+            summary: makes new containers even when nothing changed
+          - names: [--no-deps]
+            summary: starts only the services named, not what they depend on
+          - names: [--remove-orphans]
+            summary: removes containers of services no longer in the file
+          - names: [--wait]
+            summary: waits until the services are running and healthy
+          - names: [-w, --watch]
+            summary: watches the files and syncs or rebuilds as they change
+          - names: [--pull]
+            value: policy
+            summary: when to pull the images
+            choices: [always, missing, never]
+          - names: [--scale]
+            value: service=number
+            repeat: true
+            summary: runs this many of a service
+          - names: [--abort-on-container-exit]
+            summary: stops everything when any container stops, as for tests
+          - names: [--exit-code-from]
+            value: service
+            summary: exits with this service's code (with --abort-on-container-exit)
+          - names: [-V, --renew-anon-volumes]
+            summary: makes the anonymous volumes again, without their old data
+          - *composeTimeout
+          - *composeDryRun
+        args:
+          - name: service
+            optional: true
+            repeat: true
+            summary: only these services
+      - name: down
+        summary: Stops the services and removes their containers and networks.
+        flags:
+          - names: [-v, --volumes]
+            common: true
+            summary: removes the volumes too
+            danger:
+              level: danger
+              note: the data in the project's volumes is lost, such as a database
+          - names: [--rmi]
+            value: which
+            summary: removes the images too
+            choices:
+              - {value: local, summary: "only those built here, with no tag"}
+              - {value: all, summary: every image the services use}
+          - names: [--remove-orphans]
+            summary: removes containers of services no longer in the file
+          - *composeTimeout
+          - *composeDryRun
+        args:
+          - name: service
+            optional: true
+            repeat: true
+            summary: only these services
+      - name: ps
+        summary: Lists the project's containers.
+        flags:
+          - names: [-a, --all]
+            common: true
+            summary: stopped ones too
+          - names: [--services]
+            summary: only the service names
+          - names: [--status]
+            value: status
+            repeat: true
+            summary: only those in this state
+            choices: [running, exited, paused, restarting, created, dead]
+          - names: [-q, --quiet]
+            summary: only the IDs
+          - names: [--format]
+            value: format
+            summary: prints this way, such as json
+        args:
+          - name: service
+            optional: true
+            repeat: true
+            summary: only these services
+      - name: logs
+        summary: Prints the services' output.
+        flags:
+          - names: [-f, --follow]
+            common: true
+            summary: keeps printing new lines as they come
+          - names: [-n, --tail]
+            value: lines
+            common: true
+            summary: only the last this-many lines of each
+          - names: [-t, --timestamps]
+            summary: puts the time before each line
+          - names: [--since]
+            value: time
+            summary: only lines after this, such as 10m
+          - names: [--no-log-prefix]
+            summary: leaves out the service name before each line
+        args:
+          - name: service
+            optional: true
+            repeat: true
+            summary: only these services
+      - name: exec
+        summary: Runs a command in a running service's container.
+        flags:
+          - names: [-T, --no-tty]
+            summary: no terminal, as for scripts and CI
+          - names: [-u, --user]
+            value: user
+            summary: runs as this user
+          - names: [-e, --env]
+            value: NAME=value
+            repeat: true
+            summary: sets an environment variable
+          - names: [-w, --workdir]
+            value: folder
+            summary: runs in this folder
+          - names: [-d, --detach]
+            summary: runs it in the background
+          - names: [--index]
+            value: number
+            summary: which container, when the service has several
+        args:
+          - name: service
+            summary: the service
+          - name: command
+            repeat: true
+            summary: the command and its arguments, such as sh
+      - name: run
+        summary: Runs a one-off command in a new container of a service.
+        flags:
+          - names: [--rm]
+            common: true
+            summary: deletes the container when it ends
+          - names: [-e, --env]
+            value: NAME=value
+            repeat: true
+            summary: sets an environment variable
+          - names: [--no-deps]
+            summary: doesn't start the services it depends on
+          - names: [-P, --service-ports]
+            summary: publishes the service's ports, which run doesn't by default
+          - names: [-T, --no-tty]
+            summary: no terminal
+          - names: [--entrypoint]
+            value: command
+            summary: runs this instead of the image's entrypoint
+          - names: [-v, --volume]
+            value: source:target
+            repeat: true
+            summary: mounts a folder or volume
+          - names: [-u, --user]
+            value: user
+            summary: runs as this user
+          - names: [--build]
+            summary: builds the image first
+        args:
+          - name: service
+            summary: the service
+          - name: command
+            optional: true
+            repeat: true
+            summary: the command and its arguments
+      - name: build
+        summary: Builds the services' images.
+        flags:
+          - names: [--no-cache]
+            common: true
+            summary: builds without the cache
+          - names: [--pull]
+            summary: pulls newer base images first
+          - names: [--build-arg]
+            value: name=value
+            repeat: true
+            summary: sets a build argument
+          - names: [--push]
+            summary: pushes the images when built
+          - names: [-q, --quiet]
+            summary: prints only errors
+          - names: [--with-dependencies]
+            summary: builds what the services depend on too
+        args:
+          - name: service
+            optional: true
+            repeat: true
+            summary: only these services
+      - name: pull
+        summary: Pulls the services' images.
+        flags:
+          - names: [--ignore-buildable]
+            summary: skips images the file builds
+          - names: [-q, --quiet]
+            summary: prints less
+        args:
+          - name: service
+            optional: true
+            repeat: true
+            summary: only these services
+      - name: push
+        summary: Pushes the services' images.
+        args:
+          - name: service
+            optional: true
+            repeat: true
+            summary: only these services
+      - name: restart
+        summary: Restarts the services' containers, without reading the file again.
+        flags:
+          - *composeTimeout
+          - names: [--no-deps]
+            summary: doesn't restart what they depend on
+        args:
+          - name: service
+            optional: true
+            repeat: true
+            summary: only these services
+      - name: stop
+        summary: Stops the services, keeping their containers.
+        flags:
+          - *composeTimeout
+        args:
+          - name: service
+            optional: true
+            repeat: true
+            summary: only these services
+      - name: start
+        summary: Starts stopped services.
+        flags:
+          - names: [--wait]
+            summary: waits until they are running and healthy
+        args:
+          - name: service
+            optional: true
+            repeat: true
+            summary: only these services
+      - name: kill
+        summary: Kills the services' containers at once.
+        flags:
+          - names: [-s, --signal]
+            value: signal
+            summary: sends this signal instead of SIGKILL
+        args:
+          - name: service
+            optional: true
+            repeat: true
+            summary: only these services
+      - name: rm
+        summary: Deletes stopped services' containers.
+        flags:
+          - names: [-s, --stop]
+            summary: stops them first
+          - names: [-f, --force]
+            summary: doesn't ask first
+          - names: [-v, --volumes]
+            summary: deletes their anonymous volumes too
+        args:
+          - name: service
+            optional: true
+            repeat: true
+            summary: only these services
+      - name: config
+        summary: Prints the compose file as compose reads it, merged and with variables filled in.
+        flags:
+          - names: [--services]
+            summary: only the service names
+          - names: [--images]
+            summary: only the image names
+          - names: [--volumes]
+            summary: only the volume names
+          - names: [-q, --quiet]
+            summary: only checks the file, printing nothing
+          - names: [--format]
+            value: format
+            summary: prints as this
+            choices: [yaml, json]
+          - names: [-o, --output]
+            value: file
+            summary: writes it to this file
+        args:
+          - name: service
+            optional: true
+            repeat: true
+            summary: only these services
+      - name: ls
+        summary: Lists the compose projects running.
+        flags:
+          - names: [-a, --all]
+            summary: stopped ones too
+      - name: images
+        summary: Lists the images the services' containers use.
+      - name: top
+        summary: Lists the processes in the services' containers.
+        args:
+          - name: service
+            optional: true
+            repeat: true
+            summary: only these services
+      - name: cp
+        summary: Copies files between a service's container and this machine.
+        args:
+          - name: source
+            summary: a local path, or service:path
+          - name: destination
+            summary: a local path, or service:path
+      - name: watch
+        summary: Watches the files and syncs or rebuilds the services as they change.
+        flags:
+          - names: [--no-up]
+            summary: doesn't build and start them first
+        args:
+          - name: service
+            optional: true
+            repeat: true
+            summary: only these services
+recipes:
+  # Running
+  - title: Run a container in the background with a port
+    command: docker run -d --name {name} -p 8080:80 {image}
+    words: [start container, serve, expose port, web server]
+  - title: Open a shell in a new throwaway container
+    command: docker run --rm -it {image} sh
+    words: [try image, explore image, temporary container]
+  - title: Run a container with this folder mounted
+    command: docker run --rm -it -v .:/work -w /work {image} sh
+    words: [bind mount, current directory, share files]
+  - title: Run a container with variables from a .env file
+    command: docker run --rm --env-file .env {image}
+    words: [environment variables, config, secrets]
+  - title: Keep a container running after a restart
+    command: docker run -d --restart unless-stopped --name {name} {image}
+    words: [always on, start on boot, service]
+  - title: Reach this machine from inside a container
+    command: docker run --rm --add-host host.docker.internal:host-gateway {image}
+    words: [localhost from container, host network, connect to host]
+  # Inside
+  - title: Open a shell in a running container
+    command: docker exec -it {container} sh
+    words: [ssh into container, bash, get inside, attach]
+  - title: Follow a container's logs
+    command: docker logs -f --tail 100 {container}
+    words: [stream logs, tail, live output]
+  - title: See what a container uses, once
+    command: docker stats --no-stream
+    words: [cpu, memory usage, resources]
+  - title: Copy a file out of a container
+    command: docker cp {container}:{path} ./{file}
+    words: [download file, get file from container]
+  - title: Get a container's IP address
+    command: docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' {container}
+    words: [ip, network address]
+  # Listing
+  - title: List every container, stopped ones too
+    command: docker ps -a
+    words: [all containers, show containers, exited]
+  - title: List containers with their names, status and ports
+    command: docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+    words: [readable list, columns]
+  - title: List the images
+    command: docker images
+    words: [show images, local images]
+  - title: See how much disk docker uses
+    command: docker system df
+    words: [disk space, size, usage, full disk]
+  # Building
+  - title: Build an image from the Dockerfile here
+    command: docker build -t {name}:{tag} .
+    words: [create image, dockerfile]
+  - title: Build without the cache
+    command: docker build --no-cache -t {name}:{tag} .
+    words: [clean build, fresh, rebuild]
+  - title: Build for another platform
+    command: docker buildx build --platform linux/amd64 -t {name}:{tag} --load .
+    words: [amd64, intel, x86, cross platform, other architecture]
+  - title: Build for several platforms and push
+    command: docker buildx build --platform linux/amd64,linux/arm64 -t {image} --push .
+    words: [arm, arm64, multi-arch, multiplatform, apple silicon, raspberry pi]
+  - title: Build with plain output, for CI logs
+    command: docker build --progress=plain -t {name}:{tag} .
+    words: [see all output, debug build, ci]
+  - title: Build with a secret kept out of the image
+    command: docker build --secret id={id},src={file} -t {name}:{tag} .
+    words: [npm token, credentials, private repo]
+  - title: Check a Dockerfile without building
+    command: docker build --check .
+    words: [lint dockerfile, validate]
+  - title: See what made an image's layers
+    command: docker history --no-trunc {image}
+    words: [layers, image size, dockerfile steps]
+  # Registries
+  - title: Sign in to a registry without the password in history
+    command: docker login {server} -u {user} --password-stdin
+    words: [login, log in, authenticate, credentials, private registry, acr, ghcr]
+    note: pipe the password or token in, such as from a file
+  - title: Tag an image for a registry and push it
+    command: docker tag {image} {registry}/{name}:{tag}
+    words: [publish image, upload, rename image]
+    note: then docker push {registry}/{name}:{tag}
+  - title: Copy images to another machine without a registry
+    command: docker save -o {file}.tar {image}
+    words: [export image, offline, transfer]
+    note: then docker load -i {file}.tar there
+  - title: See the platforms of an image in a registry
+    command: docker buildx imagetools inspect {image}
+    words: [manifest, arm64, architectures]
+  # Cleaning
+  - title: Delete stopped containers, unused networks and dangling images
+    command: docker system prune
+    words: [clean up, free space, disk full]
+  - title: Free as much space as possible
+    command: docker system prune -a
+    words: [disk full, remove everything unused]
+    note: every image no container uses has to be pulled or built again
+  - title: Delete the build cache
+    command: docker builder prune -a
+    words: [cache, free space]
+  - title: Delete every stopped container
+    command: docker container prune
+    words: [remove exited, clean containers]
+  - title: Stop and delete a container
+    command: docker rm -f {container}
+    words: [remove container, kill]
+  # Compose
+  - title: Start the project in the background
+    command: docker compose up -d
+    words: [start services, run stack, bring up]
+  - title: Rebuild and start the project
+    command: docker compose up -d --build
+    words: [after code change, rebuild services]
+  - title: Stop the project and remove its containers
+    command: docker compose down
+    words: [bring down, stop stack, teardown]
+  - title: Stop the project and delete its data
+    command: docker compose down -v
+    words: [reset database, start fresh, wipe volumes]
+    note: the project's volumes, with their data, are deleted
+  - title: Follow the logs of one service
+    command: docker compose logs -f --tail 100 {service}
+    words: [service logs, stream]
+  - title: Open a shell in a running service
+    command: docker compose exec {service} sh
+    words: [get inside service, bash]
+  - title: Run a one-off command in a service
+    command: docker compose run --rm {service} {command}
+    words: [migration, task, one off, manage]
+  - title: Restart one service
+    command: docker compose restart {service}
+    words: [bounce service, reload]
+    note: it doesn't read the compose file again; up -d does
+  - title: Recreate one service after changing the file
+    command: docker compose up -d --no-deps --force-recreate {service}
+    words: [apply compose change, redeploy service]
+  - title: See the compose file with every variable filled in
+    command: docker compose config
+    words: [validate compose, merged config, debug variables]
+  - title: Use another compose file on top
+    command: docker compose -f compose.yaml -f {override-file} up -d
+    words: [override, dev, prod, merge files]
+  - title: Start a profile's services too
+    command: docker compose --profile {profile} up -d
+    words: [optional services, profiles]
+  - title: Rebuild and sync as files change
+    command: docker compose watch
+    words: [hot reload, live update, develop]
+  - title: List the project's containers
+    command: docker compose ps -a
+    words: [status, which services]

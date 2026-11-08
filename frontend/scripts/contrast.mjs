@@ -26,6 +26,12 @@ const themes = {
   light: { ...base, ...block(":root[data-theme='light']") },
   dusk: { ...base, ...block(":root[data-theme='dusk']") },
   midnight: { ...base, ...block(":root[data-theme='midnight']") },
+  forest: { ...base, ...block(":root[data-theme='forest']") },
+  rose: { ...base, ...block(":root[data-theme='rose']") },
+  ocean: { ...base, ...block(":root[data-theme='ocean']") },
+  paper: { ...base, ...block(":root[data-theme='paper']") },
+  contrast: { ...base, ...block(":root[data-theme='contrast']") },
+  mist: { ...base, ...block(":root[data-theme='mist']") },
 }
 
 // A colour as [r, g, b, a], following var() within the theme.
@@ -92,12 +98,35 @@ for (const theme of Object.keys(themes)) {
 // tool's primary button. And it stays soft: body text about 10:1, at
 // most 12:1 (Dark is about 16:1).
 // Midnight has Dusk's colours on a navy ground, and its rules.
-for (const theme of ['dusk', 'midnight']) {
+// Forest, Rosé and Ocean are Dusk on other grounds, with its rules.
+for (const theme of ['dusk', 'midnight', 'forest', 'rose', 'ocean']) {
   for (const h of hues) {
     check(theme, h, '--bg-2', 4.5)
     check(theme, '--accent-fg', h, 4.5)
   }
   for (const bg of surfaces) check(theme, '--fg-0', bg, 7, 12)
+}
+// Paper shows the hues too, dark ones on cream, and stays low-glare:
+// body text at most 14:1 (Light is about 16:1).
+for (const h of hues) {
+  check('paper', h, '--bg-2', 4.5)
+  check('paper', '--accent-fg', h, 4.5)
+}
+for (const bg of surfaces) check('paper', '--fg-0', bg, 7, 14)
+// Mist is Light dimmed: the hues read on its grey, and body text is
+// firm but below Light's glare, at most 14:1, on grounds well below white.
+for (const h of hues) {
+  check('mist', h, '--bg-2', 4.5)
+  check('mist', '--accent-fg', h, 4.5)
+}
+for (const bg of surfaces) check('mist', '--fg-0', bg, 7, 14)
+// High contrast: every text, accent, status and syntax colour at least
+// 7:1 (WCAG AAA), and its bright tool hues too, with black on them.
+for (const bg of surfaces) for (const fg of ['--fg-0', '--fg-1', '--fg-2', '--accent', ...status]) check('contrast', fg, bg, 7)
+for (const syn of Object.keys(themes.contrast).filter((k) => k.startsWith('--syn-') && !k.endsWith('-bg'))) check('contrast', syn, '--bg-2', 7)
+for (const h of hues) {
+  for (const bg of surfaces) check('contrast', h, bg, 7)
+  check('contrast', '--accent-fg', h, 7)
 }
 
 console.log(failed ? `${failed} pair(s) fail` : `All contrast pairs pass in ${Object.keys(themes).join(', ')}.`)

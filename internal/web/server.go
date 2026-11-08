@@ -195,10 +195,18 @@ func (s *Server) routes() http.Handler {
 	mux.HandleFunc("POST /api/v2/net/{kind}", s.handleNet)
 	mux.HandleFunc("POST /api/v2/json/{kind}", s.handleJSON)
 	mux.HandleFunc("POST /api/v2/http/{kind}", s.handleHTTP)
+	mux.HandleFunc("POST /api/v2/text/quote", s.handleQuote)
+	mux.HandleFunc("POST /api/v2/text/sanitize", s.handleSanitize)
+	mux.HandleFunc("GET /api/v2/text/quote/targets", s.handleQuoteTargets)
 	mux.HandleFunc("POST /api/v2/text/{kind}", s.handleText)
 	mux.HandleFunc("POST /api/v2/table/{kind}", s.handleTable)
 	mux.HandleFunc("POST /api/v2/time/{kind}", s.handleTime)
 	mux.HandleFunc("POST /api/v2/regex", s.handleRegex)
+	mux.HandleFunc("GET /api/v2/commands/tools", s.handleCommandTools)
+	mux.HandleFunc("GET /api/v2/commands/tools/{name}", s.handleCommandTool)
+	mux.HandleFunc("POST /api/v2/commands/explain", s.handleCommandExplain)
+	mux.HandleFunc("GET /api/v2/commands/suggest", s.handleCommandSuggest)
+	mux.HandleFunc("GET /api/v2/commands/search", s.handleCommandSearch)
 	mux.HandleFunc("GET /api/v2/scaffold/starters", s.handleStarters)
 	mux.HandleFunc("POST /api/v2/scaffold/render", s.handleScaffoldRender)
 	mux.HandleFunc("POST /api/v2/scaffold/check", s.handleScaffoldCheck)
@@ -298,6 +306,9 @@ type errorResponse struct {
 	Line   int    `json:"line,omitempty"`
 	Column int    `json:"column,omitempty"`
 	Code   string `json:"code,omitempty"` // machine-readable, e.g. "stale-token"
+	// Secrets: Smart paste found this many in what it couldn't read, to
+	// offer Sanitize.
+	Secrets int `json:"secrets,omitempty"`
 }
 
 func writeError(w http.ResponseWriter, status int, msg string) {

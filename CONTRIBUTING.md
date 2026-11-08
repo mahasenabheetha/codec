@@ -10,7 +10,7 @@ Thanks for helping with codec. The short version:
    and which docs to update.
 3. Before opening a pull request:
    ```bash
-   npm --prefix frontend ci && npm --prefix frontend run check && npm --prefix frontend run build
+   npm --prefix frontend ci && npm --prefix frontend run check && npm --prefix frontend test && npm --prefix frontend run build
    go vet ./... && go test ./...
    ```
 4. Describe what changed and why; include a screenshot for UI changes

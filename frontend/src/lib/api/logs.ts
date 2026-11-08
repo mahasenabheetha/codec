@@ -1,4 +1,5 @@
 import { postForm, request, requestBlob } from './client'
+import type { SanitizeOptions } from './text'
 import type { SearchMatch } from './search'
 
 // The Log viewer's server side (internal/logview, decision 86): a log
@@ -297,7 +298,7 @@ export function logGroups(id: string, req: LogQuery, signal?: AbortSignal): Prom
   return request('POST', base(id) + '/groups', req, signal)
 }
 
-export function exportLog(id: string, req: LogQuery & { format: 'text' | 'ndjson' | 'csv'; columns?: string[] }): Promise<Blob> {
+export function exportLog(id: string, req: LogQuery & { format: 'text' | 'ndjson' | 'csv'; columns?: string[]; sanitize?: SanitizeOptions }): Promise<Blob> {
   return requestBlob(base(id) + '/export', req)
 }
 

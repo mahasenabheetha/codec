@@ -1,0 +1,2 @@
+go test fuzz v1
+string("/home/00.h.Be 0")

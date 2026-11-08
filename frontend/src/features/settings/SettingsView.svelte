@@ -5,12 +5,13 @@
   import Button from '../../lib/components/Button.svelte'
   import IconButton from '../../lib/components/IconButton.svelte'
   import SegmentedControl from '../../lib/components/SegmentedControl.svelte'
+  import Select from '../../lib/components/Select.svelte'
   import Skeleton from '../../lib/components/Skeleton.svelte'
   import Toggle from '../../lib/components/Toggle.svelte'
   import { forget, getSettings, type FolderID, type SettingsInfo } from '../../lib/api/settings'
   import { copyText } from '../../lib/utils/clipboard'
   import { toast } from '../../lib/stores/toast.svelte'
-  import { theme, type DarkStyle, type ThemePref } from '../../lib/stores/theme.svelte'
+  import { theme, themes, type DarkStyle, type LightStyle, type ThemePref } from '../../lib/stores/theme.svelte'
   import { uiSize, type UiSize } from '../../lib/stores/size.svelte'
   import { iconStyle, type IconStyle } from '../workspace/icons.svelte'
   import { desktop } from '../../lib/platform'
@@ -109,18 +110,12 @@
     el?.scrollIntoView({ block: 'start' })
   }
 
-  const themes: { value: ThemePref; label: string }[] = [
-    { value: 'system', label: 'System' },
-    { value: 'dark', label: 'Dark' },
-    { value: 'dusk', label: 'Dusk' },
-    { value: 'midnight', label: 'Midnight' },
-    { value: 'light', label: 'Light' },
-  ]
-  const darkStyles: { value: DarkStyle; label: string }[] = [
-    { value: 'dark', label: 'Dark' },
-    { value: 'dusk', label: 'Dusk' },
-    { value: 'midnight', label: 'Midnight' },
-  ]
+  // The themes with a swatch each (3.10.0); System first, then the dark
+  // ones and the light ones.
+  const item = (t: (typeof themes)[number]) => ({ value: t.value, label: t.label, note: t.note, swatch: t.swatch })
+  const themeItems = [{ value: 'system', label: 'System', note: "follows your operating system's light or dark setting" }, ...themes.map(item)]
+  const darkItems = themes.filter((t) => !t.light).map(item)
+  const lightItems = themes.filter((t) => t.light).map(item)
   const sizes: { value: UiSize; label: string }[] = [
     { value: 'compact', label: 'Compact' },
     { value: 'comfortable', label: 'Comfortable' },
@@ -164,12 +159,15 @@
       <p class="intro">Saved in your user profile, never in a repository. codec only reads the folders you open.</p>
 
       <SettingSection id="general" title="General">
-        <SettingRow title="Theme" description="Dusk is a softer, colourful dark theme; Midnight has its colours on deep navy. System follows your operating system's light or dark setting.">
-          <SegmentedControl options={themes} bind:value={theme.pref} label="Theme" />
+        <SettingRow title="Theme" description="Dark, the soft and colourful Dusk, Midnight, Forest, Rosé and Ocean, High contrast, Light and the warm Paper. System follows your operating system's light or dark setting. It changes at once.">
+          <Select items={themeItems} value={theme.pref} label="Theme" onchange={(v) => (v === 'system' ? (theme.pref = 'system') : theme.use(v as Exclude<ThemePref, 'system'>))} />
         </SettingRow>
         {#if theme.pref === 'system'}
+          <SettingRow title="When the system is light" description="The light theme System uses.">
+            <Select items={lightItems} value={theme.lightStyle} label="When the system is light" onchange={(v) => (theme.lightStyle = v as LightStyle)} />
+          </SettingRow>
           <SettingRow title="When the system is dark" description="The dark theme System uses.">
-            <SegmentedControl options={darkStyles} bind:value={theme.darkStyle} label="When the system is dark" />
+            <Select items={darkItems} value={theme.darkStyle} label="When the system is dark" onchange={(v) => (theme.darkStyle = v as DarkStyle)} />
           </SettingRow>
         {/if}
         <SettingRow title="Interface size" description="How big icons, buttons and other controls are. Compact is the size before 3.5.0.">

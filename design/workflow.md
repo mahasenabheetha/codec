@@ -144,7 +144,7 @@ usernames or paths.
 ## Definition of done
 
 - [ ] Tests for the changed logic, passing (`go test ./internal/<pkg>/...`).
-- [ ] `go vet ./...` clean; `npm --prefix frontend run check` clean for UI changes.
+- [ ] `go vet ./...` clean; `npm --prefix frontend run check` and `npm --prefix frontend test` clean for UI changes.
 - [ ] Works in the UI on the sample repository (and the CLI where relevant).
 - [ ] Read-only and privacy rules still hold.
 - [ ] Docs updated per the matrix; CHANGELOG entry.

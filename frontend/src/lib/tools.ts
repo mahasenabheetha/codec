@@ -8,7 +8,9 @@ import Binary from '@lucide/svelte/icons/binary'
 import Braces from '@lucide/svelte/icons/braces'
 import KeyRound from '@lucide/svelte/icons/key-round'
 import SquareAsterisk from '@lucide/svelte/icons/square-asterisk'
+import QuoteIcon from '@lucide/svelte/icons/quote'
 import ScrollText from '@lucide/svelte/icons/scroll-text'
+import ShieldCheck from '@lucide/svelte/icons/shield-check'
 import Logs from '@lucide/svelte/icons/logs'
 import Clock from '@lucide/svelte/icons/clock'
 import CalendarClock from '@lucide/svelte/icons/calendar-clock'
@@ -46,6 +48,7 @@ import GitCompare from '@lucide/svelte/icons/git-compare'
 import Route from '@lucide/svelte/icons/route'
 import FileJson from '@lucide/svelte/icons/file-braces'
 import TextSearch from '@lucide/svelte/icons/text-search'
+import SquareTerminal from '@lucide/svelte/icons/square-terminal'
 
 /** A tool's colour (decision 94): a `--hue-*` token. How much of it shows
  *  is up to the theme (`--tint-tool`): none in Dark and Light. */
@@ -311,7 +314,7 @@ export const tools: ToolDef[] = [
     id: 'text',
     title: 'Text & data',
     group: 'Utilities',
-    description: 'Compare two texts, change the case of names, read CSV or TSV as a table, and make test data.',
+    description: 'Compare two texts, change the case of names, quote a value for a shell or a format, sanitize a text before sharing it, read CSV or TSV as a table, and make test data.',
     icon: Type,
     hue: 'violet',
     keywords: ['text'],
@@ -331,6 +334,20 @@ export const tools: ToolDef[] = [
         keywords: ['camel', 'snake', 'kebab', 'pascal', 'constant', 'dns-1123', 'k8s name', 'env var'],
       },
       {
+        id: 'quote',
+        title: 'Quote',
+        description: 'A value written so a shell, JSON, YAML, .env, Helm --set, a Makefile, a Dockerfile, SQL or a regex reads it back exactly, with why; read back the other way; quoted through layers.',
+        icon: QuoteIcon,
+        keywords: ['quote', 'escape', 'unescape', 'shell', 'bash', 'powershell', 'yaml', 'sql', 'regex', 'string literal', 'nested', 'ssh', 'sh -c'],
+      },
+      {
+        id: 'sanitize',
+        title: 'Sanitize',
+        description: 'Secrets, emails, IP addresses, host names, UUIDs, Azure names and user names taken out of a text before you share it, each the same stand-in wherever it is.',
+        icon: ShieldCheck,
+        keywords: ['sanitize', 'redact', 'anonymize', 'scrub', 'mask', 'secrets', 'pii', 'share', 'ticket', 'password', 'token', 'ip address', 'email'],
+      },
+      {
         id: 'table',
         title: 'CSV & TSV',
         description: 'Delimited text as a table to sort and filter, with column types; converted to JSON, YAML, Markdown and back.',
@@ -346,6 +363,16 @@ export const tools: ToolDef[] = [
       },
     ],
     load: () => import('../features/text/TextTool.svelte'),
+  },
+  {
+    id: 'commands',
+    title: 'Commands',
+    group: 'Utilities',
+    description: 'What every part of a git, kubectl, helm, docker or Linux command does, and a form to build one, each following the other.',
+    icon: SquareTerminal,
+    hue: 'indigo',
+    keywords: ['command', 'cli', 'shell', 'bash', 'explain', 'build', 'flags', 'options', 'git', 'kubectl', 'helm', 'docker', 'linux', 'cheat sheet', 'man'],
+    load: () => import('../features/commands/CommandsTool.svelte'),
   },
   {
     id: 'regex',

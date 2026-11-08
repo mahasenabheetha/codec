@@ -12,7 +12,7 @@ export type Mode =
   | 'jwt'
   | 'ansible'
 
-export type Kind = 'json' | 'jwt' | 'base64' | 'ansible' | 'epoch' | 'url' | 'cron' | 'log' | 'cidr' | 'ip' | 'curl' | 'csv' | 'tsv' | 'jsonc' | 'json5' | 'uuid' | 'ulid' | 'colour' | 'unknown'
+export type Kind = 'json' | 'jwt' | 'base64' | 'ansible' | 'epoch' | 'url' | 'cron' | 'log' | 'cidr' | 'ip' | 'curl' | 'csv' | 'tsv' | 'jsonc' | 'json5' | 'uuid' | 'ulid' | 'colour' | 'command' | 'unknown'
 
 export interface TransformRequest {
   input: string
@@ -52,6 +52,8 @@ export interface JwtParts {
 }
 
 export interface TransformResponse {
+  /** How many secrets Smart paste saw in the input, to offer Sanitize. */
+  secrets?: number
   output: string
   kind: Kind
   task?: AnsibleTask

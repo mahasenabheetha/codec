@@ -28,7 +28,7 @@
   import X from '@lucide/svelte/icons/x'
   import SunMoon from '@lucide/svelte/icons/sun-moon'
   import Monitor from '@lucide/svelte/icons/monitor'
-  import { theme } from './lib/stores/theme.svelte'
+  import { theme, themes } from './lib/stores/theme.svelte'
   import { updates } from './lib/stores/update.svelte'
   import { uiSize } from './lib/stores/size.svelte'
   import Rail from './lib/shell/Rail.svelte'
@@ -251,7 +251,7 @@
       title: 'Toggle light and dark theme',
       group: 'View',
       icon: SunMoon,
-      run: () => (theme.pref = theme.dark ? 'light' : theme.darkStyle),
+      run: () => (theme.pref = theme.dark ? theme.lightStyle : theme.darkStyle),
     },
     {
       id: 'view.themeSystem',
@@ -260,20 +260,15 @@
       icon: Monitor,
       run: () => (theme.pref = 'system'),
     },
-    {
-      id: 'view.themeDusk',
-      title: 'Use the Dusk theme',
+    // One command per theme: "Theme: Paper".
+    ...themes.map((t) => ({
+      id: 'view.theme.' + t.value,
+      title: `Theme: ${t.label}`,
       group: 'View',
       icon: Palette,
-      run: () => ((theme.pref = 'dusk'), (theme.darkStyle = 'dusk')),
-    },
-    {
-      id: 'view.themeMidnight',
-      title: 'Use the Midnight theme',
-      group: 'View',
-      icon: Palette,
-      run: () => ((theme.pref = 'midnight'), (theme.darkStyle = 'midnight')),
-    },
+      keywords: ['theme', 'colour', 'color', t.light ? 'light' : 'dark', t.note],
+      run: () => theme.use(t.value),
+    })),
     ...(['compact', 'comfortable', 'large'] as const).map((s) => ({
       id: 'view.size.' + s,
       title: 'Interface size: ' + s[0].toUpperCase() + s.slice(1),

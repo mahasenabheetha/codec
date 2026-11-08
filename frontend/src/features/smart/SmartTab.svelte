@@ -48,6 +48,7 @@
     uuid: 'UUID → read',
     ulid: 'ULID → read',
     colour: 'Hex colour → described',
+    command: 'Command → explained',
     unknown: 'unrecognised',
   }
   // Where the full tool for a Utilities kind lives.
@@ -61,9 +62,16 @@
     http: 'Open in HTTP',
     table: 'Open in CSV & TSV',
     format: 'Open in JSON & YAML',
+    explain: 'Open in Commands',
     uuid: 'Open in UUID',
     '': 'Open in Colour',
   }
+  // Secrets in what was pasted: offer Sanitize before it goes anywhere.
+  const secrets = $derived(session.result?.secrets ?? (session.error?.body?.secrets as number | undefined) ?? 0)
+  function openSanitize() {
+    handoff.send('text', 'sanitize', session.input)
+  }
+
   function openUtility() {
     const u = session.result?.utility
     if (u) handoff.send(u.tool, u.tab, session.input.trim())
@@ -109,7 +117,7 @@
       bind:editor
       onclear={clear}
       language="auto"
-      placeholder="Paste JSON, base64, a JWT, an Ansible task log, an epoch timestamp, URL-encoded text or a cron expression — codec figures out which"
+      placeholder="Paste JSON, base64, a JWT, an Ansible task log, an epoch timestamp, URL-encoded text, a cron expression or a command line — codec figures out which"
       onpaste={run}
     />
   {/snippet}
@@ -118,13 +126,16 @@
       {session}
       emptyIcon={Sparkles}
       emptyTitle="The obvious transformation appears here"
-      emptyDescription="JSON is encoded, base64 decoded (JSON inside is pretty-printed), JWTs expanded, Ansible logs analysed; epoch timestamps, URL-encoded text and cron expressions are read and open in their tools; a log — an app's, a pipeline's or a build's, an access log, syslog, Kubernetes events — opens in the Log viewer."
+      emptyDescription="JSON is encoded, base64 decoded (JSON inside is pretty-printed), JWTs expanded, Ansible logs analysed; epoch timestamps, URL-encoded text and cron expressions are read and open in their tools; a log — an app's, a pipeline's or a build's, an access log, syslog, Kubernetes events — opens in the Log viewer; a command line (git, kubectl, docker, Linux…) is explained part by part."
       onsample={sample}
       onswap={swap}
       view={session.result?.jwt || session.result?.task ? rich : undefined}
     >
       {#snippet badges()}
         {#if session.result}<Badge tone="accent" icon={Sparkles}>{detectedLabel[session.result.kind]}</Badge>{/if}
+        {#if secrets}
+          <button type="button" class="open warn" onclick={openSanitize} title="It has secrets: take them out before you share it">{secrets} {secrets === 1 ? 'secret' : 'secrets'} · Sanitize <ArrowRight size={12} strokeWidth={2} /></button>
+        {/if}
         {#if session.result?.utility}
           <button type="button" class="open" onclick={openUtility}>{openLabel[session.result.utility.tab]} <ArrowRight size={12} strokeWidth={2} /></button>
         {/if}
@@ -154,6 +165,10 @@
     background: transparent;
     border: 1px solid var(--accent);
     border-radius: var(--r-full);
+  }
+  .open.warn {
+    color: var(--warn);
+    border-color: var(--warn);
   }
   .open:hover {
     color: var(--accent-fg);

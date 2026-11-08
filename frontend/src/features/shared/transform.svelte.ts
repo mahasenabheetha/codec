@@ -49,7 +49,7 @@ export class TransformState {
       if (seq !== this.#seq) return
       this.result = null
       this.error =
-        e instanceof ApiError ? { message: e.message, line: e.line, column: e.column } : { message: String(e) }
+        e instanceof ApiError ? { message: e.message, line: e.line, column: e.column, body: e.body } : { message: String(e) }
     } finally {
       if (seq === this.#seq) this.busy = false
     }

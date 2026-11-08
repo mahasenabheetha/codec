@@ -12,6 +12,7 @@
   import ToolTabs from '../shared/ToolTabs.svelte'
   import { toolStatus } from '../shared/tool.svelte'
   import { clock, formatClock } from './clock.svelte'
+  import { hourText, nextStart, startLabel } from './hours'
   import { kindIcon } from './kinds'
   import ReminderCard from './ReminderCard.svelte'
   import { reminders, rhythms } from './reminders.svelte'
@@ -28,10 +29,22 @@
   const UpIcon = $derived(up ? kindIcon[up.reminder.kind] : Bell)
   const time = (t: number) => new Date(t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   const sameDay = (t: number) => new Date(t).toDateString() === new Date().toDateString()
+  // Outside active hours, or nothing more due before they end: when the
+  // breaks start again.
+  const resumes = $derived(count && (reminders.resting || (p.hours.on && !up)) ? (reminders.resting?.until ?? nextStart(p.hours, clock.now)) : null)
+  const hoursText = $derived(p.hours.on ? `${hourText(p.hours.from)}–${hourText(p.hours.to)}${p.hours.weekdays ? ', weekdays' : ''}` : '')
 
   const isActive = () => active
   toolStatus(isActive, () => ({
-    text: !count ? 'No reminders on' : paused ? `Reminders paused until ${time(reminders.pausedUntil)}` : up ? `Next: ${up.reminder.name} in ${formatClock(up.at - clock.now)}` : 'Reminders on',
+    text: !count
+      ? 'No reminders on'
+      : paused
+        ? `Reminders paused until ${time(reminders.pausedUntil)}`
+        : resumes
+          ? `Breaks resume ${startLabel(resumes, clock.now, time)}`
+          : up
+            ? `Next: ${up.reminder.name} in ${formatClock(up.at - clock.now)}`
+            : 'Reminders on',
   }))
 </script>
 
@@ -41,9 +54,9 @@
   {/snippet}
   {#snippet body()}
     <div class="breaks">
-      <section class="status" class:quiet={!count || paused}>
+      <section class="status" class:quiet={!count || paused || !!resumes}>
         <span class="big-icon">
-          {#if !count || paused}<BellOff size={26} strokeWidth={1.8} />{:else}<UpIcon size={26} strokeWidth={1.8} />{/if}
+          {#if !count || paused || resumes}<BellOff size={26} strokeWidth={1.8} />{:else}<UpIcon size={26} strokeWidth={1.8} />{/if}
         </span>
         <div class="line">
           {#if !count}
@@ -52,9 +65,12 @@
           {:else if paused}
             <strong>Paused until {sameDay(reminders.pausedUntil) ? time(reminders.pausedUntil) : `tomorrow ${time(reminders.pausedUntil)}`}</strong>
             <span>{count} {count === 1 ? 'reminder' : 'reminders'} waiting.</span>
+          {:else if resumes}
+            <strong>Breaks resume {startLabel(resumes, clock.now, time)}</strong>
+            <span>{reminders.resting ? 'Outside your active hours' : 'Nothing more is due before your active hours end'} ({hoursText}): no countdown runs, and each reminder starts a fresh interval when they begin.</span>
           {:else if up}
             <strong>{up.reminder.name} in <span class="mono">{formatClock(up.at - clock.now)}</span></strong>
-            <span>{count} {count === 1 ? 'reminder' : 'reminders'} on{p.hours.on ? ` · ${p.hours.from}:00–${p.hours.to}:00${p.hours.weekdays ? ', weekdays' : ''}` : ''}{!reminders.allowed() ? ' · outside active hours' : ''}</span>
+            <span>{count} {count === 1 ? 'reminder' : 'reminders'} on{hoursText ? ` · ${hoursText}` : ''}</span>
           {/if}
         </div>
         <div class="actions">
