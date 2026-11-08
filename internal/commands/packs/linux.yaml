@@ -1,9 +1,12 @@
 # The common Linux commands, one per document, in codec's words and
 # checked against their --help on Ubuntu (GNU coreutils, findutils,
 # grep, sed, gawk, tar, procps-ng, iproute2, systemd, OpenSSH, curl).
+# Each has a category, for lists: files, text, archives, permissions,
+# system, network.
 # Files and folders
 name: ls
 group: linux
+category: files
 summary: Lists the files in a folder.
 flags:
   - names: [-l]
@@ -59,6 +62,7 @@ recipes:
 ---
 name: find
 group: linux
+category: files
 summary: Finds files by name, type, size, age and more, and can act on each.
 argsFirst: true
 flags:
@@ -173,6 +177,7 @@ recipes:
 ---
 name: grep
 group: linux
+category: text
 summary: Prints the lines that match a pattern.
 flags:
   - names: [-i, --ignore-case]
@@ -289,6 +294,7 @@ recipes:
 ---
 name: sed
 group: linux
+category: text
 summary: Edits text line by line, most often to replace one thing with another.
 flags:
   - names: [-i, --in-place]
@@ -343,6 +349,7 @@ recipes:
 ---
 name: awk
 group: linux
+category: text
 summary: Runs a small program on each line, split into fields, such as to print some columns.
 flags:
   - names: [-F, --field-separator]
@@ -379,6 +386,7 @@ recipes:
 ---
 name: sort
 group: linux
+category: text
 summary: Sorts lines.
 flags:
   - names: [-n, --numeric-sort]
@@ -431,6 +439,7 @@ recipes:
 ---
 name: uniq
 group: linux
+category: text
 summary: Drops or counts repeated lines next to each other; sort first to catch all.
 flags:
   - names: [-c, --count]
@@ -459,6 +468,7 @@ recipes:
 ---
 name: wc
 group: linux
+category: text
 summary: Counts lines, words and bytes.
 flags:
   - names: [-l, --lines]
@@ -484,6 +494,7 @@ recipes:
 ---
 name: head
 group: linux
+category: text
 summary: Prints the first lines of a file.
 flags:
   - names: [-<n>, -n, --lines]
@@ -507,6 +518,7 @@ recipes:
 ---
 name: tail
 group: linux
+category: text
 summary: Prints the last lines of a file, or follows it as it grows.
 flags:
   - names: [-<n>, -n, --lines]
@@ -544,6 +556,7 @@ recipes:
 ---
 name: cut
 group: linux
+category: text
 summary: Prints some columns or characters of each line.
 flags:
   - names: [-d, --delimiter]
@@ -579,6 +592,7 @@ recipes:
 ---
 name: tr
 group: linux
+category: text
 summary: Changes or deletes characters in its input.
 flags:
   - names: [-d, --delete]
@@ -605,6 +619,7 @@ recipes:
 ---
 name: tar
 group: linux
+category: archives
 summary: Packs files into an archive, or unpacks one, often compressed (.tar.gz).
 flags:
   - names: [-c, --create]
@@ -671,6 +686,7 @@ recipes:
 ---
 name: gzip
 group: linux
+category: archives
 summary: Compresses files to .gz, replacing them, or decompresses them.
 flags:
   - names: [-d, --decompress]
@@ -707,6 +723,7 @@ recipes:
 ---
 name: ln
 group: linux
+category: files
 summary: Makes links to files.
 flags:
   - names: [-s, --symbolic]
@@ -740,6 +757,7 @@ recipes:
 ---
 name: cp
 group: linux
+category: files
 summary: Copies files and folders.
 flags:
   - names: [-r, -R, --recursive]
@@ -786,6 +804,7 @@ recipes:
 ---
 name: mv
 group: linux
+category: files
 summary: Moves or renames files and folders.
 flags:
   - names: [-i, --interactive]
@@ -817,6 +836,7 @@ recipes:
 ---
 name: rm
 group: linux
+category: files
 summary: Deletes files, and folders with -r.
 danger:
   level: danger
@@ -864,6 +884,7 @@ recipes:
 ---
 name: chmod
 group: linux
+category: permissions
 summary: Changes who may read, write and run files.
 flags:
   - names: [-R, --recursive]
@@ -895,6 +916,7 @@ recipes:
 ---
 name: chown
 group: linux
+category: permissions
 summary: Changes who owns files.
 flags:
   - names: [-R, --recursive]
@@ -920,6 +942,7 @@ recipes:
 ---
 name: du
 group: linux
+category: files
 summary: Shows how much disk files and folders use.
 flags:
   - names: [-s, --summarize]
@@ -959,6 +982,7 @@ recipes:
 ---
 name: df
 group: linux
+category: files
 summary: Shows how full each file system is.
 flags:
   - names: [-h, --human-readable]
@@ -993,6 +1017,7 @@ recipes:
 ---
 name: free
 group: linux
+category: system
 summary: Shows how much memory is used and free.
 flags:
   - names: [-h, --human]
@@ -1016,6 +1041,7 @@ recipes:
 ---
 name: ps
 group: linux
+category: system
 summary: Lists processes.
 flags:
   - names: [-e, -A]
@@ -1070,6 +1096,7 @@ recipes:
 ---
 name: kill
 group: linux
+category: system
 summary: Sends a signal to processes; by default asks them to stop.
 flags:
   - names: [-s, --signal]
@@ -1107,6 +1134,7 @@ recipes:
 ---
 name: top
 group: linux
+category: system
 summary: Shows the busiest processes and the machine's load, live.
 flags:
   - names: [-b]
@@ -1140,6 +1168,7 @@ recipes:
 ---
 name: ss
 group: linux
+category: network
 summary: Lists network connections and listening ports.
 flags:
   - names: [-t, --tcp]
@@ -1184,6 +1213,7 @@ recipes:
 ---
 name: lsof
 group: linux
+category: system
 summary: Lists open files, which on Linux includes network connections.
 flags:
   - names: [-i]
@@ -1221,6 +1251,7 @@ recipes:
 # Network
 name: curl
 group: linux
+category: network
 summary: Sends requests to URLs, such as web APIs, and prints the answer.
 flags:
   - names: [-X, --request]
@@ -1359,6 +1390,7 @@ recipes:
 ---
 name: wget
 group: linux
+category: network
 summary: Downloads files from the web.
 flags:
   - names: [-O, --output-document]
@@ -1416,6 +1448,7 @@ recipes:
 ---
 name: ssh
 group: linux
+category: network
 summary: Opens a shell on another machine, or runs a command there, over an encrypted connection.
 flags:
   - names: [-i]
@@ -1496,6 +1529,7 @@ recipes:
 ---
 name: scp
 group: linux
+category: network
 summary: Copies files to and from other machines over SSH.
 flags:
   - names: [-r]
@@ -1535,6 +1569,7 @@ recipes:
 ---
 name: rsync
 group: linux
+category: network
 summary: Copies files, here or over SSH, sending only what changed.
 flags:
   - names: [-a, --archive]
@@ -1603,6 +1638,7 @@ recipes:
 ---
 name: openssl
 group: linux
+category: network
 summary: Works with certificates, keys and TLS.
 commands:
   - name: x509
@@ -1779,6 +1815,7 @@ recipes:
 ---
 name: jq
 group: linux
+category: text
 summary: Picks and reshapes JSON.
 flags:
   - names: [-r, --raw-output]
@@ -1834,6 +1871,7 @@ recipes:
 # Services and logs
 name: systemctl
 group: linux
+category: system
 summary: Starts, stops and inspects systemd services.
 flags:
   - names: [--user]
@@ -1959,6 +1997,7 @@ recipes:
 ---
 name: journalctl
 group: linux
+category: system
 summary: Reads the systemd journal, the log of services and the system.
 flags:
   - names: [-u, --unit]

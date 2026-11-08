@@ -30,6 +30,12 @@ fourteen sounds and focus sounds; five new themes.
   to fill in marked (Tab moves between them); its … menu opens it in
   Build. Commands are coloured by part: tool, subcommand, flags,
   quoted values. Esc clears the line (in the search box, the search).
+  Browsing goes by area (Git, Kubernetes, Containers, Linux), each
+  folding, Linux folded at first and its 37 tools under six kinds
+  (files and folders, text, archives, permissions, processes and
+  services, network); the Tool menu offers an area or a kind as well
+  as a tool, as does `codec how -t`; Build's start screen is grouped
+  the same way.
 - **git** in Commands: 32 commands — status, add, commit, diff, log,
   show, branch, switch, checkout, merge, rebase, cherry-pick, revert,
   reset, restore, stash, tag, fetch, pull, push, remote, clean, bisect,

@@ -22,6 +22,7 @@
   import BuildForm from './BuildForm.svelte'
   import CheatSheet from './CheatSheet.svelte'
   import ExplainPane from './ExplainPane.svelte'
+  import { sections } from './groups'
   import { lineMarks, placeholderKeys, placeholders, selectPlaceholder } from './marks'
   import { forPowerShell, rewrite, type Built } from './render'
 
@@ -172,7 +173,7 @@
 
   const marks = $derived([lineMarks(ex.parts, hovered), placeholderKeys])
   const holes = $derived([...new Set(placeholders(line))])
-  const groups = $derived([...new Set(tools.map((t) => t.group))])
+  const groups = $derived(sections(tools))
 
   toolCommands(() => active, () => [
     { id: 'commands.copy', title: 'Commands: Copy the command', group: 'Commands', run: () => copy('bash') },
@@ -244,16 +245,19 @@
           {:else}
             <div class="start">
               <p class="hint">Start from a tool, type a command above, or <button type="button" class="link" onclick={openSheet}>find one by what it does</button>.</p>
-              {#each groups as g (g)}
-                <h3>{g}</h3>
-                <div class="tools">
-                  {#each tools.filter((t) => t.group === g) as t (t.name)}
-                    <button type="button" class="tool-card" onclick={() => start(t.name)}>
-                      <code>{t.name}</code>
-                      <span>{t.summary}</span>
-                    </button>
-                  {/each}
-                </div>
+              {#each groups as g (g.group)}
+                <h3>{g.label}</h3>
+                {#each g.categories as c (c.category)}
+                  {#if c.label}<h4>{c.label}</h4>{/if}
+                  <div class="tools">
+                    {#each c.tools as t (t.name)}
+                      <button type="button" class="tool-card" onclick={() => start(t.name)}>
+                        <code>{t.name}</code>
+                        <span>{t.summary}</span>
+                      </button>
+                    {/each}
+                  </div>
+                {/each}
               {/each}
             </div>
           {/if}
@@ -389,6 +393,12 @@
     text-transform: uppercase;
     letter-spacing: 0.04em;
     color: var(--fg-2);
+  }
+  h4 {
+    margin: var(--s-2) 0 var(--s-1);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-medium);
+    color: var(--fg-1);
   }
   .tools {
     display: grid;

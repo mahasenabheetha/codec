@@ -61,6 +61,8 @@ export interface ToolInfo {
   name: string
   summary: string
   group: string
+  /** The Linux tools' kind: files, text, archives, permissions, system, network. */
+  category?: string
 }
 
 export type PartKind =

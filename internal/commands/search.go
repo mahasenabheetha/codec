@@ -57,6 +57,9 @@ type index struct {
 	// tools are the words that name tools: their names and aliases, and
 	// their groups ("kubernetes", "containers"), to the tools.
 	tools map[string][]string
+	// scope is each tool's group and category, for a search kept to
+	// one of them.
+	scope map[string][2]string
 }
 
 var loadIndex = sync.OnceValues(func() (*index, error) {
@@ -68,7 +71,7 @@ var loadIndex = sync.OnceValues(func() (*index, error) {
 })
 
 func buildIndex(tools map[string]*Tool) *index {
-	ix := &index{vocab: map[string]string{}, tools: map[string][]string{}}
+	ix := &index{vocab: map[string]string{}, tools: map[string][]string{}, scope: map[string][2]string{}}
 	var list []*Tool
 	for _, t := range tools {
 		if !slices.Contains(list, t) {
@@ -77,6 +80,7 @@ func buildIndex(tools map[string]*Tool) *index {
 	}
 	slices.SortFunc(list, func(a, b *Tool) int { return strings.Compare(a.Name, b.Name) })
 	for _, t := range list {
+		ix.scope[t.Name] = [2]string{t.Group, t.Category}
 		for _, n := range append([]string{t.Name, t.Group}, t.Aliases...) {
 			if !slices.Contains(ix.tools[n], t.Name) {
 				ix.tools[n] = append(ix.tools[n], t.Name)
@@ -154,13 +158,32 @@ func longest(names []string) string {
 
 // Search finds what does what the query asks, best first: at most
 // limit results, and only those near the best. tool, when set, keeps
-// to one tool. An empty query lists the recipes, for browsing.
+// to one tool, or to a group ("linux", or "group:linux") or a category
+// ("category:files"). An empty query lists the recipes, for browsing.
 func Search(query, tool string, limit int) ([]Result, error) {
 	ix, err := loadIndex()
 	if err != nil {
 		return nil, err
 	}
 	return ix.search(query, tool, limit), nil
+}
+
+// within says whether a tool is in what a search keeps to: everything
+// (""), the tool itself, its group (group:linux, or linux when no tool
+// has that name) or its category (category:files).
+func (ix *index) within(tool, filter string) bool {
+	if filter == "" || filter == tool {
+		return true
+	}
+	s := ix.scope[tool]
+	if g, ok := strings.CutPrefix(filter, "group:"); ok {
+		return s[0] == g
+	}
+	if c, ok := strings.CutPrefix(filter, "category:"); ok {
+		return s[1] == c
+	}
+	_, named := ix.scope[filter]
+	return !named && s[0] == filter
 }
 
 // term is a word of the query and what it may match.
@@ -207,7 +230,7 @@ func (ix *index) search(query, tool string, limit int) []Result {
 	if len(flags) == 0 && (len(terms) == 0 || onlyTools && len(hinted) > 0) {
 		var out []Result
 		for _, d := range ix.docs {
-			if d.Kind == "recipe" && (tool == "" || d.Tool == tool) && (len(hinted) == 0 || hinted[d.Tool]) {
+			if d.Kind == "recipe" && ix.within(d.Tool, tool) && (len(hinted) == 0 || hinted[d.Tool]) {
 				out = append(out, d.Result)
 			}
 		}
@@ -217,7 +240,7 @@ func (ix *index) search(query, tool string, limit int) []Result {
 	var out []Result
 	for i := range ix.docs {
 		d := &ix.docs[i]
-		if tool != "" && d.Tool != tool {
+		if !ix.within(d.Tool, tool) {
 			continue
 		}
 		score, matched, why := 0.0, 0, []string(nil)

@@ -24,6 +24,9 @@ type Tool struct {
 	// Group says where a tool sits when they are listed: git,
 	// kubernetes, containers, linux.
 	Group string `yaml:"group" json:"group"`
+	// Category sorts a big group's tools by what they work on: the Linux
+	// tools into files, text, archives, permissions, system, network.
+	Category string `yaml:"category" json:"category,omitempty"`
 	// Recipes are the cheat sheet: things people do with the tool, by
 	// what they want rather than by flag.
 	Recipes []Recipe `yaml:"recipes" json:"recipes,omitempty"`
@@ -250,9 +253,10 @@ func checkRecipes(t *Tool) error {
 
 // ToolInfo is a tool as a list shows it.
 type ToolInfo struct {
-	Name    string `json:"name"`
-	Summary string `json:"summary"`
-	Group   string `json:"group"`
+	Name     string `json:"name"`
+	Summary  string `json:"summary"`
+	Group    string `json:"group"`
+	Category string `json:"category,omitempty"`
 }
 
 // Tools lists the tools codec knows, by group then name.
@@ -266,7 +270,7 @@ func Tools() ([]ToolInfo, error) {
 	for _, t := range tools {
 		if !seen[t] {
 			seen[t] = true
-			out = append(out, ToolInfo{t.Name, t.Summary, t.Group})
+			out = append(out, ToolInfo{t.Name, t.Summary, t.Group, t.Category})
 		}
 	}
 	slices.SortFunc(out, func(a, b ToolInfo) int {

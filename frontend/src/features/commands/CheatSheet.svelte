@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ChevronRight from '@lucide/svelte/icons/chevron-right'
   import Copy from '@lucide/svelte/icons/copy'
   import Ellipsis from '@lucide/svelte/icons/ellipsis'
   import Hammer from '@lucide/svelte/icons/hammer'
@@ -9,7 +10,9 @@
   import Popover from '../../lib/components/Popover.svelte'
   import SearchInput from '../../lib/components/SearchInput.svelte'
   import Select from '../../lib/components/Select.svelte'
+  import { persisted } from '../../lib/stores/persist.svelte'
   import { copyText } from '../../lib/utils/clipboard'
+  import { inScope, scopeItems, sections } from './groups'
   import { placeholderRe } from './marks'
 
   // The cheat sheet (decision 104): ask in your own words ("undo my last
@@ -59,8 +62,22 @@
 
   const kindLabel = { recipe: '', command: 'command', flag: 'flag' }
   // Browsing: the recipes under their tools.
-  const byTool = $derived(searched ? [] : [...new Set(results.map((r) => r.tool))].map((t) => ({ tool: t, items: results.filter((r) => r.tool === t) })))
-  const toolItems = $derived([{ value: '', label: 'All tools' }, ...tools.map((t) => ({ value: t.name, label: t.name }))])
+  // Browsing: the recipes under their tools, the tools in their areas
+  // (Git, Kubernetes, Containers, Linux) and the Linux ones in their
+  // categories. Each area folds; Linux starts folded, so its 37 tools
+  // don't push the others down.
+  const byTool = $derived.by(() => {
+    const m = new Map<string, SearchResult[]>()
+    if (!searched) for (const r of results) m.set(r.tool, [...(m.get(r.tool) ?? []), r])
+    return m
+  })
+  const single = $derived(!!tool && !tool.includes(':')) // one tool chosen: no areas
+  const browse = $derived(sections(tools.filter((t) => inScope(t, tool) && byTool.has(t.name))))
+  const opened = persisted<Record<string, boolean>>('commands.sheet.open', {})
+  const isOpen = (group: string) => !!tool || (opened.value[group] ?? group !== 'linux')
+  const toggle = (group: string) => (opened.value = { ...opened.value, [group]: !isOpen(group) })
+  const recipeCount = (names: string[]) => names.reduce((n, t) => n + (byTool.get(t)?.length ?? 0), 0)
+  const toolItems = $derived(scopeItems(tools))
   const examples = ['undo my last commit', 'put my changes aside', 'why did my pod crash', 'follow logs']
 
   /** The command's words, each with what it is (the tool, a subcommand,
@@ -138,6 +155,16 @@
   </li>
 {/snippet}
 
+{#snippet recipes(name: string)}
+  <div class="group">
+    <h3>{name}</h3>
+    <button type="button" class="start" onclick={() => onstart(name)}>Start a {name} command</button>
+  </div>
+  <ul class="results">
+    {#each byTool.get(name) ?? [] as r (r.title)}{@render row(r, false)}{/each}
+  </ul>
+{/snippet}
+
 <div class="sheet">
   <!-- Esc in the search clears the search first, not the command line. -->
   <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -169,15 +196,27 @@
         {#each examples as e, i (e)}{#if i}{', '}{/if}<button type="button" class="ex" onclick={() => (query = e)}>{e}</button>{/each}
       </p>
     {/if}
-    {#each byTool as g (g.tool)}
-      <div class="group">
-        <h3>{g.tool}</h3>
-        <button type="button" class="start" onclick={() => onstart(g.tool)}>Start a {g.tool} command</button>
-      </div>
-      <ul class="results">
-        {#each g.items as r (r.title)}{@render row(r, false)}{/each}
-      </ul>
-    {/each}
+    {#if single}
+      {@render recipes(tool)}
+    {:else}
+      {#each browse as sec (sec.group)}
+        {@const open = isOpen(sec.group)}
+        {@const names = sec.categories.flatMap((c) => c.tools.map((t) => t.name))}
+        <section class="area">
+          <button type="button" class="area-head" aria-expanded={open} onclick={() => toggle(sec.group)} disabled={!!tool}>
+            <span class="chev" class:open><ChevronRight size={14} strokeWidth={2} /></span>
+            <span class="area-name">{sec.label}</span>
+            <span class="area-count">{sec.count === 1 ? names[0] : `${sec.count} tools`} · {recipeCount(names)} recipes</span>
+          </button>
+          {#if open}
+            {#each sec.categories as c (c.category)}
+              {#if c.label}<h4 class="cat">{c.label} <span>{c.tools.map((t) => t.name).join(', ')}</span></h4>{/if}
+              {#each c.tools as t (t.name)}{@render recipes(t.name)}{/each}
+            {/each}
+          {/if}
+        </section>
+      {/each}
+    {/if}
   {/if}
 </div>
 
@@ -223,6 +262,66 @@
     align-items: baseline;
     gap: var(--s-3);
     margin-top: var(--s-2);
+  }
+  .area {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-1);
+    padding-bottom: var(--s-2);
+    border-bottom: 1px solid var(--border);
+  }
+  .area-head {
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+    padding: var(--s-2) var(--s-1);
+    text-align: left;
+    color: var(--fg-0);
+    background: none;
+    border: none;
+    border-radius: var(--r-sm);
+  }
+  .area-head:hover:not(:disabled) {
+    background: var(--bg-3);
+  }
+  .area-head:disabled {
+    cursor: default;
+  }
+  .area-head:disabled .chev {
+    visibility: hidden;
+  }
+  .chev {
+    display: inline-flex;
+    color: var(--fg-2);
+    transition: transform var(--dur) var(--ease);
+  }
+  .chev.open {
+    transform: rotate(90deg);
+  }
+  .area-name {
+    font-size: var(--fs-md, var(--fs-sm));
+    font-weight: var(--fw-semibold);
+    color: var(--tool-accent, var(--fg-0));
+  }
+  .area-count {
+    font-size: var(--fs-xs);
+    color: var(--fg-2);
+  }
+  .cat {
+    margin: var(--s-3) 0 0;
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--fg-1);
+  }
+  .cat span {
+    margin-left: var(--s-2);
+    font-family: var(--font-mono);
+    font-weight: normal;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--fg-2);
   }
   h3 {
     margin: 0;

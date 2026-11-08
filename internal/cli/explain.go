@@ -143,7 +143,7 @@ func explainOut(line string, ex commands.Explanation) any {
 
 func init() {
 	explainCmd.Flags().BoolVar(&explainJSON, "json", false, "print the explanation as JSON")
-	howCmd.Flags().StringVarP(&howTool, "tool", "t", "", "only this tool's recipes, commands and flags")
+	howCmd.Flags().StringVarP(&howTool, "tool", "t", "", "only this tool's recipes, commands and flags, or a group's (linux, kubernetes, containers) or a category's (category:network)")
 	howCmd.Flags().IntVarP(&howLimit, "limit", "n", 5, "show at most this many")
 	howCmd.Flags().BoolVar(&howJSON, "json", false, "print the results as JSON")
 	rootCmd.AddCommand(explainCmd, howCmd)
