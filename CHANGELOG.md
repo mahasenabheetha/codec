@@ -6,6 +6,13 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+## [3.10.0] - 2026-11-08
+
+Commands explained, built and found by what you want to do, for git,
+kubectl, helm, docker and Linux; text quoted for where it goes and
+sanitized before it is shared; breaks that rest outside your hours,
+fourteen sounds and focus sounds; five new themes.
+
 ### Added
 
 - **Commands** (Utilities): type or paste a command line and every part
@@ -1141,7 +1148,10 @@ First tagged release: codec as it stood before the 2.0 work began.
 - Release pipeline: pushing a `v*` tag publishes binaries for Linux,
   Windows and macOS (amd64/arm64) to GitHub Releases via GoReleaser.
 
-[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v3.8.0...HEAD
+[Unreleased]: https://github.com/mahasenabheetha/codec/compare/v3.10.0...HEAD
+[3.10.0]: https://github.com/mahasenabheetha/codec/compare/v3.9.0...v3.10.0
+[3.9.0]: https://github.com/mahasenabheetha/codec/compare/v3.8.1...v3.9.0
+[3.8.1]: https://github.com/mahasenabheetha/codec/compare/v3.8.0...v3.8.1
 [3.8.0]: https://github.com/mahasenabheetha/codec/compare/v3.7.0...v3.8.0
 [3.7.0]: https://github.com/mahasenabheetha/codec/compare/v3.6.0...v3.7.0
 [3.6.0]: https://github.com/mahasenabheetha/codec/compare/v3.5.0...v3.6.0

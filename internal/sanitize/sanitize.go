@@ -174,7 +174,7 @@ func (z *Sanitizer) Text(text string) string {
 	}
 	if o.Users && (strings.Contains(text, "/home/") || strings.Contains(text, "/Users/") || strings.Contains(strings.ToLower(text), "users\\")) {
 		for _, m := range userPathRe.FindAllStringSubmatchIndex(text, -1) {
-			if !commonUser[strings.ToLower(text[m[2]:m[3]])] {
+			if v := text[m[2]:m[3]]; !commonUser[strings.ToLower(v)] && !documentation(v) { // a stand-in already (host-1.example.internal) stays
 				add(KindUser, 7, m[2], m[3])
 			}
 		}
