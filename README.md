@@ -26,7 +26,12 @@
   <a href="https://mahasenabheetha.github.io/codec/cli.html">CLI reference</a>
 </p>
 
-![The Helm view: values files layered, and a tooltip showing which file set replicaCount](docs/images/helm.png)
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: light)" srcset="docs/images/demo-light.png">
+    <img src="docs/images/demo.png" alt="codec's Commands tool: git push --force is typed and explained, with the risk and a safer way; then the cheat sheet is asked how to undo the last commit, and its answer is explained" width="960">
+  </picture>
+</p>
 
 ## Why codec
 
@@ -55,6 +60,12 @@ passwords. codec does them locally, next to the files they belong to.
   is stored, no telemetry, listens on `127.0.0.1` only. Works offline.
 
 ## Features
+
+Open a section to see what codec does there.
+
+<details open>
+<summary><b>YAML workbench</b> — Helm, Kubernetes and Kustomize, Argo, CI pipelines, Compose and Ansible; lint, schemas, compare, query and starters</summary>
+<br>
 
 <table>
 <tr>
@@ -93,30 +104,46 @@ passwords. codec does them locally, next to the files they belong to.
 <td><b>New files and clones</b><br>Starters with a short form, linted and rendered before you copy them; your own team starters; clone a file under a new name with references renamed and everything else listed.<br><a href="https://mahasenabheetha.github.io/codec/new.html">Starters guide →</a></td>
 <td><img src="docs/images/new.png" alt="New file from a starter"></td>
 </tr>
+</table>
+
+</details>
+
+<details>
+<summary><b>Log viewer</b> — structured, pipeline, build and platform logs filtered, charted and traced to the code</summary>
+<br>
+
+<table>
 <tr>
-<td><img src="docs/images/logs.png" alt="The Log viewer: a sample log with levels charted, repeated errors, and an error entry open"></td>
+<td><picture><source media="(prefers-color-scheme: light)" srcset="docs/images/logs-light.png"><img src="docs/images/logs.png" alt="The Log viewer: a sample log with levels charted, repeated errors, and an error entry open"></picture></td>
 <td><b>Log viewer</b><br>A Log viewer for structured logs of any common format (ECS and other JSON, logfmt, klog, text with stack traces, as <code>argo logs</code> or <code>kubectl logs</code> print them): filter as you type with a small query language, chart them over time, see the errors that repeat, fold repeated lines and plain output, pin what matters and compare two runs; several logs open at once, and several files merged by time. Pipeline logs (Azure DevOps, GitHub Actions, GitLab, Jenkins), build output (BuildKit, Terraform, Maven, Gradle, npm, dotnet, go test, pytest), access logs, syslog and Kubernetes events are read into steps, errors and fields. An Argo run is read step by step, beside its status from <code>argo get</code>, and a log can be followed as it grows. A file and line in a log, a selection or the message itself leads to the code that wrote it, in a read-only peek of the open folder.<br><a href="https://mahasenabheetha.github.io/codec/logs.html">Log viewer guide →</a></td>
-</tr>
-<tr>
-<td><b>Commands</b><br>A command line explained part by part, and built with a form, each following the other, for git, kubectl, helm, docker and compose and some 37 Linux tools. Risky parts are marked with what they can break and a safer way (<code>git push --force-with-lease</code>). A cheat sheet finds a command by what you want to do (<em>undo my last commit</em>), by area, with the Linux tools by kind. Copy for bash or PowerShell; <code>codec explain</code> and <code>codec how</code> on the command line.<br><a href="https://mahasenabheetha.github.io/codec/tools.html#commands">Commands guide →</a></td>
-<td><img src="docs/images/commands.png" alt="Commands: git reset --hard and git push --force explained, each risk marked with a safer way, and the Build form"></td>
-</tr>
-<tr>
-<td><img src="docs/images/sanitize.png" alt="Sanitize: a log with secrets, emails, addresses and host names, and the same text with each replaced by a stand-in"></td>
-<td><b>Everyday tools</b><br><b>Sanitize</b> takes secrets, emails, IP addresses, host names, UUIDs, Azure names and user names out of what you are about to share, each value the same stand-in throughout, so it still reads; a log export can be sanitized too. <b>Quote</b> writes a value so bash, PowerShell, cmd, JSON, YAML, <code>.env</code>, Helm or a Dockerfile reads it back exactly, and why. Ansible logs, from one failed task to a whole pipeline log with several runs: the failure, its probable cause and where the task is defined. Smart paste, base64, JWT claims, and JSON &amp; YAML: format (JSONC and JSON5 too), a tree with paths, conversion, a diff by path, flattened paths, an inferred JSON Schema and jq. Under <b>Utilities</b>: URL and hex encoding, hashes and HMAC, random secrets, UUIDs and placeholder commit SHAs, htpasswd lines; CIDR ranges (subnets, overlaps in a list), IP addresses, a URL builder, curl ⇄ fetch and HTTP status codes; a text diff, a name in every case checked against Kubernetes, Helm and env-var rules, and CSV or TSV as a table to sort and filter, converted to JSON, YAML or Markdown and back; timestamps, time zones with a working-hours overlap, date formats for every language, cron schedules in plain words with their next runs (also on hover in CronJobs and pipelines), and a regex tester that explains the pattern.<br><a href="https://mahasenabheetha.github.io/codec/tools.html">Tools guide →</a></td>
-</tr>
-<tr>
-<td><b>Focus and breaks</b><br>A focus timer on a large ring, today's sessions on a timeline, and break reminders for your eyes, stretches, water and posture, which rest outside your working hours. Fourteen calm sounds, a sound for each moment, and focus sounds (noise, rain, ocean) under a session. Shown here in Dusk, one of ten themes.<br><a href="https://mahasenabheetha.github.io/codec/wellness.html">Focus and breaks guide →</a></td>
-<td><img src="docs/images/wellness.png" alt="Focus and breaks in the Dusk theme: a focus session running on a large ring, with the task being worked on"></td>
 </tr>
 </table>
 
-Ten themes: Dark and Light; soft, colourful dark ones that are easy on
-the eyes over a long day, where each tool and each kind of action has
-its own colour: **Dusk** (blue-violet), **Midnight** (deep navy),
-**Forest** (green-grey), **Rosé** (pink-violet) and **Ocean** (blue-teal);
-**Paper**, a warm, low-glare light theme; **Mist**, light dimmed to soft grey; and **High contrast**. Icons and controls come in Compact, Comfortable or
-Large.
+</details>
+
+<details>
+<summary><b>Commands</b> — command lines explained and built, risky parts flagged, a cheat sheet by purpose</summary>
+<br>
+
+<table>
+<tr>
+<td><b>Commands</b><br>A command line explained part by part, and built with a form, each following the other, for git, kubectl, helm, docker and compose and some 37 Linux tools. Risky parts are marked with what they can break and a safer way (<code>git push --force-with-lease</code>). A cheat sheet finds a command by what you want to do (<em>undo my last commit</em>), by area, with the Linux tools by kind. Copy for bash or PowerShell; <code>codec explain</code> and <code>codec how</code> on the command line.<br><a href="https://mahasenabheetha.github.io/codec/tools.html#commands">Commands guide →</a></td>
+<td><picture><source media="(prefers-color-scheme: light)" srcset="docs/images/commands-light.png"><img src="docs/images/commands.png" alt="Commands: git reset --hard and git push --force explained, each risk marked with a safer way, and the Build form"></picture></td>
+</tr>
+</table>
+
+</details>
+
+<details>
+<summary><b>Everyday tools</b> — Sanitize, Quote, Smart paste, JSON & YAML, encodings, time, network, generators</summary>
+<br>
+
+<table>
+<tr>
+<td><picture><source media="(prefers-color-scheme: light)" srcset="docs/images/sanitize-light.png"><img src="docs/images/sanitize.png" alt="Sanitize: a log with secrets, emails, addresses and host names, and the same text with each replaced by a stand-in"></picture></td>
+<td><b>Everyday tools</b><br><b>Sanitize</b> takes secrets, emails, IP addresses, host names, UUIDs, Azure names and user names out of what you are about to share, each value the same stand-in throughout, so it still reads; a log export can be sanitized too. <b>Quote</b> writes a value so bash, PowerShell, cmd, JSON, YAML, <code>.env</code>, Helm or a Dockerfile reads it back exactly, and why. Ansible logs, from one failed task to a whole pipeline log with several runs: the failure, its probable cause and where the task is defined. Smart paste, base64, JWT claims, and JSON &amp; YAML: format (JSONC and JSON5 too), a tree with paths, conversion, a diff by path, flattened paths, an inferred JSON Schema and jq. Under <b>Utilities</b>: URL and hex encoding, hashes and HMAC, random secrets, UUIDs and placeholder commit SHAs, htpasswd lines; CIDR ranges (subnets, overlaps in a list), IP addresses, a URL builder, curl ⇄ fetch and HTTP status codes; a text diff, a name in every case checked against Kubernetes, Helm and env-var rules, and CSV or TSV as a table to sort and filter, converted to JSON, YAML or Markdown and back; timestamps, time zones with a working-hours overlap, date formats for every language, cron schedules in plain words with their next runs (also on hover in CronJobs and pipelines), and a regex tester that explains the pattern.<br><a href="https://mahasenabheetha.github.io/codec/tools.html">Tools guide →</a></td>
+</tr>
+</table>
 
 Smart paste, Base64, Compare, JSON & YAML and the Ansible log have
 tabs, like the Log viewer: keep several pastes, documents, comparisons
@@ -130,6 +157,19 @@ strength, made-up test data as JSON, CSV, YAML or SQL, QR codes for
 links, Wi-Fi and authenticators (made and read), and colours with their
 WCAG contrast. Nothing generated is stored.
 
+</details>
+
+<details>
+<summary><b>Focus and breaks</b> — a focus timer, break reminders, sounds</summary>
+<br>
+
+<table>
+<tr>
+<td><b>Focus and breaks</b><br>A focus timer on a large ring, today's sessions on a timeline, and break reminders for your eyes, stretches, water and posture, which rest outside your working hours. Fourteen calm sounds, a sound for each moment, and focus sounds (noise, rain, ocean) under a session. Shown here in Dusk (Paper if your GitHub is light), two of the ten themes.<br><a href="https://mahasenabheetha.github.io/codec/wellness.html">Focus and breaks guide →</a></td>
+<td><picture><source media="(prefers-color-scheme: light)" srcset="docs/images/wellness-light.png"><img src="docs/images/wellness.png" alt="Focus and breaks in the Dusk theme: a focus session running on a large ring, with the task being worked on"></picture></td>
+</tr>
+</table>
+
 Under **Wellness**, Focus & breaks keeps long days healthier: a focus
 timer on a large ring (Classic 25/5, Deep work 50/10, Flow 90/20 or your
 own lengths), today's sessions on a timeline, and break reminders for
@@ -137,6 +177,21 @@ your eyes (20-20-20), stretches, water and posture, shown as a
 full-window break with guided breathing or stretches, a card or a toast,
 with calm chimes and an optional system notification. It runs in any
 tool, from the status bar, the palette or the desktop tray.
+
+</details>
+
+<details>
+<summary><b>Themes and sizes</b> — ten themes, three sizes</summary>
+<br>
+
+Ten themes: Dark and Light; soft, colourful dark ones that are easy on
+the eyes over a long day, where each tool and each kind of action has
+its own colour: **Dusk** (blue-violet), **Midnight** (deep navy),
+**Forest** (green-grey), **Rosé** (pink-violet) and **Ocean** (blue-teal);
+**Paper**, a warm, low-glare light theme; **Mist**, light dimmed to soft grey; and **High contrast**. Icons and controls come in Compact, Comfortable or
+Large.
+
+</details>
 
 codec can tell you when a newer release is out: switch on *Check for
 updates* in Settings (off by default), or run `codec version --check`.
