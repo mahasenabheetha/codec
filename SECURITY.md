@@ -21,3 +21,12 @@ fixes only when a `release/vN` branch exists.
 How codec protects your files (loopback-only binding, host and origin
 checks, a per-run token, confined file access, no telemetry) is
 described in [docs/security.html](docs/security.html).
+
+## How the code is checked
+
+Every change runs the tests (with the race detector), staticcheck and
+govulncheck in CI, and GitHub's CodeQL code scanning on the Go server,
+the frontend and the workflows (also weekly). OpenSSF Scorecard rates
+the project's security practices weekly; its score is the badge in the
+README. Parsers are fuzz-tested, and dependency updates come from
+Dependabot.

@@ -65,6 +65,11 @@
 <h1>Log viewer</h1>
 <p class="lead">Tools → <strong>Log viewer</strong> reads structured logs of any common format into one shape — time, level, message, source, error, stack, fields — so you can filter, chart and read them. It is built for the logs of Kubernetes workloads and pipelines (<code>argo logs</code>, <code>kubectl logs</code>) and for any service that logs JSON or <code>key=value</code>; it also reads pipeline and build output, access logs, syslog and Kubernetes events, and takes you from a line to the code that wrote it in the open folder. No folder is needed to read a log, and nothing is stored.</p>
 
+<figure>
+  <img src="images/logs.png" alt="The Log viewer with the sample log: counts by level, the errors that repeat, entries charted over time, the entry list and an error entry open beside it" width="1400" height="820">
+  <figcaption>The sample log: counts by level, the errors that repeat, entries over time, and an error open with its cause and fields.</figcaption>
+</figure>
+
 <h2 id="open">Opening logs<a class="anchor" href="#open">#</a></h2>
 <ul>
   <li><strong>Open logs…</strong>, or drop files anywhere on the tool. Each log you open gets a <strong>tab</strong> of its own, so you can keep several runs open and switch between them; each tab keeps its own search, time range and selection (<kbd>Alt</kbd> <kbd>T</kbd> opens logs in a new tab, <kbd>Alt</kbd> <kbd>W</kbd> closes one, arrow keys move between them). Several files opened together are read as one log, merged by time; <strong>Add to this tab…</strong> (or Shift while dropping) merges more into the current tab. Each file is a chip you can remove.</li>
