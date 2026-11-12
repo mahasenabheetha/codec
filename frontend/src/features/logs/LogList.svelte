@@ -439,7 +439,7 @@
   }
   mark {
     color: inherit;
-    background: var(--editor-search-match);
+    background: var(--match-bg);
     border-radius: 2px;
   }
   .msg :global(.stack-icon) {

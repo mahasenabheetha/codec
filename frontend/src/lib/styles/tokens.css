@@ -82,6 +82,7 @@
      keep their own hues, so a tool's colour never reads as an error. */
   --hue-indigo: #9aa5f5;
   --hue-violet: #b9a2f0;
+  --hue-orchid: #daa6e2;
   --hue-pink: #ee9fc8;
   --hue-peach: #f2b28e;
   --hue-lime: #b5d68a;
@@ -108,11 +109,19 @@
   --rest: #4fd1c5;
   --rest-soft: rgb(79 209 197 / 0.14);
 
-  --tint-tool: 0%;
-  --tint-action: 0%;
+  /* Since 3.10.1 every theme shows them (decision 105): Dark and Light
+     with quieter fills than the Dusk family. Settings → Tool colours
+     turns them off (data-colour='plain', at the end of this file). */
+  --tint-tool: 100%;
+  --tint-action: 100%;
   /* Fills, pills and edges in the tool's colour: the selected sub-tab and
      rail entry, a line along the top of a card. */
-  --tint-fill: 0%;
+  --tint-fill: 60%;
+
+  /* A match of a search, wherever it is drawn (editor, log rows, find
+     in files, the source peek). */
+  --match-bg: var(--editor-search-match);
+  --match-current-bg: var(--editor-search-match-current);
 
   /* Editor surfaces (CodeMirror) */
   --editor-active-line: rgb(255 255 255 / 0.025);
@@ -133,9 +142,10 @@
   --s-12: 48px;
 
   /* Radius */
-  --r-sm: 4px;
-  --r-md: 6px;
-  --r-lg: 10px;
+  --r-sm: 4px; /* inputs, small marks */
+  --r-md: 8px; /* buttons, rows */
+  --r-lg: 12px; /* panels, cards */
+  --r-xl: 16px; /* dialogs, the break card */
   --r-full: 999px;
 
   /* Type */
@@ -166,12 +176,22 @@
   --control-h: 32px;
   --control-h-sm: 28px;
 
-  /* Elevation (popovers and dialogs only) */
+  /* Elevation: --shadow-pop for popovers and dialogs; --shadow-raise,
+     barely there, for a card that lifts under the pointer. Depth
+     otherwise comes from the surface steps. */
   --shadow-pop: 0 8px 28px rgb(0 0 0 / 0.45), 0 0 0 1px var(--border-strong);
+  --shadow-raise: 0 1px 2px rgb(0 0 0 / 0.3), 0 4px 12px rgb(0 0 0 / 0.18);
   --overlay: rgb(5 6 9 / 0.6);
 
-  /* Motion */
+  /* Focus: the ring a field shows around its border when it removes the
+     outline (the rule: border colour plus this ring). */
+  --focus-ring: 0 0 0 3px color-mix(in srgb, var(--tool-accent, var(--accent)) 28%, transparent);
+
+  /* Motion: fast for hovers and presses, the default for most changes,
+     slow for things that move across the screen. */
+  --dur-fast: 80ms;
   --dur: 120ms;
+  --dur-slow: 240ms;
   --ease: cubic-bezier(0.2, 0, 0, 1);
 
   /* Layers */
@@ -196,6 +216,14 @@
   --icon-scale: 1.25;
   --control-h: 36px;
   --control-h-sm: 32px;
+  /* Large is for reading too: the text grows a step (3.10.1). */
+  --fs-xs: 12px;
+  --fs-sm: 13px;
+  --fs-md: 14px;
+  --fs-lg: 15px;
+  --fs-xl: 17px;
+  --fs-2xl: 22px;
+  --fs-3xl: 30px;
 }
 
 :root[data-theme='light'],
@@ -232,6 +260,18 @@
 
   --rest: #0b7268;
   --rest-soft: rgb(11 114 104 / 0.12);
+
+  /* The tool hues on white (3.10.1): one lightness, dark enough to read
+     and to carry white text. Mist has its own below. */
+  --hue-indigo: #5157b1;
+  --hue-violet: #714ca6;
+  --hue-orchid: #874392;
+  --hue-pink: #983c75;
+  --hue-peach: #9f4500;
+  --hue-lime: #517000;
+  --hue-teal: #007b6e;
+  --hue-cyan: #00719e;
+  --hours-together-fg: #ffffff;
 
   --syn-key: #0550ae;
   --syn-string: #1f6f2b;
@@ -271,6 +311,7 @@
   --editor-search-match-current: rgb(214 150 0 / 0.5);
 
   --shadow-pop: 0 8px 28px rgb(20 28 45 / 0.14), 0 0 0 1px var(--border-strong);
+  --shadow-raise: 0 1px 2px rgb(20 28 45 / 0.08), 0 4px 12px rgb(20 28 45 / 0.06);
   --overlay: rgb(20 28 45 / 0.35);
 }
 
@@ -354,13 +395,12 @@
   /* The tool hues and action tones, shown in full. */
   --hue-indigo: #a8bcf5;
   --hue-violet: #c6b2ed;
+  --hue-orchid: #d8acdf;
   --hue-pink: #e1a9d4;
   --hue-peach: #ebae8d;
   --hue-lime: #b1c88b;
   --hue-teal: #7ad0c5;
   --hue-cyan: #7ccbe4;
-  --tint-tool: 100%;
-  --tint-action: 100%;
   --tint-fill: 100%;
 
   --shadow-pop: 0 10px 30px rgb(8 8 20 / 0.45), 0 0 0 1px var(--border-strong);
@@ -543,14 +583,13 @@
 
   --hue-indigo: #4c5cb4;
   --hue-violet: #734eac;
+  --hue-orchid: #854d8d;
   --hue-pink: #a3427a;
   --hue-peach: #a0552a;
   --hue-lime: #557024;
   --hue-teal: #21716a;
   --hue-cyan: #1f6a8a;
   --hours-together-fg: #ffffff;
-  --tint-tool: 100%;
-  --tint-action: 100%;
   --tint-fill: 100%;
 
   --editor-active-line: rgb(60 40 10 / 0.04);
@@ -561,6 +600,7 @@
   --editor-search-match-current: rgb(200 140 0 / 0.5);
 
   --shadow-pop: 0 8px 28px rgb(50 35 15 / 0.14), 0 0 0 1px var(--border-strong);
+  --shadow-raise: 0 1px 2px rgb(50 35 15 / 0.08), 0 4px 12px rgb(50 35 15 / 0.06);
   --overlay: rgb(50 35 15 / 0.3);
 }
 
@@ -625,15 +665,13 @@
 
   --hue-indigo: #36438f;
   --hue-violet: #563888;
+  --hue-orchid: #66386d;
   --hue-pink: #7e2f5c;
   --hue-peach: #7b3e1c;
   --hue-lime: #3d5417;
   --hue-teal: #155650;
   --hue-cyan: #15516b;
   --hours-work-fg: #ffffff;
-  --hours-together-fg: #ffffff;
-  --tint-tool: 100%;
-  --tint-action: 100%;
   --tint-fill: 100%;
 
   --editor-active-line: rgb(20 30 60 / 0.05);
@@ -700,13 +738,12 @@
 
   --hue-indigo: #aab6ff;
   --hue-violet: #cdb8ff;
+  --hue-orchid: #eeb9f6;
   --hue-pink: #ffb3da;
   --hue-peach: #ffc7a3;
   --hue-lime: #c6ef93;
   --hue-teal: #82ead8;
   --hue-cyan: #92ddff;
-  --tint-tool: 100%;
-  --tint-action: 100%;
   --tint-fill: 100%;
 
   --editor-active-line: rgb(255 255 255 / 0.06);
@@ -717,5 +754,15 @@
   --editor-search-match-current: rgb(255 213 77 / 0.6);
 
   --shadow-pop: 0 0 0 2px var(--border-strong);
+  --shadow-raise: 0 0 0 1px var(--border-strong);
   --overlay: rgb(0 0 0 / 0.75);
+}
+
+/* Settings → Tool colours off: every tool and action in the accent and
+   the text colour, in any theme (as Dark and Light were before 3.10.1).
+   Last, so it wins over the theme blocks. */
+:root[data-colour='plain'] {
+  --tint-tool: 0%;
+  --tint-action: 0%;
+  --tint-fill: 0%;
 }

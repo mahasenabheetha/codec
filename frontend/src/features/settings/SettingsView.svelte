@@ -13,6 +13,7 @@
   import { toast } from '../../lib/stores/toast.svelte'
   import { theme, themes, type DarkStyle, type LightStyle, type ThemePref } from '../../lib/stores/theme.svelte'
   import { uiSize, type UiSize } from '../../lib/stores/size.svelte'
+  import { toolColours } from '../../lib/stores/colour.svelte'
   import { iconStyle, type IconStyle } from '../workspace/icons.svelte'
   import { desktop } from '../../lib/platform'
   import { getDesktopSettings, setDesktopSettings, type DesktopSettings } from '../../lib/api/desktop'
@@ -170,7 +171,10 @@
             <Select items={darkItems} value={theme.darkStyle} label="When the system is dark" onchange={(v) => (theme.darkStyle = v as DarkStyle)} />
           </SettingRow>
         {/if}
-        <SettingRow title="Interface size" description="How big icons, buttons and other controls are. Compact is the size before 3.5.0.">
+        <SettingRow title="Tool colours" description="Each tool and action in its own colour, on the rail, tabs, Home and its page. Off: everything in the theme's accent.">
+          <Toggle checked={toolColours.on} name="Tool colours" label={toolColours.on ? 'On' : 'Off'} onchange={(on) => (toolColours.on = on)} />
+        </SettingRow>
+        <SettingRow title="Interface size" description="How big icons, buttons and other controls are; Large makes the text bigger too. Compact is the size before 3.5.0.">
           <SegmentedControl options={sizes} bind:value={uiSize.value} label="Interface size" />
         </SettingRow>
         <SettingRow title="File icons" description="Material: an icon for each kind of file and folder, as VS Code's Material Icon Theme. Simple: the quieter icons before 3.8.1.">

@@ -332,9 +332,8 @@
   }
   mark {
     color: var(--fg-0);
-    background: var(--accent-soft);
+    background: var(--match-bg);
     border-radius: 2px;
-    box-shadow: 0 0 0 1px var(--accent-soft);
   }
   .hint {
     margin: var(--s-2) var(--s-3);

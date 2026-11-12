@@ -336,7 +336,7 @@
   }
   mark {
     color: inherit;
-    background: color-mix(in oklab, var(--accent) 35%, transparent);
+    background: var(--match-bg);
     border-radius: 2px;
   }
   .note {

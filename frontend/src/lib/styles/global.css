@@ -20,7 +20,9 @@ body {
   line-height: var(--lh);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-feature-settings: 'cv11', 'ss01'; /* Inter: straight-sided digits, open shapes */
+  /* Inter: straight-sided digits, open shapes, and figures of one
+     width, so counts, times and sizes don't shift as they change. */
+  font-feature-settings: 'cv11', 'ss01', 'tnum';
   overflow: hidden; /* the app shell manages its own scrolling */
 }
 

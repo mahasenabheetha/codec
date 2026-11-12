@@ -31,6 +31,7 @@
   import { theme, themes } from './lib/stores/theme.svelte'
   import { updates } from './lib/stores/update.svelte'
   import { uiSize } from './lib/stores/size.svelte'
+  import { toolColours } from './lib/stores/colour.svelte'
   import Rail from './lib/shell/Rail.svelte'
   import TabBar from './lib/shell/TabBar.svelte'
   import StatusBar from './lib/shell/StatusBar.svelte'
@@ -269,6 +270,14 @@
       keywords: ['theme', 'colour', 'color', t.light ? 'light' : 'dark', t.note],
       run: () => theme.use(t.value),
     })),
+    {
+      id: 'view.toolColours',
+      title: 'Toggle tool colours',
+      group: 'View',
+      icon: Palette,
+      keywords: ['colour', 'color', 'hue', 'plain', 'accent', 'monochrome'],
+      run: () => (toolColours.on = !toolColours.on),
+    },
     ...(['compact', 'comfortable', 'large'] as const).map((s) => ({
       id: 'view.size.' + s,
       title: 'Interface size: ' + s[0].toUpperCase() + s.slice(1),

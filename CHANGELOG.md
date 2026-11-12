@@ -6,6 +6,21 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+### Changed
+
+- **Colour in every theme.** Dark and Light now show each tool and
+  action in its own colour, as Dusk does, with quieter fills; Light has
+  its own set, dark enough for white. One more colour, orchid, so no
+  two tools in a group of the rail share one. **Settings → Tool
+  colours** (and "Toggle tool colours" in the palette) turns them off
+  in any theme.
+- **Interface size → Large** makes the text a step bigger, not only the
+  controls.
+- Numbers keep one width, so counts, times and sizes don't shift as
+  they change; buttons and panels are a little rounder; a search match
+  is the same colour in the editor, log rows, Find in Files and the
+  source peek.
+
 ### Fixed
 
 - **Helm:** the release's Name, Namespace and Kubernetes fields no
