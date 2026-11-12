@@ -72,27 +72,19 @@ keep the UI consistent and polished. Work efficiently: read only what a
 task needs and run only the tests for packages touched (the full suite
 runs once, at step 4).
 
-### 3.10.1 and 3.10.2: the interface refresh
+### 3.10.2: the interface refresh, the views
 
-Asked for 2026-11-12 (decision 105), after a review of the whole
-frontend: the tokens and the design language are sound, but the feature
-code drifted (the same thing built three or four ways), the default
-themes hide the colour system, toolbars are overloaded and panes have
-fixed sizes. A refresh, not a redesign: frontend only, no engine or API
-change, nothing persisted that decision 19 rules out. 3.10.1 is the
-foundation and the shell, since every screen uses them; 3.10.2 is the
-views, one area at a time.
-
-**3.10.1 — foundation and shell** (`feature/mab/v3.10.1`)
-
-| Task | What | Done when |
-|---|---|---|
-| T1 | Visible defects: Helm release fields cut off; `--fg-3` (not a token) in six places; graphs that never refit and don't mark the selected node; fold arrows off their line; a hovered error row losing its tint; a click on the log histogram filtering one bucket; steppers drifting off their step; arrowheads sharing one id; Mist missing from the theme text | Each is gone on the sample; `check` passes |
-| T2 | Tokens for the new look: tool hues shown, restrained, in Dark and Light and more of them, so fewer tools share one; type that grows with Interface size; tabular figures; a focus-ring token; motion tokens (`--dur-fast`, `--dur`, `--dur-slow`); elevation and a softer panel radius; one match-highlight token | `contrast` passes for all ten themes; no screen changes layout |
-| T3 | Shared parts, so drift has nowhere to start: `Field` (text and number), `Chip`, `PanelHeader`, one `OutputPane`, `ErrorState` (reason and a way forward), loading that is always `Skeleton` (no spinners); the copies replaced | No hand-rolled field, chip, spinner or bare red error left in `features/` |
-| T4 | Panes you can size: input and output in every tool on a `SplitPane` (drag, keyboard, double-click to reset, side by side or stacked, remembered per tool); the Helm side panel, the lens grids, structure compare and the Source drawer the same | Every two-pane view resizes and remembers; narrow widths stack |
-| T5 | Shell: a rail that never clips, with pinned and recent tools; tabs with an overflow menu, reorder, a context menu and close and switch shortcuts; Home with a search box, recents and pinned in place of forty equal cards; one palette with recent commands and settings rows; prose in the status bar in the interface font | Keyboard-only walk through rail, tabs, Home and palette |
-| T6 | Design language and `docs/design.html` rewritten for the above; changed screenshots; release | Routine step 4 |
+The second half of the refresh asked for 2026-11-12 (decision 105).
+3.10.1 gave every screen its foundation (tokens, shared parts, panes
+that resize, the shell); 3.10.2 goes through the views, one area at a
+time, on those parts. Frontend only, no engine or API change, nothing
+persisted that decision 19 rules out. Left over from 3.10.1 and done
+with the view they belong to: each view's own field rules deleted
+where the shared base covers them; the Helm, file and workspace
+problems headers onto `PanelHeader`; loading states that are still
+blank; Regex and Commands onto `ToolLayout` (they then get the
+input-over-output button); the docs screenshots of Home, New, Settings,
+Compare, Query and Problems.
 
 **3.10.2 — the views** (`feature/mab/v3.10.2`)
 
@@ -165,6 +157,7 @@ script or a Makefile target.
 
 | Version | Items |
 |---|---|
+| 3.10.1 | The interface refresh, first part (decision 105): each tool and action in its own colour in every theme, with a Tool colours setting; text that grows with Interface size Large, tabular figures, rounder shapes; one look for fields, errors (with Try again), chips, view headers and the output pane, no spinners; panes you can size everywhere (lens views, Helm, Compare, the Source drawer; input over output per tool); pinned and recent tools on the rail and Home, Home's search, tabs that overflow, move and have a menu and shortcuts, a palette that remembers and lists every setting; fixes to graphs, the Helm panel, fold arrows and the log list |
 | 3.10.0 | Commands (Utilities): command lines explained part by part and built with a form, two-way, for git, kubectl, helm, docker and compose and some 37 Linux tools, with risky parts flagged and a safer way; a cheat sheet searched by what you want to do; Smart paste and `codec explain`/`codec how`; Quote (a value written for bash, PowerShell, cmd, JSON, YAML, .env and more, both ways, in layers); Sanitize (secrets, emails, addresses, hosts, UUIDs, Azure names and user names out of a text or a log export, the same stand-in throughout; `codec sanitize`); breaks that rest outside active hours; fourteen sounds, a sound per moment, packs and focus sounds; the Paper, Forest, Rosé, Ocean and High contrast themes with a swatch menu |
 | 3.9.0 | Log to source: file and line links, Find in workspace and Find source, in a Source drawer with a read-only peek; pipeline logs (Azure DevOps, GitHub Actions and its log zip, GitLab, Jenkins) in steps; build and infrastructure logs (BuildKit, Terraform, Helm, Maven, Gradle, npm, dotnet, go test, pytest); access logs, syslog, journald, Kubernetes events and audit logs; Smart paste for all of them; code colours in some 40 languages (CodeMirror's legacy modes, loaded per language) |
 | 3.8.1 | File and folder icons from the Material Icon Theme (as in VS Code), with a Simple setting; top tabs in their tool's colour, as on the rail |

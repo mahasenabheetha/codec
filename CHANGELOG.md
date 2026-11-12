@@ -6,6 +6,13 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+## [3.10.1] - 2026-11-12
+
+The interface refreshed, first part: colour in every theme, one look
+for the parts every view shares, panes you can size, and a shell built
+around the tools you use. Frontend only; nothing about what codec reads
+or computes changes.
+
 ### Added
 
 - **Pinned tools.** Pin a tool, or one sub-tab such as Cron, from its

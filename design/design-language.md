@@ -4,8 +4,11 @@ How codec looks and behaves, for anyone (person or agent) changing the
 UI. The user-facing version is `docs/design.html`. Tokens live in
 `frontend/src/lib/styles/tokens.css`; components use tokens only.
 
-Dark by default, with a light theme [81]. Calm, dense, precise — a professional dev tool, closer to
-Linear or VS Code than to a marketing site.
+Dark by default, ten themes in all [81, 94, 95]. Calm, dense, precise —
+a professional dev tool, closer to Linear or VS Code than to a
+marketing site. Refreshed in 3.10.1 and 3.10.2 (decision 105): colour
+in every theme, shared parts in place of copies, panes you can size,
+and a shell built around what you use most.
 
 ## Principles
 
@@ -28,11 +31,13 @@ Linear or VS Code than to a marketing site.
 | Accent | `--accent #7aa2ff` · `--accent-hover` · `--accent-soft` (14%) · `--accent-fg` text on solid accent |
 | Status | `--ok #3fb971` · `--warn #e5b449` · `--err #f06b75` · `--info #5ab0ff`, each with `-soft` |
 | Space | 4px scale: `--s-1 4` `--s-2 8` `--s-3 12` `--s-4 16` `--s-5 20` `--s-6 24` `--s-8 32` `--s-12 48` |
-| Radius | `--r-sm 4` inputs · `--r-md 6` buttons · `--r-lg 10` panels/dialogs · `--r-full` pills |
-| Type | `--font-ui` Inter, `--font-mono` JetBrains Mono (bundled, OFL). Sizes `--fs-xs 11` `-sm 12` `-md 13` (base) `-lg 14` `-xl 16` `-2xl 20` `-3xl 28`; line height 1.5 (code 1.55) |
+| Radius | `--r-sm 4` inputs, small marks · `--r-md 8` buttons, rows · `--r-lg 12` panels, cards · `--r-xl 16` dialogs · `--r-full` pills |
+| Type | `--font-ui` Inter, `--font-mono` JetBrains Mono (bundled, OFL). Sizes `--fs-xs 11` `-sm 12` `-md 13` (base) `-lg 14` `-xl 16` `-2xl 20` `-3xl 28`, each a step bigger at Interface size Large (12 … 30); line height 1.5 (code 1.55). Figures are tabular everywhere (`tnum`), so counts and times don't shift. The code font is for code, paths and values, never for sentences |
 | Controls | Interface size (`data-size` on `<html>`): `--control-h` 28 / 32 / 36 and `--control-h-sm` 24 / 28 / 32 for Compact / Comfortable (default) / Large; Lucide icons keep the size written in code (the Compact one) and grow by `--icon-scale` 1 / 1.125 / 1.25, rounded to whole pixels (global.css), so write icon sizes for Compact · `--tabbar-h 38` · `--statusbar-h 26` · rail 48/220 |
-| Motion | `--dur 120ms`, `--ease`; none under `prefers-reduced-motion` |
-| Elevation | `--shadow-pop` for popovers and dialogs only; depth otherwise comes from surface steps |
+| Focus | `--focus-ring`: the ring a field shows around its border (in the tool's colour inside a tool). The global outline stays for everything else |
+| Match | `--match-bg`, `--match-current-bg`: a search hit, wherever it is drawn (editor, log rows, Find in Files, the source peek) |
+| Motion | `--dur-fast 80ms` hovers and presses · `--dur 120ms` most changes · `--dur-slow 240ms` things that move across the screen · `--ease`; none under `prefers-reduced-motion` |
+| Elevation | `--shadow-pop` for popovers and dialogs; `--shadow-raise`, barely there, for a card that lifts under the pointer; depth otherwise comes from surface steps |
 | Layers | `--z-sticky 10` `--z-popover 50` `--z-dialog 60` `--z-toast 70` |
 
 Syntax (CodeMirror): key `#8fb4ff` · string `#a8d68a` · number
@@ -106,7 +111,9 @@ value in each theme block (Dusk may inherit Dark's).
 
 - **Tool hue.** Each tool and workspace view has one (`hue` in
   `lib/tools.ts`, `viewHue` for the rail's views), from `--hue-indigo`,
-  `-violet`, `-pink`, `-peach`, `-lime`, `-teal`, `-cyan`. What belongs to
+  `-violet`, `-orchid`, `-pink`, `-peach`, `-lime`, `-teal`, `-cyan`
+  (eight; no two tools in one group of the rail share one, and none
+  sits on a status colour: a blue or a green was left out for that). What belongs to
   the tool (its page, rail entry, Home card) sets `--tool` to
   `hueVar(hue)` and takes the `.hued` class, which works out
   `--tool-accent`, `--tool-accent-hover`, `--tool-accent-soft` and
@@ -122,10 +129,15 @@ value in each theme block (Dusk may inherit Dark's).
 How much of the first two a theme shows is `--tint-tool` and
 `--tint-action`, and `--tint-fill` for fills drawn in the tool's colour
 (the selected sub-tab as a soft pill, the selected rail entry's glow, a
-line along the top of a `Pane`): `0%` in Dark and Light, which keeps
-them exactly as they were, `100%` in Dusk. Workspace views (Compare,
+line along the top of a `Pane`). Since 3.10.1 every theme shows them:
+tool and action `100%` everywhere, fills `60%` in Dark and Light (the
+quieter two) and `100%` in the rest; Light has its own hues, dark
+enough for white. Settings → Tool colours off sets
+`data-colour='plain'` on `<html>`, which zeroes all three in any theme
+(Dark and Light as they were before 3.10.1). Workspace views (Compare,
 Query, New, Problems) are `.hued` too, with their `viewHue`. Never use a `--hue-*` or `--act-*` token directly; go through
-the roles, so a theme can turn them up or down in one place.
+the roles, so a theme or the setting can turn them up or down in one
+place. A shared component reads `var(--tool-accent, var(--accent))`.
 
 Never hard-code a colour, size or font in a component. A new token is a
 change to this file and `tokens.css` together.
@@ -142,13 +154,30 @@ change to this file and `tokens.css` together.
 └───────────────────────────────────────────────┘
 ```
 
-- Rail 48/220 px (`Ctrl+B`); groups Workspace · Encode & decode · Logs ·
-  Utilities · Settings. Explorer and lens panel resize and collapse; sizes persist.
-- Every view is a tab keyed by its route (`lib/stores/router.svelte.ts`);
-  views stay mounted while their tab is open (`active` prop hides them).
-- Lens views (Argo, Pipeline, Compose, Ansible) use `LensView` (header,
-  what-if overrides, reload counter) and `LensGrid` (side · main ·
-  detail, stacked when narrow). New lens views follow the same frame.
+- **Rail** 48/220 px (`Ctrl+B`): Home, then Pinned (the tools and
+  sub-tabs the user pinned, `lib/stores/usage.svelte.ts`), Workspace,
+  and the tool groups; Settings, Keyboard shortcuts and Collapse are
+  three icons in a row at the bottom. The list scrolls, and fades where
+  it goes on. A tool's menu (right-click, Shift+F10) pins it.
+- **Tabs.** Every view is a tab keyed by its route
+  (`lib/stores/router.svelte.ts`); views stay mounted while their tab
+  is open (`active` prop hides them). Tabs that don't fit scroll (the
+  wheel too), the current one stays in view and a count at the end
+  lists them all; a tab drags to a new place and has a menu (close,
+  the others, to the right, all). `Alt+]`, `Alt+[`, `Alt+Shift+W`.
+- **Home** is where a tool is found: a search box, pinned tools, the
+  ones opened lately, the workspace, then every tool by group; a star
+  on a card pins it.
+- **Panes resize.** Anything with two or three parts is a `SplitPane`
+  or `ThreePanes`, never a fixed grid: sizes persist per `id`, a side
+  panel keeps its width in px when the window changes (`px`), and the
+  parts stack when narrow. Explorer and lens panel resize and collapse.
+- **Lens views** (Argo, Pipeline, Compose, Ansible) use `LensView`
+  (`PanelHeader`, what-if overrides, reload counter) and `LensGrid` or
+  `ThreePanes` (side · main · detail, one remembered size for all of
+  them). New lens views follow the same frame.
+- **A view's header** is `PanelHeader`: icon, name, what is known
+  (counts, a **What-if** badge), actions on the right.
 
 ## Components
 
@@ -161,7 +190,11 @@ Build once in `frontend/src/lib/components` and reuse:
 | `Tabs`, `SegmentedControl` | Switching views of the same thing; exclusive choices |
 | `WorkTabStrip` + `WorkTabs` (features/shared) | Several of the same work open at once in one tool (pastes, comparisons, logs; decision 97): one store and strip, each tab's component kept mounted and hidden when not current |
 | `Select`, `Toggle`, `SearchInput` | Form controls (Bits UI underneath) |
-| `SplitPane` | Resizable panes (sizes persisted by key) |
+| a plain `<input>`, `<textarea>`, `<select>` | Text fields and native menus: global.css gives every one the same frame and focus (border colour plus `--focus-ring`), with no weight, so a view writes only what differs. A field inside its own framed box sets `box-shadow: none` and the box shows the focus (`:focus-within`) |
+| `Chip` | A small choice in a row: a suggestion (a preset; `selected` marks the one in use) or a toggle (`pressed`: a flag, a weekday), `square` for one letter |
+| `SplitPane` | Two resizable panes: drag, arrow keys (Shift, Home, End), double click or Enter to reset; `direction`, `stackBelow`, `flush` (a line, for panes that touch), `px` (a side panel's width); sizes persisted by `id`, side by side and stacked apart |
+| `ThreePanes` | Side · main · detail, each resizable: the frame of the lens views |
+| `PanelHeader` | The strip at the top of a view: icon, title, `meta`, `actions` |
 | `TreeView` | File trees and outlines; keyboard pattern, windowed over 300 rows |
 | `VirtualList` | Long lists of rows of any height (Problems, Resources cards, Log viewer): only rows in view are drawn, each measured once shown; `scrollToIndex`, `onrange` for page-by-page loading |
 | `CodeView` | Any code or YAML (CodeMirror 6), read-only or editable |
@@ -171,7 +204,9 @@ Build once in `frontend/src/lib/components` and reuse:
 | `ContextMenu` | Right-click menus (also Shift+F10); entries built per open from the event; sentence case, an icon per entry |
 | `Badge`, `Kbd` | File type with logo; key combos |
 | `EmptyState` | Nothing to show yet: icon, one sentence, the action that fills it |
+| `ErrorNote` | Something failed: icon, the reason, and `retry` (Try again) or other ways forward; `inline` beside a field or a row. Never a bare red paragraph |
 | `Skeleton` | Loading placeholders in the content's shape |
+| `Working` | "Working…" in a pane's header while content already shown is worked out again; appears after 250 ms. Never a spinner |
 | `Toaster` / `toast()` | Brief confirmations and non-blocking errors; an optional action ("Cleared · Undo") for undoable clears |
 
 Shell pieces live in `lib/shell` (Rail, TabBar, StatusBar,
@@ -192,15 +227,21 @@ them when it changes, and rename the SVG if browser tabs keep the old one.
 
 - **States.** Empty → `EmptyState`. First load → `Skeleton` inside a
   container with `aria-busy="true"` and an `aria-label`. Refresh of
-  content already shown → small muted text in the header ("Reading…").
-  Error → plain sentence, the reason, a way forward; never a raw stack.
+  content already shown → `Working` in the header ("Reading…").
+  Error → `ErrorNote`: a plain sentence, the reason, a way forward
+  (`retry` wherever the thing can be asked for again); never a raw
+  stack, never a spinner.
 - **Commands and shortcuts.** App-wide commands in `App.svelte`; a view's
   own commands registered while it is active
   (`$effect(() => active && commands.register([...]))`, or
   `toolCommands` for tools). Shortcuts via `shortcut()`; add them to
   `ShortcutsDialog` and `docs/shortcuts.html`.
 - **Tools.** One page: title and toolbar, input left, output right
-  (`ToolLayout`, `InputPane`, `Pane`) when the input can be a document.
+  (`ToolLayout`, `InputPane`, `Pane`) when the input can be a document;
+  the two resize, and a button at the end of the toolbar puts the
+  input over the output instead (remembered per tool,
+  `features/shared/panes.svelte.ts`). The output pane is `TextOutput`
+  (`OutputPane` is the same, fed from a transform session).
   When it is a value or a small form (a timestamp, a cron expression,
   generator options), one column instead (`ToolLayout` `body`,
   `LineInput`, `Pane grow={false}`): the input on top, answers below,
@@ -212,8 +253,15 @@ them when it changes, and rename the SVG if browser tabs keep the old one.
   `Job` / `TextJob` (newest answer wins, debounced while typing). One
   tool hands input to another with `handoff.send(tool, tab, input)`.
   Results with several values give each its own copy button.
-- **Persistence.** `persisted()` is for display preferences only. Never
-  persist tool input, what-if edits or variables [19].
+- **Persistence.** `persisted()` is for display preferences only: the
+  theme, sizes of panes, which tools are pinned or were opened last,
+  the palette's last commands. Never persist tool input, what-if edits
+  or variables [19].
+- **Palette.** One list for everything that can be done: commands,
+  tools and their sub-tabs, files of the open folder's lenses, and one
+  entry per setting (`features/settings/goto.svelte.ts`: "Settings:
+  Theme" opens the page on its row). The commands run last come first
+  while nothing is typed.
 - **API.** Components call the backend only through `lib/api/*`.
   Requests that follow typing are debounced and abortable.
 - **Desktop.** The same UI runs in the desktop window. Anything only it
@@ -227,8 +275,9 @@ them when it changes, and rename the SVG if browser tabs keep the old one.
 ## Accessibility checklist
 
 - Text contrast ≥ 4.5:1 on its surface; don't use `--fg-2` on `--bg-4`.
-- Keyboard focus visible (global 2 px accent ring); if a component
-  removes the outline, it shows an equivalent (border colour plus ring).
+- Keyboard focus visible (global 2 px accent ring); a field shows its
+  border colour plus `--focus-ring` (global.css does this for every
+  input); a component that removes either shows an equivalent.
 - Every interactive element has an accessible name (text, `aria-label`
   or `label`). Icon-only buttons use `IconButton`.
 - Trees, lists, tabs, radio groups follow WAI-ARIA keyboard patterns.
@@ -245,7 +294,10 @@ them when it changes, and rename the SVG if browser tabs keep the old one.
 
 ## Review checklist for UI changes
 
-1. Tokens only; shared components reused or extended, not copied.
+1. Tokens only; shared components reused or extended, not copied. No
+   hand-rolled field, chip, header, error line, spinner or fixed
+   two-pane grid: `Chip`, `PanelHeader`, `ErrorNote`, `Working`,
+   `SplitPane` exist for them.
 2. Empty, loading and error states present.
 3. Reachable by keyboard; has a palette entry if it is an action.
 4. Accessible names on controls; contrast checked for new colour pairs.
