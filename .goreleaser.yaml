@@ -43,6 +43,17 @@ archives:
 checksum:
   name_template: checksums.txt
 
+# checksums.txt signed with cosign, keyless (the release workflow's
+# identity through Sigstore); the bundle goes on the release next to it.
+# Check: cosign verify-blob checksums.txt --bundle checksums.txt.sigstore.json
+#   --certificate-identity-regexp '^https://github.com/mahasenabheetha/codec/'
+#   --certificate-oidc-issuer https://token.actions.githubusercontent.com
+signs:
+  - cmd: cosign
+    artifacts: checksum
+    signature: "${artifact}.sigstore.json"
+    args: ["sign-blob", "--bundle=${signature}", "${artifact}", "--yes"]
+
 # Multi-platform image from the Linux binaries above (see Dockerfile),
 # pushed to GitHub Container Registry. Every release gets its version
 # tag (2.0.0-alpha.1); only stable releases move "latest".
