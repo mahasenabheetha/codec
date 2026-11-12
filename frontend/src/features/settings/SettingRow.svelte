@@ -7,15 +7,18 @@
     description?: string
     /** id of the control, so clicking the title focuses it. */
     for?: string
+    /** The control under the text, the row's whole width (a grid of
+     *  choices), in place of beside it. */
+    wide?: boolean
     /** Extra content under the description (e.g. code samples). */
     details?: Snippet
     children: Snippet
   }
 
-  let { title, description, for: forId, details, children }: Props = $props()
+  let { title, description, for: forId, wide = false, details, children }: Props = $props()
 </script>
 
-<div class="row" data-setting={title}>
+<div class="row" class:wide data-setting={title}>
   <svelte:element this={forId ? 'label' : 'div'} class="label" for={forId}>
     <span class="title">{title}</span>
     {#if description}<small>{description}</small>{/if}
@@ -45,6 +48,17 @@
     gap: var(--s-4);
     padding: var(--s-3) 0;
     border-top: 1px solid var(--border);
+  }
+  .row.wide {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--s-3);
+  }
+  .row.wide .label {
+    flex: none;
+  }
+  .row.wide .control {
+    display: block;
   }
   .label {
     flex: 1 1 16rem;

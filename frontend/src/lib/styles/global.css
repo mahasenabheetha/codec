@@ -221,6 +221,8 @@ svg.lucide-icon[width='28'] {
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    /* Once, then still: an endless loop would otherwise spin flat out. */
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
 }

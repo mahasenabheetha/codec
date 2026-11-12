@@ -88,6 +88,21 @@ All notable changes to codec are documented here. The format follows
   and everything else (compare, query, clone, Kubernetes resources,
   neat copy, reveal, copy path) is under **…** with its name, where
   there were up to nine unlabelled icons.
+- **Settings:**
+  - **Themes are a grid of swatches**, each drawn in its own colours,
+    in place of a menu of names; arrow keys move through them.
+  - The list of sections **marks the one in view** as you scroll.
+  - A **Wellness** section holds the sounds and notifications; the
+    Focus and Breaks tabs link to it instead of each carrying a copy.
+- **Breaks:**
+  - A full-window break **takes the focus and keeps it**: Tab stays
+    inside it, and focus goes back where it was when the break ends.
+  - Under reduced motion, looping animations run once and stop (they
+    used to loop at full speed).
+  - In a corner card the breathing guide's words stay readable, and
+    screen readers hear a break's name once, not its countdown every
+    second.
+  - Today's "now" mark moves with the clock.
 - **Regex and Commands** use the same page frame as the other tools:
   their own colour, and Regex gets the input-over-output button.
 - One wording, **Try a sample**, on every tool's empty state; Clear is

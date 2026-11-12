@@ -1,4 +1,7 @@
 <script lang="ts">
+  import ThemeGrid from './ThemeGrid.svelte'
+  import SoundSettings from '../wellness/SoundSettings.svelte'
+  import NotifyToggle from '../wellness/NotifyToggle.svelte'
   import ErrorNote from '../../lib/components/ErrorNote.svelte'
   import Copy from '@lucide/svelte/icons/copy'
   import Plus from '@lucide/svelte/icons/plus'
@@ -103,8 +106,23 @@
     { id: 'rules-style', title: 'Lint rules' },
     { id: 'helm', title: 'Helm profiles' },
     { id: 'compare', title: 'Compare' },
+    { id: 'wellness', title: 'Wellness' },
     { id: 'folders', title: 'Folders' },
   ]
+
+  // The section in view, marked in the nav as the page scrolls (3.10.2).
+  // Every group of lint rules counts as "Lint rules".
+  let current = $state('general')
+  function spy() {
+    if (!scroller) return
+    const top = scroller.getBoundingClientRect().top + 96
+    let at = ''
+    for (const el of scroller.querySelectorAll<HTMLElement>('section[id^="settings-"]')) {
+      if (el.getBoundingClientRect().top <= top) at = el.id.slice('settings-'.length)
+    }
+    if (!at) return
+    current = at.startsWith('rules-') ? 'rules-style' : at
+  }
 
   function jump(id: string) {
     const el = scroller?.querySelector<HTMLElement>(`#settings-${id}`)
@@ -134,7 +152,6 @@
   // The themes with a swatch each (3.10.0); System first, then the dark
   // ones and the light ones.
   const item = (t: (typeof themes)[number]) => ({ value: t.value, label: t.label, note: t.note, swatch: t.swatch })
-  const themeItems = [{ value: 'system', label: 'System', note: "follows your operating system's light or dark setting" }, ...themes.map(item)]
   const darkItems = themes.filter((t) => !t.light).map(item)
   const lightItems = themes.filter((t) => t.light).map(item)
   const sizes: { value: UiSize; label: string }[] = [
@@ -170,18 +187,18 @@
     <h1>Settings</h1>
     <ul>
       {#each nav as n (n.id)}
-        <li><button type="button" onclick={() => jump(n.id)}>{n.title}</button></li>
+        <li><button type="button" aria-current={current === n.id ? 'true' : undefined} onclick={() => jump(n.id)}>{n.title}</button></li>
       {/each}
     </ul>
   </nav>
 
-  <div class="scroll" bind:this={scroller}>
+  <div class="scroll" bind:this={scroller} onscroll={spy}>
     <div class="content">
       <p class="intro">Saved in your user profile, never in a repository. codec only reads the folders you open.</p>
 
       <SettingSection id="general" title="General">
-        <SettingRow title="Theme" description="Dark, the soft and colourful Dusk, Midnight, Forest, Rosé and Ocean, High contrast, Light, the warm Paper and the dimmed Mist. System follows your operating system's light or dark setting. It changes at once.">
-          <Select items={themeItems} value={theme.pref} label="Theme" onchange={(v) => (v === 'system' ? (theme.pref = 'system') : theme.use(v as Exclude<ThemePref, 'system'>))} />
+        <SettingRow wide title="Theme" description="Dark, the soft and colourful Dusk, Midnight, Forest, Rosé and Ocean, High contrast, Light, the warm Paper and the dimmed Mist. System follows your operating system's light or dark setting. It changes at once.">
+          <ThemeGrid />
         </SettingRow>
         {#if theme.pref === 'system'}
           <SettingRow title="When the system is light" description="The light theme System uses.">
@@ -204,7 +221,7 @@
           <SegmentedControl options={editors} bind:value={openIn.value} label="Open files in" />
         </SettingRow>
         <SettingRow title="Outline and problems panel" description="Show the side panel in file tabs. Toggle it per tab from the editor toolbar too.">
-          <Toggle checked={lensOpen.value} label={lensOpen.value ? 'Shown' : 'Hidden'} onchange={(on) => (lensOpen.value = on)} />
+          <Toggle checked={lensOpen.value} name="Outline and problems panel" label={lensOpen.value ? 'Shown' : 'Hidden'} onchange={(on) => (lensOpen.value = on)} />
         </SettingRow>
         <SettingRow title="Open Markdown as" description="How .md files open. Switch per tab with Source / Preview in the file toolbar.">
           <SegmentedControl
@@ -284,6 +301,13 @@
         </form>
       </SettingSection>
 
+      <SettingSection id="wellness" title="Wellness" description="Sounds and notifications for the focus timer and the break reminders. The timer, its lengths and each reminder are set in Focus &amp; breaks.">
+        <SettingRow title="Notifications" description="A system notification when a focus phase ends or a break is due, for when codec is not in front.">
+          <NotifyToggle />
+        </SettingRow>
+        <div class="embed"><SoundSettings /></div>
+      </SettingSection>
+
       <SettingSection id="folders" title="Folders">
         {#if info}
           {#each info.folders as f (f.id)}
@@ -341,6 +365,17 @@
   nav button:hover {
     color: var(--fg-0);
     background: var(--bg-2);
+  }
+  /* The section in view: a bar and firmer words, not colour alone. */
+  nav button[aria-current] {
+    color: var(--fg-0);
+    font-weight: var(--fw-medium);
+    background: var(--bg-3);
+    box-shadow: inset 2px 0 0 var(--accent);
+  }
+  .embed {
+    padding: var(--s-3) 0;
+    border-top: 1px solid var(--border);
   }
   .scroll {
     overflow: auto;

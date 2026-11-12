@@ -24,6 +24,7 @@ export const settingEntries: SettingEntry[] = [
   { title: 'Lint rules', section: 'rules-style', keywords: ['level', 'error', 'warning', 'off', 'line length'] },
   { title: 'Helm profiles', section: 'helm', keywords: ['saved', 'forget', 'values'] },
   { title: 'Compare: ignored paths', section: 'compare', keywords: ['ignore', 'diff'] },
+  { title: 'Wellness: sounds and notifications', section: 'wellness', keywords: ['sound', 'chime', 'volume', 'mute', 'notification', 'focus', 'break'] },
   { title: 'Folders', section: 'folders', keywords: ['settings file', 'cache', 'starters', 'templates', 'recent'] },
 ]
 

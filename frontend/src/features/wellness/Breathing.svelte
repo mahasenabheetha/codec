@@ -31,13 +31,13 @@
   const now = $derived(steps[i])
 </script>
 
-<div class="breathe" aria-live="polite">
+<div class="breathe">
   <div class="stage">
     <span class="halo" style:transform="scale({now.scale * 1.18})" style:transition-duration="{now.s}s"></span>
     <span class="circle" style:transform="scale({now.scale})" style:transition-duration="{now.s}s"></span>
     <span class="words">
-      <strong>{now.label}</strong>
-      <span>{left}</span>
+      <strong aria-live="polite">{now.label}</strong>
+      <span aria-hidden="true">{left}</span>
     </span>
   </div>
 </div>

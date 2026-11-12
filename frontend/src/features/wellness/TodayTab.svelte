@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { clock } from './clock.svelte'
   import CalendarCheck from '@lucide/svelte/icons/calendar-check'
   import Brain from '@lucide/svelte/icons/brain'
   import Coffee from '@lucide/svelte/icons/coffee'
@@ -92,7 +93,7 @@
                   title="{b.kind === 'focus' ? 'Focus' : 'Break'} {time(b.start)}–{time(b.end)}"
                 ></span>
               {/each}
-              <span class="now" style:left="{Math.min(100, pos(Date.now()))}%"></span>
+              <span class="now" style:left="{Math.min(100, pos(clock.now))}%"></span>
             </div>
             <div class="hours">
               {#each hours as h, i (h)}
