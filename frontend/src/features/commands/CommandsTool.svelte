@@ -17,7 +17,7 @@
   import { toolById } from '../../lib/tools'
   import { copyText } from '../../lib/utils/clipboard'
   import Pane from '../shared/Pane.svelte'
-  import { toolCommands, toolShortcuts, toolStatus } from '../shared/tool.svelte'
+  import { cleared, toolCommands, toolShortcuts, toolStatus } from '../shared/tool.svelte'
   import { workspace as ws } from '../workspace/workspace.svelte'
   import BuildForm from './BuildForm.svelte'
   import CheatSheet from './CheatSheet.svelte'
@@ -160,6 +160,8 @@
   }
 
   function clear() {
+    const was = line
+    if (was) cleared(() => line || (line = was))
     line = ''
     editor?.focus()
   }

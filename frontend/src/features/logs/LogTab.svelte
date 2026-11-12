@@ -20,7 +20,7 @@
   import { shortcut } from '../../lib/stores/shortcuts.svelte'
   import { toast } from '../../lib/stores/toast.svelte'
   import { copyText } from '../../lib/utils/clipboard'
-  import { toolShortcuts, toolStatus } from '../shared/tool.svelte'
+  import { toolCommands, toolShortcuts, toolStatus } from '../shared/tool.svelte'
   import { count, formatTime, formatWhen } from './format'
   import LogChart from './LogChart.svelte'
   import LogCompare from './LogCompare.svelte'
@@ -267,6 +267,24 @@
   const lanesOffered = $derived((s?.steps?.length ?? 0) > 1 || (s?.sources?.length ?? 0) > 1)
   const lanesShown = $derived(lanesOffered && prefs.chart.value === 'lanes' && (s?.timed ?? 0) > 0)
   const fieldsShown = $derived((viewer.fieldKeys ?? []).filter((k) => k.toLowerCase().includes(columnFilter.toLowerCase())))
+
+  // The viewer's actions, in the palette while a log is open (3.10.2).
+  toolCommands(
+    () => active && !!viewer.opened,
+    () => [
+      { id: 'logs.view.query', title: 'Log viewer: Go to the search box', group: 'Log viewer', shortcut: '/', run: () => queryField?.focus() },
+      { id: 'logs.view.nextError', title: 'Log viewer: Next error', group: 'Log viewer', shortcut: 'E', run: () => nextError(1) },
+      { id: 'logs.view.prevError', title: 'Log viewer: Previous error', group: 'Log viewer', shortcut: 'Shift+E', run: () => nextError(-1) },
+      { id: 'logs.view.summary', title: 'Log viewer: Copy the summary', group: 'Log viewer', shortcut: 'Alt+C', run: () => copySummary() },
+      { id: 'logs.view.unpin', title: 'Log viewer: Unpin all', group: 'Log viewer', run: () => viewer.clearPins() },
+      ...(['entries', 'steps', 'errors', 'fields', 'pins'] as const).map((t) => ({
+        id: 'logs.view.tab.' + t,
+        title: 'Log viewer: Show ' + t[0].toUpperCase() + t.slice(1),
+        group: 'Log viewer',
+        run: () => (tab = t),
+      })),
+    ],
+  )
 
   toolShortcuts(() => active, {
     run: () => viewer.run(),

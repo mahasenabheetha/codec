@@ -15,7 +15,7 @@
   import Pane from '../shared/Pane.svelte'
   import ToolLayout from '../shared/ToolLayout.svelte'
   import ToolTabs from '../shared/ToolTabs.svelte'
-  import { toolShortcuts, toolStatus } from '../shared/tool.svelte'
+  import { cleared, toolShortcuts, toolStatus } from '../shared/tool.svelte'
 
   // Sanitize (decision 104): a text with secrets, addresses and names
   // taken out before it is shared, each value the same stand-in
@@ -95,6 +95,8 @@
   const replaced = $derived(findings.filter((f) => !f.kept).reduce((n, f) => n + f.count, 0))
 
   function clear() {
+    const was = { input, keep: opts.keep }
+    if (was.input) cleared(() => input || ((input = was.input), (opts.keep = was.keep)))
     input = ''
     opts.keep = []
     editor?.focus()

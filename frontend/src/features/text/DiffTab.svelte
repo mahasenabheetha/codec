@@ -14,7 +14,7 @@
   import ToolLayout from '../shared/ToolLayout.svelte'
   import ToolTabs from '../shared/ToolTabs.svelte'
   import { Job } from '../shared/job.svelte'
-  import { toolCommands, toolShortcuts, toolStatus } from '../shared/tool.svelte'
+  import { cleared, toolCommands, toolShortcuts, toolStatus } from '../shared/tool.svelte'
   import DiffSide from './DiffSide.svelte'
 
   // Two texts compared line by line, the changed words marked: the
@@ -46,6 +46,8 @@
     ;[leftName, rightName] = [rightName, leftName]
   }
   function clear() {
+    const was = { left, right, leftName, rightName }
+    if (left || right) cleared(() => left || right || ({ left, right, leftName, rightName } = was))
     left = right = leftName = rightName = ''
     job.reset()
   }

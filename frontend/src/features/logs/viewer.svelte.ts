@@ -23,7 +23,7 @@ import {
 } from '../../lib/api/logs'
 import type { ArgoRun } from '../../lib/api/argo'
 import { persisted } from '../../lib/stores/persist.svelte'
-import { toast } from '../../lib/stores/toast.svelte'
+import { toast, toasts } from '../../lib/stores/toast.svelte'
 import { WorkTabs } from '../shared/worktabs.svelte'
 
 export const PAGE = 200
@@ -358,9 +358,20 @@ export class LogViewer {
     this.pins = this.pins.map((p) => (p.i === i ? { ...p, note } : p))
   }
 
+  /** Unpin everything; the pins and their notes come back with Undo. */
   clearPins() {
+    const was = this.pins
     this.pins = []
     this.refreshMarkers()
+    if (was.length)
+      toasts.show(was.length === 1 ? 'Unpinned 1 entry' : `Unpinned ${was.length} entries`, 'neutral', 7000, {
+        label: 'Undo',
+        run: () => {
+          if (this.pins.length) return
+          this.pins = was
+          this.refreshMarkers()
+        },
+      })
   }
 
   /** The pin before or after entry i, in log order (wrapping round). */

@@ -6,6 +6,27 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- **Undo after a clear.** Clearing a tool (the button or Esc) shows
+  "Cleared" with **Undo** for a few seconds, and so do Unpin all in the
+  Log viewer, deleting a Helm profile, removing a reminder of your own,
+  Clear today, and turning a lint rule off from a finding. What was
+  cleared is held in memory only until the note goes.
+- **Each view's actions in the palette** while its tab is shown: Helm
+  (render again, copy the manifests, compare profiles, query, each
+  tab), Kustomize, Kubernetes, Problems, the Log viewer (search box,
+  next and previous error, copy the summary, unpin all, each tab) and
+  Compare (again, swap sides).
+
+### Changed
+
+- **Esc clears a tool only from its main input** or from outside any
+  field. Typed in another field (a key, an option, "Leave out") it used
+  to wipe the whole tool.
+- **A full-window break needs Esc twice** to skip, so a reflex key
+  press doesn't throw it away.
+
 ## [3.10.1] - 2026-11-12
 
 The interface refreshed, first part: colour in every theme, one look

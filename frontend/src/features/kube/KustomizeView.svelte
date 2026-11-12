@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { toolCommands } from '../shared/tool.svelte'
   import PanelHeader from '../../lib/components/PanelHeader.svelte'
   import ErrorNote from '../../lib/components/ErrorNote.svelte'
   import { tick, untrack } from 'svelte'
@@ -33,6 +34,21 @@
   let { dir, active }: Props = $props()
 
   let tab = $state<'rendered' | 'resources' | 'problems'>('rendered')
+
+  // The view's actions, in the palette while its tab is shown (3.10.2).
+  toolCommands(
+    () => active,
+    () => [
+      { id: 'kustomize.view.build', title: 'Kustomize: Build again', group: 'Kustomize', run: () => build() },
+      { id: 'kustomize.view.copy', title: 'Kustomize: Copy the built manifests', group: 'Kustomize', run: () => data?.manifest && copyText(data.manifest, 'Manifests') },
+      ...(['rendered', 'resources', 'problems'] as const).map((t) => ({
+        id: 'kustomize.view.tab.' + t,
+        title: 'Kustomize: Show ' + t[0].toUpperCase() + t.slice(1),
+        group: 'Kustomize',
+        run: () => (tab = t),
+      })),
+    ],
+  )
   let data = $state.raw<K8sAnalysis | null>(null)
   let error = $state<string | null>(null)
   let building = $state(false)

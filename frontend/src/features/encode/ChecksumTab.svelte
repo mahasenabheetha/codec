@@ -21,7 +21,7 @@
   import ToolLayout from '../shared/ToolLayout.svelte'
   import ToolTabs from '../shared/ToolTabs.svelte'
   import { Job } from '../shared/job.svelte'
-  import { toolShortcuts, toolStatus } from '../shared/tool.svelte'
+  import { cleared, toolShortcuts, toolStatus } from '../shared/tool.svelte'
   import { workspace } from '../workspace/workspace.svelte'
 
   // Checksums of files: dropped or chosen (sent as they are, hashed as a
@@ -101,6 +101,8 @@
   const asLines = () => done.map((r) => `${r.digests!.find((d) => d.algorithm === 'SHA-256')!.hex}  ${r.name}`).join('\n') + '\n'
 
   function clear() {
+    const was = { rows, expected }
+    if (rows.length || expected) cleared(() => rows.length || expected || ((rows = was.rows), (expected = was.expected)))
     rows = []
     expected = ''
   }

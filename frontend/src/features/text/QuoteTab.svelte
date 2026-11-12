@@ -19,7 +19,7 @@
   import Pane from '../shared/Pane.svelte'
   import ToolLayout from '../shared/ToolLayout.svelte'
   import ToolTabs from '../shared/ToolTabs.svelte'
-  import { toolShortcuts, toolStatus } from '../shared/tool.svelte'
+  import { cleared, toolShortcuts, toolStatus } from '../shared/tool.svelte'
 
   // Quote (decision 104): a value written so a shell, a data format or a
   // language reads it back exactly, every way it can be, with why; read
@@ -102,6 +102,8 @@
   }
 
   function clear() {
+    const was = value
+    if (was) cleared(() => value || (value = was))
     value = ''
     editor?.focus()
   }

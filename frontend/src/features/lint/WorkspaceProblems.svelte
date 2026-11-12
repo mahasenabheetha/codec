@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { toolCommands } from '../shared/tool.svelte'
   import ErrorNote from '../../lib/components/ErrorNote.svelte'
   import { hueVar, viewHue } from '../../lib/tools'
   import ChevronDown from '@lucide/svelte/icons/chevron-down'
@@ -28,6 +29,12 @@
   }
 
   let { active }: Props = $props()
+
+  // In the palette while this tab is shown (3.10.2).
+  toolCommands(
+    () => active,
+    () => [{ id: 'problems.view.run', title: 'Problems: Check the workspace again', group: 'Problems', run: () => !lint.running && lint.runWorkspace() }],
+  )
 
   if (!lint.loaded) lint.load()
 

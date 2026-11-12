@@ -33,7 +33,7 @@
 
 <section class="line" aria-label={label}>
   <div class="row" class:invalid>
-    <input bind:this={field} bind:value aria-label={label} {placeholder} spellcheck="false" autocomplete="off" />
+    <input bind:this={field} bind:value aria-label={label} {placeholder} spellcheck="false" autocomplete="off" data-clears />
     {#if actions}{@render actions()}{/if}
     <IconButton icon={ClipboardPaste} label="Paste from clipboard" size="sm" onclick={paste} />
     <IconButton icon={Eraser} tone="clear" label="Clear" shortcut="Escape" size="sm" disabled={!value} onclick={() => (onclear ? onclear() : (value = ''))} />

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { toolCommands } from '../shared/tool.svelte'
   import SplitPane from '../../lib/components/SplitPane.svelte'
   import ErrorNote from '../../lib/components/ErrorNote.svelte'
   import { hueVar, viewHue } from '../../lib/tools'
@@ -35,6 +36,15 @@
   }
 
   let { c, active, strip }: Props = $props()
+
+  // In the palette while this comparison is shown (3.10.2).
+  toolCommands(
+    () => active,
+    () => [
+      { id: 'compare.view.run', title: 'Compare: Compare again', group: 'Compare', run: () => cmp.run() },
+      { id: 'compare.view.swap', title: 'Compare: Swap sides', group: 'Compare', run: () => cmp.swap() },
+    ],
+  )
   const cmp = untrack(() => c) // a tab component lives with one tab (keyed)
 
   let leftView = $state<CodeView>()

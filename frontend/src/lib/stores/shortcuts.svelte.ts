@@ -10,6 +10,9 @@ import { isMac } from '../utils/platform'
 export interface ShortcutOptions {
   /** Only fire while this returns true (e.g. the owning tool is active). */
   when?: () => boolean
+  /** Leave this event alone (it is not stopped, and other shortcuts and
+   *  the page still get it): e.g. Escape typed in a small field. */
+  skip?: (e: KeyboardEvent) => boolean
   /** Fire even while typing in an input or editor. Defaults to true
    *  for combos with a modifier and false for bare keys like "?". */
   inInputs?: boolean
@@ -85,6 +88,7 @@ window.addEventListener('keydown', (e) => {
     const { combo, handler, opts } = entries[i]
     if (!matches(combo, e)) continue
     if (opts.when && !opts.when()) continue
+    if (opts.skip?.(e)) continue
     const inInputs = opts.inInputs ?? (combo.mod || combo.alt)
     if (!inInputs && isTyping(e)) continue
     // Bare keys inside CodeMirror's search panel belong to the panel

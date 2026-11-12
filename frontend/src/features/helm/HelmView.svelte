@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { toolCommands } from '../shared/tool.svelte'
   import SplitPane from '../../lib/components/SplitPane.svelte'
   import { onDestroy, tick, untrack } from 'svelte'
   import { EditorView } from '@codemirror/view'
@@ -115,6 +116,23 @@
   })
 
   const result = $derived(session.result)
+
+  // The view's actions, in the palette while its tab is shown (3.10.2).
+  toolCommands(
+    () => active,
+    () => [
+      { id: 'helm.view.render', title: 'Helm: Render again', group: 'Helm', run: () => session.render() },
+      { id: 'helm.view.copy', title: 'Helm: Copy the rendered manifests', group: 'Helm', run: () => result && copyText(result.manifest, 'Manifests') },
+      { id: 'helm.view.compare', title: 'Helm: Compare two profiles of this chart', group: 'Helm', run: () => compareProfiles() },
+      { id: 'helm.view.query', title: 'Helm: Query the rendered output (jq)', group: 'Helm', run: () => queries.open({ chart }) },
+      ...(['rendered', 'values', 'resources', 'notes', 'problems'] as const).map((t) => ({
+        id: 'helm.view.tab.' + t,
+        title: 'Helm: Show ' + t[0].toUpperCase() + t.slice(1),
+        group: 'Helm',
+        run: () => (tab = t),
+      })),
+    ],
+  )
   const errors = $derived(result?.diagnostics.filter((d) => d.severity === 'error') ?? [])
   const problems = $derived(result?.diagnostics.filter((d) => d.severity !== 'info') ?? [])
   const infos = $derived(result?.diagnostics.filter((d) => d.severity === 'info') ?? [])

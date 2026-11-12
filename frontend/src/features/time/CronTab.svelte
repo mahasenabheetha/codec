@@ -17,7 +17,7 @@
   import ErrorBanner from '../shared/ErrorBanner.svelte'
   import LineInput from '../shared/LineInput.svelte'
   import { Job } from '../shared/job.svelte'
-  import { toolCommands, toolShortcuts, toolStatus } from '../shared/tool.svelte'
+  import { cleared, toolCommands, toolShortcuts, toolStatus } from '../shared/tool.svelte'
   import ZonePicker from './ZonePicker.svelte'
   import { formatRun, relative, zones } from './zone.svelte'
 
@@ -164,6 +164,8 @@
 
   const copy = () => copyText(expr.trim(), 'Expression')
   function clear() {
+    const was = expr
+    if (was) cleared(() => expr || (expr = was))
     expr = ''
     job.reset()
     field?.focus()

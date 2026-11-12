@@ -149,6 +149,7 @@
                   <div class="mirror" aria-hidden="true" style="transform: translateX({-scrollX}px)">{lit[0]}<mark>{lit[1]}</mark>{lit[2]}</div>
                 {/if}
                 <input
+                  data-clears
                   bind:this={patternField}
                   bind:value={pattern}
                   placeholder="(?<level>ERROR|WARN)\s+(\w+-\d+)"

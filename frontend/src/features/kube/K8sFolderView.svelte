@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { toolCommands } from '../shared/tool.svelte'
   import Working from '../../lib/components/Working.svelte'
   import PanelHeader from '../../lib/components/PanelHeader.svelte'
   import ErrorNote from '../../lib/components/ErrorNote.svelte'
@@ -22,6 +23,12 @@
   }
 
   let { path, active }: Props = $props()
+
+  // In the palette while this tab is shown (3.10.2).
+  toolCommands(
+    () => active,
+    () => [{ id: 'k8s.view.reload', title: 'Kubernetes: Read the files again', group: 'Kubernetes', run: () => load() }],
+  )
 
   let data = $state.raw<K8sAnalysis | null>(null)
   let error = $state<string | null>(null)

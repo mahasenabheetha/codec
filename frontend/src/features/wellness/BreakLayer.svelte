@@ -34,13 +34,26 @@
     lastSecond = left
   })
 
+  // Escape twice skips a full-window break: a single one is too easily
+  // a reflex meant for something else (3.10.2).
+  let escAt = $state(0)
   function onkeydown(e: KeyboardEvent) {
     if (c && r?.style === 'window' && e.key === 'Escape') {
       e.preventDefault()
       e.stopPropagation()
-      reminders.finish(false)
+      const now = Date.now()
+      if (now - escAt < 2000) {
+        escAt = 0
+        reminders.finish(false)
+      } else escAt = now
     }
   }
+  // The hint goes back to its usual words after the two seconds.
+  $effect(() => {
+    if (!escAt) return
+    const timer = setTimeout(() => (escAt = 0), 2000)
+    return () => clearTimeout(timer)
+  })
 </script>
 
 <svelte:window onkeydowncapture={onkeydown} />
@@ -70,7 +83,7 @@
           <Button variant="ghost" icon={AlarmClockOff} onclick={() => reminders.snooze()}>Snooze 5 min</Button>
           <Button variant="secondary" icon={SkipForward} onclick={() => reminders.finish(false)}>Skip</Button>
         </div>
-        <span class="hint">Esc skips</span>
+        <span class="hint" aria-live="polite">{escAt ? 'Press Esc again to skip' : 'Esc twice skips'}</span>
       </div>
     </div>
   {:else}
