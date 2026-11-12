@@ -72,8 +72,54 @@ keep the UI consistent and polished. Work efficiently: read only what a
 task needs and run only the tests for packages touched (the full suite
 runs once, at step 4).
 
+### 3.10.1 and 3.10.2: the interface refresh
+
+Asked for 2026-11-12 (decision 105), after a review of the whole
+frontend: the tokens and the design language are sound, but the feature
+code drifted (the same thing built three or four ways), the default
+themes hide the colour system, toolbars are overloaded and panes have
+fixed sizes. A refresh, not a redesign: frontend only, no engine or API
+change, nothing persisted that decision 19 rules out. 3.10.1 is the
+foundation and the shell, since every screen uses them; 3.10.2 is the
+views, one area at a time.
+
+**3.10.1 — foundation and shell** (`feature/mab/v3.10.1`)
+
+| Task | What | Done when |
+|---|---|---|
+| T1 | Visible defects: Helm release fields cut off; `--fg-3` (not a token) in six places; graphs that never refit and don't mark the selected node; fold arrows off their line; a hovered error row losing its tint; a click on the log histogram filtering one bucket; steppers drifting off their step; arrowheads sharing one id; Mist missing from the theme text | Each is gone on the sample; `check` passes |
+| T2 | Tokens for the new look: tool hues shown, restrained, in Dark and Light and more of them, so fewer tools share one; type that grows with Interface size; tabular figures; a focus-ring token; motion tokens (`--dur-fast`, `--dur`, `--dur-slow`); elevation and a softer panel radius; one match-highlight token | `contrast` passes for all ten themes; no screen changes layout |
+| T3 | Shared parts, so drift has nowhere to start: `Field` (text and number), `Chip`, `PanelHeader`, one `OutputPane`, `ErrorState` (reason and a way forward), loading that is always `Skeleton` (no spinners); the copies replaced | No hand-rolled field, chip, spinner or bare red error left in `features/` |
+| T4 | Panes you can size: input and output in every tool on a `SplitPane` (drag, keyboard, double-click to reset, side by side or stacked, remembered per tool); the Helm side panel, the lens grids, structure compare and the Source drawer the same | Every two-pane view resizes and remembers; narrow widths stack |
+| T5 | Shell: a rail that never clips, with pinned and recent tools; tabs with an overflow menu, reorder, a context menu and close and switch shortcuts; Home with a search box, recents and pinned in place of forty equal cards; one palette with recent commands and settings rows; prose in the status bar in the interface font | Keyboard-only walk through rail, tabs, Home and palette |
+| T6 | Design language and `docs/design.html` rewritten for the above; changed screenshots; release | Routine step 4 |
+
+**3.10.2 — the views** (`feature/mab/v3.10.2`)
+
+| Task | What |
+|---|---|
+| T1 | Safety and reach: Escape no longer clears while typing or skips a break; "Cleared · Undo" on every clear, unpin, close and delete; every view's actions in the palette |
+| T2 | Files: a toolbar with one main action per file type and the rest grouped; the explorer shows problems and what-if edits per file and folder, with a menu per kind |
+| T3 | Graph: selection, keyboard pan and zoom, tooltips for cut labels, a full legend, a minimap, the view kept across what-if edits, status by icon as well as colour, stage lanes for pipelines |
+| T4 | Lens views on one frame (Argo and CI onto `LensGrid`/`LensView`): one what-if indicator with reset, one error and loading pattern, sections that fold, Problems first |
+| T5 | Logs and compare: controls that collapse; a histogram with a floor for rare errors, ticks and a brush window over the whole log; levels told apart; diff with a sign column, a coloured unified view, a minimap and gaps opened in steps |
+| T6 | Tools: Regex and Commands on `ToolLayout`; a copy per value in JWT and URL; "Send to…" on every output (the hand-off store); one wording and one icon per action; options remembered where they are display choices |
+| T7 | Settings and Wellness: themes as a swatch grid, a nav that follows the scroll, a Wellness section; breaks that trap focus, stop under reduced motion and read at card size |
+| T8 | Accessibility pass (focus rings, names, tree and grid patterns, pane-width layouts), design language, docs and screenshots; release |
+
+Not in these two: the new features the review suggested (what-if diff
+on the graph, run replay, trace a value, bookmarks in the Log viewer,
+cron on the zone strip). They go to "Later".
+
 ### Later
 The rest of "Next", picked up when it fits.
+
+Ideas from the 3.10.1 review: what-if diff on a graph (nodes added,
+removed or skipped by a parameter); a run replayed over the Argo or
+Ansible graph; one value traced from Argo CD to Helm values to the
+rendered manifest; a pin in the Log viewer that restores its query,
+range and highlights; a cron schedule on the time-zone strip; recipes
+from chained tools.
 
 Ideas from the 3.8.0 plan: Terraform plan viewer; certificate and CSR decoder; semver and
 version-constraint tester; chmod and umask calculator; Kubernetes
