@@ -72,39 +72,19 @@ keep the UI consistent and polished. Work efficiently: read only what a
 task needs and run only the tests for packages touched (the full suite
 runs once, at step 4).
 
-### 3.10.2: the interface refresh, the views
-
-The second half of the refresh asked for 2026-11-12 (decision 105).
-3.10.1 gave every screen its foundation (tokens, shared parts, panes
-that resize, the shell); 3.10.2 goes through the views, one area at a
-time, on those parts. Frontend only, no engine or API change, nothing
-persisted that decision 19 rules out. Left over from 3.10.1 and done
-with the view they belong to: each view's own field rules deleted
-where the shared base covers them; the Helm, file and workspace
-problems headers onto `PanelHeader`; loading states that are still
-blank; Regex and Commands onto `ToolLayout` (they then get the
-input-over-output button); the docs screenshots of Home, New, Settings,
-Compare, Query and Problems.
-
-**3.10.2 — the views** (`feature/mab/v3.10.2`)
-
-| Task | What |
-|---|---|
-| T1 | Safety and reach: Escape no longer clears while typing or skips a break; "Cleared · Undo" on every clear, unpin, close and delete; every view's actions in the palette |
-| T2 | Files: a toolbar with one main action per file type and the rest grouped; the explorer shows problems and what-if edits per file and folder, with a menu per kind |
-| T3 | Graph: selection, keyboard pan and zoom, tooltips for cut labels, a full legend, a minimap, the view kept across what-if edits, status by icon as well as colour, stage lanes for pipelines |
-| T4 | Lens views on one frame (Argo and CI onto `LensGrid`/`LensView`): one what-if indicator with reset, one error and loading pattern, sections that fold, Problems first |
-| T5 | Logs and compare: controls that collapse; a histogram with a floor for rare errors, ticks and a brush window over the whole log; levels told apart; diff with a sign column, a coloured unified view, a minimap and gaps opened in steps |
-| T6 | Tools: Regex and Commands on `ToolLayout`; a copy per value in JWT and URL; "Send to…" on every output (the hand-off store); one wording and one icon per action; options remembered where they are display choices |
-| T7 | Settings and Wellness: themes as a swatch grid, a nav that follows the scroll, a Wellness section; breaks that trap focus, stop under reduced motion and read at card size |
-| T8 | Accessibility pass (focus rings, names, tree and grid patterns, pane-width layouts), design language, docs and screenshots; release |
-
-Not in these two: the new features the review suggested (what-if diff
-on the graph, run replay, trace a value, bookmarks in the Log viewer,
-cron on the zone strip). They go to "Later".
-
 ### Later
 The rest of "Next", picked up when it fits.
+
+Left from the 3.10.2 refresh, small and independent: the Log viewer's
+row list as a proper list or grid for screen readers, with its pin and
+fold marks reachable by keyboard; a keyboard way to pick a time range
+on the log chart; undo for closing a pasted log (it is released on the
+server at once); the trees in JSON, steps and fields on the tree
+pattern; Argo's and the pipeline view's own copies of the lens styles
+merged into the shared ones; a filter and a reset for lint rules in
+Settings; Base64, JWT and Smart paste as Send-to targets; the docs
+screenshots of Compare, Query and Problems (they need steps the
+capture script does not do, and Problems a lint run).
 
 Ideas from the 3.10.1 review: what-if diff on a graph (nodes added,
 removed or skipped by a parameter); a run replayed over the Argo or
@@ -157,6 +137,7 @@ script or a Makefile target.
 
 | Version | Items |
 |---|---|
+| 3.10.2 | The interface refresh, second part (decision 105): Esc scoped to the main input and Undo after every clear and delete; each view's actions in the palette; a file toolbar with one main action and a menu, explorer marks and menus per kind; graphs with keyboard, minimap, stage lanes, a kept view and status glyphs; lens views whose sections fold, with Problems first, a What-if reset and Try again; a log chart with a range window and a floor for rare errors, options that fold away; a diff with signs, a coloured unified view and gaps in steps; Send to between tools, a copy per value in JWT and URL, Regex and Commands on the shared frame; themes as a swatch grid, a Wellness section in Settings, breaks as a real dialog; unique field ids |
 | 3.10.1 | The interface refresh, first part (decision 105): each tool and action in its own colour in every theme, with a Tool colours setting; text that grows with Interface size Large, tabular figures, rounder shapes; one look for fields, errors (with Try again), chips, view headers and the output pane, no spinners; panes you can size everywhere (lens views, Helm, Compare, the Source drawer; input over output per tool); pinned and recent tools on the rail and Home, Home's search, tabs that overflow, move and have a menu and shortcuts, a palette that remembers and lists every setting; fixes to graphs, the Helm panel, fold arrows and the log list |
 | 3.10.0 | Commands (Utilities): command lines explained part by part and built with a form, two-way, for git, kubectl, helm, docker and compose and some 37 Linux tools, with risky parts flagged and a safer way; a cheat sheet searched by what you want to do; Smart paste and `codec explain`/`codec how`; Quote (a value written for bash, PowerShell, cmd, JSON, YAML, .env and more, both ways, in layers); Sanitize (secrets, emails, addresses, hosts, UUIDs, Azure names and user names out of a text or a log export, the same stand-in throughout; `codec sanitize`); breaks that rest outside active hours; fourteen sounds, a sound per moment, packs and focus sounds; the Paper, Forest, Rosé, Ocean and High contrast themes with a swatch menu |
 | 3.9.0 | Log to source: file and line links, Find in workspace and Find source, in a Source drawer with a read-only peek; pipeline logs (Azure DevOps, GitHub Actions and its log zip, GitLab, Jenkins) in steps; build and infrastructure logs (BuildKit, Terraform, Helm, Maven, Gradle, npm, dotnet, go test, pytest); access logs, syslog, journald, Kubernetes events and audit logs; Smart paste for all of them; code colours in some 40 languages (CodeMirror's legacy modes, loaded per language) |

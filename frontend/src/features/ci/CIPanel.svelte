@@ -44,6 +44,9 @@
   }
 
   let { path, overrides = {}, reload = 0, onopen, onstatus }: Props = $props()
+  // Ids unique to this instance: several are mounted at once (tabs stay
+  // mounted), and a label must point at its own field (3.10.2).
+  const uid = $props.id()
 
   let data = $state.raw<CIPipeline | null>(null)
   let error = $state<string | null>(null)
@@ -216,16 +219,16 @@
             <ul class="params">
               {#each loaded.inputs as p (p.name + p.from)}
                 <li>
-                  <label for="ci-param-{p.name}">{p.name} <span class="ptype">{p.type}{p.required ? ' · required' : ''}</span></label>
+                  <label for="{uid}-param-{p.name}">{p.name} <span class="ptype">{p.type}{p.required ? ' · required' : ''}</span></label>
                   {#if whatIf}
                     <div class="prow">
                       {#if p.options?.length}
-                        <select id="ci-param-{p.name}" value={params[p.name] ?? ''} onchange={(e) => setParam(p.name, e.currentTarget.value)}>
+                        <select id="{uid}-param-{p.name}" value={params[p.name] ?? ''} onchange={(e) => setParam(p.name, e.currentTarget.value)}>
                           <option value="">{p.hasDefault ? p.default + ' (default)' : '(no default)'}</option>
                           {#each p.options as opt (opt)}<option value={opt}>{opt}</option>{/each}
                         </select>
                       {:else}
-                        <input id="ci-param-{p.name}" value={params[p.name] ?? ''} placeholder={p.hasDefault ? p.default || '""' : 'no default'} spellcheck="false" oninput={(e) => setParam(p.name, e.currentTarget.value)} />
+                        <input id="{uid}-param-{p.name}" value={params[p.name] ?? ''} placeholder={p.hasDefault ? p.default || '""' : 'no default'} spellcheck="false" oninput={(e) => setParam(p.name, e.currentTarget.value)} />
                       {/if}
                       {#if p.name in params}<IconButton icon={RotateCcw} label="Back to the default" size="sm" onclick={() => resetParam(p.name)} />{/if}
                     </div>

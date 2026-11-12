@@ -6,6 +6,15 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+## [3.10.2] - 2026-11-12
+
+The interface refreshed, second part: the views. Safer clearing with
+Undo, a file toolbar with one main action, graphs you can use from the
+keyboard, lens views that fold and say what failed, a log chart that
+keeps the whole log in view, a clearer diff, tools that hand their
+output on, themes as swatches, and breaks that behave as a dialog
+should. Frontend only.
+
 ### Added
 
 - **Undo after a clear.** Clearing a tool (the button or Esc) shows
@@ -116,6 +125,18 @@ All notable changes to codec are documented here. The format follows
   to wipe the whole tool.
 - **A full-window break needs Esc twice** to skip, so a reflex key
   press doesn't throw it away.
+
+### Fixed
+
+- **Fields in two open tabs of one kind no longer share an id**, so a
+  label always points at its own field (Helm's profile name, Argo and
+  pipeline parameters, Compose variables, starters, Compare's ignore
+  list, the Log viewer's suggestions).
+- **Screen readers:** the Log viewer's search box says which suggestion
+  the arrows are on; "file changed on disk", "file deleted" and a Helm
+  render error are announced; Go to file says what it is picking a file
+  for.
+- The UUID options and the sound panel fit a narrow pane.
 
 ## [3.10.1] - 2026-11-12
 

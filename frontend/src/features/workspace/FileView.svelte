@@ -417,14 +417,14 @@
   </header>
 
   {#if session.pendingDisk}
-    <div class="banner warn">
+    <div class="banner warn" role="alert">
       <RefreshCw size={14} strokeWidth={1.75} />
       <span>The file changed on disk while you were editing.</span>
       <Button size="sm" onclick={() => session.reloadFromDisk()}>Reload from disk</Button>
       <Button size="sm" variant="ghost" onclick={() => session.keepEdits()}>Keep my edits</Button>
     </div>
   {:else if deleted}
-    <div class="banner warn"><Trash size={14} strokeWidth={1.75} /> This file was deleted on disk. What you see is the last version codec read.</div>
+    <div class="banner warn" role="alert"><Trash size={14} strokeWidth={1.75} /> This file was deleted on disk. What you see is the last version codec read.</div>
   {/if}
 
   <div class="body">

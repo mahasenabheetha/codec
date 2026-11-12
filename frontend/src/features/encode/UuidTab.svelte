@@ -224,10 +224,10 @@
     width: 80px;
   }
   .text {
-    width: 300px;
+    width: min(300px, 100%);
   }
   .text.wide {
-    width: 340px;
+    width: min(340px, 100%);
   }
   .num:focus,
   .text:focus {

@@ -32,6 +32,9 @@
   }
 
   let { active }: Props = $props()
+  // Ids unique to this instance: several are mounted at once (tabs stay
+  // mounted), and a label must point at its own field (3.10.2).
+  const uid = $props.id()
 
   let filter = $state('')
   let cv = $state<CodeView>()
@@ -209,12 +212,12 @@
             {#if f.type === 'bool'}
               <Toggle checked={nf.form[f.name] === 'true'} label={f.label} onchange={(on) => nf.set(f.name, on ? 'true' : 'false')} />
             {:else}
-              <label for="field-{f.name}">{f.label}{#if f.optional}<span class="muted">{' · optional'}</span>{/if}</label>
+              <label for="{uid}-field-{f.name}">{f.label}{#if f.optional}<span class="muted">{' · optional'}</span>{/if}</label>
               {#if f.type === 'choice'}
                 <Select items={(f.choices ?? []).map((c) => ({ value: c, label: c }))} value={nf.form[f.name]} label={f.label} onchange={(v) => nf.set(f.name, v)} />
               {:else}
                 <input
-                  id="field-{f.name}"
+                  id="{uid}-field-{f.name}"
                   type="text"
                   spellcheck="false"
                   value={nf.form[f.name] ?? ''}

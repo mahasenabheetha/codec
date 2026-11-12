@@ -51,6 +51,9 @@
   }
 
   let { chart, active }: Props = $props()
+  // Ids unique to this instance: several are mounted at once (tabs stay
+  // mounted), and a label must point at its own field (3.10.2).
+  const uid = $props.id()
   const session = new HelmSession(untrack(() => chart))
   onDestroy(() => session.dispose())
 
@@ -243,8 +246,8 @@
             if (newProfile.trim()) session.saveAs(newProfile.trim())
           }}
         >
-          <label for="profile-name">Save these layers and options as</label>
-          <input id="profile-name" bind:value={newProfile} placeholder={session.profile || 'e.g. prod'} />
+          <label for="{uid}-profile">Save these layers and options as</label>
+          <input id="{uid}-profile" bind:value={newProfile} placeholder={session.profile || 'e.g. prod'} />
           <Button type="submit" size="sm" variant="primary" disabled={!newProfile.trim()}>Save profile</Button>
           <p>Profiles are kept in your settings, not in the repository.</p>
         </form>
@@ -355,7 +358,7 @@
         <div class="loading" aria-busy="true" aria-label="Rendering the chart"><Skeleton lines={12} /></div>
       {:else if tab === 'rendered'}
         {#if errors.length}
-          <div class="banner err">
+          <div class="banner err" role="alert">
             <CircleX size={14} strokeWidth={1.75} />
             <button type="button" class="link" onclick={() => openProblem(errors[0])}>
               {errors[0].file ? `${errors[0].file}${errors[0].line ? ':' + errors[0].line : ''}: ` : ''}{errors[0].message}

@@ -293,6 +293,12 @@ them when it changes, and rename the SVG if browser tabs keep the old one.
   input); a component that removes either shows an equivalent.
 - Every interactive element has an accessible name (text, `aria-label`
   or `label`). Icon-only buttons use `IconButton`.
+- An id in a component that can be mounted more than once (every view:
+  tabs stay mounted) starts with `$props.id()`, so a label points at
+  its own field.
+- A full-window overlay is a dialog: focus goes in, Tab stays in, and
+  it goes back where it was. A value that changes every second is a
+  `role="timer"`, never a live region.
 - Trees, lists, tabs, radio groups follow WAI-ARIA keyboard patterns.
 - Severity is never colour alone: pair it with an icon or a word.
 - Respect `prefers-reduced-motion`.

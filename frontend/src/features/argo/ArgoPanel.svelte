@@ -63,6 +63,9 @@
   }
 
   let { source, focus, reload = 0, onopen, onstatus }: Props = $props()
+  // Ids unique to this instance: several are mounted at once (tabs stay
+  // mounted), and a label must point at its own field (3.10.2).
+  const uid = $props.id()
 
   let data = $state.raw<ArgoAnalysis | null>(null)
   let error = $state<string | null>(null)
@@ -346,16 +349,16 @@
               <ul class="params">
                 {#each result.params as p (p.name)}
                   <li>
-                    <label for="param-{p.name}">{p.name}</label>
+                    <label for="{uid}-param-{p.name}">{p.name}</label>
                     <div class="prow">
                       {#if p.enum?.length}
-                        <select id="param-{p.name}" value={params[p.name!] ?? ''} onchange={(e) => setParam(p.name!, e.currentTarget.value)}>
+                        <select id="{uid}-param-{p.name}" value={params[p.name!] ?? ''} onchange={(e) => setParam(p.name!, e.currentTarget.value)}>
                           <option value="">{p.state === 'known' ? p.text + ' (default)' : '(default)'}</option>
                           {#each p.enum as opt (opt)}<option value={opt}>{opt}</option>{/each}
                         </select>
                       {:else}
                         <input
-                          id="param-{p.name}"
+                          id="{uid}-param-{p.name}"
                           value={params[p.name!] ?? ''}
                           placeholder={p.state === 'known' ? p.text || '""' : p.state === 'runtime' ? 'known at run time' : 'no value'}
                           spellcheck="false"
@@ -459,8 +462,8 @@
           </nav>
           {#if runs.length}
             <div class="runbar">
-              <label for="argo-run">Coloured by the run</label>
-              <select id="argo-run" value={runPick ?? -1} onchange={(e) => (runPick = +e.currentTarget.value < 0 ? null : +e.currentTarget.value)}>
+              <label for="{uid}-run">Coloured by the run</label>
+              <select id="{uid}-run" value={runPick ?? -1} onchange={(e) => (runPick = +e.currentTarget.value < 0 ? null : +e.currentTarget.value)}>
                 <option value={-1}>Best fit{runChoice && runPick === null ? `: ${runChoice.run.name}` : ''}</option>
                 {#each runs as r (r.viewer.key)}<option value={r.viewer.key}>{r.run.name} ({r.run.phase ?? '?'}) · {r.viewer.title}</option>{/each}
                 <option value={0}>None</option>

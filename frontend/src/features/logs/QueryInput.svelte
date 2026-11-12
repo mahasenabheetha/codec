@@ -25,6 +25,9 @@
   }
 
   let { value = $bindable(), invalid = false, fieldKeys, fieldValues, sources, steps = [], history, onsubmit, onclear, field = $bindable() }: Props = $props()
+  // Ids unique to this instance: several are mounted at once (tabs stay
+  // mounted), and a label must point at its own field (3.10.2).
+  const uid = $props.id()
 
   interface Item {
     label: string // what the row shows
@@ -173,7 +176,8 @@
       autocomplete="off"
       role="combobox"
       aria-expanded={open}
-      aria-controls="log-suggestions"
+      aria-controls="{uid}-suggestions"
+      aria-activedescendant={open && active >= 0 ? `${uid}-option-${active}` : undefined}
       aria-autocomplete="list"
       oninput={suggest}
       onclick={suggest}
@@ -207,9 +211,9 @@
     </Popover>
   </div>
   {#if open}
-    <ul class="suggestions" id="log-suggestions" role="listbox">
+    <ul class="suggestions" id="{uid}-suggestions" role="listbox">
       {#each items as it, i (it.label + i)}
-        <li role="option" aria-selected={i === active}>
+        <li role="option" id="{uid}-option-{i}" aria-selected={i === active}>
           <button type="button" class:active={i === active} onmousedown={(e) => e.preventDefault()} onclick={() => take(it)}>
             <code>{it.label}</code>{#if it.hint}<span>{it.hint}</span>{/if}
           </button>
