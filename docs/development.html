@@ -72,7 +72,7 @@ cd codec
 npm --prefix frontend ci           <span class="c"># once: UI dependencies</span>
 scripts/dev.sh run                 <span class="c"># build the UI and the binary, serve on :8766</span>
 scripts/dev.sh ui                  <span class="c"># the same, plus a hot-reloading UI on :5173</span></code></pre>
-<p><code>dev.sh</code> and <code>desktop.sh</code> run <code>npm ci</code> again only when <code>package-lock.json</code>'s content changes (a branch switch that rewrites it doesn't count). If the install fails, say the registry can't be reached, they put back the packages you had and carry on with a warning, so <code>node_modules</code> is never left empty.</p>
+<p><code>dev.sh</code> and <code>desktop.sh</code> run <code>npm ci</code> again only when <code>package-lock.json</code>'s content changes (a branch switch that rewrites it doesn't count). The install fails fast: no retries, 20 seconds per download and 180 seconds in all (<code>CODEC_NPM_TIMEOUT</code> changes that). If it fails, is stopped with <kbd>Ctrl</kbd> <kbd>C</kbd>, or was killed in an earlier run, they put back the packages you had and carry on with a warning, so <code>node_modules</code> is never left empty or half-installed. A lockfile whose install failed isn't tried again on every build; set <code>CODEC_NPM_RETRY=1</code>, or run <code>npm --prefix frontend ci</code> yourself, once the registry can be reached. Behind a company proxy, npm needs the root certificate: <code>npm config set cafile &lt;root-cert.pem&gt;</code>.</p>
 <div class="table-wrap"><table>
   <tr><th>Task</th><th>Command</th></tr>
   <tr><td>Vet and test one package</td><td><code>go vet ./... &amp;&amp; go test ./internal/lint/...</code></td></tr>
