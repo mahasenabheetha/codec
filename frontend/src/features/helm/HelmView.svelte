@@ -1,4 +1,5 @@
 <script lang="ts">
+  import SplitPane from '../../lib/components/SplitPane.svelte'
   import { onDestroy, tick, untrack } from 'svelte'
   import { EditorView } from '@codemirror/view'
   import ArrowDown from '@lucide/svelte/icons/arrow-down'
@@ -250,7 +251,7 @@
     <IconButton icon={RefreshCw} label="Render again" size="sm" onclick={() => session.render()} />
   </header>
 
-  <div class="body">
+  {#snippet sidePane()}
     <aside class="side" aria-label="Render options">
       <section>
         <h3>Values</h3>
@@ -304,7 +305,8 @@
         <label>Kubernetes <input bind:value={session.kubeVersion} placeholder="Helm default" spellcheck="false" /></label>
       </section>
     </aside>
-
+  {/snippet}
+  {#snippet mainPane()}
     <main class="main">
       <div class="tabs">
         <Tabs
@@ -339,7 +341,7 @@
             </button>
           </div>
         {/if}
-        <div class="split">
+        {#snippet docsPane()}
           <nav class="docs" aria-label="Rendered documents">
             {#each groups as [template, docs] (template)}
               <div class="group">{template}</div>
@@ -354,9 +356,14 @@
               <p class="note">No documents rendered.</p>
             {/each}
           </nav>
+        {/snippet}
+        {#snippet manifestPane()}
           <div class="code">
-            <CodeView bind:this={rendered} value={result.manifest} label="Rendered manifests" language="yaml" readonly />
+            <CodeView bind:this={rendered} value={result!.manifest} label="Rendered manifests" language="yaml" readonly />
           </div>
+        {/snippet}
+        <div class="split">
+          <SplitPane id="helm-docs" initial={0.3} px={250} min={160} stackBelow={520} flush first={docsPane} second={manifestPane} />
         </div>
       {:else if tab === 'values'}
         <div class="legend">
@@ -404,6 +411,9 @@
         </ul>
       {/if}
     </main>
+  {/snippet}
+  <div class="body">
+    <SplitPane id="helm-side" initial={0.35} px={300} min={220} flush first={sidePane} second={mainPane} />
   </div>
 </div>
 
@@ -504,13 +514,12 @@
   .body {
     flex: 1;
     min-height: 0;
-    display: grid;
-    grid-template-columns: 300px 1fr;
   }
   .side {
+    flex: 1;
+    min-height: 0;
     overflow-y: auto;
     padding: var(--s-3);
-    border-right: 1px solid var(--border);
     background: var(--bg-1);
   }
   section + section {
@@ -616,6 +625,7 @@
     color: var(--fg-1);
   }
   .main {
+    flex: 1;
     min-width: 0;
     min-height: 0;
     display: flex;
@@ -645,13 +655,12 @@
   .split {
     flex: 1;
     min-height: 0;
-    display: grid;
-    grid-template-columns: 260px 1fr;
   }
   .docs {
+    flex: 1;
+    min-height: 0;
     overflow-y: auto;
     padding: var(--s-2);
-    border-right: 1px solid var(--border);
   }
   .group {
     margin: var(--s-2) 0 2px;
@@ -701,9 +710,6 @@
     display: flex;
     flex-direction: column;
   }
-  .split .code {
-    height: 100%;
-  }
   .legend {
     display: flex;
     flex-wrap: wrap;
@@ -743,22 +749,5 @@
   }
   .note.ok :global(svg) {
     color: var(--ok);
-  }
-  @media (max-width: 980px) {
-    .body {
-      grid-template-columns: 1fr;
-      grid-template-rows: auto 1fr;
-    }
-    .side {
-      max-height: 40vh;
-      border-right: none;
-      border-bottom: 1px solid var(--border);
-    }
-    .split {
-      grid-template-columns: 1fr;
-    }
-    .docs {
-      display: none;
-    }
   }
 </style>

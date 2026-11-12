@@ -20,6 +20,18 @@ All notable changes to codec are documented here. The format follows
   they change; buttons and panels are a little rounder; a search match
   is the same colour in the editor, log rows, Find in Files and the
   source peek.
+- **Panes you can size.** Drag the line between two panes, or focus
+  it and use the arrow keys (Shift for bigger steps, Home and End for
+  the limits); a double click or Enter puts it back. Sizes are
+  remembered. New: the side, main and detail panes of the Argo,
+  pipeline, Compose and Ansible views (one size for all four), Helm's
+  options panel and its list of documents, the change list and the two
+  sides of Compare by structure, and the Log viewer's Source drawer.
+  Side panels keep their width when the window changes. Every tool
+  with an input and an output has a button at the end of its toolbar
+  to put the **input over the output** instead of beside it,
+  remembered per tool, with its own size. A grip in the middle of each
+  divider shows where to drag.
 - **One look for the parts every view shares.** Text fields, text
   areas and menus have the same frame everywhere and show a ring as
   well as a border colour when focused. A failure is an icon, the

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import SplitPane from '../../lib/components/SplitPane.svelte'
   import ErrorNote from '../../lib/components/ErrorNote.svelte'
   import { hueVar, viewHue } from '../../lib/tools'
   import { untrack, type Snippet } from 'svelte'
@@ -207,7 +208,7 @@
     {#if result.mode === 'text'}
       {#key result}<TextDiff {result} opts={cmp} />{/key}
     {:else}
-      <div class="body">
+      {#snippet changesPane()}
         <nav class="changes" aria-label="Changes">
           {#each groups as g (g.doc)}
             <div class="doc">{g.doc}</div>
@@ -235,14 +236,24 @@
             <p class="muted pad">Nothing to show.</p>
           {/each}
         </nav>
+      {/snippet}
+      {#snippet leftPane()}
         <div class="code">
-          <div class="pane-title">{result.left.title}</div>
-          <CodeView bind:this={leftView} value={result.left.text} label="Left" language="yaml" readonly extensions={leftMarks} />
+          <div class="pane-title">{result!.left.title}</div>
+          <CodeView bind:this={leftView} value={result!.left.text} label="Left" language="yaml" readonly extensions={leftMarks} />
         </div>
+      {/snippet}
+      {#snippet rightPane()}
         <div class="code">
-          <div class="pane-title">{result.right.title}</div>
-          <CodeView bind:this={rightView} value={result.right.text} label="Right" language="yaml" readonly extensions={rightMarks} />
+          <div class="pane-title">{result!.right.title}</div>
+          <CodeView bind:this={rightView} value={result!.right.text} label="Right" language="yaml" readonly extensions={rightMarks} />
         </div>
+      {/snippet}
+      {#snippet sidesPane()}
+        <SplitPane id="compare-sides" min={200} stackBelow={520} flush first={leftPane} second={rightPane} />
+      {/snippet}
+      <div class="body">
+        <SplitPane id="compare-changes" initial={0.3} px={290} min={200} stackBelow={640} flush first={changesPane} second={sidesPane} />
       </div>
     {/if}
   {/if}
@@ -415,13 +426,12 @@
   .body {
     flex: 1;
     min-height: 0;
-    display: grid;
-    grid-template-columns: minmax(220px, 320px) 1fr 1fr;
   }
   .changes {
+    flex: 1;
+    min-height: 0;
     overflow: auto;
     padding: var(--s-2);
-    border-right: 1px solid var(--border);
   }
   .doc {
     margin: var(--s-2) var(--s-1) var(--s-1);
@@ -509,11 +519,11 @@
     background: var(--bg-3);
   }
   .code {
+    flex: 1;
     display: flex;
     flex-direction: column;
     min-width: 0;
     min-height: 0;
-    border-right: 1px solid var(--border);
   }
   .code > :global(:not(.pane-title)) {
     flex: 1;

@@ -13,6 +13,7 @@
 </script>
 
 <script lang="ts">
+  import ThreePanes from '../../lib/components/ThreePanes.svelte'
   import { untrack } from 'svelte'
   import ChevronRight from '@lucide/svelte/icons/chevron-right'
   import CircleCheck from '@lucide/svelte/icons/circle-check'
@@ -302,12 +303,13 @@
   {:else if !data.workflows.length && !data.apps.length}
     <EmptyState icon={Workflow} title="No Argo workflows or applications here" description="Workflows, WorkflowTemplates, CronWorkflows, Sensors that submit workflows and Argo CD applications show up here." />
   {:else}
-    <div class="grid" class:solo={!result}>
-      <aside class="side" aria-label="Workflow and parameters">
-        {#if data.workflows.length}
+    {@const loaded = data}
+    {#snippet sidePane()}
+      <aside class="side" class:solo={!result} aria-label="Workflow and parameters">
+        {#if loaded.workflows.length}
           <section>
             <h3>Workflow</h3>
-            {#if data.workflows.length > 1}
+            {#if loaded.workflows.length > 1}
               <Select items={workflowItems} value={workflow} label="Workflow" onchange={(v) => (workflow = v)} />
             {/if}
             {#if result}
@@ -390,10 +392,10 @@
           </section>
         {/if}
 
-        {#if data.apps.length}
+        {#if loaded.apps.length}
           <section>
             <h3>Argo CD</h3>
-            {#each data.apps as app, ai (ai)}
+            {#each loaded.apps as app, ai (ai)}
               <article class="app">
                 <button type="button" class="apphead" onclick={() => onopen(app.source)} title="Open where it is written">
                   <span class="kind">{app.kind}</span>
@@ -434,11 +436,11 @@
           </section>
         {/if}
       </aside>
-
-      {#if result}
+    {/snippet}
+    {#snippet mainPane()}
         <main class="main">
           <nav class="trail" aria-label="Where you are in the workflow">
-            {#if result.roots.length > 1}
+            {#if result!.roots.length > 1}
               <select aria-label="Start from" value={rootIdx} onchange={(e) => setRoot(+e.currentTarget.value)}>
                 <option value={0}>Entrypoint</option>
                 <option value={1}>Exit handler</option>
@@ -465,7 +467,8 @@
             <Graph nodes={graphNodes} edges={graphEdges} label="Steps and tasks of {container?.name ?? 'the workflow'}" {legend} selected={selectedId} onselect={select} />
           </div>
         </main>
-
+    {/snippet}
+    {#snippet detailPane()}
         <aside class="detail" aria-label="Selected step">
           {#if selected}
             <header>
@@ -549,8 +552,8 @@
             {/if}
           {/if}
         </aside>
-      {/if}
-    </div>
+    {/snippet}
+    <ThreePanes id="lens" side={sidePane} main={result ? mainPane : undefined} detail={result ? detailPane : undefined} />
   {/if}
 </div>
 
@@ -560,46 +563,9 @@
   .argo {
     height: 100%;
     min-height: 0;
-    container-type: inline-size;
   }
-  .grid {
-    height: 100%;
-    min-height: 0;
-    display: grid;
-    grid-template-columns: minmax(200px, 260px) minmax(0, 1fr);
-    grid-template-rows: minmax(0, 1fr) minmax(0, 45%);
-    grid-template-areas: 'side main' 'side detail';
-  }
-  /* Applications only: no graph, so the cards get the room. */
-  .grid.solo {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(0, 1fr);
-    grid-template-areas: 'side';
-  }
-  .grid.solo .side {
-    border-right: none;
-  }
-  .grid.solo .app {
+  .side.solo .app {
     max-width: 560px;
-  }
-  @container (min-width: 1100px) {
-    .grid {
-      grid-template-columns: minmax(240px, 280px) minmax(0, 1fr) minmax(320px, 400px);
-      grid-template-rows: minmax(0, 1fr);
-      grid-template-areas: 'side main detail';
-    }
-    .detail {
-      border-top: none;
-      border-left: 1px solid var(--border);
-    }
-  }
-  @container (max-width: 560px) {
-    .grid {
-      grid-template-columns: minmax(0, 1fr);
-      grid-template-rows: auto minmax(300px, 1fr) auto;
-      grid-template-areas: 'side' 'main' 'detail';
-      overflow: auto;
-    }
   }
   .loading {
     padding: var(--s-4);
@@ -611,14 +577,6 @@
     overflow: auto;
     padding: var(--s-3);
     background: var(--bg-1);
-  }
-  .side {
-    grid-area: side;
-    border-right: 1px solid var(--border);
-  }
-  .detail {
-    grid-area: detail;
-    border-top: 1px solid var(--border);
   }
   section {
     margin-bottom: var(--s-5);
@@ -809,7 +767,6 @@
     white-space: pre-wrap;
   }
   .main {
-    grid-area: main;
     display: flex;
     flex-direction: column;
     min-width: 0;
