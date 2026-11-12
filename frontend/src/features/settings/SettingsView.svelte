@@ -22,6 +22,7 @@
   import { editorNames, lensOpen, markdownView, openIn, type ExternalEditor } from '../editor/active.svelte'
   import { lint } from '../lint/lint.svelte'
   import LintSections from './LintSections.svelte'
+  import { settingsGoto } from './goto.svelte'
   import SettingRow from './SettingRow.svelte'
   import UpdateRow from './UpdateRow.svelte'
   import SettingSection from './SettingSection.svelte'
@@ -111,6 +112,24 @@
     el?.querySelector<HTMLElement>('h2')?.focus({ preventScroll: true })
     el?.scrollIntoView({ block: 'start' })
   }
+
+  // From the palette ("Settings: Theme"): the section, then its row,
+  // marked for a moment. Waits a frame for the page to be laid out.
+  $effect(() => {
+    const t = settingsGoto.target
+    if (!t || !active) return
+    const timer = setTimeout(() => {
+      jump(t.section)
+      if (!t.row) return
+      const row = [...(scroller?.querySelectorAll<HTMLElement>('[data-setting]') ?? [])].find((r) => r.dataset.setting === t.row)
+      if (!row) return
+      row.scrollIntoView({ block: 'center' })
+      row.classList.remove('found')
+      void row.offsetWidth // restart the animation
+      row.classList.add('found')
+    }, 60)
+    return () => clearTimeout(timer)
+  })
 
   // The themes with a swatch each (3.10.0); System first, then the dark
   // ones and the light ones.

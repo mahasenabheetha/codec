@@ -496,6 +496,15 @@ export function toolEntries(t: ToolDef): ToolEntry[] {
   }))
 }
 
+/** The entry a pinned or recent key names: a sub-tab's (`tool.tab`), or
+ *  the whole tool's (its id; for a tool with sub-tabs, the tool itself,
+ *  opening on the sub-tab it showed last). Undefined once it is gone. */
+export function entryByKey(key: string): ToolEntry | undefined {
+  const t = tools.find((x) => x.id === key)
+  if (t) return { key: t.id, tool: t.id, title: t.title, description: t.description, icon: t.icon, hue: t.hue, keywords: t.keywords }
+  return tools.flatMap(toolEntries).find((e) => e.key === key)
+}
+
 /** The sub-tab to show: the remembered one if it still exists, else the first. */
 export function currentTab(t: ToolDef, remembered: string | undefined): string {
   return t.tabs?.find((s) => s.id === remembered)?.id ?? t.tabs?.[0]?.id ?? ''

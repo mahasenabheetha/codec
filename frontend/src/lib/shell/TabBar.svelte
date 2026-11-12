@@ -13,6 +13,11 @@
   import CopyPlus from '@lucide/svelte/icons/copy-plus'
   import Settings2 from '@lucide/svelte/icons/settings-2'
   import X from '@lucide/svelte/icons/x'
+  import ChevronDown from '@lucide/svelte/icons/chevron-down'
+  import ArrowRightToLine from '@lucide/svelte/icons/arrow-right-to-line'
+  import Layers2 from '@lucide/svelte/icons/layers-2'
+  import ContextMenu, { type MenuEntry } from '../components/ContextMenu.svelte'
+  import Popover from '../components/Popover.svelte'
   import Kbd from '../components/Kbd.svelte'
   import FileIcon from '../../features/workspace/FileIcon.svelte'
   import { workspace } from '../../features/workspace/workspace.svelte'
@@ -92,10 +97,72 @@
   function base(p: string) {
     return p.slice(p.lastIndexOf('/') + 1)
   }
+
+  /** A tab's name, as the bar shows it; undefined for a route with no tab. */
+  function titleOf(route: string): string | undefined {
+    const tool = toolById(routeTool(route))
+    if (tool) return tool.title
+    const view = views[route] ?? scopedView(route)
+    if (view) return view.title
+    const file = routeFile(route)
+    if (file) return names.get(file)?.name
+    const chart = routeHelm(route)
+    if (chart) return 'Helm · ' + (charts.byPath(chart)?.name ?? chart)
+    return undefined
+  }
+
+  // Right-click (or Shift+F10) on a tab.
+  function menuFor(e: MouseEvent): MenuEntry[] {
+    const route = (e.target as HTMLElement).closest<HTMLElement>('[data-route]')?.dataset.route
+    if (!route) return []
+    const i = layout.tabs.indexOf(route)
+    return [
+      { label: 'Close', icon: X, run: () => layout.close(route) },
+      { label: 'Close the others', icon: Layers2, disabled: layout.tabs.length < 2, run: () => layout.closeOthers(route) },
+      { label: 'Close tabs to the right', icon: ArrowRightToLine, disabled: i === layout.tabs.length - 1, run: () => layout.closeRight(route) },
+      'separator',
+      { label: 'Close all', icon: X, run: () => layout.closeAll() },
+    ]
+  }
+
+  // Drag a tab along the bar to move it.
+  let dragged = $state<string | null>(null)
+  let over = $state<string | null>(null)
+  function drop(route: string) {
+    if (dragged) layout.moveTab(dragged, route)
+    dragged = over = null
+  }
+
+  // More tabs than fit: the bar scrolls (the wheel moves it sideways),
+  // the current tab is kept in view, and a menu at the end lists them all.
+  let strip = $state<HTMLDivElement>()
+  let overflowing = $state(false)
+  let listOpen = $state(false)
+  $effect(() => {
+    if (!strip) return
+    const el = strip
+    const measure = () => (overflowing = el.scrollWidth > el.clientWidth + 1)
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    void layout.tabs.length
+    queueMicrotask(measure)
+    return () => ro.disconnect()
+  })
+  $effect(() => {
+    void router.path
+    void layout.tabs.length
+    queueMicrotask(() => strip?.querySelector('.tab.selected')?.scrollIntoView({ block: 'nearest', inline: 'nearest' }))
+  })
+  function onwheel(e: WheelEvent) {
+    if (!strip || !overflowing || e.deltaX || e.shiftKey) return
+    strip.scrollLeft += e.deltaY
+    e.preventDefault()
+  }
 </script>
 
 <div class="tabbar">
-  <div class="tabs" role="tablist" aria-label="Open tabs">
+  <div class="tabs" role="tablist" aria-label="Open tabs" bind:this={strip} {onwheel}>
+   <ContextMenu label="Tab" items={menuFor}>
     {#each layout.tabs as route (route)}
       {@const tool = toolById(routeTool(route))}
       {@const file = routeFile(route)}
@@ -105,7 +172,33 @@
         {@const selected = router.path === route}
         {@const title = tool ? tool.title : view ? view.title : file ? names.get(file)?.name : `Helm · ${charts.byPath(chart!)?.name ?? chart}`}
         {@const hue = tool ? tool.hue : view?.hue}
-        <div class="tab" class:selected class:hued={!!hue} style:--tool={hue && hueVar(hue)} title={file ?? (chart ? `Helm view of ${chart}` : undefined)}>
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
+        <div
+          class="tab"
+          class:selected
+          class:hued={!!hue}
+          class:over={over === route && dragged !== route}
+          style:--tool={hue && hueVar(hue)}
+          title={file ?? (chart ? `Helm view of ${chart}` : undefined)}
+          data-route={route}
+          draggable="true"
+          ondragstart={(e) => {
+            dragged = route
+            e.dataTransfer?.setData('text/plain', title ?? route)
+            if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move'
+          }}
+          ondragover={(e) => {
+            if (!dragged) return
+            e.preventDefault()
+            over = route
+          }}
+          ondragleave={() => over === route && (over = null)}
+          ondrop={(e) => {
+            e.preventDefault()
+            drop(route)
+          }}
+          ondragend={() => (dragged = over = null)}
+        >
           <button
             type="button"
             role="tab"
@@ -133,7 +226,38 @@
         </div>
       {/if}
     {/each}
+   </ContextMenu>
   </div>
+
+  {#if overflowing}
+    <Popover side="bottom" align="end" bind:open={listOpen}>
+      {#snippet trigger(props)}
+        <button {...props} type="button" class="all" aria-label="All open tabs ({layout.tabs.length})" title="All open tabs">
+          {layout.tabs.length}
+          <ChevronDown size={13} strokeWidth={2} />
+        </button>
+      {/snippet}
+      <ul class="tablist" aria-label="Open tabs">
+        {#each layout.tabs as route (route)}
+          {@const name = titleOf(route)}
+          {@const hint = names.get(routeFile(route) ?? '')?.hint}
+          {#if name}
+            <li class:current={router.path === route}>
+              <button
+                type="button"
+                class="pick"
+                onclick={() => {
+                  listOpen = false
+                  router.go(route)
+                }}>{name}{#if hint}<span class="hint">{hint}</span>{/if}</button
+              >
+              <button type="button" class="close shown" aria-label="Close {name}" onclick={() => layout.close(route)}><X size={12} strokeWidth={2} /></button>
+            </li>
+          {/if}
+        {/each}
+      </ul>
+    </Popover>
+  {/if}
 
   <button type="button" class="palette" onclick={() => (layout.paletteOpen = true)}>
     <Search size={14} strokeWidth={1.75} />
@@ -170,6 +294,10 @@
   .tab.selected {
     color: var(--fg-0);
     background: var(--bg-1);
+  }
+  /* Where a dragged tab would land. */
+  .tab.over {
+    box-shadow: inset 2px 0 0 var(--tool-accent, var(--accent));
   }
   .tab.selected::before {
     content: '';
@@ -239,6 +367,68 @@
   .close:hover {
     color: var(--fg-0);
     background: var(--bg-3);
+  }
+  /* All open tabs, when they don't fit. */
+  .all {
+    align-self: center;
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    height: 26px;
+    padding: 0 var(--s-2);
+    font-size: var(--fs-sm);
+    color: var(--fg-1);
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+  }
+  .all:hover {
+    color: var(--fg-0);
+    border-color: var(--border-strong);
+  }
+  .tablist {
+    list-style: none;
+    margin: 0;
+    padding: var(--s-1);
+    min-width: 240px;
+    max-width: 360px;
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+  .tablist li {
+    display: flex;
+    align-items: center;
+    border-radius: var(--r-md);
+  }
+  .tablist li:hover,
+  .tablist li.current {
+    background: var(--bg-3);
+  }
+  .pick {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: baseline;
+    gap: var(--s-2);
+    height: var(--control-h-sm);
+    padding: 0 var(--s-2);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: left;
+    font-size: var(--fs-md);
+    color: var(--fg-1);
+    background: none;
+    border: none;
+  }
+  li.current .pick {
+    color: var(--fg-0);
+    font-weight: var(--fw-medium);
+  }
+  .close.shown {
+    opacity: 1;
+    margin-right: var(--s-1);
   }
   .palette {
     align-self: center;

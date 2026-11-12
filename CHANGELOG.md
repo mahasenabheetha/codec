@@ -6,6 +6,24 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- **Pinned tools.** Pin a tool, or one sub-tab such as Cron, from its
+  menu on the rail (right-click, or Shift+F10) or its star on Home: it
+  goes to the top of the rail and of Home.
+- **Home finds tools.** A search box filters the tools by name, what
+  they do or a keyword; the tools opened last are listed under the
+  pinned ones.
+- **Tabs.** When they don't fit, a menu at the end lists them all, the
+  wheel scrolls the bar and the current tab stays in view. Drag a tab
+  to move it. Right-click for Close, Close the others, Close tabs to
+  the right and Close all. <kbd>Alt</kbd>+<kbd>]</kbd> and
+  <kbd>Alt</kbd>+<kbd>[</kbd> go to the next and previous tab,
+  <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>W</kbd> closes the current one.
+- **Palette.** The commands run last come first while nothing is
+  typed, and every setting has an entry ("Settings: Theme") that opens
+  the page on its row.
+
 ### Changed
 
 - **Colour in every theme.** Dark and Light now show each tool and
@@ -32,6 +50,11 @@ All notable changes to codec are documented here. The format follows
   to put the **input over the output** instead of beside it,
   remembered per tool, with its own size. A grip in the middle of each
   divider shows where to drag.
+- **Rail.** Settings, Keyboard shortcuts and Collapse are three icons in
+  a row at the bottom, so the list of tools has the room; where the
+  list scrolls on, its last row fades out.
+- The status bar's explanations are in the interface font, not the code
+  font.
 - **One look for the parts every view shares.** Text fields, text
   areas and menus have the same frame everywhere and show a ring as
   well as a border colour when focused. A failure is an icon, the

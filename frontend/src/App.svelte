@@ -26,6 +26,8 @@
   import Ship from '@lucide/svelte/icons/ship'
   import FlaskConical from '@lucide/svelte/icons/flask-conical'
   import X from '@lucide/svelte/icons/x'
+  import ArrowLeft from '@lucide/svelte/icons/arrow-left'
+  import ArrowRight from '@lucide/svelte/icons/arrow-right'
   import SunMoon from '@lucide/svelte/icons/sun-moon'
   import Monitor from '@lucide/svelte/icons/monitor'
   import { theme, themes } from './lib/stores/theme.svelte'
@@ -47,6 +49,7 @@
   import FileView from './features/workspace/FileView.svelte'
   import HelmView from './features/helm/HelmView.svelte'
   import SettingsView from './features/settings/SettingsView.svelte'
+  import { settingEntries, settingsGoto } from './features/settings/goto.svelte'
   import CompareView from './features/compare/CompareView.svelte'
   import K8sFolderView from './features/kube/K8sFolderView.svelte'
   import KustomizeView from './features/kube/KustomizeView.svelte'
@@ -111,6 +114,10 @@
   shortcut('Mod+Shift+F', findInFiles)
   shortcut('?', () => (layout.shortcutsOpen = true))
   shortcut('Mod+,', () => layout.open(settingsRoute))
+  // Tabs: the browser keeps Ctrl+Tab and Ctrl+W for its own.
+  shortcut('Alt+]', () => layout.step(1))
+  shortcut('Alt+[', () => layout.step(-1))
+  shortcut('Alt+Shift+W', () => layout.close(router.path))
 
   commands.register([
     {
@@ -222,6 +229,18 @@
       icon: RotateCw,
       run: () => workspace.loadTree(),
     },
+    // One entry per setting: "Settings: Theme" opens the page on its row.
+    ...settingEntries.map((e) => ({
+      id: 'settings.' + e.section + '.' + (e.row ?? ''),
+      title: 'Settings: ' + e.title,
+      group: 'Settings',
+      icon: Settings2,
+      keywords: ['preferences', 'options', ...e.keywords],
+      run: () => {
+        layout.open(settingsRoute)
+        settingsGoto.to(e)
+      },
+    })),
     ...tools.flatMap(toolEntries).map((e) => ({
       id: `open.${e.key}`,
       title: `Open ${e.title}`,
@@ -236,8 +255,13 @@
       title: 'Close current tab',
       group: 'Navigation',
       icon: X,
+      shortcut: 'Alt+Shift+W',
       run: () => layout.close(router.path),
     },
+    { id: 'nav.next', title: 'Next tab', group: 'Navigation', icon: ArrowRight, shortcut: 'Alt+]', run: () => layout.step(1) },
+    { id: 'nav.prev', title: 'Previous tab', group: 'Navigation', icon: ArrowLeft, shortcut: 'Alt+[', run: () => layout.step(-1) },
+    { id: 'nav.closeOthers', title: 'Close the other tabs', group: 'Navigation', icon: X, run: () => layout.closeOthers(router.path) },
+    { id: 'nav.closeAll', title: 'Close all tabs', group: 'Navigation', icon: X, run: () => layout.closeAll() },
     {
       id: 'view.explorer',
       title: 'Toggle explorer',
