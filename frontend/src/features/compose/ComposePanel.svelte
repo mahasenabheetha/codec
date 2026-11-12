@@ -269,7 +269,7 @@
           <EmptyState icon={Container} title="No services" description="Nothing under services: in these files." />
         {:else if view === 'graph'}
           <div class="graph">
-            <Graph nodes={graphNodes} edges={graphEdges} label="Services of {data!.name}" {legend} onselect={(id) => !id.includes(':') && (selectedName = id)} />
+            <Graph nodes={graphNodes} edges={graphEdges} label="Services of {data!.name}" {legend} selected={selectedName} onselect={(id) => !id.includes(':') && (selectedName = id)} />
           </div>
         {:else if view === 'ports'}
           <div class="table">

@@ -347,6 +347,10 @@
   .lv-error {
     background: var(--err-soft);
   }
+  button.row.lv-fatal:hover,
+  button.row.lv-error:hover {
+    background: color-mix(in srgb, var(--err) 20%, var(--bg-2));
+  }
   .lv-warn .level {
     color: var(--warn);
     font-weight: var(--fw-semibold);

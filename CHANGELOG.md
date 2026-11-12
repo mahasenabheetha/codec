@@ -6,6 +6,24 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+### Fixed
+
+- **Helm:** the release's Name, Namespace and Kubernetes fields no
+  longer run past the side panel.
+- **Graphs** (Argo, pipelines, Compose, Ansible, Kubernetes): the node
+  whose details are showing has a firm outline; the graph fits again
+  when its pane or the window changes size, or its tab is first shown,
+  unless you have moved it; a graph too wide to fit starts at a size
+  you can read; arrowheads no longer depend on another open graph.
+- **Editor:** fold arrows sit on their line, not below its number.
+- **Log viewer:** an error row keeps its tint under the pointer; a
+  click on the chart no longer filters to one bucket (drag for a
+  range).
+- **Wellness:** − and + land on the step (1, 5, 10, not 1, 6, 11).
+- Borders and muted text in pipelines, Ansible, tables and Time zones
+  used a colour that did not exist and fell back to the text colour.
+- **Settings:** the theme's description names Mist.
+
 ## [3.10.0] - 2026-11-08
 
 Commands explained, built and found by what you want to do, for git,

@@ -513,7 +513,7 @@
     border-left: 2px solid var(--ok);
   }
   .roles li.missing {
-    border-left-color: var(--fg-3);
+    border-left-color: var(--fg-2);
   }
   .rname {
     font-weight: var(--fw-medium);

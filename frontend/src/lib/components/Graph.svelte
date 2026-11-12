@@ -13,6 +13,9 @@
     label?: string
     dashed?: boolean // decided at run time
   }
+  // Several graphs are mounted at once (tabs stay mounted), and an id
+  // in a hidden one would win: each graph numbers its own arrowhead.
+  let graphs = 0
 </script>
 
 <script lang="ts">
@@ -30,10 +33,13 @@
     edges: GraphEdge[]
     label: string
     legend?: { group: string; label: string }[]
+    /** The node whose details are showing, drawn with a firm outline. */
+    selected?: string | null
     onselect?: (id: string) => void
   }
 
-  let { nodes, edges, label, legend = [], onselect }: Props = $props()
+  let { nodes, edges, label, legend = [], selected = null, onselect }: Props = $props()
+  const arrow = `graph-arrow-${++graphs}`
 
   const NODE_H = 46
   const width = (n: GraphNode) => Math.min(280, Math.max(120, Math.max(n.label.length, (n.sub ?? '').length) * 7.2 + 32))
@@ -81,10 +87,15 @@
 
   // Fit the graph, but never below a zoom where labels stay readable:
   // a big graph then starts at its top, and the rest is a drag away.
-  const READABLE = 0.6
+  const READABLE = 0.8 // 12px names stay near 10px
+  // Whether the user has panned or zoomed since the last fit: a resize
+  // refits only a view nobody has arranged.
+  let moved = false
   function fit() {
     if (!host || !laid.w) return
     const r = host.getBoundingClientRect()
+    if (!r.width || !r.height) return // hidden: fitted when it shows
+    moved = false
     const k = Math.min(1.2, Math.max(READABLE, Math.min(r.width / laid.w, r.height / laid.h) * 0.95))
     const x = laid.w * k < r.width ? (r.width - laid.w * k) / 2 : 8
     const y = laid.h * k < r.height ? (r.height - laid.h * k) / 2 : 8
@@ -94,12 +105,27 @@
     void laid
     queueMicrotask(fit)
   })
+  // The box changes size (a pane dragged, the window, a hidden tab
+  // shown): fit again, unless the user has moved the view.
+  $effect(() => {
+    if (!host) return
+    let seen = false
+    const ro = new ResizeObserver(() => {
+      const r = host!.getBoundingClientRect()
+      const shown = r.width > 0 && r.height > 0
+      if (shown && (!moved || !seen)) fit()
+      seen = seen || shown
+    })
+    ro.observe(host)
+    return () => ro.disconnect()
+  })
 
   function zoom(by: number, cx?: number, cy?: number) {
     const r = host?.getBoundingClientRect()
     const x = cx ?? (r ? r.width / 2 : 0)
     const y = cy ?? (r ? r.height / 2 : 0)
     const k = Math.min(3, Math.max(0.15, view.k * by))
+    moved = true
     view = { k, x: x - ((x - view.x) * k) / view.k, y: y - ((y - view.y) * k) / view.k }
   }
   function onwheel(e: WheelEvent) {
@@ -113,7 +139,9 @@
     ;(e.currentTarget as Element).setPointerCapture(e.pointerId)
   }
   function onpointermove(e: PointerEvent) {
-    if (drag) view = { ...view, x: drag.vx + e.clientX - drag.x, y: drag.vy + e.clientY - drag.y }
+    if (!drag) return
+    moved = true
+    view = { ...view, x: drag.vx + e.clientX - drag.x, y: drag.vy + e.clientY - drag.y }
   }
 
   // --- hover highlighting ---
@@ -138,17 +166,18 @@
   {onpointerdown}
   {onpointermove}
   onpointerup={() => (drag = null)}
+  onpointercancel={() => (drag = null)}
 >
   <svg width="100%" height="100%">
     <defs>
-      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <marker id={arrow} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
         <path d="M0,0 L10,5 L0,10 z" class="arrowhead" />
       </marker>
     </defs>
     <g transform="translate({view.x},{view.y}) scale({view.k})">
       {#each laid.paths as p, i (i)}
         {@const lit = hover && (p.e.from === hover || p.e.to === hover)}
-        <path d={p.d} class="edge" class:lit class:dashed={p.e.dashed} class:dim={hover && !lit} marker-end="url(#arrow)" />
+        <path d={p.d} class="edge" class:lit class:dashed={p.e.dashed} class:dim={hover && !lit} marker-end="url(#{arrow})" />
         {#if lit && p.e.label && p.mid}
           <text x={p.mid.x} y={p.mid.y - 4} class="edge-label">{p.e.label}</text>
         {/if}
@@ -159,6 +188,8 @@
           <g
             class="node g-{n.group ?? 'other'} {n.status ? 's-' + n.status : ''}"
             class:missing={n.missing}
+            class:selected={n.id === selected}
+            aria-pressed={selected === null ? undefined : n.id === selected}
             class:dim={near && !near.has(n.id)}
             transform="translate({p.x - p.w / 2},{p.y - NODE_H / 2})"
             role="button"
@@ -252,6 +283,12 @@
   }
   .node .stripe {
     fill: var(--c);
+  }
+  /* The node whose details are showing: a firm outline in its colour. */
+  .node.selected rect:first-child {
+    fill: var(--bg-3);
+    stroke: var(--c);
+    stroke-width: 2;
   }
   .node.missing rect:first-child {
     fill: var(--bg-1);

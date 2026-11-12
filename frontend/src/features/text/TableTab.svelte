@@ -353,7 +353,7 @@
     color: var(--syn-string);
   }
   .dim {
-    color: var(--fg-3);
+    color: var(--fg-2);
   }
   .busy {
     width: 12px;

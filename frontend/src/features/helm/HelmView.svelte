@@ -608,7 +608,7 @@
   }
   .opts label {
     display: grid;
-    grid-template-columns: 90px 1fr;
+    grid-template-columns: 90px minmax(0, 1fr);
     align-items: center;
     gap: var(--s-2);
     margin-bottom: var(--s-2);

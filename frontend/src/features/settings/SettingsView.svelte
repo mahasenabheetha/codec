@@ -159,7 +159,7 @@
       <p class="intro">Saved in your user profile, never in a repository. codec only reads the folders you open.</p>
 
       <SettingSection id="general" title="General">
-        <SettingRow title="Theme" description="Dark, the soft and colourful Dusk, Midnight, Forest, Rosé and Ocean, High contrast, Light and the warm Paper. System follows your operating system's light or dark setting. It changes at once.">
+        <SettingRow title="Theme" description="Dark, the soft and colourful Dusk, Midnight, Forest, Rosé and Ocean, High contrast, Light, the warm Paper and the dimmed Mist. System follows your operating system's light or dark setting. It changes at once.">
           <Select items={themeItems} value={theme.pref} label="Theme" onchange={(v) => (v === 'system' ? (theme.pref = 'system') : theme.use(v as Exclude<ThemePref, 'system'>))} />
         </SettingRow>
         {#if theme.pref === 'system'}

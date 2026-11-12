@@ -296,7 +296,7 @@
           <EmptyState icon={GitBranch} title="No jobs" description={data.kind === 'template' ? 'This file is a template: open a pipeline that uses it.' : 'Nothing in this file runs as a job.'} />
         {:else if view === 'graph'}
           <div class="graph">
-            <Graph nodes={graphNodes} edges={graphEdges} label="Jobs of {data.file} in execution order" {legend} onselect={(id) => (selectedId = id)} />
+            <Graph nodes={graphNodes} edges={graphEdges} label="Jobs of {data.file} in execution order" {legend} selected={selectedId} onselect={(id) => (selectedId = id)} />
           </div>
         {:else}
           <div class="stages">
@@ -602,7 +602,7 @@
     border-left: 2px solid var(--ok);
   }
   .incs li.unresolved {
-    border-left-color: var(--fg-3);
+    border-left-color: var(--fg-2);
   }
   .incs li.missing {
     border-left-color: var(--err);
