@@ -52,7 +52,17 @@ updates:
       ui-minor-patch:
         update-types: [minor, patch]
 
-  # Actions used in the workflows (ci, release, codeql, scorecard)
+  # The release image's base (Dockerfile), pinned by digest
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "deps(docker)"
+
+  # Actions used in the workflows (ci, release, codeql, scorecard),
+  # pinned by commit hash with the version as a comment; Dependabot
+  # updates both
   - package-ecosystem: github-actions
     directory: /
     schedule:

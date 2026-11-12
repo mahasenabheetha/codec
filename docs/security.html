@@ -100,6 +100,14 @@
   <li><strong>Commands</strong> explains and builds command lines from a reference built into codec; nothing is run, fetched or stored.</li>
 </ul>
 
+<h2 id="verify">Verifying a download<a class="anchor" href="#verify">#</a></h2>
+<p>Every release is built by GitHub Actions from a tagged commit. Its <code>checksums.txt</code> is signed with <a href="https://www.sigstore.dev/">cosign</a> through the release workflow's own identity (no key to leak; the bundle is <code>checksums.txt.sigstore.json</code>), and every archive and desktop file has GitHub build provenance saying where, how and from which commit it was built. To check a file you downloaded:</p>
+<pre><code>gh attestation verify codec_&lt;version&gt;_linux_amd64.tar.gz -R mahasenabheetha/codec
+cosign verify-blob checksums.txt --bundle checksums.txt.sigstore.json \
+  --certificate-identity-regexp '^https://github.com/mahasenabheetha/codec/' \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com</code></pre>
+<p>Then check the file against <code>checksums.txt</code> (<code>sha256sum -c checksums.txt --ignore-missing</code>). The Windows desktop files are not yet code-signed, so Windows shows "unknown publisher" on first run; their provenance still verifies.</p>
+
 <h2 id="report">Reporting a vulnerability<a class="anchor" href="#report">#</a></h2>
 <p>Please don't open a public issue for a security problem. Use GitHub's <a href="https://github.com/mahasenabheetha/codec/security/advisories/new">private vulnerability reporting</a> for the repository, with steps to reproduce and the version (<code>codec version</code>).</p>
 <nav class="pager" aria-label="Pages">

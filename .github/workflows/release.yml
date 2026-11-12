@@ -5,19 +5,24 @@ on:
   push:
     tags: ["v*"]
 
+# Read-only by default; each job asks for what it writes.
 permissions:
-  contents: write # create the GitHub Release and upload assets
-  packages: write # push the Docker image to ghcr.io
+  contents: read
 
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # create the GitHub Release and upload assets
+      packages: write # push the Docker image to ghcr.io
+      id-token: write # keyless signing (cosign) and build provenance
+      attestations: write # store the provenance with GitHub
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0 # GoReleaser needs full history for the changelog
 
-      - uses: actions/setup-go@v7
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           # The newest Go patch release, so builds carry its security
           # fixes; go.mod's go line is only the minimum.
@@ -25,7 +30,7 @@ jobs:
           check-latest: true
 
       # GoReleaser's before-hooks build the frontend with npm.
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: lts/*
           cache: npm
@@ -40,15 +45,20 @@ jobs:
 
       # The image is multi-platform (amd64 + arm64). The Dockerfile only
       # copies prebuilt binaries, so buildx is enough; no QEMU needed.
-      - uses: docker/setup-buildx-action@v4
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
-      - uses: docker/login-action@v4
+      - uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: goreleaser/goreleaser-action@v7
+      # GoReleaser signs checksums.txt with cosign, keyless through this
+      # workflow's identity (signs in .goreleaser.yaml), so anyone can
+      # check the files came from this repository's release workflow.
+      - uses: sigstore/cosign-installer@756fe2d284c7292c4e9b62c8a28f1e5629c59532 # v4.1.3
+
+      - uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de # v7.3.0
         with:
           distribution: goreleaser
           version: "~> v2"
@@ -56,26 +66,37 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      # Build provenance for every archive: where, how and from which
+      # commit it was built. Check one with
+      #   gh attestation verify codec_<version>_linux_amd64.tar.gz -R mahasenabheetha/codec
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-checksums: dist/checksums.txt
+
   # The Windows desktop app: portable exe and per-user installer, added
   # to the release GoReleaser created above as a draft (scripts/desktop.sh),
   # then publishes it.
   desktop:
     needs: release
     runs-on: windows-latest
+    permissions:
+      contents: write # upload the desktop files and publish the release
+      id-token: write # build provenance
+      attestations: write
     defaults:
       run:
         shell: bash
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/setup-go@v7
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           # The newest Go patch release, so builds carry its security
           # fixes; go.mod's go line is only the minimum.
           go-version: stable
           check-latest: true
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: lts/*
           cache: npm
@@ -84,7 +105,7 @@ jobs:
       - name: NSIS
         run: |
           if ! command -v makensis >/dev/null && [[ ! -x "/c/Program Files (x86)/NSIS/makensis.exe" ]]; then
-            choco install nsis -y --no-progress
+            choco install nsis -y --no-progress --requirechecksums
           fi
 
       - name: Build
@@ -99,6 +120,7 @@ jobs:
       # unsigned and Windows shows "unknown publisher" on first run.
 
       - name: Upload to the release
+        id: upload
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ github.ref_name }}
@@ -107,8 +129,14 @@ jobs:
           cd dist/desktop
           mv codec-desktop.exe "codec-desktop_${v}_windows_amd64.exe"
           mv codec-setup.exe "codec-desktop_${v}_windows_amd64_setup.exe"
-          sha256sum codec-desktop_* > "codec-desktop_${v}_checksums.txt"
+          sha256sum codec-desktop_*.exe > "codec-desktop_${v}_checksums.txt"
           gh release upload "$TAG" codec-desktop_* --clobber
+          echo "sums=dist/desktop/codec-desktop_${v}_checksums.txt" >> "$GITHUB_OUTPUT"
+
+      - name: Provenance of the desktop files
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-checksums: ${{ steps.upload.outputs.sums }}
 
       # GoReleaser leaves the release as a draft; publish it only now,
       # with every file attached.

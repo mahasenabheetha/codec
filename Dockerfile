@@ -6,7 +6,8 @@
 #
 # distroless/static: no shell or package manager, CA certificates and a
 # non-root user only. codec is fully static (CGO_ENABLED=0).
-FROM gcr.io/distroless/static-debian12:nonroot
+# Pinned by digest (Dependabot moves it); the tag says what it is.
+FROM gcr.io/distroless/static-debian12:nonroot@sha256:afa5c872c891853ca7fcf1f12c3edb23f7eeef36189728842dd51042ff57f7ab
 
 ARG TARGETPLATFORM
 COPY $TARGETPLATFORM/codec /usr/bin/codec

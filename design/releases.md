@@ -42,6 +42,23 @@
    so Windows shows "unknown publisher" on first run. GoReleaser creates
    the release as a draft; the desktop job publishes it last, so if that
    job fails the release stays a draft: fix and re-run the job.
+   Every release is verifiable: `checksums.txt` is signed with cosign,
+   keyless through the workflow's identity
+   (`checksums.txt.sigstore.json` on the release), and every archive
+   and desktop file has GitHub build provenance (where, how and from
+   which commit it was built). Check a download:
+
+   ```bash
+   gh attestation verify codec_1.2.3_linux_amd64.tar.gz -R mahasenabheetha/codec
+   cosign verify-blob checksums.txt --bundle checksums.txt.sigstore.json \
+     --certificate-identity-regexp '^https://github.com/mahasenabheetha/codec/' \
+     --certificate-oidc-issuer https://token.actions.githubusercontent.com
+   ```
+
+   The workflows give the token only what each job writes, and every
+   action is pinned to a commit hash (Dependabot moves the pins and
+   their version comments together); the image's base is pinned by
+   digest.
 4. First release with an image only: the GHCR package starts private.
    Make it public once: GitHub → Packages → codec → Package settings →
    Change visibility.
