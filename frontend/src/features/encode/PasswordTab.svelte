@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Chip from '../../lib/components/Chip.svelte'
   import { untrack } from 'svelte'
   import Copy from '@lucide/svelte/icons/copy'
   import Eye from '@lucide/svelte/icons/eye'
@@ -156,7 +157,7 @@
     <Pane title="Rules" grow={false}>
       <div class="presets">
         {#each presets as p (p.label)}
-          <button type="button" class="preset" onclick={p.run}>{p.label}</button>
+          <Chip onclick={p.run}>{p.label}</Chip>
         {/each}
       </div>
       <div class="form">
@@ -221,18 +222,6 @@
     flex-wrap: wrap;
     gap: var(--s-2);
     padding: var(--s-3) var(--s-4) 0;
-  }
-  .preset {
-    padding: 2px var(--s-3);
-    font-size: var(--fs-sm);
-    color: var(--fg-1);
-    background: var(--bg-3);
-    border: 1px solid var(--border);
-    border-radius: var(--r-full);
-  }
-  .preset:hover {
-    color: var(--fg-0);
-    border-color: var(--border-strong);
   }
   .form {
     padding: var(--s-4);

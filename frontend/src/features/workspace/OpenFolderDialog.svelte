@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ErrorNote from '../../lib/components/ErrorNote.svelte'
   import { untrack } from 'svelte'
   import ArrowUp from '@lucide/svelte/icons/arrow-up'
   import Clock from '@lucide/svelte/icons/clock'
@@ -106,7 +107,7 @@
     />
     <Button type="submit" variant="primary" disabled={busy || !input.trim()}>{busy ? 'Opening…' : 'Open'}</Button>
   </form>
-  {#if error}<p class="error" role="alert">{error}</p>{/if}
+  {#if error}<ErrorNote message={error} inline />{/if}
 
   <div class="browser">
     <nav class="places" aria-label="Places">
@@ -193,11 +194,6 @@
   }
   .path input:focus {
     border-color: var(--accent);
-  }
-  .error {
-    margin-top: var(--s-2);
-    font-size: var(--fs-sm);
-    color: var(--err);
   }
   .browser {
     display: grid;

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ErrorNote from '../../lib/components/ErrorNote.svelte'
   import Columns3 from '@lucide/svelte/icons/columns-3'
   import FunnelPlus from '@lucide/svelte/icons/funnel-plus'
   import FunnelX from '@lucide/svelte/icons/funnel-x'
@@ -55,7 +56,7 @@
     <div class="search"><SearchInput bind:value={filter} placeholder="Find a field" /></div>
   </div>
   {#if error}
-    <p class="err">{error}</p>
+    <ErrorNote message={error} />
   {:else if fields && !fields.length}
     <p class="muted pad">These entries have no fields, only text.</p>
   {:else}
@@ -233,9 +234,5 @@
   }
   .col.on {
     color: var(--accent);
-  }
-  .err {
-    padding: var(--s-3);
-    color: var(--err);
   }
 </style>

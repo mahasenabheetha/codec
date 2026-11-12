@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ErrorNote from '../../lib/components/ErrorNote.svelte'
   import { hueVar, viewHue } from '../../lib/tools'
   import Copy from '@lucide/svelte/icons/copy'
   import Download from '@lucide/svelte/icons/download'
@@ -167,7 +168,7 @@
   <aside class="starters">
     <div class="filter"><SearchInput bind:value={filter} placeholder="Filter starters…" label="Filter starters" /></div>
     {#if nf.loadError}
-      <p class="error pad">{nf.loadError}</p>
+      <ErrorNote message={nf.loadError} />
     {/if}
     <ul>
       {#each groups as [category, list] (category)}
@@ -189,7 +190,7 @@
           <p>Your own starters go in</p>
           <button type="button" class="dir" title="Copy the path" onclick={() => copyText(nf.list!.personalDir, 'Path')}>{nf.list.personalDir}</button>
           <p class="muted">A folder per starter (with an optional starter.yaml) or single files, using <code>&lt;% .name %&gt;</code> placeholders.</p>
-          {#each nf.list.problems as p (p)}<p class="error">{p}</p>{/each}
+          {#each nf.list.problems as p (p)}<ErrorNote message={p} inline />{/each}
         </div>
       </div>
     {/if}
@@ -235,7 +236,7 @@
   </section>
 
   <section class="preview">
-    {#if nf.renderError}<p class="error pad">{nf.renderError}</p>{/if}
+    {#if nf.renderError}<ErrorNote message={nf.renderError} />{/if}
     {#if nf.files.length}
       <div class="files" role="tablist" aria-label="Generated files">
         {#each nf.files as f, i (f.path)}

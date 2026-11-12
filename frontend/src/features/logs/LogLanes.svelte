@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ErrorNote from '../../lib/components/ErrorNote.svelte'
   import { isAbort } from '../../lib/api/client'
   import { logLanes, type LogLanes } from '../../lib/api/logs'
   import { count, formatTime } from './format'
@@ -61,7 +62,7 @@
 
 <div class="lanes">
   {#if error}
-    <p class="err">{error}</p>
+    <ErrorNote message={error} />
   {:else if lanes && !lanes.lanes.length}
     <p class="muted">No {lanes.by === 'step' ? 'steps' : 'sources'} with times among the entries the query matches.</p>
   {:else if lanes}

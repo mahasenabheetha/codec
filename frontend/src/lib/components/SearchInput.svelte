@@ -35,7 +35,8 @@
     transition: border-color var(--dur) var(--ease);
   }
   .search:focus-within {
-    border-color: var(--accent);
+    border-color: var(--tool-accent, var(--accent));
+    box-shadow: var(--focus-ring);
   }
   input {
     width: 160px;
@@ -44,6 +45,7 @@
     color: var(--fg-0);
     background: none;
     border: none;
+    box-shadow: none;
     outline: none;
   }
   input::placeholder {

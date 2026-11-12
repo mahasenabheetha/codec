@@ -20,6 +20,16 @@ All notable changes to codec are documented here. The format follows
   they change; buttons and panels are a little rounder; a search match
   is the same colour in the editor, log rows, Find in Files and the
   source peek.
+- **One look for the parts every view shares.** Text fields, text
+  areas and menus have the same frame everywhere and show a ring as
+  well as a border colour when focused. A failure is an icon, the
+  reason and, where there is one, **Try again** (Kubernetes, Kustomize,
+  the file tree, workspace problems, Clone), not a bare red line.
+  Presets and toggles (cron days and months, regex flags, password and
+  test-data presets) are one kind of chip. The Argo, pipeline, Compose,
+  Ansible, Kubernetes, Kustomize and Clone views share one header, and
+  say **What-if** the same way. "Working…" in a pane's header replaces
+  the spinners.
 
 ### Fixed
 

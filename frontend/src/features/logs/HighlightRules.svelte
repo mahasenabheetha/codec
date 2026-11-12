@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ErrorNote from '../../lib/components/ErrorNote.svelte'
   import Highlighter from '@lucide/svelte/icons/highlighter'
   import Button from '../../lib/components/Button.svelte'
   import Popover from '../../lib/components/Popover.svelte'
@@ -50,7 +51,7 @@
         <i style:background={ruleTones[k]}></i>
         <input bind:value={draft[k]} placeholder={['timeout', 'level>=warn', 'source:*db*', 'trace.id:…'][k]} spellcheck="false" autocomplete="off" aria-label="Highlight rule {k + 1}" />
       </label>
-      {#if errorFor[k]}<p class="err">{errorFor[k]}</p>{/if}
+      {#if errorFor[k]}<ErrorNote message={errorFor[k]} inline />{/if}
     {/each}
     <div class="actions">
       {#if active}<Button size="sm" variant="ghost" onclick={() => viewer.setHighlights([])}>Clear all</Button>{/if}
@@ -73,9 +74,6 @@
   }
   .muted {
     color: var(--fg-2);
-  }
-  .err {
-    color: var(--err);
   }
   .rule {
     display: flex;

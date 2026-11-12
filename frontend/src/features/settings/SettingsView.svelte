@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ErrorNote from '../../lib/components/ErrorNote.svelte'
   import Copy from '@lucide/svelte/icons/copy'
   import Plus from '@lucide/svelte/icons/plus'
   import X from '@lucide/svelte/icons/x'
@@ -213,7 +214,7 @@
       {#if lint.loaded}
         <LintSections />
       {:else if lint.error}
-        <p class="error">{lint.error}</p>
+        <ErrorNote message={lint.error} />
       {:else}
         <div class="skeletons" aria-busy="true" aria-label="Loading lint settings">
           {#each [0, 1, 2, 3] as i (i)}<Skeleton height="44px" />{/each}
@@ -222,7 +223,7 @@
 
       <SettingSection id="helm" title="Helm profiles" description="Saved from a chart's Helm view, by chart folder.">
         {#if !info}
-          {#if error}<p class="error">{error}</p>{:else}<Skeleton height="44px" />{/if}
+          {#if error}<ErrorNote message={error} />{:else}<Skeleton height="44px" />{/if}
         {:else if info.helm.length === 0}
           <p class="none">No saved profiles yet. In a chart's Helm view, pick values files and save them as a profile.</p>
         {:else}
@@ -348,9 +349,6 @@
     border-top: 1px solid var(--border);
     font-size: var(--fs-sm);
     color: var(--fg-1);
-  }
-  .error {
-    color: var(--err);
   }
   .mono,
   code {

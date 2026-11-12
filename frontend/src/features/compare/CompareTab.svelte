@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ErrorNote from '../../lib/components/ErrorNote.svelte'
   import { hueVar, viewHue } from '../../lib/tools'
   import { untrack, type Snippet } from 'svelte'
   import ArrowLeftRight from '@lucide/svelte/icons/arrow-left-right'
@@ -179,7 +180,7 @@
       </EmptyState>
     {/if}
   {:else if cmp.error}
-    <p class="error">{cmp.error}</p>
+    <ErrorNote message={cmp.error} />
   {:else if !result}
     <p class="muted pad">{cmp.running ? 'Comparing…' : ''}</p>
   {:else}
@@ -551,8 +552,5 @@
   }
   .link:hover {
     text-decoration: underline;
-  }
-  .error {
-    color: var(--err);
   }
 </style>

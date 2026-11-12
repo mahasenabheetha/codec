@@ -1,4 +1,7 @@
 <script lang="ts">
+  import Badge from '../../lib/components/Badge.svelte'
+  import PanelHeader from '../../lib/components/PanelHeader.svelte'
+  import ErrorNote from '../../lib/components/ErrorNote.svelte'
   import Copy from '@lucide/svelte/icons/copy'
   import CopyPlus from '@lucide/svelte/icons/copy-plus'
   import { RangeSetBuilder, type Text } from '@codemirror/state'
@@ -129,11 +132,11 @@
 </script>
 
 <div class="clone" class:inactive={!active}>
-  <header>
-    <CopyPlus size={16} strokeWidth={1.75} />
-    <span class="title">Clone {path}</span>
-    {#if content !== undefined}<span class="muted">· from your what-if edits</span>{/if}
-  </header>
+  <PanelHeader icon={CopyPlus} title="Clone {path}">
+    {#snippet meta()}
+      {#if content !== undefined}<span title="The copy starts from your what-if edits"><Badge tone="warn">What-if</Badge></span>{/if}
+    {/snippet}
+  </PanelHeader>
   <div class="controls">
     {#if docItems.length > 2}
       <Select items={docItems} bind:value={doc} label="Document" />
@@ -150,7 +153,7 @@
   </div>
 
   {#if error}
-    <p class="error pad">{error}</p>
+    <ErrorNote message={error} retry={run} />
   {/if}
   {#if result}
     <div class="body">
@@ -202,16 +205,6 @@
   }
   .inactive {
     display: none;
-  }
-  header {
-    display: flex;
-    align-items: center;
-    gap: var(--s-2);
-    padding: var(--s-2) var(--s-3);
-    border-bottom: 1px solid var(--border);
-  }
-  .title {
-    font-weight: var(--fw-medium);
   }
   .controls {
     display: flex;
@@ -343,9 +336,6 @@
     margin: var(--s-1) 0;
     font-size: var(--fs-sm);
     color: var(--ok);
-  }
-  .error {
-    color: var(--err);
   }
   .muted {
     color: var(--fg-2);

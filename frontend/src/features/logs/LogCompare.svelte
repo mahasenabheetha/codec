@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ErrorNote from '../../lib/components/ErrorNote.svelte'
   import ArrowRight from '@lucide/svelte/icons/arrow-right'
   import CircleCheck from '@lucide/svelte/icons/circle-check'
   import ClipboardCopy from '@lucide/svelte/icons/clipboard-copy'
@@ -156,7 +157,7 @@
     {#if c.loading}
       <p class="muted pad">Comparing…</p>
     {:else if c.error}
-      <p class="err pad">{c.error}</p>
+      <ErrorNote message={c.error} />
     {:else if d}
       <div class="runs">
         <span></span><span class="h">This run</span><span class="h">Other run</span><span></span>
@@ -284,9 +285,6 @@
   }
   .muted {
     color: var(--fg-2);
-  }
-  .err {
-    color: var(--err);
   }
   .bad {
     color: var(--err);

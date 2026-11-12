@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Working from '../../lib/components/Working.svelte'
   import ArrowLeftRight from '@lucide/svelte/icons/arrow-left-right'
   import Columns3 from '@lucide/svelte/icons/columns-3'
   import Copy from '@lucide/svelte/icons/copy'
@@ -18,7 +19,7 @@
   import { convertTable, parseTable, tableFromJSON, type Delimiter, type HeaderMode, type TableColumn, type TableFormat, type TableInfo } from '../../lib/api/table'
   import type { ToolDef } from '../../lib/tools'
   import { copyText } from '../../lib/utils/clipboard'
-  import TextOutput from '../encode/TextOutput.svelte'
+  import TextOutput from '../shared/TextOutput.svelte'
   import { liveJob } from '../json/doc.svelte'
   import ErrorBanner from '../shared/ErrorBanner.svelte'
   import InputPane from '../shared/InputPane.svelte'
@@ -238,7 +239,7 @@
             {#if r.ragged}<Badge tone="warn" icon={TriangleAlert}>{r.ragged} uneven {r.ragged === 1 ? 'row' : 'rows'}</Badge>{/if}
             <span>{filter.trim() ? `${shown.toLocaleString()} of ` : ''}{r.total.toLocaleString()} {r.total === 1 ? 'row' : 'rows'}{r.rows.length < r.total ? ` (first ${r.rows.length.toLocaleString()} shown)` : ''}</span>
           {/if}
-          {#if parsed.busy}<span class="busy" aria-label="Working"></span>{/if}
+          {#if parsed.busy}<Working />{/if}
         {/snippet}
         {#snippet actions()}
           {#if r}
@@ -354,26 +355,5 @@
   }
   .dim {
     color: var(--fg-2);
-  }
-  .busy {
-    width: 12px;
-    height: 12px;
-    border: 2px solid var(--bg-4);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    opacity: 0;
-    animation:
-      spin 0.7s linear infinite,
-      appear 1ms 250ms forwards;
-  }
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-  @keyframes appear {
-    to {
-      opacity: 1;
-    }
   }
 </style>

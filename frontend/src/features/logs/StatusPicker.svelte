@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ErrorNote from '../../lib/components/ErrorNote.svelte'
   import Workflow from '@lucide/svelte/icons/workflow'
   import X from '@lucide/svelte/icons/x'
   import Button from '../../lib/components/Button.svelte'
@@ -66,7 +67,7 @@
       <Button size="sm" onclick={() => picker?.click()} disabled={busy}>Open a file…</Button>
       <input bind:this={picker} type="file" accept=".yaml,.yml,.json,.txt" hidden onchange={pick} />
       <textarea bind:value={text} rows="6" placeholder="…or paste it here" aria-label="Workflow status"></textarea>
-      {#if error}<p class="err">{error}</p>{/if}
+      {#if error}<ErrorNote message={error} inline />{/if}
       <div class="actions"><Button size="sm" variant="primary" disabled={!text.trim() || busy} onclick={() => use(text, 'pasted text')}>Use</Button></div>
     </div>
   </Popover>
@@ -94,9 +95,6 @@
   }
   .actions {
     align-self: flex-end;
-  }
-  .err {
-    color: var(--err) !important;
   }
   .chip {
     display: inline-flex;

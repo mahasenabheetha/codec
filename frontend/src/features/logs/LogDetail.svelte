@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ErrorNote from '../../lib/components/ErrorNote.svelte'
   import { untrack } from 'svelte'
   import Braces from '@lucide/svelte/icons/braces'
   import PinIcon from '@lucide/svelte/icons/pin'
@@ -265,7 +266,7 @@
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div class="body" bind:this={body} onmouseup={checkSelection} onkeyup={checkSelection} onscroll={() => (picked = null)}>
     {#if error}
-      <p class="err">{error}</p>
+      <ErrorNote message={error} />
     {:else if entry}
       {#if prettyMessage}
         <pre class="message json">{prettyMessage}</pre>
@@ -521,9 +522,6 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-  }
-  .err {
-    color: var(--err);
   }
   .find {
     position: absolute;

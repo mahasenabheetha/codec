@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ErrorNote from '../../lib/components/ErrorNote.svelte'
   import Copy from '@lucide/svelte/icons/copy'
   import Layers from '@lucide/svelte/icons/layers'
   import Plus from '@lucide/svelte/icons/plus'
@@ -138,7 +139,7 @@
     </section>
 
     {#if error}
-      <p class="error">{error}</p>
+      <ErrorNote message={error} />
     {:else if mode === 'unquote' && readBack !== null}
       <Pane title="Read back" grow={false}>
         <div class="form">
@@ -236,10 +237,6 @@
     background: var(--bg-2);
     border: none;
     border-radius: var(--r-sm);
-  }
-  .error {
-    margin: 0;
-    color: var(--err);
   }
   .form {
     display: flex;

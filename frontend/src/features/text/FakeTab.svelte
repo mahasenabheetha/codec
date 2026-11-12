@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Chip from '../../lib/components/Chip.svelte'
   import { onMount, untrack } from 'svelte'
   import Dices from '@lucide/svelte/icons/dices'
   import Pin from '@lucide/svelte/icons/pin'
@@ -16,7 +17,7 @@
   import type { ToolDef } from '../../lib/tools'
   import { copyText } from '../../lib/utils/clipboard'
   import { formatShortcut } from '../../lib/utils/platform'
-  import TextOutput from '../encode/TextOutput.svelte'
+  import TextOutput from '../shared/TextOutput.svelte'
   import Pane from '../shared/Pane.svelte'
   import ToolLayout from '../shared/ToolLayout.svelte'
   import ToolTabs from '../shared/ToolTabs.svelte'
@@ -132,7 +133,7 @@
           <div class="presets">
             <span class="label">Start from</span>
             {#each Object.keys(presets) as p (p)}
-              <button type="button" class="preset" onclick={() => usePreset(p)}>{p}</button>
+              <Chip onclick={() => usePreset(p)}>{p}</Chip>
             {/each}
           </div>
           <div class="cols">
@@ -231,19 +232,6 @@
   .label {
     font-size: var(--fs-sm);
     color: var(--fg-1);
-  }
-  .preset {
-    padding: 2px var(--s-3);
-    font-size: var(--fs-sm);
-    color: var(--fg-1);
-    background: var(--bg-3);
-    border: 1px solid var(--border);
-    border-radius: var(--r-full);
-    text-transform: capitalize;
-  }
-  .preset:hover {
-    color: var(--fg-0);
-    border-color: var(--border-strong);
   }
   .cols {
     display: flex;

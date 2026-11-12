@@ -178,10 +178,13 @@
     font-weight: var(--fw-semibold);
   }
   .name {
+    height: auto;
     padding: 0;
     color: var(--fg-0);
     background: none;
     border: none;
+    border-radius: 0;
+    box-shadow: none;
     border-bottom: 1px dashed var(--border-strong);
   }
   .name:focus {

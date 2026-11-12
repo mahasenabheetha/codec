@@ -14,7 +14,6 @@
   import FileWarning from '@lucide/svelte/icons/file-warning'
   import GitCompare from '@lucide/svelte/icons/git-compare'
   import Link from '@lucide/svelte/icons/link'
-  import LoaderCircle from '@lucide/svelte/icons/loader-circle'
   import LocateFixed from '@lucide/svelte/icons/locate-fixed'
   import PanelRight from '@lucide/svelte/icons/panel-right'
   import RefreshCw from '@lucide/svelte/icons/refresh-cw'
@@ -288,9 +287,7 @@
       <span class="schema {schema.state}" title={schema.state === 'ok' ? `Checked against ${schema.url}` : schema.message}>
         {#if schema.state === 'ok'}
           <ShieldCheck size={12} strokeWidth={2} />
-        {:else if schema.state === 'pending'}
-          <LoaderCircle size={12} strokeWidth={2} class="spin" />
-        {:else}
+        {:else if schema.state !== 'pending'}
           <ShieldOff size={12} strokeWidth={2} />
         {/if}
         {schema.state === 'pending' ? 'Loading schema…' : schema.title}
@@ -533,14 +530,6 @@
   }
   .schema.unavailable :global(svg) {
     color: var(--warn);
-  }
-  .schema :global(.spin) {
-    animation: spin 1s linear infinite;
-  }
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
   }
   .spacer {
     flex: 1;

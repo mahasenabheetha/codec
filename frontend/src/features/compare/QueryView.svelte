@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ErrorNote from '../../lib/components/ErrorNote.svelte'
   import { hueVar, viewHue } from '../../lib/tools'
   import FileSearch from '@lucide/svelte/icons/file-search'
   import Play from '@lucide/svelte/icons/play'
@@ -114,7 +115,7 @@
 
   <div class="results">
     {#if q.error}
-      <p class="error">{q.error}</p>
+      <ErrorNote message={q.error} />
     {:else if q.results}
       <p class="count">
         {q.results.length}{q.truncated ? '+' : ''} result{q.results.length === 1 ? '' : 's'}
@@ -291,12 +292,5 @@
   .pad {
     padding: var(--s-3);
     font-size: var(--fs-sm);
-  }
-  .error {
-    padding: var(--s-3);
-    font-family: var(--font-mono);
-    font-size: var(--fs-sm);
-    color: var(--err);
-    white-space: pre-wrap;
   }
 </style>

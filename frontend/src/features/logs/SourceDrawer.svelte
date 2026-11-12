@@ -16,6 +16,7 @@
 </script>
 
 <script lang="ts">
+  import ErrorNote from '../../lib/components/ErrorNote.svelte'
   import ChevronDown from '@lucide/svelte/icons/chevron-down'
   import ChevronUp from '@lucide/svelte/icons/chevron-up'
   import FolderOpen from '@lucide/svelte/icons/folder-open'
@@ -206,7 +207,7 @@
       </div>
       <div class="peek" bind:this={peek}>
         {#if error}
-          <p class="err">Can't read {item.file}: {error}</p>
+          <ErrorNote message={`Can't read ${item.file}: ${error}`} />
         {:else if text === null}
           <p class="muted">Reading {item.file}…</p>
         {:else}
