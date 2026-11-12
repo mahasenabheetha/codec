@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Chip from '../../lib/components/Chip.svelte'
   import { untrack } from 'svelte'
   import Copy from '@lucide/svelte/icons/copy'
   import Eraser from '@lucide/svelte/icons/eraser'
@@ -129,7 +130,7 @@
       />
       <div class="flags" role="group" aria-label="Flags">
         {#each flagInfo as [f, info] (f)}
-          <button type="button" class="flag" aria-pressed={flags[f]} aria-label="{f}: {info}" title={info} disabled={f === 'x' && style === 'go'} onclick={() => (flags[f] = !flags[f])}>{f}</button>
+          <Chip square mono pressed={flags[f]} aria-label="{f}: {info}" title={info} disabled={f === 'x' && style === 'go'} onclick={() => (flags[f] = !flags[f])}>{f}</Chip>
         {/each}
       </div>
       <Toggle label="All matches" bind:checked={all} title="Off: only the first match" />
@@ -314,25 +315,6 @@
     display: inline-flex;
     gap: 2px;
   }
-  .flag {
-    width: 28px;
-    height: var(--control-h);
-    font-family: var(--font-mono);
-    font-size: var(--fs-sm);
-    color: var(--fg-1);
-    background: var(--bg-0);
-    border: 1px solid var(--border-strong);
-    border-radius: var(--r-sm);
-  }
-  .flag[aria-pressed='true'] {
-    color: var(--accent-fg);
-    background: var(--accent);
-    border-color: var(--accent);
-  }
-  .flag:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
   .body {
     flex: 1;
     min-height: 0;
@@ -363,7 +345,8 @@
     border-radius: var(--r-md);
   }
   .pat:focus-within {
-    border-color: var(--accent);
+    border-color: var(--tool-accent, var(--accent));
+    box-shadow: var(--focus-ring);
   }
   .pat.bad {
     border-color: var(--err);
@@ -394,6 +377,7 @@
     color: var(--fg-0);
     background: transparent;
     border: none;
+    box-shadow: none;
   }
   .field input:focus {
     outline: none;

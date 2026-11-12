@@ -1,4 +1,6 @@
 <script lang="ts">
+  import Badge from '../../lib/components/Badge.svelte'
+  import PanelHeader from '../../lib/components/PanelHeader.svelte'
   import type { Component, Snippet } from 'svelte'
   import { layout } from '../../lib/stores/layout.svelte'
   import { editorNav, openSessions } from '../editor/active.svelte'
@@ -45,12 +47,12 @@
 </script>
 
 <div class="view" class:inactive={!active}>
-  <header>
-    <Icon size={16} strokeWidth={1.75} />
-    <span class="title">{title}</span>
-    <span class="muted">{status}</span>
-    {#if Object.keys(overrides).length}<span class="muted">· what-if edits applied</span>{/if}
-  </header>
+  <PanelHeader icon={Icon} {title}>
+    {#snippet meta()}
+      <span role="status">{status}</span>
+      {#if Object.keys(overrides).length}<Badge tone="warn">What-if</Badge>{/if}
+    {/snippet}
+  </PanelHeader>
   <div class="body">
     {@render children({ overrides, reload, open, status: (t) => (status = t) })}
   </div>
@@ -62,20 +64,6 @@
     display: flex;
     flex-direction: column;
     min-height: 0;
-  }
-  header {
-    display: flex;
-    align-items: center;
-    gap: var(--s-2);
-    padding: var(--s-2) var(--s-4);
-    border-bottom: 1px solid var(--border);
-  }
-  .title {
-    font-weight: var(--fw-semibold);
-  }
-  .muted {
-    font-size: var(--fs-sm);
-    color: var(--fg-2);
   }
   .body {
     flex: 1;

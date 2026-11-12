@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Chip from '../../lib/components/Chip.svelte'
   import { untrack } from 'svelte'
   import Copy from '@lucide/svelte/icons/copy'
   import TriangleAlert from '@lucide/svelte/icons/triangle-alert'
@@ -203,7 +204,7 @@
       </ol>
       <div class="presets">
         {#each presets as p (p.expr)}
-          <button type="button" class="chip" class:on={expr.trim() === p.expr} onclick={() => (expr = p.expr)}>{p.label}</button>
+          <Chip selected={expr.trim() === p.expr} onclick={() => (expr = p.expr)}>{p.label}</Chip>
         {/each}
       </div>
     </LineInput>
@@ -272,7 +273,7 @@
           {#if f.kind === 'weekly'}
             <div class="toggles" role="group" aria-label="Days of the week">
               {#each week as [d, name] (d)}
-                <button type="button" class="tog" aria-pressed={f.days.includes(d)} onclick={() => toggleDay(d)}>{name}</button>
+                <Chip pressed={f.days.includes(d)} onclick={() => toggleDay(d)}>{name}</Chip>
               {/each}
             </div>
             {#if !f.days.length}<p class="note">Choose at least one day.</p>{/if}
@@ -280,9 +281,9 @@
           <div class="months">
             <span class="label">Months</span>
             <div class="toggles" role="group" aria-label="Months">
-              <button type="button" class="tog every" aria-pressed={!f.months.length} onclick={() => setMonths([])}>Every month</button>
+              <Chip pressed={!f.months.length} onclick={() => setMonths([])}>Every month</Chip>
               {#each monthNames as name, i (name)}
-                <button type="button" class="tog" aria-pressed={f.months.includes(i + 1)} onclick={() => toggleMonth(i + 1)}>{name}</button>
+                <Chip pressed={f.months.includes(i + 1)} onclick={() => toggleMonth(i + 1)}>{name}</Chip>
               {/each}
             </div>
           </div>
@@ -378,24 +379,6 @@
     flex-wrap: wrap;
     gap: var(--s-2);
   }
-  .chip {
-    height: 26px;
-    padding: 0 var(--s-3);
-    font-size: var(--fs-sm);
-    color: var(--fg-1);
-    background: var(--bg-3);
-    border: 1px solid var(--border);
-    border-radius: var(--r-full);
-  }
-  .chip:hover {
-    color: var(--fg-0);
-    border-color: var(--border-strong);
-  }
-  .chip.on {
-    color: var(--accent);
-    background: var(--accent-soft);
-    border-color: var(--accent);
-  }
   .out {
     padding: var(--s-3) var(--s-4);
     display: flex;
@@ -482,21 +465,6 @@
     display: flex;
     flex-wrap: wrap;
     gap: 4px;
-  }
-  .tog {
-    min-width: 44px;
-    height: var(--control-h);
-    padding: 0 var(--s-2);
-    font-size: var(--fs-sm);
-    color: var(--fg-1);
-    background: var(--bg-0);
-    border: 1px solid var(--border-strong);
-    border-radius: var(--r-sm);
-  }
-  .tog[aria-pressed='true'] {
-    color: var(--accent-fg);
-    background: var(--accent);
-    border-color: var(--accent);
   }
   .note {
     font-size: var(--fs-sm);

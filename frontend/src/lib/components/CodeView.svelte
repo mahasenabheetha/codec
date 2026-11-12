@@ -68,6 +68,23 @@
   let view: EditorView | undefined
   let syncTimer: ReturnType<typeof setTimeout> | undefined
 
+  // The fold arrow: a chevron drawn in the middle of its line (the
+  // default is a text glyph, which sits below the line's number).
+  function foldMarker(open: boolean): HTMLElement {
+    const el = document.createElement('span')
+    el.className = 'cm-fold-arrow'
+    el.title = open ? 'Fold' : 'Unfold'
+    const ns = 'http://www.w3.org/2000/svg'
+    const svg = document.createElementNS(ns, 'svg')
+    svg.setAttribute('viewBox', '0 0 24 24')
+    svg.setAttribute('aria-hidden', 'true')
+    const path = document.createElementNS(ns, 'path')
+    path.setAttribute('d', open ? 'm6 9 6 6 6-6' : 'm9 18 6-6-6-6')
+    svg.append(path)
+    el.append(svg)
+    return el
+  }
+
   const langConf = new Compartment()
   const readonlyConf = new Compartment()
   const wrapConf = new Compartment()
@@ -100,6 +117,17 @@
         },
         '.cm-placeholder': { color: 'var(--fg-2)', fontFamily: 'var(--font-ui)' },
         '.cm-foldGutter .cm-gutterElement': { color: 'var(--fg-2)', padding: '0 var(--s-1)' },
+        '.cm-fold-arrow': { display: 'flex', alignItems: 'center', height: '100%', cursor: 'pointer' },
+        '.cm-fold-arrow:hover': { color: 'var(--fg-0)' },
+        '.cm-fold-arrow svg': {
+          width: '1em',
+          height: '1em',
+          fill: 'none',
+          stroke: 'currentColor',
+          strokeWidth: '2',
+          strokeLinecap: 'round',
+          strokeLinejoin: 'round',
+        },
         '.cm-foldPlaceholder': { backgroundColor: 'var(--bg-3)', border: 'none', color: 'var(--fg-1)' },
         '.cm-panels': { backgroundColor: 'var(--bg-1)', color: 'var(--fg-0)', borderColor: 'var(--border)' },
         '.cm-panels.cm-panels-bottom': { borderTop: '1px solid var(--border)' },
@@ -201,7 +229,7 @@
           lineNumbers(),
           highlightActiveLineGutter(),
           highlightSpecialChars(),
-          foldGutter(),
+          foldGutter({ markerDOM: foldMarker }),
           drawSelection(),
           history(),
           bracketMatching(),

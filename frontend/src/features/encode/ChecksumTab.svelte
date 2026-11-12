@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ErrorNote from '../../lib/components/ErrorNote.svelte'
   import { untrack } from 'svelte'
   import CircleCheck from '@lucide/svelte/icons/circle-check'
   import CircleX from '@lucide/svelte/icons/circle-x'
@@ -188,7 +189,7 @@
                   <span class="grow"></span>
                   <IconButton icon={X} label="Remove" size="sm" onclick={() => (rows = rows.filter((x) => x.key !== r.key))} />
                 </div>
-                {#if r.error}<p class="error">{r.error}</p>{/if}
+                {#if r.error}<ErrorNote message={r.error} inline />{/if}
                 {#each shown(r) as d (d.algorithm)}
                   <div class="digest" class:want={expectedFor(r)?.algorithm === d.algorithm}>
                     <span class="alg">{d.algorithm}{d.weak ? ' (weak)' : ''}</span>
@@ -234,6 +235,7 @@
     color: var(--fg-0);
     background: var(--bg-0);
     border: none;
+    box-shadow: none;
     resize: vertical;
   }
   textarea:focus {
@@ -296,11 +298,6 @@
   }
   .grow {
     flex: 1;
-  }
-  .error {
-    margin: var(--s-1) 0 0;
-    font-size: var(--fs-sm);
-    color: var(--err);
   }
   .digest {
     display: grid;

@@ -12,6 +12,7 @@
 </script>
 
 <script lang="ts">
+  import ThreePanes from '../../lib/components/ThreePanes.svelte'
   import { untrack } from 'svelte'
   import CircleCheck from '@lucide/svelte/icons/circle-check'
   import GitBranch from '@lucide/svelte/icons/git-branch'
@@ -188,23 +189,24 @@
   {:else if !data}
     <div class="loading" aria-busy="true" aria-label="Reading the files"><Skeleton lines={8} /></div>
   {:else}
-    <div class="grid">
+    {@const loaded = data}
+    {#snippet sidePane()}
       <aside class="side" aria-label="Pipeline">
         <section>
           <p class="wf">
-            <Badge tone="accent">{toolName[data.tool]}</Badge>
-            {#if data.kind !== 'workflow'}<Badge>{data.kind}</Badge>{/if}
+            <Badge tone="accent">{toolName[loaded.tool]}</Badge>
+            {#if loaded.kind !== 'workflow'}<Badge>{loaded.kind}</Badge>{/if}
           </p>
-          {#if data.name}<p class="wfname">{data.name}</p>{/if}
-          {#each data.triggers as t (t)}<p class="note">on {t}</p>{/each}
+          {#if loaded.name}<p class="wfname">{loaded.name}</p>{/if}
+          {#each loaded.triggers as t (t)}<p class="note">on {t}</p>{/each}
         </section>
 
-        {#if data.inputs.length}
+        {#if loaded.inputs.length}
           <section>
-            <h3>{data.tool === 'azure-pipelines' ? 'Parameters' : 'Inputs'}</h3>
+            <h3>{loaded.tool === 'azure-pipelines' ? 'Parameters' : 'Inputs'}</h3>
             {#if whatIf}<p class="note">What-if: values you set re-evaluate the templates here only, never saved.</p>{/if}
             <ul class="params">
-              {#each data.inputs as p (p.name + p.from)}
+              {#each loaded.inputs as p (p.name + p.from)}
                 <li>
                   <label for="ci-param-{p.name}">{p.name} <span class="ptype">{p.type}{p.required ? ' · required' : ''}</span></label>
                   {#if whatIf}
@@ -229,11 +231,11 @@
           </section>
         {/if}
 
-        {#if data.includes.length}
+        {#if loaded.includes.length}
           <section>
-            <h3>Includes <span class="count">{data.includes.length}</span></h3>
+            <h3>Includes <span class="count">{loaded.includes.length}</span></h3>
             <ul class="incs">
-              {#each data.includes as inc, i (i)}
+              {#each loaded.includes as inc, i (i)}
                 <li class={inc.state}>
                   <button type="button" class="link" onclick={() => (inc.file && inc.state === 'resolved' ? onopen({ file: inc.file, line: 1, range: inc.source.range }) : jump(inc.source))} title={inc.state === 'resolved' ? 'Open the file' : 'Open where it is included'}>
                     <span class="ikind">{inc.kind}</span> {inc.target}
@@ -245,11 +247,11 @@
           </section>
         {/if}
 
-        {#if data.variables.length}
+        {#if loaded.variables.length}
           <section>
-            <h3>Variables <span class="count">{data.variables.length}</span></h3>
+            <h3>Variables <span class="count">{loaded.variables.length}</span></h3>
             <dl class="vars">
-              {#each data.variables as v, i (i)}
+              {#each loaded.variables as v, i (i)}
                 <dt><button type="button" class="link" onclick={() => jump(v.source)}>{v.name}</button></dt>
                 <dd class="mono">{v.value}</dd>
               {/each}
@@ -277,7 +279,8 @@
           </ul>
         </section>
       </aside>
-
+    {/snippet}
+    {#snippet mainPane()}
       <main class="main">
         <nav class="bar">
           <SegmentedControl
@@ -289,18 +292,18 @@
             onchange={(v) => (view = v as 'graph' | 'stages')}
             label="View"
           />
-          <span class="muted">{data.jobs.length} jobs{data.templates.length ? ` · ${data.templates.length} templates` : ''}</span>
+          <span class="muted">{loaded.jobs.length} jobs{loaded.templates.length ? ` · ${loaded.templates.length} templates` : ''}</span>
           {#if loading}<span class="muted">Reading…</span>{/if}
         </nav>
-        {#if !data.jobs.length}
-          <EmptyState icon={GitBranch} title="No jobs" description={data.kind === 'template' ? 'This file is a template: open a pipeline that uses it.' : 'Nothing in this file runs as a job.'} />
+        {#if !loaded.jobs.length}
+          <EmptyState icon={GitBranch} title="No jobs" description={loaded.kind === 'template' ? 'This file is a template: open a pipeline that uses it.' : 'Nothing in this file runs as a job.'} />
         {:else if view === 'graph'}
           <div class="graph">
-            <Graph nodes={graphNodes} edges={graphEdges} label="Jobs of {data.file} in execution order" {legend} onselect={(id) => (selectedId = id)} />
+            <Graph nodes={graphNodes} edges={graphEdges} label="Jobs of {loaded.file} in execution order" {legend} selected={selectedId} onselect={(id) => (selectedId = id)} />
           </div>
         {:else}
           <div class="stages">
-            {#each data.stages as s (s.name)}
+            {#each loaded.stages as s (s.name)}
               <section class="stage">
                 {#if s.name}
                   <h4>
@@ -324,8 +327,8 @@
               </section>
             {/each}
             {#if !staged}
-              {#each data.jobs as j (j.id)}
-                {#if !data.stages.some((s) => s.jobs.includes(j.id))}
+              {#each loaded.jobs as j (j.id)}
+                {#if !loaded.stages.some((s) => s.jobs.includes(j.id))}
                   <button type="button" class="jobrow" class:sel={j.id === selectedId} onclick={() => (selectedId = j.id)}>
                     <span class="jname">{j.name}</span>
                     <span class="muted">{j.group ? j.group + ' · ' : ''}{caption(j)}</span>
@@ -337,7 +340,8 @@
           </div>
         {/if}
       </main>
-
+    {/snippet}
+    {#snippet detailPane()}
       <aside class="detail" aria-label="Selected job">
         {#if selected}
           <header>
@@ -352,7 +356,7 @@
             {#if selected.uses}<dt>Runs</dt><dd class="mono">{selected.uses}</dd>{/if}
             {#if selected.group}<dt>Called by</dt><dd>{selected.group}</dd>{/if}
             {#if neededBy.get(selected.id)?.length}<dt>After</dt><dd>{neededBy.get(selected.id)!.join(', ')}</dd>
-            {:else if selected.needs.length === 0 && data.tool === 'gitlab-ci' && selected.effective.some((l) => l.text.startsWith('needs:'))}<dt>After</dt><dd>nothing: starts at once</dd>{/if}
+            {:else if selected.needs.length === 0 && loaded.tool === 'gitlab-ci' && selected.effective.some((l) => l.text.startsWith('needs:'))}<dt>After</dt><dd>nothing: starts at once</dd>{/if}
             {#if selected.extends?.length}<dt>Extends</dt><dd>{selected.extends.join(' → ')}</dd>{/if}
             {#if selected.from}<dt>From</dt><dd class="mono">{selected.from}</dd>{/if}
             {#if selected.environment}<dt>Environment</dt><dd>{selected.environment}</dd>{/if}
@@ -427,7 +431,8 @@
           <p class="note">Select a job.</p>
         {/if}
       </aside>
-    </div>
+    {/snippet}
+    <ThreePanes id="lens" side={sidePane} main={mainPane} detail={detailPane} />
   {/if}
 </div>
 
@@ -435,34 +440,6 @@
   .ci {
     height: 100%;
     min-height: 0;
-    container-type: inline-size;
-  }
-  .grid {
-    height: 100%;
-    min-height: 0;
-    display: grid;
-    grid-template-columns: minmax(200px, 260px) minmax(0, 1fr);
-    grid-template-rows: minmax(0, 1fr) minmax(0, 50%);
-    grid-template-areas: 'side main' 'side detail';
-  }
-  @container (min-width: 1100px) {
-    .grid {
-      grid-template-columns: minmax(240px, 280px) minmax(0, 1fr) minmax(360px, 460px);
-      grid-template-rows: minmax(0, 1fr);
-      grid-template-areas: 'side main detail';
-    }
-    .detail {
-      border-top: none;
-      border-left: 1px solid var(--border);
-    }
-  }
-  @container (max-width: 560px) {
-    .grid {
-      grid-template-columns: minmax(0, 1fr);
-      grid-template-rows: auto minmax(300px, 1fr) auto;
-      grid-template-areas: 'side' 'main' 'detail';
-      overflow: auto;
-    }
   }
   .loading {
     padding: var(--s-4);
@@ -474,14 +451,6 @@
     overflow: auto;
     padding: var(--s-3);
     background: var(--bg-1);
-  }
-  .side {
-    grid-area: side;
-    border-right: 1px solid var(--border);
-  }
-  .detail {
-    grid-area: detail;
-    border-top: 1px solid var(--border);
   }
   section {
     margin-bottom: var(--s-5);
@@ -602,7 +571,7 @@
     border-left: 2px solid var(--ok);
   }
   .incs li.unresolved {
-    border-left-color: var(--fg-3);
+    border-left-color: var(--fg-2);
   }
   .incs li.missing {
     border-left-color: var(--err);
@@ -643,7 +612,6 @@
     color: var(--fg-1);
   }
   .main {
-    grid-area: main;
     display: flex;
     flex-direction: column;
     min-width: 0;

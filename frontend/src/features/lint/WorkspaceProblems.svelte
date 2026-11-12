@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ErrorNote from '../../lib/components/ErrorNote.svelte'
   import { hueVar, viewHue } from '../../lib/tools'
   import ChevronDown from '@lucide/svelte/icons/chevron-down'
   import ChevronRight from '@lucide/svelte/icons/chevron-right'
@@ -98,7 +99,7 @@
   {#if !workspace.info?.open}
     <EmptyState icon={FolderOpen} title="No folder open" description="Open a repository folder to lint its YAML." />
   {:else if lint.error}
-    <p class="error">{lint.error}</p>
+    <ErrorNote message={lint.error} retry={() => lint.runWorkspace()} />
   {:else if lint.results}
     <div class="filters">
       <SegmentedControl
@@ -235,18 +236,7 @@
     padding-bottom: var(--s-2);
   }
   .ok,
-  .error {
-    display: flex;
-    align-items: center;
-    gap: var(--s-2);
-    padding: var(--s-4) var(--s-5);
-    font-size: var(--fs-sm);
-    color: var(--fg-2);
-  }
   .ok :global(svg) {
     color: var(--ok);
-  }
-  .error {
-    color: var(--err);
   }
 </style>

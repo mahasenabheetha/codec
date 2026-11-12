@@ -13,7 +13,7 @@
   import type { ToolDef } from '../../lib/tools'
   import { copyText } from '../../lib/utils/clipboard'
   import { formatShortcut } from '../../lib/utils/platform'
-  import TextOutput from '../encode/TextOutput.svelte'
+  import TextOutput from '../shared/TextOutput.svelte'
   import ErrorBanner from '../shared/ErrorBanner.svelte'
   import InputPane from '../shared/InputPane.svelte'
   import Pane from '../shared/Pane.svelte'

@@ -15,7 +15,7 @@
   let { title, description, for: forId, details, children }: Props = $props()
 </script>
 
-<div class="row">
+<div class="row" data-setting={title}>
   <svelte:element this={forId ? 'label' : 'div'} class="label" for={forId}>
     <span class="title">{title}</span>
     {#if description}<small>{description}</small>{/if}
@@ -25,6 +25,16 @@
 </div>
 
 <style>
+  /* Reached from the palette: marked for a moment. */
+  .row:global(.found) {
+    animation: found 1.6s var(--ease);
+  }
+  @keyframes found {
+    from {
+      background: var(--accent-soft);
+      box-shadow: 0 0 0 var(--s-2) var(--accent-soft);
+    }
+  }
   /* The control moves under the text when both don't fit, rather than
      squeezing the text to a word a line (the page can be narrow beside
      the explorer, whatever the window's width). */

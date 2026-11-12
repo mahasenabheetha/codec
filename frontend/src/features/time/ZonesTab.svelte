@@ -415,6 +415,6 @@
     border-radius: 2px;
   }
   .sep {
-    color: var(--fg-3);
+    color: var(--fg-2);
   }
 </style>

@@ -5,12 +5,17 @@
 
 <script lang="ts">
   import { getContext, type Snippet } from 'svelte'
+  import Columns2 from '@lucide/svelte/icons/columns-2'
+  import Rows2 from '@lucide/svelte/icons/rows-2'
   import { hueVar, type ToolDef } from '../../lib/tools'
+  import IconButton from '../../lib/components/IconButton.svelte'
   import SplitPane from '../../lib/components/SplitPane.svelte'
+  import { paneLayout } from './panes.svelte'
 
-  // Standard tool page: title + toolbar, then input and output panes side
-  // by side, or one column (body) for tools whose input is a line or a
-  // small form.
+  // Standard tool page: title + toolbar, then input and output panes,
+  // resizable, side by side or one over the other (the button at the
+  // end of the toolbar; remembered per tool), or one column (body) for
+  // tools whose input is a line or a small form.
   interface Props {
     tool: ToolDef
     controls?: Snippet
@@ -26,6 +31,7 @@
   // A tool whose sub-tabs sit inside work tabs (JSON & YAML) gives the
   // strip through context, so every sub-tab's page shows it.
   const tabs = $derived(own ?? getContext<Snippet | undefined>(workTabsStripKey))
+  const stacked = $derived(paneLayout.of(tool.id) === 'column')
 </script>
 
 <div class="tool hued" style:--tool={hueVar(tool.hue)}>
@@ -37,13 +43,21 @@
     {#if controls}<div class="controls">{@render controls()}</div>{/if}
     <div class="spacer"></div>
     {#if actions}<div class="actions">{@render actions()}</div>{/if}
+    {#if !body && input && output}
+      <IconButton
+        icon={stacked ? Columns2 : Rows2}
+        label={stacked ? 'Input beside output' : 'Input over output'}
+        size="sm"
+        onclick={() => paneLayout.set(tool.id, stacked ? 'auto' : 'column')}
+      />
+    {/if}
   </header>
   {#if tabs}{@render tabs()}{/if}
   {#if body}
     <div class="body single">{@render body()}</div>
   {:else if input && output}
     <div class="body">
-      <SplitPane id={tool.id} first={input} second={output} />
+      <SplitPane id={tool.id} direction={paneLayout.of(tool.id)} first={input} second={output} />
     </div>
   {/if}
 </div>

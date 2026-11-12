@@ -583,3 +583,12 @@ Settled unless the user reopens them. Add new ones at the bottom:
     starts a fresh interval. All five themes (Paper, Forest, Rosé,
     Ocean, High contrast); the theme picker becomes a dropdown
     (2026-11-06).
+105. The interface refresh is two patch releases, 3.10.1 and 3.10.2,
+    against 73 (asked for 2026-11-12, after a review of the whole
+    frontend): a refresh of what exists, not a redesign, frontend only.
+    3.10.1 is the foundation every screen uses (tokens, shared parts,
+    panes that resize, the shell); 3.10.2 the views, one area at a
+    time. The tool hues show in Dark and Light too, restrained; type
+    grows with Interface size; a pane's size is a display preference
+    and is remembered, a tool's input still is not [19]. New features
+    the review suggested wait under "Later" (2026-11-12).

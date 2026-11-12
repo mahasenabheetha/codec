@@ -6,6 +6,91 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+## [3.10.1] - 2026-11-12
+
+The interface refreshed, first part: colour in every theme, one look
+for the parts every view shares, panes you can size, and a shell built
+around the tools you use. Frontend only; nothing about what codec reads
+or computes changes.
+
+### Added
+
+- **Pinned tools.** Pin a tool, or one sub-tab such as Cron, from its
+  menu on the rail (right-click, or Shift+F10) or its star on Home: it
+  goes to the top of the rail and of Home.
+- **Home finds tools.** A search box filters the tools by name, what
+  they do or a keyword; the tools opened last are listed under the
+  pinned ones.
+- **Tabs.** When they don't fit, a menu at the end lists them all, the
+  wheel scrolls the bar and the current tab stays in view. Drag a tab
+  to move it. Right-click for Close, Close the others, Close tabs to
+  the right and Close all. <kbd>Alt</kbd>+<kbd>]</kbd> and
+  <kbd>Alt</kbd>+<kbd>[</kbd> go to the next and previous tab,
+  <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>W</kbd> closes the current one.
+- **Palette.** The commands run last come first while nothing is
+  typed, and every setting has an entry ("Settings: Theme") that opens
+  the page on its row.
+
+### Changed
+
+- **Colour in every theme.** Dark and Light now show each tool and
+  action in its own colour, as Dusk does, with quieter fills; Light has
+  its own set, dark enough for white. One more colour, orchid, so no
+  two tools in a group of the rail share one. **Settings → Tool
+  colours** (and "Toggle tool colours" in the palette) turns them off
+  in any theme.
+- **Interface size → Large** makes the text a step bigger, not only the
+  controls.
+- Numbers keep one width, so counts, times and sizes don't shift as
+  they change; buttons and panels are a little rounder; a search match
+  is the same colour in the editor, log rows, Find in Files and the
+  source peek.
+- **Panes you can size.** Drag the line between two panes, or focus
+  it and use the arrow keys (Shift for bigger steps, Home and End for
+  the limits); a double click or Enter puts it back. Sizes are
+  remembered. New: the side, main and detail panes of the Argo,
+  pipeline, Compose and Ansible views (one size for all four), Helm's
+  options panel and its list of documents, the change list and the two
+  sides of Compare by structure, and the Log viewer's Source drawer.
+  Side panels keep their width when the window changes. Every tool
+  with an input and an output has a button at the end of its toolbar
+  to put the **input over the output** instead of beside it,
+  remembered per tool, with its own size. A grip in the middle of each
+  divider shows where to drag.
+- **Rail.** Settings, Keyboard shortcuts and Collapse are three icons in
+  a row at the bottom, so the list of tools has the room; where the
+  list scrolls on, its last row fades out.
+- The status bar's explanations are in the interface font, not the code
+  font.
+- **One look for the parts every view shares.** Text fields, text
+  areas and menus have the same frame everywhere and show a ring as
+  well as a border colour when focused. A failure is an icon, the
+  reason and, where there is one, **Try again** (Kubernetes, Kustomize,
+  the file tree, workspace problems, Clone), not a bare red line.
+  Presets and toggles (cron days and months, regex flags, password and
+  test-data presets) are one kind of chip. The Argo, pipeline, Compose,
+  Ansible, Kubernetes, Kustomize and Clone views share one header, and
+  say **What-if** the same way. "Working…" in a pane's header replaces
+  the spinners.
+
+### Fixed
+
+- **Helm:** the release's Name, Namespace and Kubernetes fields no
+  longer run past the side panel.
+- **Graphs** (Argo, pipelines, Compose, Ansible, Kubernetes): the node
+  whose details are showing has a firm outline; the graph fits again
+  when its pane or the window changes size, or its tab is first shown,
+  unless you have moved it; a graph too wide to fit starts at a size
+  you can read; arrowheads no longer depend on another open graph.
+- **Editor:** fold arrows sit on their line, not below its number.
+- **Log viewer:** an error row keeps its tint under the pointer; a
+  click on the chart no longer filters to one bucket (drag for a
+  range).
+- **Wellness:** − and + land on the step (1, 5, 10, not 1, 6, 11).
+- Borders and muted text in pipelines, Ansible, tables and Time zones
+  used a colour that did not exist and fell back to the text colour.
+- **Settings:** the theme's description names Mist.
+
 ## [3.10.0] - 2026-11-08
 
 Commands explained, built and found by what you want to do, for git,

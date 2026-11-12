@@ -65,8 +65,10 @@
     if (!drag) return
     const lo = Math.min(drag.a, drag.b)
     const hi = Math.max(drag.a, drag.b)
+    const dragged = drag.a !== drag.b
     drag = null
-    onrange(timeOf(lo), timeOf(hi + 1))
+    // A plain click is not a range (it used to filter to one bucket).
+    if (dragged) onrange(timeOf(lo), timeOf(hi + 1))
   }
 
   const days = $derived(n * histogram.stepMs > 86_400_000)

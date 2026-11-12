@@ -168,7 +168,7 @@
     align-items: center;
     justify-content: flex-end;
     padding: 0 var(--s-2);
-    color: var(--fg-3);
+    color: var(--fg-2);
     background: var(--bg-1);
     border-right: 1px solid var(--border);
   }
@@ -211,7 +211,7 @@
     flex: none;
     font-size: var(--fs-xs);
     font-weight: var(--fw-regular, 400);
-    color: var(--fg-3);
+    color: var(--fg-2);
   }
   .type.integer,
   .type.number,

@@ -212,7 +212,8 @@
   }
   .query:focus-within,
   .globs:focus {
-    border-color: var(--accent);
+    border-color: var(--tool-accent, var(--accent));
+    box-shadow: var(--focus-ring);
   }
   input {
     min-width: 0;
@@ -222,6 +223,7 @@
     color: var(--fg-0);
     background: none;
     border: none;
+    box-shadow: none;
     outline: none;
   }
   .query input {
@@ -332,9 +334,8 @@
   }
   mark {
     color: var(--fg-0);
-    background: var(--accent-soft);
+    background: var(--match-bg);
     border-radius: 2px;
-    box-shadow: 0 0 0 1px var(--accent-soft);
   }
   .hint {
     margin: var(--s-2) var(--s-3);

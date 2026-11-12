@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Working from '../../lib/components/Working.svelte'
   import { untrack } from 'svelte'
   import Copy from '@lucide/svelte/icons/copy'
   import Dices from '@lucide/svelte/icons/dices'
@@ -159,7 +160,7 @@
     <Pane title="QR code">
       {#snippet meta()}
         {#if code}<Badge>v{code.version} · {code.level}</Badge>{/if}
-        {#if job.busy}<span class="busy" aria-label="Working"></span>{/if}
+        {#if job.busy}<Working />{/if}
       {/snippet}
       {#snippet actions()}
         <Button size="sm" variant="ghost" icon={Download} disabled={!code} onclick={() => save('png')}>PNG</Button>
@@ -272,26 +273,5 @@
   .payload.masked {
     font-family: inherit;
     color: var(--fg-2);
-  }
-  .busy {
-    width: 12px;
-    height: 12px;
-    border: 2px solid var(--bg-4);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    opacity: 0;
-    animation:
-      spin 0.7s linear infinite,
-      appear 1ms 250ms forwards;
-  }
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-  @keyframes appear {
-    to {
-      opacity: 1;
-    }
   }
 </style>

@@ -25,6 +25,10 @@
       } catch (e) {
         document.documentElement.dataset.size = 'comfortable'
       }
+      // Tool colours off, likewise (lib/stores/colour.svelte.ts).
+      try {
+        if (localStorage.getItem('codec:toolColours') === 'false') document.documentElement.dataset.colour = 'plain'
+      } catch (e) {}
     </script>
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />

@@ -4,6 +4,7 @@
   import Kbd from '../components/Kbd.svelte'
   import { commands, type Command as Cmd } from '../stores/commands.svelte'
   import { layout } from '../stores/layout.svelte'
+  import { usage } from '../stores/usage.svelte'
 
   // Ctrl/⌘+K palette over every registered command. Filtering, ranking
   // and keyboard navigation come from Bits UI's Command component.
@@ -17,6 +18,11 @@
     }
     return [...byGroup]
   })
+
+  // The commands run last, first in the list while nothing is typed
+  // (3.10.1); one that is no longer registered (a closed tool's, a file
+  // of another folder) is left out.
+  const recent = $derived(search ? [] : usage.commands.map((id) => commands.list.find((c) => c.id === id)).filter((c): c is Cmd => !!c))
 
   // Land in the search box however the palette was opened. The dialog
   // content mounts a few frames after `open` flips (and after Bits UI's
@@ -39,6 +45,7 @@
   function run(cmd: Cmd) {
     layout.paletteOpen = false
     search = ''
+    usage.ran(cmd.id)
     // Let the dialog close (and return focus) before the command acts.
     setTimeout(cmd.run, 0)
   }
@@ -60,6 +67,20 @@
         <Command.List class="codec-palette-list">
           <Command.Viewport>
             <Command.Empty class="codec-palette-empty">No matching commands</Command.Empty>
+            {#if recent.length}
+              <Command.Group>
+                <Command.GroupHeading class="codec-palette-heading">Recent</Command.GroupHeading>
+                <Command.GroupItems>
+                  {#each recent as cmd (cmd.id)}
+                    <Command.Item value={'recent:' + cmd.id} keywords={[cmd.title]} onSelect={() => run(cmd)} class="codec-palette-item">
+                      {#if cmd.icon}<cmd.icon size={15} strokeWidth={1.75} />{/if}
+                      <span class="title">{cmd.title}</span>
+                      {#if cmd.shortcut}<Kbd combo={cmd.shortcut} />{/if}
+                    </Command.Item>
+                  {/each}
+                </Command.GroupItems>
+              </Command.Group>
+            {/if}
             {#each groups as [group, cmds] (group)}
               <Command.Group>
                 <Command.GroupHeading class="codec-palette-heading">{group}</Command.GroupHeading>

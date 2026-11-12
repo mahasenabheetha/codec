@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ErrorNote from '../../lib/components/ErrorNote.svelte'
   import Copy from '@lucide/svelte/icons/copy'
   import ShieldCheck from '@lucide/svelte/icons/shield-check'
   import { untrack } from 'svelte'
@@ -154,7 +155,7 @@ file C:\\Users\\jdoe\\src\\orders\\appsettings.json, from 203.0.113.9 via 52.174
     </div>
 
     {#if error}
-      <p class="error">{error}</p>
+      <ErrorNote message={error} />
     {/if}
     {#if findings.length}
       <Pane title="Found" grow={false}>
@@ -246,10 +247,6 @@ file C:\\Users\\jdoe\\src\\orders\\appsettings.json, from 203.0.113.9 via 52.174
   }
   .editor {
     height: 300px;
-  }
-  .error {
-    margin: 0;
-    color: var(--err);
   }
   .found {
     margin: 0;

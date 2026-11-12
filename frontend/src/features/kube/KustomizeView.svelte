@@ -1,4 +1,6 @@
 <script lang="ts">
+  import PanelHeader from '../../lib/components/PanelHeader.svelte'
+  import ErrorNote from '../../lib/components/ErrorNote.svelte'
   import { tick, untrack } from 'svelte'
   import { EditorView } from '@codemirror/view'
   import CircleCheck from '@lucide/svelte/icons/circle-check'
@@ -89,21 +91,22 @@
 </script>
 
 <div class="kz" class:inactive={!active}>
-  <header>
-    <Layers size={16} strokeWidth={1.75} />
-    <span class="title">Kustomize · {dir}</span>
-    {#if whatIf.length}<span title={whatIf.join('\n')}><Badge tone="warn">{whatIf.length} what-if</Badge></span>{/if}
-    <div class="spacer"></div>
+  <PanelHeader icon={Layers} title="Kustomize · {dir}">
+    {#snippet meta()}
+      {#if whatIf.length}<span title={whatIf.join('\n')}><Badge tone="warn">What-if · {whatIf.length}</Badge></span>{/if}
+    {/snippet}
+    {#snippet actions()}
     <span class="status" role="status">
       {#if building && !data}Building…
       {:else if data?.error}<span class="err"><CircleX size={12} strokeWidth={2} /> Build failed</span>
       {:else if data}<span class="ok"><CircleCheck size={12} strokeWidth={2} /></span> {data.cards.length} objects · {ms} ms{/if}
     </span>
     <IconButton icon={RefreshCw} label="Build again" size="sm" onclick={build} />
-  </header>
+    {/snippet}
+  </PanelHeader>
 
   {#if error}
-    <p class="error">{error}</p>
+    <ErrorNote message={error} retry={build} />
   {:else if data?.error}
     <EmptyState icon={CircleX} title="Can't build this kustomization" description={data.error} />
   {:else if data}
@@ -143,19 +146,6 @@
     display: flex;
     flex-direction: column;
     min-height: 0;
-  }
-  header {
-    display: flex;
-    align-items: center;
-    gap: var(--s-2);
-    padding: var(--s-2) var(--s-4);
-    border-bottom: 1px solid var(--border);
-  }
-  .title {
-    font-weight: var(--fw-semibold);
-  }
-  .spacer {
-    flex: 1;
   }
   .status {
     display: inline-flex;
@@ -205,9 +195,5 @@
     gap: var(--s-2);
     padding: var(--s-4);
     font-size: var(--fs-sm);
-  }
-  .error {
-    padding: var(--s-4);
-    color: var(--err);
   }
 </style>

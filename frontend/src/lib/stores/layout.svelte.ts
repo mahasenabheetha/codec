@@ -4,6 +4,7 @@
 
 import { persisted } from './persist.svelte'
 import { router, fileRoute, helmRoute } from './router.svelte'
+import { usage } from './usage.svelte'
 
 const railCollapsed = persisted('railCollapsed', false)
 const explorerOpen = persisted('explorerOpen', true)
@@ -86,6 +87,7 @@ class Layout {
   /** Open a tool, on one of its sub-tabs when tab is given. */
   openTool(id: string, tab?: string) {
     if (tab) this.setToolTab(id, tab)
+    usage.opened(tab ? id + '.' + tab : id)
     this.open('/tools/' + id)
   }
 
@@ -120,6 +122,43 @@ class Layout {
       // Focus the neighbour, like an editor does; home if none left.
       router.go(next[Math.min(i, next.length - 1)] ?? '/')
     }
+  }
+
+  /** Move a tab to another tab's place (dragged along the tab bar). */
+  moveTab(route: string, before: string) {
+    if (route === before) return
+    const tabs = openTabs.value.filter((t) => t !== route)
+    const at = tabs.indexOf(before)
+    if (at < 0) return
+    // Dropped on a tab to its right, it lands after it; to its left, before.
+    const from = openTabs.value.indexOf(route)
+    const to = openTabs.value.indexOf(before)
+    tabs.splice(from < to ? at + 1 : at, 0, route)
+    openTabs.value = tabs
+  }
+
+  /** The tab after (1) or before (-1) the current one, round the ends. */
+  step(by: 1 | -1) {
+    const tabs = openTabs.value
+    if (!tabs.length) return
+    const i = tabs.indexOf(router.path)
+    router.go(tabs[(i + by + tabs.length) % tabs.length] ?? tabs[0])
+  }
+
+  closeOthers(route: string) {
+    openTabs.value = openTabs.value.filter((t) => t === route)
+    if (router.path !== route) router.go(route)
+  }
+  closeRight(route: string) {
+    const i = openTabs.value.indexOf(route)
+    if (i < 0) return
+    const gone = openTabs.value.slice(i + 1)
+    openTabs.value = openTabs.value.slice(0, i + 1)
+    if (gone.includes(router.path)) router.go(route)
+  }
+  closeAll() {
+    openTabs.value = []
+    router.go('/')
   }
 
   /** Close every tab whose route matches, e.g. all file tabs. */

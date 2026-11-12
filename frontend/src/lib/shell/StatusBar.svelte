@@ -228,8 +228,8 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-family: var(--font-mono);
     font-size: var(--fs-xs);
+    color: var(--fg-1);
   }
   .ws,
   .warn-btn {

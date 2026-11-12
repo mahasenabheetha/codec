@@ -14,7 +14,7 @@
   import { Job, TextJob } from '../shared/job.svelte'
   import { samples } from '../shared/samples'
   import { toolCommands, toolShortcuts, toolStatus } from '../shared/tool.svelte'
-  import TextOutput from './TextOutput.svelte'
+  import TextOutput from '../shared/TextOutput.svelte'
 
   let { tool, active }: { tool: ToolDef; active: boolean } = $props()
 

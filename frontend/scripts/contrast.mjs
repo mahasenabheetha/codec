@@ -78,7 +78,7 @@ function check(theme, fgName, bgName, min, max = Infinity) {
 
 const surfaces = ['--bg-0', '--bg-1', '--bg-2', '--bg-3']
 const status = ['--ok', '--warn', '--err', '--info']
-const hues = ['indigo', 'violet', 'pink', 'peach', 'lime', 'teal', 'cyan'].map((h) => '--hue-' + h)
+const hues = ['indigo', 'violet', 'orchid', 'pink', 'peach', 'lime', 'teal', 'cyan'].map((h) => '--hue-' + h)
 for (const theme of Object.keys(themes)) {
   const t = themes[theme]
   for (const bg of surfaces) for (const fg of ['--fg-0', '--fg-1', '--fg-2']) check(theme, fg, bg, 4.5)
@@ -93,6 +93,14 @@ for (const theme of Object.keys(themes)) {
   check(theme, '--hours-work-fg', '--hours-work', 4.5)
   check(theme, '--fg-0', '--hours-edge', 4.5)
   check(theme, '--hours-together-fg', '--hours-together', 4.5)
+}
+// Dark and Light show the hues too since 3.10.1 (decision 105): as icons
+// on the rail and panels, and as the fill of a tool's primary button.
+for (const theme of ['dark', 'light']) {
+  for (const h of hues) {
+    for (const bg of ['--bg-0', '--bg-1', '--bg-2']) check(theme, h, bg, 4.5)
+    check(theme, '--accent-fg', h, 4.5)
+  }
 }
 // Dusk shows the hues: as icons and text on panels, and as the fill of a
 // tool's primary button. And it stays soft: body text about 10:1, at

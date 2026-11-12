@@ -1,4 +1,7 @@
 <script lang="ts">
+  import Working from '../../lib/components/Working.svelte'
+  import PanelHeader from '../../lib/components/PanelHeader.svelte'
+  import ErrorNote from '../../lib/components/ErrorNote.svelte'
   import { untrack } from 'svelte'
   import Boxes from '@lucide/svelte/icons/boxes'
   import RefreshCw from '@lucide/svelte/icons/refresh-cw'
@@ -61,16 +64,17 @@
 </script>
 
 <div class="k8s" class:inactive={!active}>
-  <header>
-    <Boxes size={16} strokeWidth={1.75} />
-    <span class="title">Kubernetes · {path === '.' ? ws.info?.name ?? 'workspace' : path}</span>
-    {#if data}<span class="muted">{data.cards.length} objects</span>{/if}
-    {#if loading}<span class="muted">Loading…</span>{/if}
-    <div class="spacer"></div>
-    <IconButton icon={RefreshCw} label="Reload" size="sm" onclick={load} />
-  </header>
+  <PanelHeader icon={Boxes} title="Kubernetes · {path === '.' ? (ws.info?.name ?? 'workspace') : path}">
+    {#snippet meta()}
+      {#if data}<span>{data.cards.length} objects</span>{/if}
+      {#if loading && data}<Working label="Reading…" />{/if}
+    {/snippet}
+    {#snippet actions()}
+      <IconButton icon={RefreshCw} label="Reload" size="sm" onclick={load} />
+    {/snippet}
+  </PanelHeader>
   {#if error}
-    <p class="error">{error}</p>
+    <ErrorNote message={error} retry={load} />
   {:else if data}
     <div class="body"><ResourcesView {data} onopen={open} /></div>
   {:else}
@@ -88,29 +92,8 @@
     flex-direction: column;
     min-height: 0;
   }
-  header {
-    display: flex;
-    align-items: center;
-    gap: var(--s-2);
-    padding: var(--s-2) var(--s-4);
-    border-bottom: 1px solid var(--border);
-  }
-  .title {
-    font-weight: var(--fw-semibold);
-  }
-  .muted {
-    font-size: var(--fs-sm);
-    color: var(--fg-2);
-  }
-  .spacer {
-    flex: 1;
-  }
   .body {
     flex: 1;
     min-height: 0;
-  }
-  .error {
-    padding: var(--s-4);
-    color: var(--err);
   }
 </style>

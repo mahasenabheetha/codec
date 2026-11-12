@@ -11,22 +11,37 @@
   import Settings2 from '@lucide/svelte/icons/settings-2'
   import PanelLeftClose from '@lucide/svelte/icons/panel-left-close'
   import PanelLeftOpen from '@lucide/svelte/icons/panel-left-open'
+  import Pin from '@lucide/svelte/icons/pin'
+  import PinOff from '@lucide/svelte/icons/pin-off'
   import type { Component } from 'svelte'
+  import ContextMenu, { type MenuEntry } from '../components/ContextMenu.svelte'
   import Tooltip from '../components/Tooltip.svelte'
+  import { usage } from '../stores/usage.svelte'
   import { workspace } from '../../features/workspace/workspace.svelte'
   import { finder } from '../../features/search/search.svelte'
   import { layout } from '../stores/layout.svelte'
   import { compareRoute, settingsRoute, newRoute, problemsRoute, queryRoute, router } from '../stores/router.svelte'
-  import { hueVar, toolGroups, viewHue, type Hue } from '../tools'
+  import { entryByKey, hueVar, toolGroups, viewHue, type Hue, type ToolEntry } from '../tools'
   import { chain } from '../utils/events'
 
   const groups = toolGroups()
   const collapsed = $derived(layout.railCollapsed)
+
+  // Pinned tools and sub-tabs, first on the rail (3.10.1): pin one from
+  // its menu here (right-click, or Shift+F10) or its star on Home.
+  const pins = $derived(usage.pinned.map(entryByKey).filter((e): e is ToolEntry => !!e))
+
+  function menuFor(e: MouseEvent): MenuEntry[] {
+    const key = (e.target as HTMLElement).closest<HTMLElement>('[data-pin]')?.dataset.pin
+    if (!key) return []
+    const on = usage.isPinned(key)
+    return [{ label: on ? 'Unpin from the top' : 'Pin to the top', icon: on ? PinOff : Pin, run: () => usage.togglePin(key) }]
+  }
 </script>
 
-{#snippet item(icon: Component, label: string, selected: boolean, onclick: () => void, shortcut?: string, hue?: Hue)}
+{#snippet item(icon: Component, label: string, selected: boolean, onclick: () => void, shortcut?: string, hue?: Hue, pin?: string, bare = false)}
   {@const Icon = icon}
-  <Tooltip text={label} {shortcut} side="right" off={!collapsed}>
+  <Tooltip text={label} {shortcut} side={bare && !collapsed ? 'top' : 'right'} off={!collapsed && !bare}>
     {#snippet children(props)}
       <button
         {...props}
@@ -34,13 +49,15 @@
         class="item"
         class:selected
         class:hued={!!hue}
+        class:bare
         style:--tool={hue && hueVar(hue)}
         aria-current={selected ? 'page' : undefined}
         aria-label={label}
+        data-pin={pin}
         onclick={chain(props.onclick, onclick)}
       >
         <Icon size={17} strokeWidth={1.75} />
-        {#if !collapsed}<span class="label">{label}</span>{/if}
+        {#if !collapsed && !bare}<span class="label">{label}</span>{/if}
       </button>
     {/snippet}
   </Tooltip>
@@ -53,7 +70,19 @@
   </div>
 
   <div class="items">
+   <ContextMenu label="Tool" items={menuFor}>
     {@render item(House, 'Home', router.path === '/', () => router.go('/'))}
+
+    {#if pins.length}
+      {#if collapsed}
+        <div class="sep" role="separator"></div>
+      {:else}
+        <div class="group">Pinned</div>
+      {/if}
+      {#each pins as p (p.key)}
+        {@render item(p.icon, p.title, router.toolId === p.tool && (!p.tab || layout.toolTab(p.tool) === p.tab), () => layout.openTool(p.tool, p.tab), undefined, p.hue, p.key)}
+      {/each}
+    {/if}
 
     {#if collapsed}
       <div class="sep" role="separator"></div>
@@ -78,20 +107,26 @@
         <div class="group">{g.group}</div>
       {/if}
       {#each g.tools as t (t.id)}
-        {@render item(t.icon, t.title, router.toolId === t.id, () => layout.openTool(t.id), undefined, t.hue)}
+        {@render item(t.icon, t.title, router.toolId === t.id, () => layout.openTool(t.id), undefined, t.hue, t.id)}
       {/each}
     {/each}
+   </ContextMenu>
   </div>
 
+  <!-- Three icons in a row while the rail is open (a column when it is
+       collapsed): the list above keeps the room. -->
   <div class="bottom">
-    {@render item(Settings2, 'Settings', router.path === settingsRoute, () => layout.open(settingsRoute), 'Mod+,')}
-    {@render item(Keyboard, 'Keyboard shortcuts', false, () => (layout.shortcutsOpen = true), '?')}
+    {@render item(Settings2, 'Settings', router.path === settingsRoute, () => layout.open(settingsRoute), 'Mod+,', undefined, undefined, true)}
+    {@render item(Keyboard, 'Keyboard shortcuts', false, () => (layout.shortcutsOpen = true), '?', undefined, undefined, true)}
     {@render item(
       collapsed ? PanelLeftOpen : PanelLeftClose,
       collapsed ? 'Expand sidebar' : 'Collapse sidebar',
       false,
       () => layout.toggleRail(),
       'Mod+B',
+      undefined,
+      undefined,
+      true,
     )}
   </div>
 </nav>
@@ -134,9 +169,13 @@
     gap: 2px;
     overflow-y: auto;
     overflow-x: hidden;
+    /* The last entries fade out where the list scrolls on, so a cut-off
+       row reads as "more below", not as a broken one. */
+    padding-bottom: var(--s-3);
+    mask-image: linear-gradient(to bottom, #000 calc(100% - var(--s-4)), transparent);
   }
   .group {
-    margin: var(--s-4) 0 var(--s-1);
+    margin: var(--s-3) 0 var(--s-1);
     padding: 0 var(--s-2);
     font-size: var(--fs-xs);
     font-weight: var(--fw-semibold);
@@ -198,9 +237,15 @@
   }
   .bottom {
     display: flex;
-    flex-direction: column;
     gap: 2px;
     padding-top: var(--s-2);
     border-top: 1px solid var(--border);
+  }
+  .collapsed .bottom {
+    flex-direction: column;
+  }
+  .item.bare {
+    justify-content: center;
+    padding: 0;
   }
 </style>

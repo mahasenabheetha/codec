@@ -6,7 +6,7 @@
   import { queryJSON } from '../../lib/api/json'
   import type { ToolDef } from '../../lib/tools'
   import { copyText } from '../../lib/utils/clipboard'
-  import TextOutput from '../encode/TextOutput.svelte'
+  import TextOutput from '../shared/TextOutput.svelte'
   import InputPane from '../shared/InputPane.svelte'
   import LineInput from '../shared/LineInput.svelte'
   import ToolLayout from '../shared/ToolLayout.svelte'

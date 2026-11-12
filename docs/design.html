@@ -78,6 +78,7 @@
 
 <h2 id="colour">Colour<a class="anchor" href="#colour">#</a></h2>
 <p>codec is dark by default, with more themes in Settings: <strong>Dusk</strong>, a softer, colourful dark theme for long days (a muted blue-violet ground, off-white text at about 10:1 instead of 16:1, pastel colours, each tool and kind of action in its own colour); <strong>Midnight</strong>, <strong>Forest</strong>, <strong>Rosé</strong> and <strong>Ocean</strong>, the same colours on deep navy, green-grey, pink-violet and deep blue grounds; <strong>High contrast</strong>, black and white with every text at least 7:1; <strong>Light</strong>; and <strong>Paper</strong>, a warm, low-glare light theme in which the tools keep their colours. System follows the operating system, using the light and the dark theme you choose for it. Depth comes from stepping surfaces, not from shadows; the one soft shadow is kept for popovers and dialogs. Every colour is a named token; components never use raw colours.</p>
+<p><strong>Colour has three jobs, kept apart.</strong> Each tool has its own colour (eight of them: indigo, violet, orchid, pink, peach, lime, teal, cyan), shown on the rail, its tab, its Home card and its page, in every theme; each kind of action has a tone (copy, clear, save, swap, open, add, run); and the status colours below are used by no tool, so a colour never suggests a problem that isn't there. <em>Settings → Tool colours</em> turns the first two off, and everything takes the theme's accent.</p>
 <h3 id="surfaces">Surfaces and text<a class="anchor" href="#surfaces">#</a></h3>
 <div class="swatches">
   <div class="swatch"><span style="background:#0b0d12"></span><div><code>--bg-0</code><br>app, rail</div></div>
@@ -113,12 +114,12 @@
 
 <h2 id="type">Type and spacing<a class="anchor" href="#type">#</a></h2>
 <ul>
-  <li><strong>UI:</strong> Inter, 13 px with 1.5 line height; 11 and 12 px for small text; 14, 16, 20 and 28 px for headings.</li>
-  <li><strong>Code:</strong> JetBrains Mono, 13 px with 1.55 line height. Both fonts are bundled; nothing loads from the internet.</li>
+  <li><strong>UI:</strong> Inter, 13 px with 1.5 line height; 11 and 12 px for small text; 14, 16, 20 and 28 px for headings. Interface size Large makes each a step bigger. Figures keep one width, so counts and times don't shift as they change.</li>
+  <li><strong>Code:</strong> JetBrains Mono, 13 px with 1.55 line height, for code, paths and values, never for sentences. Both fonts are bundled; nothing loads from the internet.</li>
   <li><strong>Spacing:</strong> a 4 px scale (4, 8, 12, 16, 20, 24, 32, 48).</li>
-  <li><strong>Radius:</strong> 4 px for inputs, 6 px for buttons, 10 px for panels and dialogs.</li>
-  <li><strong>Controls:</strong> 28 px tall (24 px compact).</li>
-  <li><strong>Motion:</strong> 120 ms ease-out, and none at all when the system asks for reduced motion.</li>
+  <li><strong>Radius:</strong> 4 px for inputs, 8 px for buttons, 12 px for panels and cards, 16 px for dialogs.</li>
+  <li><strong>Controls:</strong> 28, 32 or 36 px tall for Compact, Comfortable (the default) and Large.</li>
+  <li><strong>Motion:</strong> 80 ms for hovers, 120 ms for most changes, 240 ms for things that move across the screen, and none at all when the system asks for reduced motion.</li>
 </ul>
 
 <h2 id="layout">Layout<a class="anchor" href="#layout">#</a></h2>
@@ -139,10 +140,11 @@
   <text class="sm" x="24" y="310">Status bar: file type · path at the cursor · problem counts · folder and watch state · version</text>
 </svg>
 </div>
-<p>All panes resize and collapse, and their sizes persist. Lens views use a consistent three-part layout: a side panel of inputs and summaries, a main area (graph or list), and details for the selected item.</p>
+<p><strong>Every pane resizes.</strong> Drag the line between two panes (a grip in its middle shows where), or focus it and use the arrow keys (<kbd>Shift</kbd> for bigger steps, <kbd>Home</kbd> and <kbd>End</kbd> for the limits); a double click or <kbd>Enter</kbd> puts it back. Sizes are remembered, side panels keep their width when the window changes, and panes stack when there is no room side by side. A tool's input can sit beside its output or over it (the button at the end of its toolbar). Lens views use one three-part layout: a side panel of inputs and summaries, a main area (graph or list), and details for the selected item.</p>
+<p><strong>The shell is built around what you use.</strong> The rail lists Home, your pinned tools, the workspace views and every tool by group. Tabs that don't fit scroll and are listed under a count at the end; drag one to move it, right-click it to close it, the others or all. Home finds a tool by name or by what it does, and shows the pinned ones and the ones opened lately first. The palette (<kbd>Ctrl</kbd> <kbd>K</kbd>) lists every action, tool and setting, the ones run last first.</p>
 
 <h2 id="components">Components<a class="anchor" href="#components">#</a></h2>
-<p>Every screen is built from one shared set: buttons (primary, secondary, ghost), icon buttons with tooltips, tabs, segmented controls, selects, toggles, search inputs, split panes, the tree (keyboard navigable, windowed for long lists), the code view (CodeMirror), the graph (automatic layout, pan and zoom, hover highlights neighbours), popovers, context menus, dialogs, toasts (with an optional Undo), badges with file-type logos, empty states and skeletons.</p>
+<p>Every screen is built from one shared set: buttons (primary, secondary, ghost), icon buttons with tooltips, tabs, segmented controls, selects, toggles, text fields with one frame and one focus ring, chips (presets and toggles), search inputs, split panes, a view header, the tree (keyboard navigable, windowed for long lists), the code view (CodeMirror), the graph (automatic layout, pan and zoom, hover highlights neighbours), popovers, context menus, dialogs, toasts (with an optional Undo), badges with file-type logos, empty states and skeletons.</p>
 <ul>
   <li><strong>Icons:</strong> Lucide, 16 px, 1.75 stroke, in the current text colour.</li>
   <li><strong>Logos:</strong> the official marks of Kubernetes, Helm, Argo, GitHub Actions, GitLab, Azure Pipelines, Ansible and Docker, used only to label file types, in brand colours adjusted for contrast in each theme.</li>
@@ -152,15 +154,16 @@
 <div class="table-wrap"><table>
   <tr><th>State</th><th>Pattern</th></tr>
   <tr><td>Empty</td><td>An icon, one sentence of what goes here, and the action that fills it ("Open folder", "Try the sample").</td></tr>
-  <tr><td>Loading</td><td>Skeleton blocks in the shape of the content; small "Reading…" text only for refreshes of content already shown.</td></tr>
-  <tr><td>Error</td><td>What failed in plain words, the reason if known, and a way forward ("Try again", a link to the line).</td></tr>
+  <tr><td>Loading</td><td>Skeleton blocks in the shape of the content; small "Working…" or "Reading…" text in the header only for content already shown that is being worked out again. Never a spinner.</td></tr>
+  <tr><td>Error</td><td>An icon, what failed in plain words, the reason if known, and a way forward ("Try again", a link to the line). The same everywhere.</td></tr>
   <tr><td>Success</td><td>Quiet: a green check and a count ("No problems found"), never a modal.</td></tr>
 </table></div>
 
 <h2 id="a11y">Accessibility<a class="anchor" href="#a11y">#</a></h2>
 <ul>
   <li>Text meets 4.5:1 contrast on its surface (muted text included, on every surface but pressed states).</li>
-  <li>A 2 px accent focus ring on keyboard focus, never removed without a visible replacement.</li>
+  <li>A 2 px accent focus ring on keyboard focus, never removed without a visible replacement; a text field shows its border colour and a ring.</li>
+  <li>Dividers between panes are focusable and move with the arrow keys.</li>
   <li>Every control has an accessible name; icon-only buttons have labels and tooltips.</li>
   <li>Trees, lists, tabs and radio groups follow the WAI-ARIA patterns for keyboard use.</li>
   <li>Reduced motion is respected.</li>

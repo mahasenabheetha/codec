@@ -237,7 +237,8 @@
     border-radius: var(--r-md);
   }
   .box:focus-within {
-    border-color: var(--accent);
+    border-color: var(--tool-accent, var(--accent));
+    box-shadow: var(--focus-ring);
   }
   .box.invalid {
     border-color: var(--err);
@@ -252,6 +253,7 @@
     color: var(--fg-0);
     background: transparent;
     border: none;
+    box-shadow: none;
     outline: none;
   }
   .suggestions {

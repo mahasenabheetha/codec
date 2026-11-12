@@ -1,9 +1,11 @@
 <script lang="ts">
   import type { Snippet } from 'svelte'
+  import ThreePanes from './ThreePanes.svelte'
 
   // The layout of a lens view: facts and problems on the side, the
   // main view (a graph, a tree, tables), and the selected item's
-  // details — three columns when wide, stacked when narrow. Children
+  // details — three resizable panes (ThreePanes): three columns when
+  // wide, the details under the main view when narrower. Children
   // share the small vocabulary styled below (h3, .note, .mono, .link,
   // dl, .tbl, .muted, .count, .bar).
   interface Props {
@@ -17,46 +19,18 @@
   let { side, main, detail, sideLabel, detailLabel }: Props = $props()
 </script>
 
+{#snippet sidePane()}<aside class="side" aria-label={sideLabel}>{@render side()}</aside>{/snippet}
+{#snippet mainPane()}<main class="main">{@render main()}</main>{/snippet}
+{#snippet detailPane()}<aside class="detail" aria-label={detailLabel}>{@render detail()}</aside>{/snippet}
+
 <div class="lens">
-  <div class="grid">
-    <aside class="side" aria-label={sideLabel}>{@render side()}</aside>
-    <main class="main">{@render main()}</main>
-    <aside class="detail" aria-label={detailLabel}>{@render detail()}</aside>
-  </div>
+  <ThreePanes id="lens" side={sidePane} main={mainPane} detail={detailPane} />
 </div>
 
 <style>
   .lens {
     height: 100%;
     min-height: 0;
-    container-type: inline-size;
-  }
-  .grid {
-    height: 100%;
-    min-height: 0;
-    display: grid;
-    grid-template-columns: minmax(200px, 260px) minmax(0, 1fr);
-    grid-template-rows: minmax(0, 1fr) minmax(0, 50%);
-    grid-template-areas: 'side main' 'side detail';
-  }
-  @container (min-width: 1100px) {
-    .grid {
-      grid-template-columns: minmax(240px, 300px) minmax(0, 1fr) minmax(360px, 460px);
-      grid-template-rows: minmax(0, 1fr);
-      grid-template-areas: 'side main detail';
-    }
-    .detail {
-      border-top: none !important;
-      border-left: 1px solid var(--border);
-    }
-  }
-  @container (max-width: 560px) {
-    .grid {
-      grid-template-columns: minmax(0, 1fr);
-      grid-template-rows: auto minmax(300px, 1fr) auto;
-      grid-template-areas: 'side' 'main' 'detail';
-      overflow: auto;
-    }
   }
   .side,
   .detail {
@@ -65,16 +39,7 @@
     padding: var(--s-3);
     background: var(--bg-1);
   }
-  .side {
-    grid-area: side;
-    border-right: 1px solid var(--border);
-  }
-  .detail {
-    grid-area: detail;
-    border-top: 1px solid var(--border);
-  }
   .main {
-    grid-area: main;
     display: flex;
     flex-direction: column;
     min-width: 0;

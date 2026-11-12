@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { persisted } from '../../lib/stores/persist.svelte'
+  import ErrorNote from '../../lib/components/ErrorNote.svelte'
   import { untrack } from 'svelte'
   import Braces from '@lucide/svelte/icons/braces'
   import PinIcon from '@lucide/svelte/icons/pin'
@@ -63,6 +65,23 @@
   // piece of it selected appears in the folder; another entry closes it.
   type Drawer = { kind: 'ref'; ref: SourceRef } | { kind: 'search'; text: string } | { kind: 'line' }
   let drawer = $state<Drawer | null>(null)
+  // How much of the panel the Source drawer takes: dragged at its top
+  // edge, remembered (a display preference).
+  const sourceShare = persisted('logSourceShare', 0.55)
+  let sizing = $state(false)
+  const share = (r: number) => Math.min(0.85, Math.max(0.2, r))
+  function sizeTo(e: PointerEvent) {
+    if (!sizing || !aside) return
+    const r = aside.getBoundingClientRect()
+    sourceShare.value = share(1 - (e.clientY - r.top) / r.height)
+  }
+  function sizeKey(e: KeyboardEvent) {
+    if (e.key === 'ArrowUp') sourceShare.value = share(sourceShare.value + 0.04)
+    else if (e.key === 'ArrowDown') sourceShare.value = share(sourceShare.value - 0.04)
+    else if (e.key === 'Enter') sourceShare.value = 0.55
+    else return
+    e.preventDefault()
+  }
   $effect(() => {
     void index
     drawer = null
@@ -265,7 +284,7 @@
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div class="body" bind:this={body} onmouseup={checkSelection} onkeyup={checkSelection} onscroll={() => (picked = null)}>
     {#if error}
-      <p class="err">{error}</p>
+      <ErrorNote message={error} />
     {:else if entry}
       {#if prettyMessage}
         <pre class="message json">{prettyMessage}</pre>
@@ -339,7 +358,31 @@
     >
   {/if}
   {#if drawer}
-    <div class="source">
+    <div class="source" style:height="{sourceShare.value * 100}%">
+      <!-- The window-splitter pattern, as in SplitPane. -->
+      <!-- svelte-ignore a11y_no_noninteractive_tabindex, a11y_no_noninteractive_element_interactions -->
+      <div
+        class="sizer"
+        class:sizing
+        role="separator"
+        aria-orientation="horizontal"
+        aria-label="Resize the source drawer"
+        aria-valuenow={Math.round(sourceShare.value * 100)}
+        aria-valuemin={20}
+        aria-valuemax={85}
+        title="Drag to resize; double-click to reset"
+        tabindex="0"
+        onpointerdown={(e) => {
+          e.preventDefault()
+          sizing = true
+          e.currentTarget.setPointerCapture(e.pointerId)
+        }}
+        onpointermove={sizeTo}
+        onpointerup={() => (sizing = false)}
+        onpointercancel={() => (sizing = false)}
+        ondblclick={() => (sourceShare.value = 0.55)}
+        onkeydown={sizeKey}
+      ></div>
       {#if drawer.kind === 'ref'}
         <SourceDrawer title="{drawer.ref.path}:{drawer.ref.line}" items={refItems} onclose={() => (drawer = null)} />
       {:else if drawer.kind === 'line'}
@@ -522,9 +565,6 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .err {
-    color: var(--err);
-  }
   .find {
     position: absolute;
     z-index: var(--z-popover);
@@ -547,10 +587,28 @@
     color: var(--fg-2);
   }
   .source {
+    position: relative;
     flex: none;
-    height: 55%;
     min-height: 160px;
     overflow: hidden;
     border-radius: 0 0 var(--r-md) var(--r-md);
+  }
+  /* The drawer's top edge: drag it to give the source more or less room. */
+  .sizer {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 7px;
+    z-index: var(--z-sticky);
+    cursor: row-resize;
+    touch-action: none;
+  }
+  .sizer:hover,
+  .sizer.sizing,
+  .sizer:focus-visible {
+    outline: none;
+    background: var(--tool-accent, var(--accent));
+    opacity: 0.6;
   }
 </style>

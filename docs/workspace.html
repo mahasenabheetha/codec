@@ -164,8 +164,12 @@
 </ul>
 <p>What-if edits live in the tab until you reset or close it. The dot on the tab shows a file has them.</p>
 
+<h2 id="tabs">Tabs and panes<a class="anchor" href="#tabs">#</a></h2>
+<p>Every file, view and tool opens as a tab and keeps its state while the tab is open. When the tabs don't fit, the bar scrolls (the mouse wheel moves it), the current tab stays in view and a count at the end lists them all. Drag a tab to move it; right-click it (or <kbd>Shift</kbd> <kbd>F10</kbd>) for Close, Close the others, Close tabs to the right and Close all. <kbd>Alt</kbd> <kbd>]</kbd> and <kbd>Alt</kbd> <kbd>[</kbd> go to the next and previous tab, <kbd>Alt</kbd> <kbd>Shift</kbd> <kbd>W</kbd> closes the current one.</p>
+<p>Panes resize: the explorer, the outline panel, the three parts of the Helm, Argo, pipeline, Compose and Ansible views, and the sides of a comparison. Drag the line between two panes, or focus it and use the arrow keys (<kbd>Shift</kbd> for bigger steps, <kbd>Home</kbd> and <kbd>End</kbd> for the limits); a double click or <kbd>Enter</kbd> puts it back. Sizes are remembered.</p>
+
 <h2 id="palette">The command palette<a class="anchor" href="#palette">#</a></h2>
-<p><kbd>Ctrl</kbd> <kbd>K</kbd> searches every action: open a folder, lint the workspace, render any chart, open any workflow, pipeline, Compose file or playbook in its view, build a Kustomize overlay, the file actions of the current tab, settings and tools.</p>
+<p><kbd>Ctrl</kbd> <kbd>K</kbd> searches every action: open a folder, lint the workspace, render any chart, open any workflow, pipeline, Compose file or playbook in its view, build a Kustomize overlay, the file actions of the current tab, settings and tools. While nothing is typed, the commands you ran last come first. Every setting has its own entry: "Settings: Theme" opens Settings on that row.</p>
 <figure>
   <img src="images/palette.png" alt="The command palette filtered by 'argo', listing each Argo file's view" width="1400" height="820" loading="lazy">
   <figcaption>Typing "argo" lists every Argo file's view, plus related actions.</figcaption>

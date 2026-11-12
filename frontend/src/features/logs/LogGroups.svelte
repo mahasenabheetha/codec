@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ErrorNote from '../../lib/components/ErrorNote.svelte'
   import CircleCheck from '@lucide/svelte/icons/circle-check'
   import FunnelPlus from '@lucide/svelte/icons/funnel-plus'
   import EmptyState from '../../lib/components/EmptyState.svelte'
@@ -40,7 +41,7 @@
 
 <div class="groups">
   {#if error}
-    <p class="err">{error}</p>
+    <ErrorNote message={error} />
   {:else if groups && !groups.length}
     <EmptyState icon={CircleCheck} title="No warnings or errors" description="Among the entries the query matches." />
   {:else if groups}
@@ -166,9 +167,5 @@
   .show:hover {
     color: var(--fg-0);
     border-color: var(--border-strong);
-  }
-  .err {
-    padding: var(--s-3);
-    color: var(--err);
   }
 </style>

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ErrorNote from '../../lib/components/ErrorNote.svelte'
   import { SvelteSet } from 'svelte/reactivity'
   import ChevronsDownUp from '@lucide/svelte/icons/chevrons-down-up'
   import FileText from '@lucide/svelte/icons/file-text'
@@ -172,7 +173,7 @@
         {#each [70, 55, 80, 45, 65, 50, 75] as w, i (i)}<span style="width: {w}%"></span>{/each}
       </div>
     {:else if ws.treeError && ws.files.length === 0}
-      <p class="error">{ws.treeError}</p>
+      <ErrorNote message={ws.treeError} retry={() => ws.loadTree()} />
     {:else if rows.length === 0}
       <p class="hint">{filtering ? 'No files of the selected types.' : 'No files here (after .gitignore).'}</p>
     {:else}
@@ -352,14 +353,6 @@
     }
   }
   .hint,
-  .error {
-    padding: var(--s-3);
-    font-size: var(--fs-sm);
-    color: var(--fg-2);
-  }
-  .error {
-    color: var(--err);
-  }
   .recent {
     padding: 0 var(--s-2) var(--s-4);
   }

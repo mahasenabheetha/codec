@@ -20,7 +20,9 @@ body {
   line-height: var(--lh);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-feature-settings: 'cv11', 'ss01'; /* Inter: straight-sided digits, open shapes */
+  /* Inter: straight-sided digits, open shapes, and figures of one
+     width, so counts, times and sizes don't shift as they change. */
+  font-feature-settings: 'cv11', 'ss01', 'tnum';
   overflow: hidden; /* the app shell manages its own scrolling */
 }
 
@@ -38,6 +40,42 @@ textarea {
 
 button {
   cursor: pointer;
+}
+
+/* Fields: every text input, text area and native select starts from one
+   look and one focus (border colour plus the ring), so a view only
+   writes what differs. :where() gives these rules no weight: any rule
+   of a component wins. A field with no frame of its own (inside a
+   framed search box) sets box-shadow: none and lets its frame show the
+   focus. */
+:where(input:not([type]), input[type='text'], input[type='search'], input[type='number'], input[type='password'], input[type='url'], input[type='email'], input[type='time'], input[type='date'], textarea, select) {
+  min-width: 0;
+  height: var(--control-h-sm);
+  padding: 0 var(--s-2);
+  color: var(--fg-0);
+  background: var(--bg-0);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-sm);
+  transition:
+    border-color var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease);
+}
+:where(textarea) {
+  height: auto;
+  padding: var(--s-2);
+  line-height: var(--lh);
+}
+:where(input:not([type]), input[type='text'], input[type='search'], input[type='number'], input[type='password'], input[type='url'], input[type='email'], input[type='time'], input[type='date'], textarea, select)::placeholder {
+  color: var(--fg-2);
+}
+:where(input:not([type]), input[type='text'], input[type='search'], input[type='number'], input[type='password'], input[type='url'], input[type='email'], input[type='time'], input[type='date'], textarea, select):focus-visible {
+  outline: none;
+  border-color: var(--tool-accent, var(--accent));
+  box-shadow: var(--focus-ring);
+}
+:where(input:not([type]), input[type='text'], input[type='search'], input[type='number'], input[type='password'], input[type='url'], input[type='email'], input[type='time'], input[type='date'], textarea, select):disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 code,
@@ -218,6 +256,7 @@ svg.lucide-icon[width='28'] {
   background: none;
   border: none;
   outline: none;
+  box-shadow: none;
 }
 .codec-palette-input::placeholder {
   color: var(--fg-2);

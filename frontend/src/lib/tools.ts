@@ -52,7 +52,7 @@ import SquareTerminal from '@lucide/svelte/icons/square-terminal'
 
 /** A tool's colour (decision 94): a `--hue-*` token. How much of it shows
  *  is up to the theme (`--tint-tool`): none in Dark and Light. */
-export type Hue = 'indigo' | 'violet' | 'pink' | 'peach' | 'lime' | 'teal' | 'cyan'
+export type Hue = 'indigo' | 'violet' | 'orchid' | 'pink' | 'peach' | 'lime' | 'teal' | 'cyan'
 
 /** The CSS value for a hue, to set as `--tool` on what belongs to the tool. */
 export function hueVar(h: Hue): string {
@@ -63,7 +63,7 @@ export function hueVar(h: Hue): string {
 export const viewHue = {
   explorer: 'indigo',
   search: 'cyan',
-  open: 'indigo',
+  open: 'orchid',
   problems: 'pink',
   compare: 'peach',
   query: 'teal',
@@ -208,7 +208,7 @@ export const tools: ToolDef[] = [
     group: 'Utilities',
     description: 'URL and hex encoding, hashes and file checksums, passwords, random secrets, UUIDs and htpasswd lines.',
     icon: Hash,
-    hue: 'pink',
+    hue: 'orchid',
     keywords: ['encode', 'hash'],
     tabs: [
       {
@@ -390,7 +390,7 @@ export const tools: ToolDef[] = [
     group: 'Utilities',
     description: 'Make a QR code for a link, a Wi-Fi login or an authenticator, and read one from an image.',
     icon: QrCode,
-    hue: 'cyan',
+    hue: 'pink',
     keywords: ['qr', 'barcode', 'scan', 'wifi', 'totp', 'otpauth'],
     tabs: [
       {
@@ -494,6 +494,15 @@ export function toolEntries(t: ToolDef): ToolEntry[] {
     hue: t.hue,
     keywords: [...s.keywords, ...t.keywords, t.title.toLowerCase()],
   }))
+}
+
+/** The entry a pinned or recent key names: a sub-tab's (`tool.tab`), or
+ *  the whole tool's (its id; for a tool with sub-tabs, the tool itself,
+ *  opening on the sub-tab it showed last). Undefined once it is gone. */
+export function entryByKey(key: string): ToolEntry | undefined {
+  const t = tools.find((x) => x.id === key)
+  if (t) return { key: t.id, tool: t.id, title: t.title, description: t.description, icon: t.icon, hue: t.hue, keywords: t.keywords }
+  return tools.flatMap(toolEntries).find((e) => e.key === key)
 }
 
 /** The sub-tab to show: the remembered one if it still exists, else the first. */

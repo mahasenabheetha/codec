@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ErrorNote from '../../lib/components/ErrorNote.svelte'
   import Copy from '@lucide/svelte/icons/copy'
   import Plus from '@lucide/svelte/icons/plus'
   import X from '@lucide/svelte/icons/x'
@@ -13,6 +14,7 @@
   import { toast } from '../../lib/stores/toast.svelte'
   import { theme, themes, type DarkStyle, type LightStyle, type ThemePref } from '../../lib/stores/theme.svelte'
   import { uiSize, type UiSize } from '../../lib/stores/size.svelte'
+  import { toolColours } from '../../lib/stores/colour.svelte'
   import { iconStyle, type IconStyle } from '../workspace/icons.svelte'
   import { desktop } from '../../lib/platform'
   import { getDesktopSettings, setDesktopSettings, type DesktopSettings } from '../../lib/api/desktop'
@@ -20,6 +22,7 @@
   import { editorNames, lensOpen, markdownView, openIn, type ExternalEditor } from '../editor/active.svelte'
   import { lint } from '../lint/lint.svelte'
   import LintSections from './LintSections.svelte'
+  import { settingsGoto } from './goto.svelte'
   import SettingRow from './SettingRow.svelte'
   import UpdateRow from './UpdateRow.svelte'
   import SettingSection from './SettingSection.svelte'
@@ -110,6 +113,24 @@
     el?.scrollIntoView({ block: 'start' })
   }
 
+  // From the palette ("Settings: Theme"): the section, then its row,
+  // marked for a moment. Waits a frame for the page to be laid out.
+  $effect(() => {
+    const t = settingsGoto.target
+    if (!t || !active) return
+    const timer = setTimeout(() => {
+      jump(t.section)
+      if (!t.row) return
+      const row = [...(scroller?.querySelectorAll<HTMLElement>('[data-setting]') ?? [])].find((r) => r.dataset.setting === t.row)
+      if (!row) return
+      row.scrollIntoView({ block: 'center' })
+      row.classList.remove('found')
+      void row.offsetWidth // restart the animation
+      row.classList.add('found')
+    }, 60)
+    return () => clearTimeout(timer)
+  })
+
   // The themes with a swatch each (3.10.0); System first, then the dark
   // ones and the light ones.
   const item = (t: (typeof themes)[number]) => ({ value: t.value, label: t.label, note: t.note, swatch: t.swatch })
@@ -159,7 +180,7 @@
       <p class="intro">Saved in your user profile, never in a repository. codec only reads the folders you open.</p>
 
       <SettingSection id="general" title="General">
-        <SettingRow title="Theme" description="Dark, the soft and colourful Dusk, Midnight, Forest, Rosé and Ocean, High contrast, Light and the warm Paper. System follows your operating system's light or dark setting. It changes at once.">
+        <SettingRow title="Theme" description="Dark, the soft and colourful Dusk, Midnight, Forest, Rosé and Ocean, High contrast, Light, the warm Paper and the dimmed Mist. System follows your operating system's light or dark setting. It changes at once.">
           <Select items={themeItems} value={theme.pref} label="Theme" onchange={(v) => (v === 'system' ? (theme.pref = 'system') : theme.use(v as Exclude<ThemePref, 'system'>))} />
         </SettingRow>
         {#if theme.pref === 'system'}
@@ -170,7 +191,10 @@
             <Select items={darkItems} value={theme.darkStyle} label="When the system is dark" onchange={(v) => (theme.darkStyle = v as DarkStyle)} />
           </SettingRow>
         {/if}
-        <SettingRow title="Interface size" description="How big icons, buttons and other controls are. Compact is the size before 3.5.0.">
+        <SettingRow title="Tool colours" description="Each tool and action in its own colour, on the rail, tabs, Home and its page. Off: everything in the theme's accent.">
+          <Toggle checked={toolColours.on} name="Tool colours" label={toolColours.on ? 'On' : 'Off'} onchange={(on) => (toolColours.on = on)} />
+        </SettingRow>
+        <SettingRow title="Interface size" description="How big icons, buttons and other controls are; Large makes the text bigger too. Compact is the size before 3.5.0.">
           <SegmentedControl options={sizes} bind:value={uiSize.value} label="Interface size" />
         </SettingRow>
         <SettingRow title="File icons" description="Material: an icon for each kind of file and folder, as VS Code's Material Icon Theme. Simple: the quieter icons before 3.8.1.">
@@ -209,7 +233,7 @@
       {#if lint.loaded}
         <LintSections />
       {:else if lint.error}
-        <p class="error">{lint.error}</p>
+        <ErrorNote message={lint.error} />
       {:else}
         <div class="skeletons" aria-busy="true" aria-label="Loading lint settings">
           {#each [0, 1, 2, 3] as i (i)}<Skeleton height="44px" />{/each}
@@ -218,7 +242,7 @@
 
       <SettingSection id="helm" title="Helm profiles" description="Saved from a chart's Helm view, by chart folder.">
         {#if !info}
-          {#if error}<p class="error">{error}</p>{:else}<Skeleton height="44px" />{/if}
+          {#if error}<ErrorNote message={error} />{:else}<Skeleton height="44px" />{/if}
         {:else if info.helm.length === 0}
           <p class="none">No saved profiles yet. In a chart's Helm view, pick values files and save them as a profile.</p>
         {:else}
@@ -344,9 +368,6 @@
     border-top: 1px solid var(--border);
     font-size: var(--fs-sm);
     color: var(--fg-1);
-  }
-  .error {
-    color: var(--err);
   }
   .mono,
   code {
