@@ -1,4 +1,6 @@
 <script lang="ts">
+  import Button from '../../lib/components/Button.svelte'
+  import ErrorNote from '../../lib/components/ErrorNote.svelte'
   import { untrack } from 'svelte'
   import Container from '@lucide/svelte/icons/container'
   import CircleCheck from '@lucide/svelte/icons/circle-check'
@@ -156,12 +158,15 @@
 
 <div class="compose">
   {#if error && !data}
-    <EmptyState icon={Container} title="Can't read this Compose project" description={error} />
+    <EmptyState icon={Container} title="Can't read this Compose project" description={error}>
+      <Button size="sm" onclick={load}>Try again</Button>
+    </EmptyState>
   {:else if !data}
     <div class="loading" aria-busy="true" aria-label="Reading the files"><Skeleton lines={8} /></div>
   {:else}
     <LensGrid sideLabel="Compose project" detailLabel="Selected service">
       {#snippet side()}
+        {#if error}<ErrorNote inline message={`Showing the last result; reading again failed: ${error}`} retry={load} />{/if}
         <section>
           <p class="proj"><Badge tone="accent">Compose</Badge> <strong>{data!.name}</strong></p>
           <h3 class="gap">Files, merged in order</h3>

@@ -177,7 +177,11 @@ change to this file and `tokens.css` together.
   `ThreePanes` (side · main · detail, one remembered size for all of
   them). New lens views follow the same frame.
 - **A view's header** is `PanelHeader`: icon, name, what is known
-  (counts, a **What-if** badge), actions on the right.
+  (counts, a **What-if · N** badge with a reset beside it in the lens
+  views), actions on the right.
+- **A view that is drawn again and fails** keeps what it showed and
+  says so (`ErrorNote` at the top of its side panel, with Try again);
+  a first load that fails is an `EmptyState` with Try again.
 
 ## Components
 
@@ -194,7 +198,9 @@ Build once in `frontend/src/lib/components` and reuse:
 | `Chip` | A small choice in a row: a suggestion (a preset; `selected` marks the one in use) or a toggle (`pressed`: a flag, a weekday), `square` for one letter |
 | `SplitPane` | Two resizable panes: drag, arrow keys (Shift, Home, End), double click or Enter to reset; `direction`, `stackBelow`, `flush` (a line, for panes that touch), `px` (a side panel's width); sizes persisted by `id`, side by side and stacked apart |
 | `ThreePanes` | Side · main · detail, each resizable: the frame of the lens views |
-| `PanelHeader` | The strip at the top of a view: icon, title, `meta`, `actions` |
+| `PanelHeader` | The strip at the top of a view: icon (or `lead`, a file-type logo), title, `meta`, `actions`. Every view but the file view uses it; the file view's breadcrumb strip has the same height |
+| `Menu` | A button that opens a menu of named actions: the "…" at the end of a toolbar, for what doesn't earn a button. One main action per view as a button, the rest here |
+| `foldSections` (lib/actions) | On the side panel of a lens view: each `section > h3` folds (remembered per view), and Problems comes first when it has any |
 | `TreeView` | File trees and outlines; keyboard pattern, windowed over 300 rows |
 | `VirtualList` | Long lists of rows of any height (Problems, Resources cards, Log viewer): only rows in view are drawn, each measured once shown; `scrollToIndex`, `onrange` for page-by-page loading |
 | `CodeView` | Any code or YAML (CodeMirror 6), read-only or editable |

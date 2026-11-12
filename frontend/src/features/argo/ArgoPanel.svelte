@@ -13,6 +13,8 @@
 </script>
 
 <script lang="ts">
+  import ErrorNote from '../../lib/components/ErrorNote.svelte'
+  import { foldSections } from '../../lib/actions/foldSections'
   import ThreePanes from '../../lib/components/ThreePanes.svelte'
   import { untrack } from 'svelte'
   import ChevronRight from '@lucide/svelte/icons/chevron-right'
@@ -297,7 +299,9 @@
 
 <div class="argo">
   {#if error && !data}
-    <EmptyState icon={Workflow} title="Can't read this workflow" description={error} />
+    <EmptyState icon={Workflow} title="Can't read this workflow" description={error}>
+      <Button size="sm" onclick={load}>Try again</Button>
+    </EmptyState>
   {:else if !data}
     <div class="loading" aria-busy="true" aria-label="Reading the files"><Skeleton lines={8} /></div>
   {:else if !data.workflows.length && !data.apps.length}
@@ -305,7 +309,8 @@
   {:else}
     {@const loaded = data}
     {#snippet sidePane()}
-      <aside class="side" class:solo={!result} aria-label="Workflow and parameters">
+      <aside class="side" class:solo={!result} aria-label="Workflow and parameters" use:foldSections={'argo'}>
+          {#if error}<ErrorNote inline message={`Showing the last result; reading again failed: ${error}`} retry={load} />{/if}
         {#if loaded.workflows.length}
           <section>
             <h3>Workflow</h3>

@@ -7,6 +7,8 @@
   // "Layout"), in place of a header written per view.
   interface Props {
     icon?: Component
+    /** In place of `icon`: a mark of the view's own (a file-type logo). */
+    lead?: Snippet
     title: string
     /** Beside the title: muted facts, badges. */
     meta?: Snippet
@@ -14,11 +16,11 @@
     actions?: Snippet
   }
 
-  let { icon: Icon, title, meta, actions }: Props = $props()
+  let { icon: Icon, lead, title, meta, actions }: Props = $props()
 </script>
 
 <header class="panel-header">
-  {#if Icon}<span class="icon"><Icon size={16} strokeWidth={1.75} /></span>{/if}
+  {#if lead}<span class="icon">{@render lead()}</span>{:else if Icon}<span class="icon"><Icon size={16} strokeWidth={1.75} /></span>{/if}
   <h1 class="title" {title}>{title}</h1>
   {#if meta}<div class="meta">{@render meta()}</div>{/if}
   <div class="spacer"></div>

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import PanelHeader from '../../lib/components/PanelHeader.svelte'
   import { toolCommands } from '../shared/tool.svelte'
   import SplitPane from '../../lib/components/SplitPane.svelte'
   import { onDestroy, tick, untrack } from 'svelte'
@@ -223,9 +224,9 @@
 </script>
 
 <div class="helm" class:inactive={!active}>
-  <header>
-    <FileIcon file="helm-chart" size={16} />
-    <span class="title">{session.info?.name ?? chart}</span>
+  <PanelHeader title={session.info?.name ?? chart}>
+    {#snippet lead()}<FileIcon file="helm-chart" size={16} />{/snippet}
+    {#snippet meta()}
     {#if result?.chart.version}<Badge>{result.chart.version}</Badge>{/if}
     <div class="profile">
       <Select items={profileItems} value={session.profile} label="Profile" onchange={(v) => session.apply(v)} />
@@ -252,10 +253,11 @@
         <IconButton icon={Trash} tone="clear" label="Delete profile {session.profile}" size="sm" onclick={() => session.deleteProfile(session.profile)} />
       {/if}
     </div>
-    <div class="spacer"></div>
     {#if whatIf.length}
-      <span class="whatif" title={whatIf.join('\n')}><SquarePen size={12} strokeWidth={2} /> {whatIf.length} what-if {whatIf.length === 1 ? 'file' : 'files'}</span>
+      <span title={'What-if edits in open tabs, never saved:\n' + whatIf.join('\n')}><Badge tone="warn">What-if · {whatIf.length}</Badge></span>
     {/if}
+    {/snippet}
+    {#snippet actions()}
     <span class="status" role="status">
       {#if session.rendering && !result}
         Rendering…
@@ -267,7 +269,8 @@
     <IconButton icon={GitCompare} label="Compare two profiles of this chart" size="sm" onclick={compareProfiles} />
     <IconButton icon={TextSearch} label="Query the rendered output (jq)" size="sm" onclick={() => queries.open({ chart })} />
     <IconButton icon={RefreshCw} label="Render again" size="sm" onclick={() => session.render()} />
-  </header>
+    {/snippet}
+  </PanelHeader>
 
   {#snippet sidePane()}
     <aside class="side" aria-label="Render options">
@@ -441,16 +444,6 @@
     display: flex;
     flex-direction: column;
     min-width: 0;
-  }
-  header {
-    display: flex;
-    align-items: center;
-    gap: var(--s-3);
-    height: 40px;
-    padding: 0 var(--s-2) 0 var(--s-4);
-    border-bottom: 1px solid var(--border);
-    background: var(--bg-1);
-    flex: 0 0 auto;
   }
   .title {
     font-size: var(--fs-lg);

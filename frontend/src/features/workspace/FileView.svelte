@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Skeleton from '../../lib/components/Skeleton.svelte'
   import type { ComponentProps } from 'svelte'
   import Menu from '../../lib/components/Menu.svelte'
   import type { MenuEntry } from '../../lib/components/ContextMenu.svelte'
@@ -474,11 +475,18 @@
       {:else}
         {@render editor()}
       {/if}
+    {:else}
+      <!-- First load: the page keeps its shape (it used to be blank). -->
+      <div class="loading" aria-busy="true" aria-label="Reading {path}"><Skeleton lines={14} /></div>
     {/if}
   </div>
 </div>
 
 <style>
+  .loading {
+    padding: var(--s-4) var(--s-6);
+    max-width: 720px;
+  }
   .fileview {
     height: 100%;
     display: flex;
@@ -489,7 +497,8 @@
     display: flex;
     align-items: center;
     gap: var(--s-3);
-    height: 36px;
+    /* As PanelHeader, so every view's strip is one height. */
+    min-height: calc(var(--control-h) + var(--s-2));
     padding: 0 var(--s-2) 0 var(--s-4);
     border-bottom: 1px solid var(--border);
     background: var(--bg-1);

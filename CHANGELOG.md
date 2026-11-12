@@ -34,6 +34,15 @@ All notable changes to codec are documented here. The format follows
   - A label that doesn't fit is cut to the node's width, and the node's
     tooltip has the whole of it. The Ansible map outlines the selected
     node, as the others do.
+- **Lens views** (Argo, pipelines, Compose, Ansible):
+  - The side panel's sections **fold** at their heading, remembered per
+    view, and **Problems comes first** when there are any.
+  - **What-if** in the header counts the files with edits and has a
+    **reset** beside it; the view's file and the reset are in the
+    palette.
+  - When reading again fails, the view keeps what it showed and says so,
+    with **Try again**; a first load that fails has Try again too.
+- A file tab shows its shape while the file loads (it was blank).
 - **The explorer shows what is known about each file**: a pencil for
   what-if edits in an open tab, and the errors and warnings of the last
   workspace check, summed up each folder.
@@ -50,6 +59,8 @@ All notable changes to codec are documented here. The format follows
   and everything else (compare, query, clone, Kubernetes resources,
   neat copy, reveal, copy path) is under **…** with its name, where
   there were up to nine unlabelled icons.
+- The Helm view and Workspace problems use the same header as the other
+  views; Helm says **What-if** as they do.
 - **Esc clears a tool only from its main input** or from outside any
   field. Typed in another field (a key, an option, "Leave out") it used
   to wipe the whole tool.

@@ -1,4 +1,6 @@
 <script lang="ts">
+  import ListChecks from '@lucide/svelte/icons/list-checks'
+  import PanelHeader from '../../lib/components/PanelHeader.svelte'
   import { toolCommands } from '../shared/tool.svelte'
   import ErrorNote from '../../lib/components/ErrorNote.svelte'
   import { hueVar, viewHue } from '../../lib/tools'
@@ -83,25 +85,26 @@
 </script>
 
 <div class="problems-view hued" class:inactive={!active} style:--tool={hueVar(viewHue.problems)}>
-  <header>
-    <div class="title">
-      <h1>Workspace problems</h1>
+  <PanelHeader icon={ListChecks} title="Workspace problems">
+    {#snippet meta()}
       {#if lint.results}
-        <p>
+        <span>
           {lint.checked} YAML files checked in {lint.durationMs < 1000 ? `${lint.durationMs} ms` : `${(lint.durationMs / 1000).toFixed(1)} s`} ·
           <span class="err">{totals.error} errors</span> ·
           <span class="warn">{totals.warning} warnings</span> ·
           {totals.info} infos
-        </p>
+        </span>
       {:else}
-        <p>Syntax, style, Kubernetes checks, removed APIs and schemas for every YAML file.</p>
+        <span>Syntax, style, Kubernetes checks, removed APIs and schemas for every YAML file.</span>
       {/if}
-    </div>
+    {/snippet}
+    {#snippet actions()}
     <Button variant="ghost" size="sm" icon={Settings} onclick={() => layout.open(settingsRoute)}>Settings</Button>
     <Button variant="primary" size="sm" icon={Play} tone="run" disabled={!workspace.info?.open || lint.running} onclick={() => lint.runWorkspace()}>
       {lint.running ? 'Checking…' : lint.results ? 'Check again' : 'Lint workspace'}
     </Button>
-  </header>
+    {/snippet}
+  </PanelHeader>
 
   {#if !workspace.info?.open}
     <EmptyState icon={FolderOpen} title="No folder open" description="Open a repository folder to lint its YAML." />
@@ -168,27 +171,6 @@
     display: flex;
     flex-direction: column;
     min-height: 0;
-  }
-  header {
-    display: flex;
-    align-items: center;
-    gap: var(--s-2);
-    padding: var(--s-4) var(--s-5);
-    border-bottom: 1px solid var(--border);
-  }
-  .title {
-    flex: 1;
-    min-width: 0;
-  }
-  h1 {
-    margin: 0;
-    font-size: var(--fs-lg);
-    font-weight: var(--fw-semibold);
-  }
-  header p {
-    margin: 2px 0 0;
-    font-size: var(--fs-sm);
-    color: var(--fg-2);
   }
   .err {
     color: var(--err);

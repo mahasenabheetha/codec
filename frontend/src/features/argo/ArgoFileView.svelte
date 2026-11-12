@@ -1,4 +1,7 @@
 <script lang="ts">
+  import RotateCcw from '@lucide/svelte/icons/rotate-ccw'
+  import IconButton from '../../lib/components/IconButton.svelte'
+  import { toolCommands } from '../shared/tool.svelte'
   import Badge from '../../lib/components/Badge.svelte'
   import PanelHeader from '../../lib/components/PanelHeader.svelte'
   import Workflow from '@lucide/svelte/icons/workflow'
@@ -30,6 +33,20 @@
   })
   let status = $state('')
 
+  // The files with what-if edits this view is drawn from, and the way
+  // back to what is on disk (3.10.2: every lens says it the same way).
+  const edited = $derived(Object.keys(overrides))
+  function resetEdits() {
+    for (const [, s] of openSessions) if (s.dirty) s.reset()
+  }
+  toolCommands(
+    () => active,
+    () => [
+      { id: 'lens.open', title: 'Open this view\'s file in the editor', group: 'View', run: () => layout.openFile(path) },
+      { id: 'lens.reset', title: 'Reset the what-if edits', group: 'View', run: resetEdits },
+    ],
+  )
+
   function open(s: ArgoSource) {
     const file = s.file ?? path
     layout.openFile(file)
@@ -41,7 +58,12 @@
   <PanelHeader icon={Workflow} title="Argo · {path.split('/').pop()}">
     {#snippet meta()}
       <span role="status">{status}</span>
-      {#if Object.keys(overrides).length}<Badge tone="warn">What-if</Badge>{/if}
+      {#if edited.length}
+        <span class="whatif" title={'What-if edits in open tabs, never saved:\n' + edited.join('\n')}>
+          <Badge tone="warn">What-if · {edited.length}</Badge>
+          <IconButton icon={RotateCcw} label="Reset the what-if edits ({edited.length} {edited.length === 1 ? 'file' : 'files'})" size="sm" onclick={resetEdits} />
+        </span>
+      {/if}
     {/snippet}
   </PanelHeader>
   <div class="body">
@@ -50,6 +72,11 @@
 </div>
 
 <style>
+  .whatif {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+  }
   .view {
     height: 100%;
     display: flex;

@@ -12,6 +12,9 @@
 </script>
 
 <script lang="ts">
+  import Button from '../../lib/components/Button.svelte'
+  import ErrorNote from '../../lib/components/ErrorNote.svelte'
+  import { foldSections } from '../../lib/actions/foldSections'
   import ThreePanes from '../../lib/components/ThreePanes.svelte'
   import { untrack } from 'svelte'
   import CircleCheck from '@lucide/svelte/icons/circle-check'
@@ -187,13 +190,16 @@
 
 <div class="ci">
   {#if error && !data}
-    <EmptyState icon={GitBranch} title="Can't read this pipeline" description={error} />
+    <EmptyState icon={GitBranch} title="Can't read this pipeline" description={error}>
+      <Button size="sm" onclick={load}>Try again</Button>
+    </EmptyState>
   {:else if !data}
     <div class="loading" aria-busy="true" aria-label="Reading the files"><Skeleton lines={8} /></div>
   {:else}
     {@const loaded = data}
     {#snippet sidePane()}
-      <aside class="side" aria-label="Pipeline">
+      <aside class="side" aria-label="Pipeline" use:foldSections={'ci'}>
+        {#if error}<ErrorNote inline message={`Showing the last result; reading again failed: ${error}`} retry={load} />{/if}
         <section>
           <p class="wf">
             <Badge tone="accent">{toolName[loaded.tool]}</Badge>

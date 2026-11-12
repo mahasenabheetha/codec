@@ -1,4 +1,6 @@
 <script lang="ts">
+  import Button from '../../lib/components/Button.svelte'
+  import ErrorNote from '../../lib/components/ErrorNote.svelte'
   import { untrack } from 'svelte'
   import ChevronDown from '@lucide/svelte/icons/chevron-down'
   import ChevronRight from '@lucide/svelte/icons/chevron-right'
@@ -251,12 +253,15 @@
 
 <div class="ansible">
   {#if error && !data}
-    <EmptyState icon={ListTree} title="Can't read this Ansible file" description={error} />
+    <EmptyState icon={ListTree} title="Can't read this Ansible file" description={error}>
+      <Button size="sm" onclick={load}>Try again</Button>
+    </EmptyState>
   {:else if !data}
     <div class="loading" aria-busy="true" aria-label="Reading the files"><Skeleton lines={8} /></div>
   {:else}
     <LensGrid sideLabel="Ansible file" detailLabel="Selected item">
       {#snippet side()}
+        {#if error}<ErrorNote inline message={`Showing the last result; reading again failed: ${error}`} retry={load} />{/if}
         <section>
           <p class="kind">
             <Badge tone="accent">{inv ? 'Inventory' : pb?.kind === 'tasks' ? 'Task file' : 'Playbook'}</Badge>
