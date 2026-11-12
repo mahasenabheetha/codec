@@ -198,7 +198,7 @@ Build once in `frontend/src/lib/components` and reuse:
 | `TreeView` | File trees and outlines; keyboard pattern, windowed over 300 rows |
 | `VirtualList` | Long lists of rows of any height (Problems, Resources cards, Log viewer): only rows in view are drawn, each measured once shown; `scrollToIndex`, `onrange` for page-by-page loading |
 | `CodeView` | Any code or YAML (CodeMirror 6), read-only or editable |
-| `Graph` | Node graphs (dagre layout, pan/zoom, colour groups `g-<group>`, dashed edges for run-time links, run status `s-failed/changed/ok/rescued/never`) |
+| `Graph` | Node graphs (dagre layout, colour groups `g-<group>`, dashed edges for run-time links, run status `s-failed/changed/ok/rescued/never` as a glyph as well as a colour). `selected` outlines the node whose details show; `lane` on a node puts it in a named band (a pipeline's stage). Pan by dragging, zoom with the wheel; keyboard: arrows move between nodes (or pan), `+` `-` zoom, `0` fits, Enter selects. A minimap appears when the graph is bigger than its box; the view is kept when the same graph changes (a what-if value) and fitted afresh for a different one. The legend adds what the drawing uses: dashed nodes (`missingNode`), dashed edges (`dashedEdge`), statuses. A cut label's whole text is the node's tooltip |
 | `EffectiveLines` | Config with an origin per line (CI, Compose) |
 | `Popover`, `Dialog`, `Tooltip` | Overlays; dialogs trap focus and close on Esc |
 | `ContextMenu` | Right-click menus (also Shift+F10); entries built per open from the event; sentence case, an icon per entry |

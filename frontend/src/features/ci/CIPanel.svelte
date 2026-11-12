@@ -93,7 +93,9 @@
     (data?.jobs ?? []).map((j) => ({
       id: j.id,
       label: j.name,
-      sub: [staged ? j.stage : j.group, caption(j)].filter(Boolean).join(' · '),
+      // With stages, each job sits in its stage's lane; the lane names it.
+      sub: [staged ? '' : j.group, caption(j)].filter(Boolean).join(' · '),
+      lane: staged ? j.stage || undefined : undefined,
       group: jobGroup(j),
       missing: j.kind === 'template',
     })),
@@ -299,7 +301,7 @@
           <EmptyState icon={GitBranch} title="No jobs" description={loaded.kind === 'template' ? 'This file is a template: open a pipeline that uses it.' : 'Nothing in this file runs as a job.'} />
         {:else if view === 'graph'}
           <div class="graph">
-            <Graph nodes={graphNodes} edges={graphEdges} label="Jobs of {loaded.file} in execution order" {legend} selected={selectedId} onselect={(id) => (selectedId = id)} />
+            <Graph nodes={graphNodes} edges={graphEdges} label="Jobs of {loaded.file} in execution order" {legend} selected={selectedId} missingNode="a template, not a job" onselect={(id) => (selectedId = id)} />
           </div>
         {:else}
           <div class="stages">

@@ -337,13 +337,13 @@
             {:else if runs.length}
               <Select items={runItems} bind:value={colourBy} label="Colour by a run of the loaded log" />
             {:else}
-              <span class="muted">Solid: import · dashed: include, decided while running · load a log in Ansible log to colour by a run</span>
+              <span class="muted">Load a log in Ansible log to colour the map by a run</span>
             {/if}
           </nav>
           {#if view === 'map'}
             <div class="map">
               {#if graphNodes.length}
-                <Graph nodes={graphNodes} edges={graphEdges} label="Map of {base(path)}: plays, roles, task files and handlers" {legend} onselect={selectNode} />
+                <Graph nodes={graphNodes} edges={graphEdges} label="Map of {base(path)}: plays, roles, task files and handlers" {legend} selected={sel?.kind === 'node' ? sel.node.id : null} dashedEdge="include, decided while running" missingNode="not in this folder" onselect={selectNode} />
               {:else}
                 <EmptyState icon={ListTree} title="Nothing to draw" description="This file pulls in no roles, task files or handlers." />
               {/if}

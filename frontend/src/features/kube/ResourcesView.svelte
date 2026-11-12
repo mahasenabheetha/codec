@@ -170,6 +170,7 @@
         nodes={graphNodes}
         edges={graphEdges}
         label="Relationships between objects"
+        missingNode="referenced, not in these files"
         {legend}
         onselect={(id) => {
           const s = sources.get(id)

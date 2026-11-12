@@ -19,6 +19,21 @@ All notable changes to codec are documented here. The format follows
   next and previous error, copy the summary, unpin all, each tab) and
   Compare (again, swap sides).
 
+- **Graphs** (Kubernetes, Argo, pipelines, Compose, Ansible):
+  - **Keyboard.** Arrow keys move from node to node (or move the view),
+    Enter selects, `+` and `-` zoom, `0` fits.
+  - **A minimap** in the corner when the graph is bigger than its pane;
+    click or drag in it to move.
+  - **Stage lanes.** A pipeline with stages draws each stage as a named
+    band with its jobs inside.
+  - **The view stays** where you put it when a what-if value or a saved
+    file changes the same graph.
+  - **A fuller legend**: what a dashed node and a dashed line mean in
+    this view, and a run's statuses, which now have a glyph each as
+    well as a colour.
+  - A label that doesn't fit is cut to the node's width, and the node's
+    tooltip has the whole of it. The Ansible map outlines the selected
+    node, as the others do.
 - **The explorer shows what is known about each file**: a pencil for
   what-if edits in an open tab, and the errors and warnings of the last
   workspace check, summed up each folder.

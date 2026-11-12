@@ -464,7 +464,7 @@
             </div>
           {/if}
           <div class="graph">
-            <Graph nodes={graphNodes} edges={graphEdges} label="Steps and tasks of {container?.name ?? 'the workflow'}" {legend} selected={selectedId} onselect={select} />
+            <Graph nodes={graphNodes} edges={graphEdges} label="Steps and tasks of {container?.name ?? 'the workflow'}" {legend} selected={selectedId} missingNode="skipped or unresolved" onselect={select} />
           </div>
         </main>
     {/snippet}
