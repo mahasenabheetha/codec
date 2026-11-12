@@ -13,6 +13,20 @@
   import Logs from '@lucide/svelte/icons/logs'
   import RotateCw from '@lucide/svelte/icons/rotate-cw'
   import Search from '@lucide/svelte/icons/search'
+  import Boxes from '@lucide/svelte/icons/boxes'
+  import CircleX from '@lucide/svelte/icons/circle-x'
+  import Container from '@lucide/svelte/icons/container'
+  import Copy from '@lucide/svelte/icons/copy'
+  import CopyPlus from '@lucide/svelte/icons/copy-plus'
+  import GitBranch from '@lucide/svelte/icons/git-branch'
+  import Layers from '@lucide/svelte/icons/layers'
+  import Link from '@lucide/svelte/icons/link'
+  import ListTree from '@lucide/svelte/icons/list-tree'
+  import PencilLine from '@lucide/svelte/icons/pencil-line'
+  import Ship from '@lucide/svelte/icons/ship'
+  import TextSearch from '@lucide/svelte/icons/text-search'
+  import TriangleAlert from '@lucide/svelte/icons/triangle-alert'
+  import Workflow from '@lucide/svelte/icons/workflow'
   import Button from '../../lib/components/Button.svelte'
   import ContextMenu, { type MenuEntry } from '../../lib/components/ContextMenu.svelte'
   import EmptyState from '../../lib/components/EmptyState.svelte'
@@ -20,7 +34,11 @@
   import Popover from '../../lib/components/Popover.svelte'
   import TreeView, { type Row } from '../../lib/components/TreeView.svelte'
   import { layout } from '../../lib/stores/layout.svelte'
-  import { router } from '../../lib/stores/router.svelte'
+  import { ansibleRoute, argoRoute, ciRoute, cloneRoute, composeRoute, k8sRoute, kustomizeRoute, router } from '../../lib/stores/router.svelte'
+  import { copyText } from '../../lib/utils/clipboard'
+  import { queries } from '../compare/compare.svelte'
+  import { charts } from '../helm/helm.svelte'
+  import { lint } from '../lint/lint.svelte'
   import { toast } from '../../lib/stores/toast.svelte'
   import { comparison } from '../compare/compare.svelte'
   import { logTabs } from '../logs/viewer.svelte'
@@ -67,14 +85,82 @@
   })
 
   const base = (path: string) => path.split('/').pop() ?? path
+
+  // What is known about each file, shown at the end of its row and
+  // summed up its folders (3.10.2): what-if edits in open tabs, and the
+  // errors and warnings of the last workspace check (Problems), if one
+  // was run.
+  type Marks = { e: number; w: number; whatif: number }
+  const marks = $derived.by(() => {
+    const out = new Map<string, Marks>()
+    const add = (path: string, m: Partial<Marks>) => {
+      // The file, then each folder above it.
+      for (let p = path; p; p = p.includes('/') ? p.slice(0, p.lastIndexOf('/')) : '') {
+        const at = out.get(p) ?? { e: 0, w: 0, whatif: 0 }
+        at.e += m.e ?? 0
+        at.w += m.w ?? 0
+        at.whatif += m.whatif ?? 0
+        out.set(p, at)
+      }
+    }
+    for (const path of ws.dirty) add(path, { whatif: 1 })
+    for (const file of lint.results ?? []) {
+      let e = 0
+      let w = 0
+      for (const d of file.diagnostics) {
+        if (d.severity === 'error') e++
+        else if (d.severity === 'warning') w++
+      }
+      if (e || w) add(file.path, { e, w })
+    }
+    return out
+  })
+  const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
+
+  function copyPath(path: string, absolute: boolean) {
+    if (!ws.info?.root) return
+    const sep = ws.info.sep
+    copyText(absolute ? ws.info.root + sep + path.split('/').join(sep) : path, absolute ? 'Full path' : 'Path')
+  }
+  const pathEntries = (path: string): MenuEntry[] => [
+    { label: 'Copy path', icon: Link, run: () => copyPath(path, false) },
+    { label: 'Copy full path', icon: Copy, run: () => copyPath(path, true) },
+  ]
+
+  /** A folder's menu: the views over it, and its path. */
+  function folderMenu(path: string): MenuEntry[] {
+    const out: MenuEntry[] = []
+    const chart = charts.byPath(path)
+    if (chart) out.push({ label: `Render the chart ${chart.name}`, icon: Ship, run: () => layout.openHelm(chart.path) })
+    if (['kustomization.yaml', 'kustomization.yml', 'Kustomization'].some((n) => ws.byPath.has(path + '/' + n)))
+      out.push({ label: 'Build this kustomization', icon: Layers, run: () => layout.open(kustomizeRoute(path)) })
+    out.push({ label: 'Kubernetes resources in this folder', icon: Boxes, run: () => layout.open(k8sRoute(path)) })
+    out.push('separator', ...pathEntries(path))
+    return out
+  }
+
+  /** The view of a file's own type, first in its menu. */
+  function viewEntries(path: string): MenuEntry[] {
+    const type = ws.byPath.get(path)?.type ?? ''
+    const out: MenuEntry[] = []
+    const chart = charts.of(path)
+    if (chart) out.push({ label: `Render the chart ${chart.name}`, icon: Ship, run: () => layout.openHelm(chart.path) })
+    else if (type === 'kustomize') out.push({ label: 'Build this kustomization', icon: Layers, run: () => layout.open(kustomizeRoute(path.includes('/') ? path.slice(0, path.lastIndexOf('/')) : '.')) })
+    if (type === 'github-actions' || type === 'gitlab-ci' || type === 'azure-pipelines') out.push({ label: 'Open as a pipeline', icon: GitBranch, run: () => layout.open(ciRoute(path)) })
+    if (type === 'compose') out.push({ label: 'Open the Compose view', icon: Container, run: () => layout.open(composeRoute(path)) })
+    if (type === 'ansible-playbook' || type === 'ansible-inventory') out.push({ label: 'Open the Ansible view', icon: ListTree, run: () => layout.open(ansibleRoute(path)) })
+    if (type === 'argo-workflows' || type === 'argocd') out.push({ label: 'Open the Argo view', icon: Workflow, run: () => layout.open(argoRoute(path)) })
+    return out
+  }
   // Files the Log viewer can open from here (bigger ones aren't listed; open them as files there).
   const isLog = (path: string) => /\.(log|ndjson|jsonl|clef|out|txt)(\.gz)?$|\.log\.\d+$/i.test(path)
 
   /** The context menu for the file row under the pointer. */
   function menuFor(e: MouseEvent): MenuEntry[] {
     const path = (e.target as HTMLElement).closest<HTMLElement>('[data-id]')?.dataset.id
-    if (!path || !ws.byPath.has(path)) return []
-    const out: MenuEntry[] = [{ label: 'Open', icon: FileText, run: () => layout.openFile(path) }]
+    if (!path) return []
+    if (!ws.byPath.has(path)) return folderMenu(path)
+    const out: MenuEntry[] = [{ label: 'Open', icon: FileText, run: () => layout.openFile(path) }, ...viewEntries(path)]
     if (isLog(path)) {
       out.push({
         label: 'Open in Log viewer',
@@ -102,6 +188,12 @@
         toast(`${base(path)} selected — right-click another file to compare`)
       },
     })
+    if (/\.(ya?ml|json)$/i.test(path)) {
+      out.push('separator')
+      out.push({ label: 'Query this file (jq)', icon: TextSearch, run: () => queries.open({ path }) })
+      out.push({ label: 'Clone with a new name…', icon: CopyPlus, run: () => layout.open(cloneRoute(path)) })
+    }
+    out.push('separator', ...pathEntries(path))
     return out
   }
 
@@ -198,6 +290,16 @@
                 {#if folderSrc}<img src={folderSrc} alt="" draggable="false" />{:else}<Folder size={14} strokeWidth={1.75} />{/if}
               </span>
               <span class="label">{node.name}</span>
+            {/if}
+            {@const m = marks.get(node.path)}
+            {#if m}
+              <span class="marks">
+                {#if m.whatif}
+                  <span class="wi" title={node.file ? 'What-if edits (not saved)' : `${plural(m.whatif, 'file')} with what-if edits`}><PencilLine size={11} strokeWidth={2} /><span class="sr-only">what-if edits</span></span>
+                {/if}
+                {#if m.e}<span class="e" title={plural(m.e, 'error')}><CircleX size={11} strokeWidth={2} />{m.e}<span class="sr-only"> errors</span></span>{/if}
+                {#if m.w}<span class="w" title={plural(m.w, 'warning')}><TriangleAlert size={11} strokeWidth={2} />{m.w}<span class="sr-only"> warnings</span></span>{/if}
+              </span>
             {/if}
           {/snippet}
         </TreeView>
@@ -324,8 +426,32 @@
     height: 240px;
   }
   .label {
+    flex: 1;
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+  /* What is known about a file, at the end of its row: an icon with
+     each count, so it is never colour alone. */
+  .marks {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-2);
+    padding: 0 var(--s-2) 0 var(--s-1);
+    font-size: var(--fs-xs);
+  }
+  .marks > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .wi,
+  .w {
+    color: var(--warn);
+  }
+  .e {
+    color: var(--err);
   }
   .folder {
     display: grid;

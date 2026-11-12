@@ -19,8 +19,22 @@ All notable changes to codec are documented here. The format follows
   next and previous error, copy the summary, unpin all, each tab) and
   Compare (again, swap sides).
 
+- **The explorer shows what is known about each file**: a pencil for
+  what-if edits in an open tab, and the errors and warnings of the last
+  workspace check, summed up each folder.
+- **Explorer menus per kind.** A file's menu opens the view of its type
+  (render its chart, build its kustomization, pipeline, Compose,
+  Ansible, Argo), queries or clones it and copies its path; folders
+  have a menu too (render the chart, build the kustomization, the
+  Kubernetes resources below, copy the path).
+
 ### Changed
 
+- **The file toolbar has one main action**, the view of the file's
+  type, as a button; Open in your editor and the outline switch stay,
+  and everything else (compare, query, clone, Kubernetes resources,
+  neat copy, reveal, copy path) is under **…** with its name, where
+  there were up to nine unlabelled icons.
 - **Esc clears a tool only from its main input** or from outside any
   field. Typed in another field (a key, an option, "Leave out") it used
   to wipe the whole tool.

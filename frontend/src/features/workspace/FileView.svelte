@@ -1,4 +1,7 @@
 <script lang="ts">
+  import type { ComponentProps } from 'svelte'
+  import Menu from '../../lib/components/Menu.svelte'
+  import type { MenuEntry } from '../../lib/components/ContextMenu.svelte'
   import { onDestroy, untrack } from 'svelte'
   import { EditorView } from '@codemirror/view'
   import BookOpen from '@lucide/svelte/icons/book-open'
@@ -28,7 +31,6 @@
   import CodeView from '../../lib/components/CodeView.svelte'
   import EmptyState from '../../lib/components/EmptyState.svelte'
   import IconButton from '../../lib/components/IconButton.svelte'
-  import Popover from '../../lib/components/Popover.svelte'
   import SegmentedControl from '../../lib/components/SegmentedControl.svelte'
   import Select from '../../lib/components/Select.svelte'
   import SplitPane from '../../lib/components/SplitPane.svelte'
@@ -225,6 +227,66 @@
     copyText(absolute ? ws.info.root + sep + path.split('/').join(sep) : path, absolute ? 'Full path' : 'Path')
   }
 
+  // The file's view, by its type: the toolbar's one main action.
+  type LensAction = { label: string; title: string; icon: ComponentProps<typeof FileIcon>['file']; run: () => void }
+  const lens = $derived.by<LensAction[]>(() => {
+    const out: LensAction[] = []
+    const yaml = (type: string) => ({ type, lang: 'yaml' })
+    const c = chart
+    if (c) out.push({ label: 'Render', title: `Render ${c.name} with the Helm view`, icon: 'helm-chart', run: () => layout.openHelm(c.path) })
+    else if (kind === 'kustomize') out.push({ label: 'Build', title: 'Build this kustomization', icon: yaml('kustomize'), run: () => layout.open(kustomizeRoute(dirOf(path))) })
+    if (kind === 'github-actions' || kind === 'gitlab-ci' || kind === 'azure-pipelines')
+      out.push({ label: 'Pipeline', title: 'Jobs in execution order, with includes, extends and templates applied', icon: yaml(kind), run: () => layout.open(ciRoute(path)) })
+    if (kind === 'compose')
+      out.push({ label: 'Compose', title: 'Services, start order, ports and volumes, with the override merged and ${VAR} filled in', icon: yaml(kind), run: () => layout.open(composeRoute(path)) })
+    if (kind === 'ansible-playbook' || kind === 'ansible-inventory')
+      out.push({
+        label: 'Ansible',
+        title: kind === 'ansible-inventory' ? 'Groups and hosts as a tree' : 'Tasks in execution order, with roles and includes opened',
+        icon: yaml(kind),
+        run: () => layout.open(ansibleRoute(path)),
+      })
+    const doc = argoDoc
+    if (kind === 'argo-workflows' || kind === 'argocd')
+      out.push({ label: 'Argo', title: 'Resolve parameters and templates; see the steps as a graph', icon: yaml(kind), run: () => layout.open(argoRoute(path)) })
+    else if (c && doc) out.push({ label: 'Argo', title: `Render ${c.name} and open ${doc} in its Argo tab`, icon: yaml('argo-workflows'), run: () => helmNav.showArgo(c.path, doc) })
+    return out
+  })
+
+  // Everything else a file can do, under "…" (3.10.2): the toolbar used
+  // to show each as an icon of its own.
+  const more = $derived.by<MenuEntry[]>(() => {
+    const out: MenuEntry[] = []
+    if (session.isYAML) {
+      out.push({ label: session.dirty ? 'Compare what-if edits with disk' : 'Compare with another file…', icon: GitCompare, run: compareThis })
+      out.push({ label: 'Query this file (jq)', icon: TextSearch, run: () => queries.open({ path }) })
+      out.push({ label: 'Clone with a new name…', icon: CopyPlus, run: () => layout.open(cloneRoute(path)) })
+    }
+    if (kind === 'kubernetes') {
+      out.push({ label: 'Kubernetes resources in this folder', icon: Boxes, run: () => layout.open(k8sRoute(dirOf(path))) })
+      out.push({ label: 'Copy without cluster noise (neat)', icon: Eraser, run: () => void copyNeat() })
+    }
+    if (out.length) out.push('separator')
+    out.push({
+      label: 'Reveal in explorer',
+      icon: LocateFixed,
+      run: () => {
+        layout.explorerOpen = true
+        ws.reveal(path)
+      },
+    })
+    out.push({ label: 'Copy path', icon: Link, run: () => copyPath(false) })
+    out.push({ label: 'Copy full path', icon: Copy, run: () => copyPath(true) })
+    return out
+  })
+  const editorItems = $derived<MenuEntry[]>(
+    (Object.entries(editorNames) as [ExternalEditor, string][]).map(([id, name]) => ({
+      label: `Open in ${name}${openIn.value === id ? ' (the default)' : ''}`,
+      icon: ExternalLink,
+      run: () => openExternal(id),
+    })),
+  )
+
   function openExternal(editor: ExternalEditor) {
     if (!ws.info?.root) return
     openIn.value = editor
@@ -331,47 +393,14 @@
         {lines} lines{session.disk.crlf ? ' · CRLF' : ''}{session.disk.bom ? ' · BOM' : ''}
       </span>
     {/if}
-    {#if chart}
-      <Button size="sm" variant="ghost" onclick={() => layout.openHelm(chart.path)} title="Render {chart.name} with the Helm view">
-        <span class="render"><FileIcon file="helm-chart" /> Render</span>
+    <!-- One main action for the file's type: its view. A second one
+         (a chart's Argo document) stays quiet beside it. -->
+    {#each lens as l, i (l.label)}
+      <Button size="sm" variant={i === 0 ? 'secondary' : 'ghost'} onclick={l.run} title={l.title}>
+        <span class="render"><FileIcon file={l.icon} /> {l.label}</span>
       </Button>
-    {:else if kind === 'kustomize'}
-      <Button size="sm" variant="ghost" onclick={() => layout.open(kustomizeRoute(dirOf(path)))} title="Build this kustomization">
-        <span class="render"><FileIcon file={{ type: 'kustomize', lang: 'yaml' }} /> Build</span>
-      </Button>
-    {/if}
-    {#if kind === 'github-actions' || kind === 'gitlab-ci' || kind === 'azure-pipelines'}
-      <Button size="sm" variant="ghost" onclick={() => layout.open(ciRoute(path))} title="Jobs in execution order, with includes, extends and templates applied">
-        <span class="render"><FileIcon file={{ type: kind, lang: 'yaml' }} /> Pipeline</span>
-      </Button>
-    {/if}
-    {#if kind === 'compose'}
-      <Button size="sm" variant="ghost" onclick={() => layout.open(composeRoute(path))} title="Services, start order, ports and volumes, with the override merged and ${'{'}VAR{'}'} filled in">
-        <span class="render"><FileIcon file={{ type: kind, lang: 'yaml' }} /> Compose</span>
-      </Button>
-    {/if}
-    {#if kind === 'ansible-playbook' || kind === 'ansible-inventory'}
-      <Button size="sm" variant="ghost" onclick={() => layout.open(ansibleRoute(path))} title={kind === 'ansible-inventory' ? 'Groups and hosts as a tree' : 'Tasks in execution order, with roles and includes opened'}>
-        <span class="render"><FileIcon file={{ type: kind, lang: 'yaml' }} /> Ansible</span>
-      </Button>
-    {/if}
-    {#if kind === 'argo-workflows' || kind === 'argocd'}
-      <Button size="sm" variant="ghost" onclick={() => layout.open(argoRoute(path))} title="Resolve parameters and templates; see the steps as a graph">
-        <span class="render"><FileIcon file={{ type: kind, lang: 'yaml' }} /> Argo</span>
-      </Button>
-    {:else if chart && argoDoc}
-      <Button size="sm" variant="ghost" onclick={() => helmNav.showArgo(chart.path, argoDoc)} title="Render {chart.name} and open {argoDoc} in its Argo tab">
-        <span class="render"><FileIcon file={{ type: 'argo-workflows', lang: 'yaml' }} /> Argo</span>
-      </Button>
-    {/if}
+    {/each}
     <div class="actions">
-      {#if session.isYAML}
-        <IconButton icon={CopyPlus} label="Clone with a new name" size="sm" onclick={() => layout.open(cloneRoute(path))} />
-      {/if}
-      {#if kind === 'kubernetes'}
-        <IconButton icon={Boxes} label="Kubernetes resources in this folder" size="sm" onclick={() => layout.open(k8sRoute(dirOf(path)))} />
-        <IconButton icon={Eraser} tone="copy" label="Copy without cluster noise (neat)" size="sm" onclick={copyNeat} />
-      {/if}
       <span class="open-in">
         <IconButton
           icon={ExternalLink} tone="open"
@@ -379,27 +408,10 @@
           size="sm"
           onclick={() => openExternal(openIn.value)}
         />
-        <Popover side="bottom" align="end">
-          {#snippet trigger(props)}
-            <button {...props} type="button" class="chev" aria-label="Choose editor"><ChevronDown size={12} strokeWidth={2} /></button>
-          {/snippet}
-          <div class="menu">
-            {#each Object.entries(editorNames) as [id, name] (id)}
-              <button type="button" class:current={openIn.value === id} onclick={() => openExternal(id as ExternalEditor)}>
-                Open in {name}
-              </button>
-            {/each}
-          </div>
-        </Popover>
+        <Menu label="Choose editor" icon={ChevronDown} slim items={editorItems} />
       </span>
-      {#if session.isYAML}
-        <IconButton icon={GitCompare} label={session.dirty ? 'Compare what-if edits with disk' : 'Compare with another file'} size="sm" onclick={compareThis} />
-        <IconButton icon={TextSearch} label="Query this file (jq)" size="sm" onclick={() => queries.open({ path })} />
-      {/if}
-      <IconButton icon={LocateFixed} label="Reveal in explorer" size="sm" onclick={() => ((layout.explorerOpen = true), ws.reveal(path))} />
-      <IconButton icon={Link} label="Copy path" size="sm" onclick={() => copyPath(false)} />
-      <IconButton icon={Copy} tone="copy" label="Copy full path" size="sm" onclick={() => copyPath(true)} />
       <IconButton icon={PanelRight} label="Outline and problems" size="sm" active={lensOpen.value} onclick={() => (lensOpen.value = !lensOpen.value)} />
+      <Menu label="More actions for this file" items={more} />
     </div>
   </header>
 
@@ -552,43 +564,6 @@
   .open-in {
     display: flex;
     align-items: center;
-  }
-  .chev {
-    display: grid;
-    place-items: center;
-    width: 14px;
-    height: var(--control-h-sm);
-    padding: 0;
-    color: var(--fg-2);
-    background: none;
-    border: none;
-    border-radius: var(--r-sm);
-  }
-  .chev:hover {
-    color: var(--fg-0);
-    background: var(--bg-3);
-  }
-  .menu {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-  .menu button {
-    height: 28px;
-    padding: 0 var(--s-2);
-    text-align: left;
-    font-size: var(--fs-md);
-    color: var(--fg-1);
-    background: none;
-    border: none;
-    border-radius: var(--r-sm);
-  }
-  .menu button:hover {
-    color: var(--fg-0);
-    background: var(--bg-3);
-  }
-  .menu button.current {
-    color: var(--accent);
   }
   .banner {
     display: flex;
