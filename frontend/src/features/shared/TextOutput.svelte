@@ -1,4 +1,7 @@
 <script lang="ts">
+  import Forward from '@lucide/svelte/icons/forward'
+  import Menu from '../../lib/components/Menu.svelte'
+  import { sendTo } from './sendto'
   import Working from '../../lib/components/Working.svelte'
   import type { Component, Snippet } from 'svelte'
   import ArrowLeftRight from '@lucide/svelte/icons/arrow-left-right'
@@ -81,6 +84,9 @@
     {/if}
     {#if canFind}
       <IconButton icon={Search} label="Find in the output" shortcut="Ctrl+F" size="sm" active={finding} onclick={() => (finding = !finding)} />
+    {/if}
+    {#if output}
+      <Menu label="Send the output to another tool" icon={Forward} items={sendTo(() => output ?? '')} />
     {/if}
     <Button icon={Copy} tone="copy" variant="ghost" size="sm" title="Copy output (Alt+C)" aria-keyshortcuts="Alt+C" disabled={!output} onclick={() => copyText(output ?? '')}>Copy</Button>
   {/snippet}

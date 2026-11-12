@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { persisted } from '../../lib/stores/persist.svelte'
   import { untrack } from 'svelte'
   import Copy from '@lucide/svelte/icons/copy'
   import IdCard from '@lucide/svelte/icons/id-card'
@@ -33,7 +34,12 @@
   let name = $state('')
   let count = $state(1)
   type Format = 'lower' | 'upper' | 'plain' | 'braces' | 'urn'
-  let format = $state<Format>('lower')
+  // How UUIDs are written is a display choice, remembered (3.10.2).
+  const formatPref = persisted<Format>('uuid.format', 'lower')
+  let format = $state<Format>(formatPref.value)
+  $effect(() => {
+    formatPref.value = format
+  })
   const job = new Job<string[]>()
   const parsed = new TextJob<UUIDInfo>()
 

@@ -3,7 +3,7 @@
   import Brain from '@lucide/svelte/icons/brain'
   import Coffee from '@lucide/svelte/icons/coffee'
   import Check from '@lucide/svelte/icons/check'
-  import Trash from '@lucide/svelte/icons/trash'
+  import Eraser from '@lucide/svelte/icons/eraser'
   import Timer from '@lucide/svelte/icons/timer'
   import Button from '../../lib/components/Button.svelte'
   import EmptyState from '../../lib/components/EmptyState.svelte'
@@ -57,7 +57,7 @@
     <ToolTabs {tool} />
   {/snippet}
   {#snippet actions()}
-    {#if blocks.length}<Button size="sm" variant="ghost" icon={Trash} tone="clear" onclick={() => today.clear()}>Clear today</Button>{/if}
+    {#if blocks.length}<Button size="sm" variant="ghost" icon={Eraser} tone="clear" onclick={() => today.clear()}>Clear today</Button>{/if}
   {/snippet}
   {#snippet body()}
     <div class="today">

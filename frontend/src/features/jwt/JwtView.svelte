@@ -1,4 +1,7 @@
 <script lang="ts">
+  import Copy from '@lucide/svelte/icons/copy'
+  import IconButton from '../../lib/components/IconButton.svelte'
+  import { copyText } from '../../lib/utils/clipboard'
   import ShieldAlert from '@lucide/svelte/icons/shield-alert'
   import Clock from '@lucide/svelte/icons/clock'
   import Badge from '../../lib/components/Badge.svelte'
@@ -48,6 +51,8 @@
     const ordered = Object.keys(known).filter((k) => k in payload)
     return [...ordered, ...keys.filter((k) => !(k in known))]
   })
+  /** A value as it is copied: a string as it is, anything else as JSON. */
+  const raw = (v: unknown) => (typeof v === 'string' ? v : JSON.stringify(v))
 </script>
 
 <div class="jwt">
@@ -100,9 +105,11 @@
                 {#if timeClaims.has(key) && typeof value === 'number'}
                   <span class="mono">{absolute(value)}</span>
                   <span class="rel">{relative(value)}</span>
+                  <span class="mono raw" title="The claim as written: seconds since 1970">{value}</span>
                 {:else}
                   <span class="mono" class:str={typeof value === 'string'}>{show(value)}</span>
                 {/if}
+                <IconButton icon={Copy} tone="copy" label="Copy {key}" size="sm" onclick={() => copyText(raw(value), key)} />
               </td>
             </tr>
           {/each}
@@ -115,14 +122,14 @@
           {#each Object.entries(header) as [key, value] (key)}
             <tr>
               <th scope="row"><code>{key}</code></th>
-              <td><span class="mono">{show(value)}</span></td>
+              <td><span class="mono">{show(value)}</span> <IconButton icon={Copy} tone="copy" label="Copy {key}" size="sm" onclick={() => copyText(raw(value), key)} /></td>
             </tr>
           {/each}
         </tbody>
       </table>
 
       <h3>Signature</h3>
-      <p class="sig mono">{jwt.signature}</p>
+      <p class="sig mono">{jwt.signature} <IconButton icon={Copy} tone="copy" label="Copy the signature" size="sm" onclick={() => copyText(jwt.signature, 'Signature')} /></p>
     </div>
   {:else}
     <CodeView value={JSON.stringify({ header, payload }, null, 2)} label="Token JSON" language="json" readonly />
@@ -130,6 +137,12 @@
 </div>
 
 <style>
+  .raw {
+    color: var(--fg-2);
+  }
+  td :global(button) {
+    vertical-align: middle;
+  }
   .jwt {
     height: 100%;
     display: flex;

@@ -11,7 +11,7 @@
   import EmptyState from '../../lib/components/EmptyState.svelte'
   import IconButton from '../../lib/components/IconButton.svelte'
   import SegmentedControl from '../../lib/components/SegmentedControl.svelte'
-  import SplitPane from '../../lib/components/SplitPane.svelte'
+  import ToolLayout from '../shared/ToolLayout.svelte'
   import Toggle from '../../lib/components/Toggle.svelte'
   import { runRegex, type RegexNode, type RegexResponse, type Style } from '../../lib/api/regex'
   import { toolById } from '../../lib/tools'
@@ -113,13 +113,8 @@
   })
 </script>
 
-<div class="tool">
-  <header class="toolbar">
-    <div class="title">
-      <span class="icon"><Regex size={16} strokeWidth={1.75} /></span>
-      <h1>{tool.title}</h1>
-    </div>
-    <div class="controls">
+<ToolLayout {tool}>
+  {#snippet controls()}
       <SegmentedControl
         label="Style"
         bind:value={style}
@@ -134,12 +129,8 @@
         {/each}
       </div>
       <Toggle label="All matches" bind:checked={all} title="Off: only the first match" />
-    </div>
-  </header>
-
-  <div class="body">
-    <SplitPane id="regex">
-      {#snippet first()}
+  {/snippet}
+  {#snippet input()}
         <div class="left">
           <section class="card" aria-label="Pattern">
             <div class="pat" class:bad={!!res?.error}>
@@ -186,8 +177,8 @@
             <CodeView bind:this={editor} bind:value={job.input} label="Test text" placeholder="Lines to test the pattern on — matches light up as you type" extensions={marks} wrap />
           </Pane>
         </div>
-      {/snippet}
-      {#snippet second()}
+  {/snippet}
+  {#snippet output()}
         <Pane title="Result">
           {#snippet actions()}
             <SegmentedControl
@@ -266,59 +257,13 @@
             </div>
           {/if}
         </Pane>
-      {/snippet}
-    </SplitPane>
-  </div>
-</div>
+  {/snippet}
+</ToolLayout>
 
 <style>
-  /* The toolbar and body match ToolLayout; the left side has two parts. */
-  .tool {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    padding: var(--s-3) var(--s-4) var(--s-4);
-    gap: var(--s-3);
-  }
-  .toolbar {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: var(--s-3) var(--s-4);
-    min-height: var(--control-h);
-  }
-  .title {
-    display: flex;
-    align-items: center;
-    gap: var(--s-2);
-  }
-  .icon {
-    display: grid;
-    place-items: center;
-    width: 26px;
-    height: 26px;
-    color: var(--accent);
-    background: var(--accent-soft);
-    border-radius: var(--r-md);
-  }
-  h1 {
-    font-size: var(--fs-xl);
-    font-weight: var(--fw-semibold);
-    letter-spacing: -0.01em;
-  }
-  .controls {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: var(--s-2) var(--s-3);
-  }
   .flags {
     display: inline-flex;
     gap: 2px;
-  }
-  .body {
-    flex: 1;
-    min-height: 0;
   }
   .left {
     height: 100%;

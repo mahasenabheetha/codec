@@ -101,7 +101,7 @@
         <p class="built"><code>{url}</code></p>
       {:else}
         <EmptyState icon={Globe} title="The URL appears here" description="Fill in a host or a path, or paste a URL above.">
-          <Button size="sm" onclick={() => (parse.input = 'https://api.example.com:8443/v1/orders?status=open&tag=a+b&tag=c#results')}>Try an example</Button>
+          <Button size="sm" onclick={() => (parse.input = 'https://api.example.com:8443/v1/orders?status=open&tag=a+b&tag=c#results')}>Try a sample</Button>
         </EmptyState>
       {/if}
     </Pane>

@@ -13,6 +13,7 @@
   import Popover from '../../lib/components/Popover.svelte'
   import SegmentedControl from '../../lib/components/SegmentedControl.svelte'
   import SplitPane from '../../lib/components/SplitPane.svelte'
+  import ToolLayout from '../shared/ToolLayout.svelte'
   import { handoff } from '../../lib/stores/handoff.svelte'
   import { toolById } from '../../lib/tools'
   import { copyText } from '../../lib/utils/clipboard'
@@ -197,13 +198,8 @@
   })
 </script>
 
-<div class="tool">
-  <header class="toolbar">
-    <div class="title">
-      <span class="icon"><SquareTerminal size={16} strokeWidth={1.75} /></span>
-      <h1>{tool.title}</h1>
-    </div>
-    <div class="controls">
+<ToolLayout {tool}>
+  {#snippet actions()}
       <Button size="sm" variant="ghost" tone="copy" icon={Copy} disabled={!line.trim()} onclick={() => copy('bash')}>Copy</Button>
       <Popover side="bottom" align="end" bind:open={more}>
         {#snippet trigger(props)}
@@ -216,8 +212,8 @@
         </div>
       </Popover>
       <Button size="sm" variant="ghost" tone="clear" icon={Eraser} disabled={!line} title="Clear the line (Esc)" onclick={clear}>Clear</Button>
-    </div>
-  </header>
+  {/snippet}
+  {#snippet body()}
 
   <section class="line" aria-label="Command">
     <CodeView bind:this={editor} bind:value={line} label="Command" language="shell" extensions={marks} placeholder="Type or paste a command — git log --oneline -10, kubectl get pods -n shop …" wrap />
@@ -283,48 +279,10 @@
       {/snippet}
     </SplitPane>
   </div>
-</div>
+  {/snippet}
+</ToolLayout>
 
 <style>
-  .tool {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    padding: var(--s-3) var(--s-4) var(--s-4);
-    gap: var(--s-3);
-  }
-  .toolbar {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: var(--s-3) var(--s-4);
-    min-height: var(--control-h);
-  }
-  .title {
-    display: flex;
-    align-items: center;
-    gap: var(--s-2);
-  }
-  .icon {
-    display: grid;
-    place-items: center;
-    width: 26px;
-    height: 26px;
-    color: var(--accent);
-    background: var(--accent-soft);
-    border-radius: var(--r-md);
-  }
-  h1 {
-    font-size: var(--fs-xl);
-    font-weight: var(--fw-semibold);
-    letter-spacing: -0.01em;
-  }
-  .controls {
-    display: flex;
-    align-items: center;
-    gap: var(--s-2);
-    margin-left: auto;
-  }
   .menu {
     display: flex;
     flex-direction: column;

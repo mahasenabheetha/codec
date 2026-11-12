@@ -1,4 +1,6 @@
 <script lang="ts">
+  import Copy from '@lucide/svelte/icons/copy'
+  import IconButton from '../../lib/components/IconButton.svelte'
   import { untrack } from 'svelte'
   import Link from '@lucide/svelte/icons/link'
   import type CodeView from '../../lib/components/CodeView.svelte'
@@ -144,7 +146,7 @@
           <table>
             <tbody>
               {#each shown.rows as [k, v] (k)}
-                <tr><th scope="row">{k}</th><td>{v}</td></tr>
+                <tr><th scope="row">{k}</th><td>{v} <IconButton icon={Copy} tone="copy" label="Copy the {k.toLowerCase()}" size="sm" onclick={() => copyText(v, k)} /></td></tr>
               {/each}
             </tbody>
           </table>
@@ -153,7 +155,7 @@
             <table>
               <tbody>
                 {#each shown.query as q, i (i)}
-                  <tr><th scope="row">{q.key}</th><td>{#if q.value}{q.value}{:else}<span class="none">empty</span>{/if}</td></tr>
+                  <tr><th scope="row">{q.key}</th><td>{#if q.value}{q.value} <IconButton icon={Copy} tone="copy" label="Copy {q.key}" size="sm" onclick={() => copyText(q.value, q.key)} />{:else}<span class="none">empty</span>{/if}</td></tr>
                 {/each}
               </tbody>
             </table>

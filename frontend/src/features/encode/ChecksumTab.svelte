@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Eraser from '@lucide/svelte/icons/eraser'
   import ErrorNote from '../../lib/components/ErrorNote.svelte'
   import { untrack } from 'svelte'
   import CircleCheck from '@lucide/svelte/icons/circle-check'
@@ -175,7 +176,7 @@
         {/snippet}
         {#snippet actions()}
           <Button icon={Copy} tone="copy" variant="ghost" size="sm" title="Copy as sha256sum lines (Alt+C)" disabled={!done.length} onclick={() => copyText(asLines(), 'Checksums')}>Copy</Button>
-          <IconButton icon={X} label="Clear" size="sm" disabled={!rows.length && !expected} onclick={clear} />
+          <IconButton icon={Eraser} tone="clear" label="Clear" shortcut="Escape" size="sm" disabled={!rows.length && !expected} onclick={clear} />
         {/snippet}
         {#if rows.length}
           <ul class="files">

@@ -222,7 +222,7 @@
       {:else if !job.error}
         <Pane title="Range" grow={false}>
           <EmptyState icon={Waypoints} title="The range in detail appears here" description="Network, broadcast, first and last host, netmask, wildcard and how many hosts it holds; then split it into subnets.">
-            <Button size="sm" onclick={sample}>Try an example</Button>
+            <Button size="sm" onclick={sample}>Try a sample</Button>
           </EmptyState>
         </Pane>
       {/if}
@@ -259,7 +259,7 @@
       {:else if !list.error}
         <Pane title="Result" grow={false}>
           <EmptyState icon={Waypoints} title="Overlaps appear here" description="Paste your VNets, VPCs, subnets, pod and service ranges; ranges that share addresses are marked.">
-            <Button size="sm" onclick={sample}>Try an example</Button>
+            <Button size="sm" onclick={sample}>Try a sample</Button>
           </EmptyState>
         </Pane>
       {/if}

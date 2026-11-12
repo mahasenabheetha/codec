@@ -149,7 +149,7 @@ file C:\\Users\\jdoe\\src\\orders\\appsettings.json, from 203.0.113.9 via 52.174
             <CodeView value={output} label="Sanitized" readonly wrap />
           {:else}
             <EmptyState icon={ShieldCheck} title="What you can share appears here" description="Secrets, emails, IP addresses, host names, UUIDs, Azure names and user names taken out, each value the same stand-in wherever it is, so the text still reads. A safety net, not a guarantee: read it before you share it.">
-              <Button size="sm" onclick={() => (input = sample)}>Try an example</Button>
+              <Button size="sm" onclick={() => (input = sample)}>Try a sample</Button>
             </EmptyState>
           {/if}
         </div>

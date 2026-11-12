@@ -257,7 +257,14 @@ them when it changes, and rename the SVG if browser tabs keep the old one.
   sub-tab when first shown and keeps it; the last sub-tab is remembered,
   and Home and the palette list each one by name. Requests go through
   `Job` / `TextJob` (newest answer wins, debounced while typing). One
-  tool hands input to another with `handoff.send(tool, tab, input)`.
+  tool hands input to another with `handoff.send(tool, tab, input)`;
+  every output pane offers the tools that take text (**Send to**,
+  `features/shared/sendto.ts`): a tool that can take a text handed to
+  it calls `handoff.take` and is listed there.
+  One wording per action: **Try a sample**, **Clear** (the eraser),
+  **Copy**. An option that is how a result is written (hex or base64,
+  a diff's layout) is a display choice and is remembered; what was
+  typed is not.
   Results with several values give each its own copy button.
 - **Persistence.** `persisted()` is for display preferences only: the
   theme, sizes of panes, which tools are pinned or were opened last,

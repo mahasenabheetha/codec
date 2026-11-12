@@ -34,6 +34,13 @@ All notable changes to codec are documented here. The format follows
   - A label that doesn't fit is cut to the node's width, and the node's
     tooltip has the whole of it. The Ansible map outlines the selected
     node, as the others do.
+- **Send to.** The arrow beside Copy on a tool's output sends it to
+  another tool, which opens with it as its input (JSON & YAML,
+  Sanitize, CSV & TSV, the Log viewer, URL, Commands, Time, Network,
+  UUID, Colour). Handed over once, in memory.
+- **JWT and URL:** a copy button beside every claim, header field, the
+  signature, every URL part and every query value. A time claim also
+  shows the number as it is written.
 - **Log viewer:**
   - **The chart keeps the whole log in view.** A time range you drag
     is drawn as a window over all of it, the rest dimmed; drag again
@@ -81,6 +88,12 @@ All notable changes to codec are documented here. The format follows
   and everything else (compare, query, clone, Kubernetes resources,
   neat copy, reveal, copy path) is under **…** with its name, where
   there were up to nine unlabelled icons.
+- **Regex and Commands** use the same page frame as the other tools:
+  their own colour, and Regex gets the input-over-output button.
+- One wording, **Try a sample**, on every tool's empty state; Clear is
+  the eraser everywhere.
+- How digests and UUIDs are written, and the text diff's layout and
+  ignore switches, are remembered.
 - The Helm view and Workspace problems use the same header as the other
   views; Helm says **What-if** as they do.
 - **Esc clears a tool only from its main input** or from outside any

@@ -176,7 +176,7 @@
         </div>
       {:else}
         <EmptyState icon={QrCode} title="The code appears here" description="Scan it with a phone camera to check. Higher levels survive more damage or a logo on top, but make a denser code.">
-          <Button size="sm" onclick={sample}>Try a link</Button>
+          <Button size="sm" onclick={sample}>Try a sample</Button>
         </EmptyState>
       {/if}
     </Pane>
