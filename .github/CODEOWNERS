@@ -1,0 +1,12 @@
+# Who reviews what: GitHub asks these owners for a review on every pull
+# request that touches the matching files, and the ruleset on main can
+# require their approval ("Require review from Code Owners").
+# The last matching line wins.
+
+*                   @mahasenabheetha
+
+# The workflows, release config and this file: security-relevant, so
+# named on their own even while one person owns everything.
+/.github/           @mahasenabheetha
+/.goreleaser.yaml   @mahasenabheetha
+/Dockerfile         @mahasenabheetha
