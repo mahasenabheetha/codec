@@ -41,6 +41,8 @@ export const prefs = {
   repeats: persisted<RepeatMode>('logs.repeats', 'exact'),
   /** Over time: entries by level, or a lane per step or source. */
   chart: persisted<'levels' | 'lanes'>('logs.chart', 'levels'),
+  /** The row of options under the search box, shown or put away. */
+  options: persisted<boolean>('logs.options', true),
 }
 
 export type RepeatMode = 'off' | 'exact' | 'similar'

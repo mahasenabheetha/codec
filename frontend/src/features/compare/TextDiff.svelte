@@ -23,10 +23,25 @@
   let { result, opts }: Props = $props()
 
   const rows = $derived(result.rows ?? [])
-  // Gaps opened by the user, by row index. CompareView keys this
-  // component on the result, so a new result starts folded.
-  let opened = $state(new Set<number>())
+  // How much of each gap is open, by row index: lines shown at each of
+  // its ends (a click opens STEP more; "all" opens the rest). CompareView
+  // keys this component on the result, so a new result starts folded.
+  const STEP = 20
+  let opened = $state(new Map<number, number>())
   let list = $state<HTMLElement>()
+  // The rail of marks is a map of a diff longer than its box: one that
+  // fits needs none (its marks would not line up with the rows).
+  let scrolls = $state(false)
+  $effect(() => {
+    if (!list) return
+    const el = list
+    const measure = () => (scrolls = el.scrollHeight > el.clientHeight + 1)
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    void [rows, opened]
+    queueMicrotask(measure)
+    return () => ro.disconnect()
+  })
 
   // Changes as blocks (a run of changed rows), for next and previous.
   const blocks = $derived(rows.flatMap((r, i) => (r.kind !== 'equal' && r.kind !== 'gap' && (i === 0 || rows[i - 1].kind === 'equal' || rows[i - 1].kind === 'gap') ? [i] : [])))
@@ -44,18 +59,18 @@
     go(e.key === 'ArrowDown' ? 1 : -1)
   }
 
-  async function unfoldAt(i: number) {
-    opened = new Set(opened).add(i)
+  async function unfoldAt(i: number, all = false) {
+    opened = new Map(opened).set(i, all ? Infinity : (opened.get(i) ?? 0) + STEP)
     await tick()
     list?.querySelector<HTMLElement>(`[data-from="${i}"]`)?.focus()
   }
 
   const lines = $derived({ left: result.left.text.split(/\r?\n/), right: result.right.text.split(/\r?\n/) })
 
-  /** A gap's unchanged lines, as equal rows. */
-  function unfold(r: DiffRow): DiffRow[] {
+  /** A gap's unchanged lines from..to (of its count), as equal rows. */
+  function unfold(r: DiffRow, from = 0, to = r.count ?? 0): DiffRow[] {
     const out: DiffRow[] = []
-    for (let k = 0; k < (r.count ?? 0); k++) {
+    for (let k = from; k < to; k++) {
       const l = r.left!.line + k
       const rr = r.right!.line + k
       out.push({ kind: 'equal', left: { line: l, text: lines.left[l - 1] ?? '' }, right: { line: rr, text: lines.right[rr - 1] ?? '' } })
@@ -101,14 +116,24 @@
   }
 
   const plural = (n: number, word: string) => `${n.toLocaleString()} ${word}`
+
+  // The patch, line by line, for the coloured unified view.
+  const patch = $derived((result.diff ?? '').split(/\r?\n/).map((text) => ({ text, kind: text.startsWith('@@') ? 'hunk' : text.startsWith('+++') || text.startsWith('---') ? 'file' : text.startsWith('+') ? 'add' : text.startsWith('-') ? 'del' : '' })))
+  // Where the changes are, down the right edge: a mark per block of
+  // changed rows, as far down as the block is in the diff.
+  const marks = $derived(
+    blocks.map((i, b) => ({ b, top: rows.length ? (i / rows.length) * 100 : 0, kind: rows[i].kind })),
+  )
 </script>
 
 {#snippet cell(c: DiffCell | undefined, side: 'left' | 'right', kind: DiffRow['kind'])}
   {#if c}
-    <span class="ln">{#if kind !== 'equal'}<span class="sr-only">{side === 'left' ? 'old' : 'new'} </span>{/if}{c.line}</span>
+    <span class="ln {side}">{#if kind !== 'equal'}<span class="sr-only">{side === 'left' ? 'old' : 'new'} </span>{/if}{c.line}</span>
+    <span class="sign {side}" class:tint={kind !== 'equal'} aria-hidden="true">{kind === 'equal' ? '' : side === 'left' ? '−' : '+'}</span>
     <span class="text {side}" class:tint={kind !== 'equal'}>{#each pieces(c) as p, i (i)}{#if p.hit}<mark>{p.text}</mark>{:else}{p.text}{/if}{/each}</span>
   {:else}
-    <span class="ln"></span>
+    <span class="ln {side}"></span>
+    <span class="sign none"></span>
     <span class="text none"></span>
   {/if}
 {/snippet}
@@ -152,24 +177,48 @@
   </div>
 
   {#if opts.textView === 'unified' && result.diff}
-    <div class="unified"><CodeView value={result.diff} label="Text diff" readonly /></div>
+    {#if patch.length > 20000}
+      <div class="unified"><CodeView value={result.diff} label="Text diff" readonly /></div>
+    {:else}
+      <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+      <pre class="patch" aria-label="Text diff, as a patch" tabindex="0">{#each patch as l, i (i)}<span class="pl {l.kind}">{l.text}
+</span>{/each}</pre>
+    {/if}
   {:else if rows.length}
+    <div class="body">
     <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
     <div class="rows" bind:this={list} role="region" aria-label="Side-by-side diff" style:--ln={lnWidth} {onkeydown}>
       {#each rows as r, i (i)}
         {#if r.kind !== 'gap'}
           {@render line(r, undefined, blocks.indexOf(i) >= 0 ? blocks.indexOf(i) : undefined)}
-        {:else if opened.has(i)}
-          {#each unfold(r) as u, k (u.left!.line)}{@render line(u, k === 0 ? i : undefined)}{/each}
         {:else}
-          <button type="button" class="gap" onclick={() => unfoldAt(i)}>
-            <ChevronsUpDown size={12} strokeWidth={1.75} /> {plural(r.count ?? 0, r.count === 1 ? 'unchanged line' : 'unchanged lines')}
-          </button>
+          {@const total = r.count ?? 0}
+          {@const k = Math.min(opened.get(i) ?? 0, Math.ceil(total / 2))}
+          {#if k * 2 >= total}
+            {#each unfold(r) as u, j (u.left!.line)}{@render line(u, j === 0 ? i : undefined)}{/each}
+          {:else}
+            {#each unfold(r, 0, k) as u, j (u.left!.line)}{@render line(u, j === 0 ? i : undefined)}{/each}
+            <div class="gap">
+              <button type="button" class="more" onclick={() => unfoldAt(i)}>
+                <ChevronsUpDown size={12} strokeWidth={1.75} /> {plural(total - 2 * k, total - 2 * k === 1 ? 'unchanged line' : 'unchanged lines')}{total - 2 * k > STEP * 2 ? ` · show ${STEP} more at each end` : ''}
+              </button>
+              {#if total - 2 * k > STEP * 2}<button type="button" class="all" onclick={() => unfoldAt(i, true)}>Show all</button>{/if}
+            </div>
+            {#each unfold(r, total - k, total) as u (u.left!.line)}{@render line(u)}{/each}
+          {/if}
         {/if}
       {/each}
       {#if result.rowsTruncated}
         <p class="muted more">Showing the first 5,000 rows. Switch to Unified for the whole diff.</p>
       {/if}
+    </div>
+    {#if marks.length > 1 && scrolls}
+      <div class="rail" aria-hidden="true">
+        {#each marks as m (m.b)}
+          <button type="button" tabindex="-1" class="mark {m.kind}" class:on={m.b === at} style:top="{m.top}%" title="Change {m.b + 1} of {marks.length}" onclick={() => ((at = m.b - 1), go(1))}></button>
+        {/each}
+      </div>
+    {/if}
     </div>
   {/if}
 </div>
@@ -222,10 +271,19 @@
     flex: 1;
     min-width: 0;
   }
+  /* The rows, and the rail of marks down their right edge. */
+  .body {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
   .rows {
     flex: 1;
     min-height: 0;
     overflow: auto;
+    padding-right: 10px;
     padding-bottom: var(--s-4);
     font-family: var(--font-mono);
     font-size: var(--fs-sm);
@@ -234,7 +292,7 @@
   .row {
     position: relative;
     display: grid;
-    grid-template-columns: var(--ln) 1fr var(--ln) 1fr;
+    grid-template-columns: var(--ln) 1.4em 1fr var(--ln) 1.4em 1fr;
   }
   .ln {
     padding-right: var(--s-2);
@@ -242,8 +300,98 @@
     color: var(--fg-2);
     user-select: none;
   }
-  .ln:nth-child(3) {
+  .ln.right {
     border-left: 1px solid var(--border);
+  }
+  /* The sign of a changed line, so it is not its colour alone. */
+  .sign {
+    text-align: center;
+    color: var(--fg-2);
+    user-select: none;
+  }
+  .sign.tint.left {
+    color: var(--err);
+    background: var(--diff-del-bg);
+  }
+  .sign.tint.right {
+    color: var(--ok);
+    background: var(--diff-add-bg);
+  }
+  .sign.none {
+    background: repeating-linear-gradient(-45deg, transparent 0 4px, var(--bg-2) 4px 5px);
+  }
+  /* A line changed, not removed and added: one ground on both sides;
+     the characters that differ keep the red and the green. */
+  .row.change .text.tint,
+  .row.change .sign.tint {
+    background: var(--diff-chg-bg);
+  }
+  .row.change .sign.tint {
+    color: var(--warn);
+  }
+  /* The unified view: the patch, coloured. */
+  .patch {
+    flex: 1;
+    min-height: 0;
+    margin: 0;
+    padding: var(--s-2) 0 var(--s-4);
+    overflow: auto;
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-code);
+    color: var(--fg-1);
+  }
+  .pl {
+    display: block;
+    padding: 0 var(--s-4);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  .pl.add {
+    color: var(--fg-0);
+    background: var(--diff-add-bg);
+  }
+  .pl.del {
+    color: var(--fg-0);
+    background: var(--diff-del-bg);
+  }
+  .pl.hunk {
+    color: var(--accent);
+    background: var(--bg-2);
+  }
+  .pl.file {
+    color: var(--fg-2);
+  }
+  /* Where the changes are, down the right edge. */
+  .rail {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 10px;
+    background: var(--bg-2);
+    border-left: 1px solid var(--border);
+  }
+  .mark {
+    position: absolute;
+    left: 1px;
+    right: 1px;
+    height: 4px;
+    min-height: 4px;
+    padding: 0;
+    border: none;
+    border-radius: 1px;
+    background: var(--warn);
+    cursor: pointer;
+  }
+  .mark.delete {
+    background: var(--err);
+  }
+  .mark.insert {
+    background: var(--ok);
+  }
+  .mark.on {
+    outline: 1px solid var(--fg-0);
   }
   /* Wrap long lines so a whole hash or token stays in view. */
   .text {
@@ -278,20 +426,28 @@
   .gap {
     display: flex;
     align-items: center;
+    gap: var(--s-3);
+    padding: 0 var(--s-4);
+    background: var(--bg-2);
+    border-block: 1px solid var(--border);
+  }
+  .gap button {
+    display: inline-flex;
+    align-items: center;
     gap: var(--s-2);
-    width: 100%;
-    padding: 2px var(--s-4);
+    padding: 2px 0;
     font-family: var(--font-ui);
     font-size: var(--fs-xs);
     color: var(--fg-2);
     text-align: left;
-    background: var(--bg-2);
+    background: none;
     border: none;
-    border-block: 1px solid var(--border);
   }
-  .gap:hover {
+  .gap .more {
+    flex: 1;
+  }
+  .gap button:hover {
     color: var(--fg-0);
-    background: var(--bg-3);
   }
   /* The change Next and Previous went to. */
   .row.current {

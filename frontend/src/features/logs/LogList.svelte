@@ -362,6 +362,22 @@
   .lv-trace .msg {
     color: var(--fg-1);
   }
+  /* Fatal is more than an error: a solid label and a firmer ground.
+     Trace is less than debug: its whole line is muted (3.10.2). */
+  .lv-fatal .level {
+    justify-self: start;
+    padding: 0 var(--s-1);
+    color: var(--bg-0);
+    background: var(--err);
+    border-radius: var(--r-sm);
+  }
+  .lv-fatal {
+    background: color-mix(in srgb, var(--err) 24%, transparent);
+  }
+  .lv-trace .msg,
+  .lv-trace .level {
+    color: var(--fg-2);
+  }
   .src,
   .col {
     color: var(--fg-1);

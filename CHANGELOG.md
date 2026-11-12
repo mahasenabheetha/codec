@@ -34,6 +34,28 @@ All notable changes to codec are documented here. The format follows
   - A label that doesn't fit is cut to the node's width, and the node's
     tooltip has the whole of it. The Ansible map outlines the selected
     node, as the others do.
+- **Log viewer:**
+  - **The chart keeps the whole log in view.** A time range you drag
+    is drawn as a window over all of it, the rest dimmed; drag again
+    for another range, or the × for everything.
+  - **A warning or an error is never lost** under a tall bar of info:
+    its part of a bar is at least a few pixels. The tallest bar's count
+    is shown, the time axis has ticks, and a fatal has a cap so it reads
+    apart from an error.
+  - **Options** puts the row of level, context, fold, column, chart,
+    time and line options away (and says what is set), so the entries
+    start higher.
+  - Fatal rows have a solid label and a firmer ground; trace lines are
+    muted more than debug.
+- **Text diff and Compare as text:**
+  - A **−** or **+** beside every changed line, so it is not its colour
+    alone; a line that changed (not removed and added) has one ground
+    on both sides, with the characters that differ in red and green.
+  - **Unified** is coloured: added, removed, and each hunk's header.
+  - A long run of unchanged lines **opens 20 at each end** at a time,
+    or all at once.
+  - A long diff has **marks down its right edge** where the changes
+    are; click one to go there.
 - **Lens views** (Argo, pipelines, Compose, Ansible):
   - The side panel's sections **fold** at their heading, remembered per
     view, and **Problems comes first** when there are any.
