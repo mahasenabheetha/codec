@@ -94,12 +94,12 @@
 
 <h2 id="features">What it does<a class="anchor" href="#features">#</a></h2>
 <div class="cards">
-  <a class="card" href="workspace.html"><span class="icon">▤</span><h3>Workspace and editor</h3><p>Open a repo read-only, every YAML file labelled by type, a template-aware editor with hover, outline and plain-English errors, and READMEs rendered.</p></a>
+  <a class="card" href="workspace.html"><span class="icon">▤</span><h3>Workspace and editor</h3><p>Open a repo read-only, every YAML file labelled by type and marked with its problems, a template-aware editor with hover, outline and plain-English errors, and READMEs rendered.</p></a>
   <a class="card" href="helm.html"><span class="icon">⎈</span><h3>Helm</h3><p>Render charts exactly like <code>helm template</code>, with no helm install. See where every value came from.</p></a>
   <a class="card" href="lint.html"><span class="icon">✓</span><h3>Lint and schemas</h3><p>YAML traps, risky Kubernetes settings, removed APIs and schema validation for Kubernetes, CRDs and CI files.</p></a>
-  <a class="card" href="kubernetes.html"><span class="icon">⬡</span><h3>Kubernetes and Kustomize</h3><p>Objects as cards, a relationship graph, an inventory and broken references. Kustomize builds without kubectl.</p></a>
+  <a class="card" href="kubernetes.html"><span class="icon">⬡</span><h3>Kubernetes and Kustomize</h3><p>Objects as cards, a relationship graph you can use from the keyboard, an inventory and broken references. Kustomize builds without kubectl.</p></a>
   <a class="card" href="argo.html"><span class="icon">⟿</span><h3>Argo</h3><p>Workflows as graphs with every step's template and inputs resolved, across files. Argo CD apps rendered with their values.</p></a>
-  <a class="card" href="ci.html"><span class="icon">⑂</span><h3>CI pipelines</h3><p>GitHub Actions, GitLab CI and Azure Pipelines in execution order, with each job's effective configuration and where each line came from.</p></a>
+  <a class="card" href="ci.html"><span class="icon">⑂</span><h3>CI pipelines</h3><p>GitHub Actions, GitLab CI and Azure Pipelines in execution order, stages as lanes, with each job's effective configuration and where each line came from.</p></a>
   <a class="card" href="compose.html"><span class="icon">▣</span><h3>Compose</h3><p>Files merged like <code>docker compose config</code>, variables from <code>.env</code>, services as a graph, ports and volumes.</p></a>
   <a class="card" href="ansible.html"><span class="icon">☰</span><h3>Ansible</h3><p>Playbooks in the order Ansible runs them, roles opened in place, variables ranked by precedence, inventories, and a playbook map coloured by a run.</p></a>
   <a class="card" href="compare.html"><span class="icon">⇄</span><h3>Compare and query</h3><p>Diff by meaning (key and list order ignored), dev vs prod renders, and jq over the whole repo.</p></a>
@@ -110,6 +110,16 @@
   <a class="card" href="settings.html"><span class="icon">◐</span><h3>Themes and sizes</h3><p>Ten themes: Dark and Light, warm Paper, dimmed Mist, High contrast, and soft, colourful dark ones for long days (Dusk, Midnight, Forest, Rosé, Ocean), each tool in its own colour. Compact, Comfortable or Large controls. File and folder icons as in VS Code's Material Icon Theme.</p></a>
   <a class="card" href="cli.html"><span class="icon">&gt;_</span><h3>CLI</h3><p>The same engine from the terminal and in CI, with exit codes that work as gates.</p></a>
 </div>
+
+<h2 id="day">Made for a whole working day<a class="anchor" href="#day">#</a></h2>
+<div class="table-wrap"><table>
+  <tr><th></th><th>What it means</th></tr>
+  <tr><td>A layout that is yours</td><td>Every divider drags or moves with the arrow keys, any tool can put its input over its output, and sizes are remembered. <a href="tools.html#finding">Pin</a> the tools you use to the top of the rail and of Home.</td></tr>
+  <tr><td>Keyboard first</td><td><kbd>Ctrl</kbd> <kbd>K</kbd> finds every action, view and setting. Graphs, trees, tabs and dividers all work without a mouse. See <a href="shortcuts.html">Keyboard shortcuts</a>.</td></tr>
+  <tr><td>Forgiving</td><td>Clearing a tool, unpinning, deleting a profile or turning a rule off offers <strong>Undo</strong>. A view that fails to read again keeps what it showed and offers <strong>Try again</strong>.</td></tr>
+  <tr><td>Easy on the eyes</td><td><a href="settings.html">Ten themes</a> and three sizes; each tool in its own colour, checked for contrast in every theme, or all in one accent if you prefer.</td></tr>
+  <tr><td>Accessible</td><td>Focus is always visible, a status is never its colour alone, reduced motion is honoured, and fields and changes are named for screen readers. See the <a href="design.html">design language</a>.</td></tr>
+</table></div>
 
 <h2 id="try">Try it in a minute<a class="anchor" href="#try">#</a></h2>
 <ol class="steps">

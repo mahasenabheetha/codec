@@ -72,12 +72,14 @@
 
 <h2 id="common">In every pipeline<a class="anchor" href="#common">#</a></h2>
 <ul>
-  <li><strong>Graph</strong> — jobs as nodes in real execution order (<code>needs</code>, stage order, <code>dependsOn</code>), deployments and manual jobs coloured. Or a <strong>list</strong> by stage.</li>
+  <li><strong>Graph</strong> — jobs as nodes in real execution order (<code>needs</code>, stage order, <code>dependsOn</code>), deployments and manual jobs coloured. A pipeline with stages draws each stage as a named lane with its jobs inside. Or a <strong>list</strong> by stage.</li>
   <li><strong>Job details</strong> — its steps or script, what it waits for, rules and conditions, runner or image, and its <em>effective configuration</em>: the job as the CI system will run it, each line annotated with its origin (the job itself, <code>extends .base</code>, <code>default</code>, global variables, <code>!reference</code>, a template file).</li>
   <li><strong>Includes and templates</strong> — local files are read and followed; remote ones (projects, URLs, components, marketplace actions) are listed as not read. codec never fetches anything.</li>
   <li><strong>Problems</strong> — unknown jobs and templates, missing files, <code>needs</code> across stages that can't work, undeclared inputs and parameters, and more.</li>
   <li><strong>Editor</strong> — jobs, stages and steps in the outline; hover and go to definition for <code>needs</code>, <code>extends</code>, <code>!reference</code>, local includes, <code>uses:</code>, <code>template:</code>, <code>dependsOn</code> and <code>${{ }}</code> contexts; Azure <code>$(var)</code>, <code>$[ ]</code> and GitLab <code>$[[ inputs ]]</code> highlighted.</li>
 </ul>
+
+<p>The header, the side panel that folds, the panes you can size and the graph (keyboard, minimap, legend) work as in every view: see <a href="workspace.html#views">What every view shares</a>.</p>
 
 <h2 id="github">GitHub Actions<a class="anchor" href="#github">#</a></h2>
 <figure>

@@ -96,9 +96,21 @@
 <p>This starts the local server on <a href="http://localhost:8765">http://localhost:8765</a>, opens your browser, and opens a small made-up repository built into codec, landing on its rendered Helm chart. The sample has one of everything: a Helm chart with dev and prod values, Kubernetes manifests with a Kustomize overlay, Argo workflows, GitHub Actions, GitLab CI and Azure pipelines, a Compose project and an Ansible playbook with a role. A few problems are planted in <code>k8s/legacy/</code> for the lint view to find.</p>
 <p>The sample is written to codec's cache folder, never to where you work, and restored each time you open it.</p>
 <figure>
-  <img src="images/home.png" alt="codec's home screen on first run, offering to open the sample or a folder" width="1400" height="820" loading="lazy">
-  <figcaption>Without <code>--sample</code>, the first run offers the same choice on the home screen.</figcaption>
+  <img src="images/home.png" alt="codec's home screen: a search box for tools, the tools by group, and the choice to open the sample or a folder" width="1400" height="820" loading="lazy">
+  <figcaption>Home. Without <code>--sample</code>, the first run offers the same choice here.</figcaption>
 </figure>
+
+<h2 id="tour">A first look around<a class="anchor" href="#tour">#</a></h2>
+<div class="table-wrap"><table>
+  <tr><th>Where</th><th>What it is for</th></tr>
+  <tr><td>Rail (left)</td><td>Every view and tool, in groups. Right-click one (or <kbd>Shift</kbd> <kbd>F10</kbd>) to pin it to the top. Settings, Keyboard shortcuts and Collapse are at the bottom; <kbd>Ctrl</kbd> <kbd>B</kbd> collapses it to icons.</td></tr>
+  <tr><td>Home</td><td>A search box that finds a tool by name, purpose or keyword, your pinned tools, the ones you opened last, and recent folders.</td></tr>
+  <tr><td>Explorer</td><td>The open folder (<kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>E</kbd>). Each YAML file has the logo of its type; right-click for the views that can open it.</td></tr>
+  <tr><td>Tabs</td><td>Files, views and tools stay open as tabs and keep their state. Drag to reorder; <kbd>Alt</kbd> <kbd>]</kbd> and <kbd>Alt</kbd> <kbd>[</kbd> move between them.</td></tr>
+  <tr><td>Palette</td><td><kbd>Ctrl</kbd> <kbd>K</kbd>: every action, view, file command and setting. The fastest way to anything.</td></tr>
+  <tr><td>Status bar</td><td>The open folder and how it is watched, the problems of the file in front, the path at the cursor, and the focus timer.</td></tr>
+</table></div>
+<p>Every divider between panes drags, and a clear can be undone, so it is safe to try things. <a href="workspace.html">Workspace and editor</a> has the rest.</p>
 
 <h2 id="your-repo">Open your own repository<a class="anchor" href="#your-repo">#</a></h2>
 <pre><code>codec serve --open --root ~/repos/platform</code></pre>
@@ -123,7 +135,7 @@
   <li>In PowerShell use <code>-v "${PWD}:/work:ro"</code>.</li>
   <li>Keep <code>127.0.0.1:</code> in <code>-p</code> so the port isn't reachable from your network.</li>
   <li>Add <code>-v codec-home:/home/nonroot</code> to keep Helm profiles, recent folders and downloaded schemas between runs.</li>
-  <li>Pin a version with <code>ghcr.io/mahasenabheetha/codec:2.0.0</code>. <code>latest</code> is the newest stable release; pre-releases only get their version tag.</li>
+  <li>Pin a version with <code>ghcr.io/mahasenabheetha/codec:3.10.2</code>. <code>latest</code> is the newest stable release; pre-releases only get their version tag.</li>
   <li>The image is distroless and runs as a non-root user; it is published for linux/amd64 and linux/arm64.</li>
 </ul>
 

@@ -3,12 +3,9 @@
 </p>
 <h1 align="center">codec</h1>
 <p align="center">
-  The local workbench for a DevOps engineer's day —<br>
-  read and check the YAML you live in (Kubernetes, Helm, Kustomize, Argo,<br>
-  CI pipelines, Compose, Ansible), make sense of pipeline logs, and handle<br>
-  the tokens, hashes, timestamps, cron schedules and regexes around them.<br>
-  One binary, a local web UI and a CLI, next to your editor,<br>
-  and a desktop app on Windows. Nothing leaves your machine.
+  <b>The local workbench for a DevOps engineer's day.</b><br>
+  Read and check the YAML you live in, make sense of logs, and do the small<br>
+  jobs around them, in one binary. Nothing leaves your machine.
 </p>
 <p align="center">
   <a href="https://github.com/mahasenabheetha/codec/actions/workflows/ci.yml"><img src="https://github.com/mahasenabheetha/codec/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
@@ -21,9 +18,11 @@
 </p>
 <p align="center">
   <a href="https://mahasenabheetha.github.io/codec/"><b>Documentation</b></a> ·
-  <a href="https://github.com/mahasenabheetha/codec/releases">Download</a> ·
-  <a href="#quick-start">Quick start</a> ·
-  <a href="https://mahasenabheetha.github.io/codec/cli.html">CLI reference</a>
+  <a href="#install">Install</a> ·
+  <a href="#features">Features</a> ·
+  <a href="#cli">CLI</a> ·
+  <a href="https://github.com/mahasenabheetha/codec/releases">Releases</a> ·
+  <a href="CHANGELOG.md">Changelog</a>
 </p>
 
 <p align="center">
@@ -33,51 +32,68 @@
   </picture>
 </p>
 
+## Contents
+
+[Why codec](#why-codec) · [Features](#features) · [Install](#install) ·
+[CLI](#cli) · [How it works](#how-it-works) ·
+[Privacy and security](#privacy-and-security) ·
+[Documentation](#documentation) · [Contributing](#contributing)
+
 ## Why codec
 
 Most of a platform engineer's day is spent *reading* YAML: what this
 chart renders with the prod values, which job runs after which, where an
 Ansible variable is really set, what an Argo step receives. The answers
 usually need a cluster, a pipeline run or a lot of scrolling. codec
-answers them from the files alone, on your machine.
+answers them from the files alone.
 
-The rest of the day is small jobs around that YAML: why a pipeline's
-Ansible run failed, what a JWT or a base64 Secret value says, when a
-cron schedule really fires, whether a regex matches, a bcrypt line for
-basic auth. They usually send you to a website — with your tokens and
-passwords. codec does them locally, next to the files they belong to.
+The rest of the day is small jobs around that YAML: why a pipeline
+failed, what a JWT or a base64 Secret value says, when a cron schedule
+fires, whether a regex matches. They usually send you to a website, with
+your tokens and passwords. codec does them locally, next to the files
+they belong to.
 
-- **Understand, don't just edit** — see each file the way the tool that
-  runs it does: Helm's merged values, GitLab's effective job after
-  `extends`, Compose's merged services, Ansible's execution order.
-- **Try things safely** — edits are *what-if*: they change what you see,
-  never the file. Copy the result, or a patch `git apply` accepts.
-- **Explain every problem** — each finding says why it matters and how to
-  fix it, on the exact line.
-- **One place for the small jobs** — logs, encodings, hashes, secrets,
-  timestamps, cron and regex, in the same app and the same CLI.
-- **Private by design** — never writes to your files, nothing you paste
-  is stored, no telemetry, listens on `127.0.0.1` only. Works offline.
+| | |
+|---|---|
+| **Understand, don't just edit** | Each file is shown the way the tool that runs it sees it: Helm's merged values, GitLab's effective job after `extends`, Compose's merged services, Ansible's execution order. |
+| **Try things safely** | Edits are *what-if*: they change what you see, never the file. Copy the result, or a patch `git apply` accepts. |
+| **Every problem explained** | Each finding says why it matters and how to fix it, on the exact line. |
+| **One place for the small jobs** | Logs, encodings, hashes, secrets, timestamps, cron and regex, in the same app and the same CLI. |
+| **Private by design** | Never writes to your files, stores nothing you paste, has no telemetry and listens on `127.0.0.1` only. Works offline. |
 
 ## Features
 
-Open a section to see what codec does there.
+| Area | What codec does | Guide |
+|---|---|---|
+| **Helm** | Renders charts exactly like `helm template` with the embedded Helm 4 SDK; layers values files, saves profiles, shows which file set every value | [Helm](https://mahasenabheetha.github.io/codec/helm.html) |
+| **Kubernetes, Kustomize** | Objects as cards, a relationship graph, an inventory, broken references; Kustomize built in-process | [Kubernetes](https://mahasenabheetha.github.io/codec/kubernetes.html) |
+| **Argo** | Workflows as graphs, each step's template and inputs resolved across files; Argo CD apps rendered with their values | [Argo](https://mahasenabheetha.github.io/codec/argo.html) |
+| **CI pipelines** | GitHub Actions, GitLab CI and Azure Pipelines in execution order, with each job's effective configuration and the origin of every line | [CI](https://mahasenabheetha.github.io/codec/ci.html) |
+| **Compose, Ansible** | Compose merged like `docker compose config`; playbooks in the order Ansible runs them, variables ranked by precedence | [Compose](https://mahasenabheetha.github.io/codec/compose.html) · [Ansible](https://mahasenabheetha.github.io/codec/ansible.html) |
+| **Lint and schemas** | YAML 1.1 traps, risky Kubernetes settings, removed APIs, and schema validation for Kubernetes, CRDs and CI files, in the editor, across the repo and in CI | [Lint](https://mahasenabheetha.github.io/codec/lint.html) |
+| **Compare, query, search** | Diff by meaning, jq over the whole repo, Find in Files | [Compare](https://mahasenabheetha.github.io/codec/compare.html) |
+| **Log viewer** | Structured, pipeline, build and platform logs filtered, charted, grouped by error and traced to the code that wrote them | [Logs](https://mahasenabheetha.github.io/codec/logs.html) |
+| **Commands** | A command line explained part by part and built with a form; risky parts flagged with a safer way | [Commands](https://mahasenabheetha.github.io/codec/tools.html#commands) |
+| **Everyday tools** | Sanitize, Quote, Smart paste, JSON & YAML, Base64, JWT, hashes, UUIDs, CIDR, time zones, cron, regex, QR codes, colours | [Tools](https://mahasenabheetha.github.io/codec/tools.html) |
+| **Focus and breaks** | A focus timer and break reminders with calm sounds | [Wellness](https://mahasenabheetha.github.io/codec/wellness.html) |
+
+Open a section for screenshots and the details.
 
 <details open>
-<summary><b>YAML workbench</b> — Helm, Kubernetes and Kustomize, Argo, CI pipelines, Compose and Ansible; lint, schemas, compare, query and starters</summary>
+<summary><b>YAML workbench</b>: Helm, Kubernetes and Kustomize, Argo, CI pipelines, Compose and Ansible; lint, schemas, compare, query and starters</summary>
 <br>
 
 <table>
 <tr>
-<td width="50%"><b>Helm</b><br>Render charts exactly like <code>helm template</code> with the embedded Helm 4 SDK — no helm install, no cluster. Layer values files, save profiles, and see which file set every value.<br><a href="https://mahasenabheetha.github.io/codec/helm.html">Helm guide →</a></td>
+<td width="50%"><b>Helm</b><br>Render charts exactly like <code>helm template</code> with the embedded Helm 4 SDK: no helm install, no cluster. Layer values files, save profiles, and see which file set every value.<br><a href="https://mahasenabheetha.github.io/codec/helm.html">Helm guide →</a></td>
 <td width="50%"><img src="docs/images/helm.png" alt="Helm view"></td>
 </tr>
 <tr>
 <td><img src="docs/images/editor.png" alt="Editor"></td>
-<td><b>Workspace and editor</b><br>Open a repo read-only; every YAML file labelled by type. An editor that understands Helm, Jinja, GitHub and Argo expressions, with plain-English errors, hover, go to definition, schema completion and snippets. Markdown files rendered as on GitHub, with links between files and images from the repo, safely.<br><a href="https://mahasenabheetha.github.io/codec/workspace.html">Workspace guide →</a></td>
+<td><b>Workspace and editor</b><br>Open a repo read-only; every YAML file is labelled by type, and the explorer shows which files have what-if edits and problems. An editor that understands Helm, Jinja, GitHub and Argo expressions, with plain-English errors, hover, go to definition, schema completion and snippets. Markdown rendered as on GitHub, safely.<br><a href="https://mahasenabheetha.github.io/codec/workspace.html">Workspace guide →</a></td>
 </tr>
 <tr>
-<td><b>Lint and schemas</b><br>YAML 1.1 traps, risky Kubernetes settings, removed APIs for your target version, and schema validation for Kubernetes, CRDs, GitHub Actions, GitLab CI, Azure Pipelines and Compose — in the editor, across the repo and in CI.<br><a href="https://mahasenabheetha.github.io/codec/lint.html">Lint guide →</a></td>
+<td><b>Lint and schemas</b><br>YAML 1.1 traps, risky Kubernetes settings, removed APIs for your target version, and schema validation for Kubernetes, CRDs, GitHub Actions, GitLab CI, Azure Pipelines and Compose: in the editor, across the repo and in CI.<br><a href="https://mahasenabheetha.github.io/codec/lint.html">Lint guide →</a></td>
 <td><img src="docs/images/problems.png" alt="Workspace problems"></td>
 </tr>
 <tr>
@@ -90,7 +106,7 @@ Open a section to see what codec does there.
 </tr>
 <tr>
 <td><img src="docs/images/gitlab.png" alt="GitLab pipeline view"></td>
-<td><b>CI pipelines</b><br>GitHub Actions, GitLab CI and Azure Pipelines in execution order, every matrix combination, and each job's effective configuration with the origin of every line.<br><a href="https://mahasenabheetha.github.io/codec/ci.html">CI guide →</a></td>
+<td><b>CI pipelines</b><br>GitHub Actions, GitLab CI and Azure Pipelines in execution order, stages as named lanes, every matrix combination, and each job's effective configuration with the origin of every line.<br><a href="https://mahasenabheetha.github.io/codec/ci.html">CI guide →</a></td>
 </tr>
 <tr>
 <td><b>Compose and Ansible</b><br>Compose files merged like <code>docker compose config</code>, variables from <code>.env</code>, services as a graph. Playbooks in the order Ansible runs them, roles in place, variables ranked by precedence, and a playbook map coloured by a run from a log.<br><a href="https://mahasenabheetha.github.io/codec/compose.html">Compose</a> · <a href="https://mahasenabheetha.github.io/codec/ansible.html">Ansible</a></td>
@@ -98,7 +114,7 @@ Open a section to see what codec does there.
 </tr>
 <tr>
 <td><img src="docs/images/compare.png" alt="Semantic compare"></td>
-<td><b>Compare, query and search</b><br>Diff by meaning — key and list order ignored, containers paired by name — including dev vs prod renders, or pasted text such as a live object. Run jq over the whole repo, or Find in Files for plain text, and jump to each result.<br><a href="https://mahasenabheetha.github.io/codec/compare.html">Compare guide →</a></td>
+<td><b>Compare, query and search</b><br>Diff by meaning (key and list order ignored, containers paired by name), including dev vs prod renders, or pasted text such as a live object. Run jq over the whole repo, or Find in Files for plain text, and jump to each result.<br><a href="https://mahasenabheetha.github.io/codec/compare.html">Compare guide →</a></td>
 </tr>
 <tr>
 <td><b>New files and clones</b><br>Starters with a short form, linted and rendered before you copy them; your own team starters; clone a file under a new name with references renamed and everything else listed.<br><a href="https://mahasenabheetha.github.io/codec/new.html">Starters guide →</a></td>
@@ -109,98 +125,123 @@ Open a section to see what codec does there.
 </details>
 
 <details>
-<summary><b>Log viewer</b> — structured, pipeline, build and platform logs filtered, charted and traced to the code</summary>
+<summary><b>Log viewer</b>: structured, pipeline, build and platform logs filtered, charted and traced to the code</summary>
 <br>
 
-<table>
-<tr>
-<td><picture><source media="(prefers-color-scheme: light)" srcset="docs/images/logs-light.png"><img src="docs/images/logs.png" alt="The Log viewer: a sample log with levels charted, repeated errors, and an error entry open"></picture></td>
-<td><b>Log viewer</b><br>A Log viewer for structured logs of any common format (ECS and other JSON, logfmt, klog, text with stack traces, as <code>argo logs</code> or <code>kubectl logs</code> print them): filter as you type with a small query language, chart them over time, see the errors that repeat, fold repeated lines and plain output, pin what matters and compare two runs; several logs open at once, and several files merged by time. Pipeline logs (Azure DevOps, GitHub Actions, GitLab, Jenkins), build output (BuildKit, Terraform, Maven, Gradle, npm, dotnet, go test, pytest), access logs, syslog and Kubernetes events are read into steps, errors and fields. An Argo run is read step by step, beside its status from <code>argo get</code>, and a log can be followed as it grows. A file and line in a log, a selection or the message itself leads to the code that wrote it, in a read-only peek of the open folder.<br><a href="https://mahasenabheetha.github.io/codec/logs.html">Log viewer guide →</a></td>
-</tr>
-</table>
+<picture><source media="(prefers-color-scheme: light)" srcset="docs/images/logs-light.png"><img src="docs/images/logs.png" alt="The Log viewer: a sample log with levels charted, repeated errors, and an error entry open"></picture>
+
+- **Any common format**: ECS and other JSON, logfmt, klog and text with
+  stack traces, as `argo logs` or `kubectl logs` print them.
+- **Pipelines and builds read into steps**: Azure DevOps, GitHub
+  Actions, GitLab, Jenkins; BuildKit, Terraform, Maven, Gradle, npm,
+  dotnet, go test, pytest; access logs, syslog and Kubernetes events.
+- **Find what matters**: filter as you type with a small query language,
+  see the errors that repeat, fold repeated lines, pin entries, compare
+  two runs, merge several files by time.
+- **A chart that keeps the whole log in view**: drag a time range and it
+  is drawn as a window over the rest; a warning or an error is never
+  lost under a tall bar of info.
+- **From a line to the code**: a file and line in a log opens a
+  read-only peek of the source in the open folder.
+- **Argo runs step by step**, beside their status from `argo get`, and
+  a log can be followed as it grows.
+
+[Log viewer guide →](https://mahasenabheetha.github.io/codec/logs.html)
 
 </details>
 
 <details>
-<summary><b>Commands</b> — command lines explained and built, risky parts flagged, a cheat sheet by purpose</summary>
+<summary><b>Commands</b>: command lines explained and built, risky parts flagged, a cheat sheet by purpose</summary>
 <br>
 
-<table>
-<tr>
-<td><b>Commands</b><br>A command line explained part by part, and built with a form, each following the other, for git, kubectl, helm, docker and compose and some 37 Linux tools. Risky parts are marked with what they can break and a safer way (<code>git push --force-with-lease</code>). A cheat sheet finds a command by what you want to do (<em>undo my last commit</em>), by area, with the Linux tools by kind. Copy for bash or PowerShell; <code>codec explain</code> and <code>codec how</code> on the command line.<br><a href="https://mahasenabheetha.github.io/codec/tools.html#commands">Commands guide →</a></td>
-<td><picture><source media="(prefers-color-scheme: light)" srcset="docs/images/commands-light.png"><img src="docs/images/commands.png" alt="Commands: git reset --hard and git push --force explained, each risk marked with a safer way, and the Build form"></picture></td>
-</tr>
-</table>
+<picture><source media="(prefers-color-scheme: light)" srcset="docs/images/commands-light.png"><img src="docs/images/commands.png" alt="Commands: git reset --hard and git push --force explained, each risk marked with a safer way, and the Build form"></picture>
+
+- **Explain and build**, each following the other, for git, kubectl,
+  helm, docker and compose and some 37 Linux tools.
+- **Risky parts are marked** with what they can break and a safer way
+  (`git push --force-with-lease`).
+- **A cheat sheet by purpose**: find a command by what you want to do
+  (*undo my last commit*).
+- Copy for bash or PowerShell; `codec explain` and `codec how` on the
+  command line.
+
+[Commands guide →](https://mahasenabheetha.github.io/codec/tools.html#commands)
 
 </details>
 
 <details>
-<summary><b>Everyday tools</b> — Sanitize, Quote, Smart paste, JSON & YAML, encodings, time, network, generators</summary>
+<summary><b>Everyday tools</b>: Sanitize, Quote, Smart paste, JSON & YAML, encodings, time, network, generators</summary>
 <br>
 
-<table>
-<tr>
-<td><picture><source media="(prefers-color-scheme: light)" srcset="docs/images/sanitize-light.png"><img src="docs/images/sanitize.png" alt="Sanitize: a log with secrets, emails, addresses and host names, and the same text with each replaced by a stand-in"></picture></td>
-<td><b>Everyday tools</b><br><b>Sanitize</b> takes secrets, emails, IP addresses, host names, UUIDs, Azure names and user names out of what you are about to share, each value the same stand-in throughout, so it still reads; a log export can be sanitized too. <b>Quote</b> writes a value so bash, PowerShell, cmd, JSON, YAML, <code>.env</code>, Helm or a Dockerfile reads it back exactly, and why. Ansible logs, from one failed task to a whole pipeline log with several runs: the failure, its probable cause and where the task is defined. Smart paste, base64, JWT claims, and JSON &amp; YAML: format (JSONC and JSON5 too), a tree with paths, conversion, a diff by path, flattened paths, an inferred JSON Schema and jq. Under <b>Utilities</b>: URL and hex encoding, hashes and HMAC, random secrets, UUIDs and placeholder commit SHAs, htpasswd lines; CIDR ranges (subnets, overlaps in a list), IP addresses, a URL builder, curl ⇄ fetch and HTTP status codes; a text diff, a name in every case checked against Kubernetes, Helm and env-var rules, and CSV or TSV as a table to sort and filter, converted to JSON, YAML or Markdown and back; timestamps, time zones with a working-hours overlap, date formats for every language, cron schedules in plain words with their next runs (also on hover in CronJobs and pipelines), and a regex tester that explains the pattern.<br><a href="https://mahasenabheetha.github.io/codec/tools.html">Tools guide →</a></td>
-</tr>
-</table>
+<picture><source media="(prefers-color-scheme: light)" srcset="docs/images/sanitize-light.png"><img src="docs/images/sanitize.png" alt="Sanitize: a log with secrets, emails, addresses and host names, and the same text with each replaced by a stand-in"></picture>
 
-Smart paste, Base64, Compare, JSON & YAML and the Ansible log have
-tabs, like the Log viewer: keep several pastes, documents, comparisons
-or logs open at once, each with its own input and result. JSON & YAML
-reads JSONC and JSON5 too, and CSV or TSV opens as a table to sort,
-filter and convert; Smart paste recognises both and opens the tool.
+| Group | Tools |
+|---|---|
+| **Share safely** | **Sanitize** replaces secrets, emails, IP addresses, host names, UUIDs, Azure names and user names with stand-ins, the same one throughout, so the text still reads. **Quote** writes a value so bash, PowerShell, cmd, JSON, YAML, `.env`, Helm or a Dockerfile reads it back exactly. |
+| **Read** | Smart paste, Base64, JWT claims, Ansible logs (the failure, its probable cause, where the task is defined), and JSON & YAML: format (JSONC and JSON5 too), a tree with paths, conversion, a diff by path, an inferred JSON Schema and jq. |
+| **Encode and generate** | URL and hex, hashes and HMAC, file checksums, random secrets, passwords and passphrases with their strength, UUIDs (v4, v7, v5, v3), htpasswd lines, test data as JSON, CSV, YAML or SQL, QR codes made and read, colours with WCAG contrast. |
+| **Network** | CIDR ranges (subnets, overlaps), IP addresses, a URL builder, curl ⇄ fetch, HTTP status codes. |
+| **Text and tables** | A text diff, a name in every case checked against Kubernetes, Helm and env-var rules, CSV or TSV as a table to sort, filter and convert. |
+| **Time** | Timestamps, time zones with a working-hours overlap, date formats, cron schedules in plain words with their next runs, a regex tester that explains the pattern. |
 
-For the things you make: file checksums checked against what a download
-page lists, UUIDs (v4, v7, v5, v3), passwords and passphrases with their
-strength, made-up test data as JSON, CSV, YAML or SQL, QR codes for
-links, Wi-Fi and authenticators (made and read), and colours with their
-WCAG contrast. Nothing generated is stored.
+Tools with tabs (Smart paste, Base64, Compare, JSON & YAML, the Ansible
+log, the Log viewer) keep several inputs open at once. **Send to** hands
+one tool's output to another, a copy button sits beside every value, and
+a clear can be undone. Nothing pasted or generated is stored.
+
+[Tools guide →](https://mahasenabheetha.github.io/codec/tools.html)
 
 </details>
 
 <details>
-<summary><b>Focus and breaks</b> — a focus timer, break reminders, sounds</summary>
+<summary><b>Focus and breaks</b>: a focus timer, break reminders, sounds</summary>
 <br>
 
-<table>
-<tr>
-<td><b>Focus and breaks</b><br>A focus timer on a large ring, today's sessions on a timeline, and break reminders for your eyes, stretches, water and posture, which rest outside your working hours. Fourteen calm sounds, a sound for each moment, and focus sounds (noise, rain, ocean) under a session. Shown here in Dusk (Paper if your GitHub is light), two of the ten themes.<br><a href="https://mahasenabheetha.github.io/codec/wellness.html">Focus and breaks guide →</a></td>
-<td><picture><source media="(prefers-color-scheme: light)" srcset="docs/images/wellness-light.png"><img src="docs/images/wellness.png" alt="Focus and breaks in the Dusk theme: a focus session running on a large ring, with the task being worked on"></picture></td>
-</tr>
-</table>
+<picture><source media="(prefers-color-scheme: light)" srcset="docs/images/wellness-light.png"><img src="docs/images/wellness.png" alt="Focus and breaks in the Dusk theme: a focus session running on a large ring, with the task being worked on"></picture>
 
-Under **Wellness**, Focus & breaks keeps long days healthier: a focus
-timer on a large ring (Classic 25/5, Deep work 50/10, Flow 90/20 or your
-own lengths), today's sessions on a timeline, and break reminders for
-your eyes (20-20-20), stretches, water and posture, shown as a
-full-window break with guided breathing or stretches, a card or a toast,
-with calm chimes and an optional system notification. It runs in any
-tool, from the status bar, the palette or the desktop tray.
+A focus timer on a large ring (Classic 25/5, Deep work 50/10, Flow 90/20
+or your own lengths), today's sessions on a timeline, and break
+reminders for your eyes (20-20-20), stretches, water and posture, shown
+as a full-window break with guided breathing, a card or a toast. Fourteen
+calm chimes, focus sounds (noise, rain, ocean) and an optional system
+notification. It runs in any tool, from the status bar, the palette or
+the desktop tray.
+
+[Focus and breaks guide →](https://mahasenabheetha.github.io/codec/wellness.html)
 
 </details>
 
-<details>
-<summary><b>Themes and sizes</b> — ten themes, three sizes</summary>
-<br>
+### Built for a whole working day
 
-Ten themes: Dark and Light; soft, colourful dark ones that are easy on
-the eyes over a long day, where each tool and each kind of action has
-its own colour: **Dusk** (blue-violet), **Midnight** (deep navy),
-**Forest** (green-grey), **Rosé** (pink-violet) and **Ocean** (blue-teal);
-**Paper**, a warm, low-glare light theme; **Mist**, light dimmed to soft grey; and **High contrast**. Icons and controls come in Compact, Comfortable or
-Large.
+- **A layout that is yours.** Every divider drags (or moves with the
+  arrow keys), any tool can put its input over its output, and sizes are
+  remembered. Pin the tools you use to the top of the rail and of Home.
+- **Keyboard first.** <kbd>Ctrl</kbd> <kbd>K</kbd> finds every action,
+  setting and view; graphs, trees, tabs and dividers all work without a
+  mouse. [Shortcuts](https://mahasenabheetha.github.io/codec/shortcuts.html).
+- **Forgiving.** Clearing a tool, unpinning, deleting a profile or
+  turning a rule off offers **Undo**; a view that fails to refresh keeps
+  what it showed and offers **Try again**.
+- **Ten themes, three sizes.** Dark and Light; Dusk, Midnight, Forest,
+  Rosé and Ocean, soft dark themes for long days; warm Paper, dimmed
+  Mist and High contrast. Each tool has its own colour, checked for
+  contrast in every theme, and the colours can be switched off.
+- **Accessible.** Visible focus, status never shown by colour alone,
+  reduced motion honoured, labels and announcements for screen readers.
+  [Design language](https://mahasenabheetha.github.io/codec/design.html).
 
-</details>
+## Install
 
-codec can tell you when a newer release is out: switch on *Check for
-updates* in Settings (off by default), or run `codec version --check`.
+| How | For | Get it |
+|---|---|---|
+| **CLI and web UI** | Windows, macOS, Linux (amd64, arm64). One binary, no installer, no admin rights | [Releases](https://github.com/mahasenabheetha/codec/releases): `codec_<version>_<os>_<arch>` |
+| **Desktop app** | Windows. Its own window, a tray icon, *Open with* for YAML files; installs for you alone | [Releases](https://github.com/mahasenabheetha/codec/releases): `codec-desktop_<version>_windows_amd64_setup.exe`, or the portable `.exe` |
+| **Docker** | Anywhere. Distroless, non-root, linux/amd64 and linux/arm64 | `ghcr.io/mahasenabheetha/codec` |
+| **From source** | Go 1.26+ and Node.js 22+ | See [below](#from-source) |
 
-## Quick start
+### Quick start
 
-Download the archive for your platform from
-[Releases](https://github.com/mahasenabheetha/codec/releases) (Windows,
-macOS, Linux; amd64 and arm64), unpack it, and run:
+Unpack the archive and run:
 
 ```bash
 codec serve --open --sample
@@ -213,22 +254,17 @@ everything, landing on its rendered Helm chart. Then open your own:
 codec serve --open --root path/to/your/repo
 ```
 
-The CLI needs no installer and no admin rights. On Windows, SmartScreen may warn about the
-unsigned binary (*More info → Run anyway*); on macOS run
-`xattr -d com.apple.quarantine codec` once.
+On Windows, SmartScreen may warn about the unsigned binary (*More info →
+Run anyway*); on macOS run `xattr -d com.apple.quarantine codec` once.
 [Getting started](https://mahasenabheetha.github.io/codec/getting-started.html)
-has the details.
+has the details for every platform.
 
 ### Desktop app (Windows)
 
-The same codec in its own window, with a tray icon. From
-[Releases](https://github.com/mahasenabheetha/codec/releases), run
-`codec-desktop_<version>_windows_amd64_setup.exe`. It installs for you
-alone, without admin rights, adds a Start menu entry and offers codec in
-Explorer's *Open with* for YAML files. The portable
-`codec-desktop_<version>_windows_amd64.exe` runs without installing.
-Closing the window keeps codec in the tray; *Settings → Desktop* turns
-on Start at login. macOS follows later.
+The installer needs no admin rights, adds a Start menu entry and offers
+codec in Explorer's *Open with* for YAML files. Closing the window keeps
+codec in the tray; *Settings → Desktop* turns on Start at login. macOS
+follows later.
 
 ### Docker
 
@@ -241,13 +277,16 @@ Open http://localhost:8765. The repository is mounted read-only; add
 
 ### From source
 
-Go 1.26+ and Node.js 22+:
-
 ```bash
 git clone https://github.com/mahasenabheetha/codec.git && cd codec
 npm --prefix frontend ci && npm --prefix frontend run build
 go build -o codec ./cmd/codec
 ```
+
+### Updates
+
+codec can tell you when a newer release is out: switch on *Check for
+updates* in Settings (off by default), or run `codec version --check`.
 
 ## CLI
 
@@ -286,40 +325,42 @@ flowchart LR
   K -.-> X[(Public schemas<br/>optional)]
 ```
 
-A single Go binary embeds the Svelte UI. The engine is pure — it only
-reasons about text it is given — and adapters do all input and output,
-so the UI and the CLI always agree. More in
+A single Go binary embeds the Svelte UI. The engine is pure: it only
+reasons about text it is given, and adapters do all input and output, so
+the UI and the CLI always agree. More in
 [Architecture](https://mahasenabheetha.github.io/codec/architecture.html)
 and [Flows](https://mahasenabheetha.github.io/codec/flows.html).
 
+## Privacy and security
+
+- **Read-only.** codec never writes to the folders it opens. Settings
+  live in your user profile.
+- **Local.** The server listens on `127.0.0.1` with a per-run token. The
+  only network use is downloading public JSON schemas and the optional
+  update check; both can be off.
+- **Nothing kept.** What you paste into a tool, what-if edits and
+  generated secrets are never stored.
+- **No telemetry.**
+
+Details: [Security and privacy](https://mahasenabheetha.github.io/codec/security.html).
+To report a vulnerability privately, see [SECURITY.md](SECURITY.md).
+
 ## Documentation
 
-- [Getting started](https://mahasenabheetha.github.io/codec/getting-started.html) — install, the sample, your repo, Docker
-- Guides for every view: [workspace](https://mahasenabheetha.github.io/codec/workspace.html),
-  [Helm](https://mahasenabheetha.github.io/codec/helm.html),
-  [lint](https://mahasenabheetha.github.io/codec/lint.html),
-  [Kubernetes](https://mahasenabheetha.github.io/codec/kubernetes.html),
-  [Argo](https://mahasenabheetha.github.io/codec/argo.html),
-  [CI](https://mahasenabheetha.github.io/codec/ci.html),
-  [Compose](https://mahasenabheetha.github.io/codec/compose.html),
-  [Ansible](https://mahasenabheetha.github.io/codec/ansible.html),
-  [compare and query](https://mahasenabheetha.github.io/codec/compare.html),
-  [new files](https://mahasenabheetha.github.io/codec/new.html),
-  [tools](https://mahasenabheetha.github.io/codec/tools.html)
-- [CLI reference](https://mahasenabheetha.github.io/codec/cli.html) ·
-  [keyboard shortcuts](https://mahasenabheetha.github.io/codec/shortcuts.html) ·
-  [troubleshooting](https://mahasenabheetha.github.io/codec/troubleshooting.html)
-- [Security and privacy](https://mahasenabheetha.github.io/codec/security.html) ·
-  [design language](https://mahasenabheetha.github.io/codec/design.html)
+| | |
+|---|---|
+| **Start** | [Overview](https://mahasenabheetha.github.io/codec/) · [Getting started](https://mahasenabheetha.github.io/codec/getting-started.html) |
+| **Guides** | [Workspace and editor](https://mahasenabheetha.github.io/codec/workspace.html) · [Helm](https://mahasenabheetha.github.io/codec/helm.html) · [Lint and schemas](https://mahasenabheetha.github.io/codec/lint.html) · [Kubernetes and Kustomize](https://mahasenabheetha.github.io/codec/kubernetes.html) · [Argo](https://mahasenabheetha.github.io/codec/argo.html) · [CI pipelines](https://mahasenabheetha.github.io/codec/ci.html) · [Compose](https://mahasenabheetha.github.io/codec/compose.html) · [Ansible](https://mahasenabheetha.github.io/codec/ansible.html) · [Log viewer](https://mahasenabheetha.github.io/codec/logs.html) · [Compare and query](https://mahasenabheetha.github.io/codec/compare.html) · [New files and clones](https://mahasenabheetha.github.io/codec/new.html) · [Tools](https://mahasenabheetha.github.io/codec/tools.html) · [Focus and breaks](https://mahasenabheetha.github.io/codec/wellness.html) |
+| **Reference** | [CLI](https://mahasenabheetha.github.io/codec/cli.html) · [Keyboard shortcuts](https://mahasenabheetha.github.io/codec/shortcuts.html) · [Settings and your data](https://mahasenabheetha.github.io/codec/settings.html) · [Troubleshooting](https://mahasenabheetha.github.io/codec/troubleshooting.html) |
+| **Project** | [Architecture](https://mahasenabheetha.github.io/codec/architecture.html) · [Flows](https://mahasenabheetha.github.io/codec/flows.html) · [Security and privacy](https://mahasenabheetha.github.io/codec/security.html) · [Design language](https://mahasenabheetha.github.io/codec/design.html) · [Development](https://mahasenabheetha.github.io/codec/development.html) |
 
 The site's source is in [`docs/`](docs/) (plain HTML, also readable offline).
 
 ## Contributing
 
-Issues and pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
+Issues and pull requests are welcome: see [CONTRIBUTING.md](CONTRIBUTING.md).
 Contributors and AI agents start at [AGENTS.md](AGENTS.md); how the
 project is built and changed is in [design/](design/README.md).
-Report security problems privately: [SECURITY.md](SECURITY.md).
 Changes are listed in [CHANGELOG.md](CHANGELOG.md).
 
 ## License

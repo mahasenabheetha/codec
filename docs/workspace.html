@@ -167,12 +167,38 @@
 </ul>
 <p>What-if edits live in the tab until you reset or close it. The dot on the tab shows a file has them.</p>
 
-<h2 id="tabs">Tabs and panes<a class="anchor" href="#tabs">#</a></h2>
+<h2 id="views">What every view shares<a class="anchor" href="#views">#</a></h2>
+<p>The Helm, Kubernetes, Kustomize, Argo, pipeline, Compose and Ansible views are built from the same parts, so what you learn in one works in the others.</p>
+<div class="table-wrap"><table>
+  <tr><th>Part</th><th>What it does</th></tr>
+  <tr><td>Header</td><td>The file or folder the view reads, <strong>What-if · N</strong> when N files it reads have what-if edits (with a reset beside it), and "Working…" while it reads again.</td></tr>
+  <tr><td>Side panel</td><td>The view's inputs and lists (parameters, files, variables, problems). Each section folds at its heading, remembered per view, and <strong>Problems</strong> moves to the top when there are any.</td></tr>
+  <tr><td>Main pane</td><td>The graph, the steps or the rendered output.</td></tr>
+  <tr><td>Details</td><td>What you selected: a step, a job, a service, a task, with links to the YAML.</td></tr>
+</table></div>
+<ul>
+  <li><strong>They follow your files.</strong> A view reads again when a file it uses is saved or gets a what-if edit. If that fails, the view keeps what it showed and says so, with <strong>Try again</strong>.</li>
+  <li><strong>Their actions are in the palette</strong> while the view's tab is shown: render again, copy the output, reset the what-if edits, each of its tabs.</li>
+  <li><strong>The panes resize</strong>: see <a href="#panes">Tabs and panes</a>. The side, main and details panes have one size for the Argo, pipeline, Compose and Ansible views.</li>
+</ul>
+
+<h3 id="graphs">Graphs<a class="anchor" href="#graphs">#</a></h3>
+<p>Kubernetes relationships, Argo DAGs, pipelines, Compose services and the Ansible map are drawn by the same graph.</p>
+<ul>
+  <li><strong>Mouse.</strong> Drag to move, the wheel to zoom, click a node for its details. The selected node has a firm outline; hovering one highlights its neighbours.</li>
+  <li><strong>Keyboard.</strong> <kbd>Tab</kbd> reaches the graph, then the arrow keys go from node to node (or move the view), <kbd>Enter</kbd> selects, <kbd>+</kbd> and <kbd>-</kbd> zoom, <kbd>0</kbd> fits.</li>
+  <li><strong>Minimap.</strong> A graph bigger than its pane shows a small map in the corner; click or drag in it to move.</li>
+  <li><strong>Legend.</strong> It says what a dashed node and a dashed line mean in this view, and, when the graph is coloured by a run, the statuses: each has a glyph as well as a colour.</li>
+  <li><strong>It stays where you put it</strong> when a what-if value or a saved file changes the same graph, and fits again when its pane changes size, unless you have moved it.</li>
+  <li>A label too long for its node is cut; the node's tooltip has all of it.</li>
+</ul>
+
+<h2 id="panes">Tabs and panes<a class="anchor" href="#panes">#</a></h2>
 <p>Every file, view and tool opens as a tab and keeps its state while the tab is open. When the tabs don't fit, the bar scrolls (the mouse wheel moves it), the current tab stays in view and a count at the end lists them all. Drag a tab to move it; right-click it (or <kbd>Shift</kbd> <kbd>F10</kbd>) for Close, Close the others, Close tabs to the right and Close all. <kbd>Alt</kbd> <kbd>]</kbd> and <kbd>Alt</kbd> <kbd>[</kbd> go to the next and previous tab, <kbd>Alt</kbd> <kbd>Shift</kbd> <kbd>W</kbd> closes the current one.</p>
-<p>Panes resize: the explorer, the outline panel, the three parts of the Helm, Argo, pipeline, Compose and Ansible views, and the sides of a comparison. Drag the line between two panes, or focus it and use the arrow keys (<kbd>Shift</kbd> for bigger steps, <kbd>Home</kbd> and <kbd>End</kbd> for the limits); a double click or <kbd>Enter</kbd> puts it back. Sizes are remembered.</p>
+<p>Panes resize: the explorer, the outline panel, the three parts of the Helm, Argo, pipeline, Compose and Ansible views, and the sides of a comparison. Drag the line between two panes, or focus it and use the arrow keys (<kbd>Shift</kbd> for bigger steps, <kbd>Home</kbd> and <kbd>End</kbd> for the limits); a double click or <kbd>Enter</kbd> puts it back. Sizes are remembered, and a side panel keeps its width when the window changes. Tools with an input and an output can also put the <a href="tools.html#finding">input over the output</a>.</p>
 
 <h2 id="palette">The command palette<a class="anchor" href="#palette">#</a></h2>
-<p><kbd>Ctrl</kbd> <kbd>K</kbd> searches every action: open a folder, lint the workspace, render any chart, open any workflow, pipeline, Compose file or playbook in its view, build a Kustomize overlay, the file actions of the current tab, settings and tools. While nothing is typed, the commands you ran last come first. Every setting has its own entry: "Settings: Theme" opens Settings on that row.</p>
+<p><kbd>Ctrl</kbd> <kbd>K</kbd> searches every action: open a folder, lint the workspace, render any chart, open any workflow, pipeline, Compose file or playbook in its view, build a Kustomize overlay, the file actions of the current tab, the actions of the view in front (Helm, Kustomize, Kubernetes, Problems, the Log viewer, Compare), settings and tools. While nothing is typed, the commands you ran last come first. Every setting has its own entry: "Settings: Theme" opens Settings on that row.</p>
 <figure>
   <img src="images/palette.png" alt="The command palette filtered by 'argo', listing each Argo file's view" width="1400" height="820" loading="lazy">
   <figcaption>Typing "argo" lists every Argo file's view, plus related actions.</figcaption>

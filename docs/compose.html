@@ -93,6 +93,8 @@
   <li><strong>Volumes</strong> — named volumes, binds and tmpfs mounts, who uses them and whether they are read-only.</li>
 </ul>
 
+<p>The header, the side panel that folds, the panes you can size and the graph (keyboard, minimap, legend) work as in every view: see <a href="workspace.html#views">What every view shares</a>.</p>
+
 <h2 id="checks">Checks<a class="anchor" href="#checks">#</a></h2>
 <p>Unknown services in <code>depends_on</code>, <code>links</code> and <code>network_mode</code>; networks, volumes, secrets and configs used but not declared; dependency loops; services with neither <code>image</code> nor <code>build</code>; missing env files, <code>extends</code> and <code>include</code> targets (and loops between them); unset and required variables; host port clashes. In the editor: services in the outline, hover and go to definition for <code>${VAR}</code> (to <code>.env</code>), services (including <code>extends</code> into another file), networks and volumes.</p>
 

@@ -125,6 +125,12 @@ should. Frontend only.
   to wipe the whole tool.
 - **A full-window break needs Esc twice** to skip, so a reflex key
   press doesn't throw it away.
+- **README and docs.** The README is shorter and in tables (features,
+  install, documentation), with a section on privacy. The docs have a
+  first look around in Getting started, "What every view shares" (the
+  header, the side panel, panes, graphs) in Workspace, an interface
+  section in Troubleshooting, and each guide says what changed in its
+  view.
 
 ### Fixed
 

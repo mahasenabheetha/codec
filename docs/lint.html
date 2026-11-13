@@ -74,11 +74,11 @@
 <div class="table-wrap"><table>
   <tr><th>Place</th><th>What it checks</th></tr>
   <tr><td>Editor</td><td>The open file, including what-if edits, a moment after you stop typing. Squiggles, the Problems panel and the status bar count.</td></tr>
-  <tr><td>Problems view</td><td>Every YAML file in the folder, on demand ("Lint workspace" in the sidebar or palette). Filter by severity and by group; click to open the file at the line.</td></tr>
+  <tr><td>Problems view</td><td>Every YAML file in the folder, on demand ("Lint workspace" in the sidebar or palette). Filter by severity and by group; click to open the file at the line. Afterwards the explorer shows each file's errors and warnings, summed up each folder.</td></tr>
   <tr><td>Helm and Kustomize</td><td>The rendered objects, traced back to the template or file that produced them.</td></tr>
   <tr><td>CLI</td><td><code>codec yaml lint</code> over files or folders, exit code 2 when there are warnings or errors — a CI gate.</td></tr>
 </table></div>
-<p>Each finding has a <strong>Why?</strong> link with the reason the rule exists, and <strong>Turn off</strong> to set the rule to off from where you see it.</p>
+<p>Each finding has a <strong>Why?</strong> link with the reason the rule exists, and <strong>Turn off</strong> to set the rule to off from where you see it, with <strong>Undo</strong> on the note that follows. A check that fails says why and offers <strong>Try again</strong>.</p>
 
 <h2 id="rules">Rules<a class="anchor" href="#rules">#</a></h2>
 <p>Every rule's level (error, warning, info or off) can be changed in <a href="settings.html">Settings</a>; the choice applies to the editor, the Problems view, rendered output and the CLI alike.</p>
