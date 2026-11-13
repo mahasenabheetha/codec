@@ -15,7 +15,7 @@
   import Pane from '../shared/Pane.svelte'
   import ToolLayout from '../shared/ToolLayout.svelte'
   import ToolTabs from '../shared/ToolTabs.svelte'
-  import { toolShortcuts, toolStatus } from '../shared/tool.svelte'
+  import { cleared, toolShortcuts, toolStatus } from '../shared/tool.svelte'
 
   // Sanitize (decision 104): a text with secrets, addresses and names
   // taken out before it is shared, each value the same stand-in
@@ -95,6 +95,8 @@
   const replaced = $derived(findings.filter((f) => !f.kept).reduce((n, f) => n + f.count, 0))
 
   function clear() {
+    const was = { input, keep: opts.keep }
+    if (was.input) cleared(() => input || ((input = was.input), (opts.keep = was.keep)))
     input = ''
     opts.keep = []
     editor?.focus()
@@ -147,7 +149,7 @@ file C:\\Users\\jdoe\\src\\orders\\appsettings.json, from 203.0.113.9 via 52.174
             <CodeView value={output} label="Sanitized" readonly wrap />
           {:else}
             <EmptyState icon={ShieldCheck} title="What you can share appears here" description="Secrets, emails, IP addresses, host names, UUIDs, Azure names and user names taken out, each value the same stand-in wherever it is, so the text still reads. A safety net, not a guarantee: read it before you share it.">
-              <Button size="sm" onclick={() => (input = sample)}>Try an example</Button>
+              <Button size="sm" onclick={() => (input = sample)}>Try a sample</Button>
             </EmptyState>
           {/if}
         </div>

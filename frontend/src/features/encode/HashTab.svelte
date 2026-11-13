@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { persisted } from '../../lib/stores/persist.svelte'
   import { untrack } from 'svelte'
   import Copy from '@lucide/svelte/icons/copy'
   import Eye from '@lucide/svelte/icons/eye'
@@ -30,7 +31,12 @@
   let hmac = $state(false)
   let key = $state('')
   let showKey = $state(false)
-  let format = $state<'hex' | 'base64'>('hex')
+  // How digests are written is a display choice, remembered (3.10.2).
+  const formatPref = persisted<'hex' | 'base64'>('hash.format', 'hex')
+  let format = $state(formatPref.value)
+  $effect(() => {
+    formatPref.value = format
+  })
   let expected = $state('')
   let editor = $state<CodeView>()
 

@@ -101,7 +101,7 @@
   <tr><td><kbd>Alt</kbd> <kbd>T</kbd> · <kbd>Alt</kbd> <kbd>W</kbd></td><td>New tab · close the tab, in Smart paste, Base64, Compare, JSON &amp; YAML, the Log viewer and the Ansible log (Ctrl+T and Ctrl+W stay the browser's)</td></tr>
   <tr><td><kbd>Space</kbd></td><td>Focus timer (Focus &amp; breaks → Focus): start, pause or resume</td></tr>
   <tr><td><kbd>Ctrl</kbd> <kbd>F</kbd></td><td>Find in the input or the output (the one the pointer is over, or holding the cursor): <kbd>Enter</kbd> next, <kbd>Shift</kbd> <kbd>Enter</kbd> previous, <kbd>Esc</kbd> closes</td></tr>
-  <tr><td><kbd>Esc</kbd></td><td>Clear input and output</td></tr>
+  <tr><td><kbd>Esc</kbd></td><td>Clear input and output, from the main input or outside any field (in another field, such as an option or a key, it does nothing to the tool); <strong>Undo</strong> on the "Cleared" note brings it back</td></tr>
 </table></div>
 
 <h2 id="logs">In the Log viewer<a class="anchor" href="#logs">#</a></h2>
@@ -115,6 +115,16 @@
   <tr><td><kbd>/</kbd></td><td>The query</td></tr>
   <tr><td><kbd>Alt</kbd> <kbd>C</kbd></td><td>Copy a summary of the log (secrets masked)</td></tr>
   <tr><td><kbd>Esc</kbd></td><td>Close the entry, then clear the query box</td></tr>
+</table></div>
+
+<h2 id="graphs">In a graph<a class="anchor" href="#graphs">#</a></h2>
+<p>The graphs of the Kubernetes, Argo, pipeline, Compose and Ansible views. <kbd>Tab</kbd> reaches the graph, then each node.</p>
+<div class="table-wrap"><table>
+  <tr><th>Keys</th><th>Action</th></tr>
+  <tr><td>Arrow keys</td><td>On a node: go to the nearest node in that direction. On the graph itself: move the view</td></tr>
+  <tr><td><kbd>Enter</kbd> or <kbd>Space</kbd></td><td>Select the node (its details show beside the graph)</td></tr>
+  <tr><td><kbd>+</kbd> and <kbd>-</kbd></td><td>Zoom in and out</td></tr>
+  <tr><td><kbd>0</kbd></td><td>Fit the graph to its pane</td></tr>
 </table></div>
 
 <h2 id="lists">Trees, lists and dialogs<a class="anchor" href="#lists">#</a></h2>

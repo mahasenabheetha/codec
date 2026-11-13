@@ -1,4 +1,6 @@
 <script lang="ts">
+  import Button from '../../lib/components/Button.svelte'
+  import ErrorNote from '../../lib/components/ErrorNote.svelte'
   import { untrack } from 'svelte'
   import Container from '@lucide/svelte/icons/container'
   import CircleCheck from '@lucide/svelte/icons/circle-check'
@@ -30,6 +32,9 @@
   }
 
   let { path, overrides = {}, reload = 0, onopen, onstatus }: Props = $props()
+  // Ids unique to this instance: several are mounted at once (tabs stay
+  // mounted), and a label must point at its own field (3.10.2).
+  const uid = $props.id()
 
   let data = $state.raw<ComposeProject | null>(null)
   let error = $state<string | null>(null)
@@ -156,12 +161,15 @@
 
 <div class="compose">
   {#if error && !data}
-    <EmptyState icon={Container} title="Can't read this Compose project" description={error} />
+    <EmptyState icon={Container} title="Can't read this Compose project" description={error}>
+      <Button size="sm" onclick={load}>Try again</Button>
+    </EmptyState>
   {:else if !data}
     <div class="loading" aria-busy="true" aria-label="Reading the files"><Skeleton lines={8} /></div>
   {:else}
     <LensGrid sideLabel="Compose project" detailLabel="Selected service">
       {#snippet side()}
+        {#if error}<ErrorNote inline message={`Showing the last result; reading again failed: ${error}`} retry={load} />{/if}
         <section>
           <p class="proj"><Badge tone="accent">Compose</Badge> <strong>{data!.name}</strong></p>
           <h3 class="gap">Files, merged in order</h3>
@@ -199,12 +207,12 @@
           <ul class="plain vars">
             {#each data!.variables as v (v.name)}
               <li>
-                <label for="cv-{v.name}">
+                <label for="{uid}-var-{v.name}">
                   <button type="button" class="link" onclick={() => jump(v.uses[0])} title="Open its first use">{v.name}</button>
                   <span class="muted">{varState(v)} · used {v.uses.length}×</span>
                 </label>
                 <div class="prow">
-                  <input id="cv-{v.name}" class="field" value={env[v.name] ?? ''} placeholder={v.set ? v.value || '""' : v.default || ''} spellcheck="false" oninput={(e) => setEnv(v.name, e.currentTarget.value)} />
+                  <input id="{uid}-var-{v.name}" class="field" value={env[v.name] ?? ''} placeholder={v.set ? v.value || '""' : v.default || ''} spellcheck="false" oninput={(e) => setEnv(v.name, e.currentTarget.value)} />
                   {#if v.name in env}<IconButton icon={RotateCcw} label="Back to the file's value" size="sm" onclick={() => resetEnv(v.name)} />{/if}
                 </div>
               </li>

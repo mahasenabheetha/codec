@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Eraser from '@lucide/svelte/icons/eraser'
   import ErrorNote from '../../lib/components/ErrorNote.svelte'
   import { untrack } from 'svelte'
   import CircleCheck from '@lucide/svelte/icons/circle-check'
@@ -21,7 +22,7 @@
   import ToolLayout from '../shared/ToolLayout.svelte'
   import ToolTabs from '../shared/ToolTabs.svelte'
   import { Job } from '../shared/job.svelte'
-  import { toolShortcuts, toolStatus } from '../shared/tool.svelte'
+  import { cleared, toolShortcuts, toolStatus } from '../shared/tool.svelte'
   import { workspace } from '../workspace/workspace.svelte'
 
   // Checksums of files: dropped or chosen (sent as they are, hashed as a
@@ -101,6 +102,8 @@
   const asLines = () => done.map((r) => `${r.digests!.find((d) => d.algorithm === 'SHA-256')!.hex}  ${r.name}`).join('\n') + '\n'
 
   function clear() {
+    const was = { rows, expected }
+    if (rows.length || expected) cleared(() => rows.length || expected || ((rows = was.rows), (expected = was.expected)))
     rows = []
     expected = ''
   }
@@ -173,7 +176,7 @@
         {/snippet}
         {#snippet actions()}
           <Button icon={Copy} tone="copy" variant="ghost" size="sm" title="Copy as sha256sum lines (Alt+C)" disabled={!done.length} onclick={() => copyText(asLines(), 'Checksums')}>Copy</Button>
-          <IconButton icon={X} label="Clear" size="sm" disabled={!rows.length && !expected} onclick={clear} />
+          <IconButton icon={Eraser} tone="clear" label="Clear" shortcut="Escape" size="sm" disabled={!rows.length && !expected} onclick={clear} />
         {/snippet}
         {#if rows.length}
           <ul class="files">

@@ -3,6 +3,7 @@
 // TransformState, for tools with their own API calls.
 
 import { ApiError } from '../../lib/api/client'
+import { cleared } from './tool.svelte'
 import type { ToolError } from './transform.svelte'
 
 export class Job<T> {
@@ -55,8 +56,11 @@ export class Job<T> {
 export class TextJob<T> extends Job<T> {
   input = $state('')
 
+  /** Empty the input; what was there comes back with Undo. */
   clear(): void {
+    const was = this.input
     this.input = ''
     this.reset()
+    if (was) cleared(() => this.input || (this.input = was))
   }
 }

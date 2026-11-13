@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { settingsRoute } from '../../lib/stores/router.svelte'
+  import { settingsGoto } from '../settings/goto.svelte'
   import Pause from '@lucide/svelte/icons/pause'
   import Play from '@lucide/svelte/icons/play'
   import RotateCcw from '@lucide/svelte/icons/rotate-ccw'
@@ -21,7 +23,6 @@
   import { formatClock } from './clock.svelte'
   import FocusRing from './FocusRing.svelte'
   import { focus, limits, phaseLabel, presets, type Phase, type PresetId } from './focus.svelte'
-  import SoundSettings from './SoundSettings.svelte'
   import NotifyToggle from './NotifyToggle.svelte'
   import Stepper from './Stepper.svelte'
   import { today } from './today.svelte'
@@ -164,12 +165,36 @@
         </div>
       </Pane>
 
-      <SoundSettings />
+      <p class="sounds">
+        Sounds and notifications are in
+        <button
+          type="button"
+          class="link"
+          onclick={() => {
+            layout.open(settingsRoute)
+            settingsGoto.to({ title: 'Wellness', section: 'wellness', keywords: [] })
+          }}>Settings → Wellness</button
+        >.
+      </p>
     </div>
   {/snippet}
 </ToolLayout>
 
 <style>
+  .sounds {
+    margin: 0;
+    font-size: var(--fs-sm);
+    color: var(--fg-2);
+  }
+  .sounds .link {
+    padding: 0;
+    color: var(--accent);
+    background: none;
+    border: none;
+  }
+  .sounds .link:hover {
+    text-decoration: underline;
+  }
   .focus {
     display: flex;
     flex-direction: column;

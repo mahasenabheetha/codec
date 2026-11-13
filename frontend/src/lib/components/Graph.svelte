@@ -6,6 +6,9 @@
     group?: string // colour group, see groupColor
     missing?: boolean // referenced but absent: drawn dashed
     status?: 'failed' | 'changed' | 'ok' | 'rescued' | 'never' // from a loaded run
+    /** A band the node sits in, with the others of the same lane: a
+     *  pipeline's stage. Lanes are drawn in the order first seen. */
+    lane?: string
   }
   export interface GraphEdge {
     from: string
@@ -26,8 +29,15 @@
   import IconButton from './IconButton.svelte'
 
   // A directed graph laid out left to right with dagre, drawn as SVG.
-  // Drag to pan, wheel to zoom; hovering a node highlights its edges.
-  // Shared by the Kubernetes, Argo, CI and Ansible lenses.
+  // Shared by the Kubernetes, Argo, CI, Compose and Ansible lenses.
+  //  - Drag to pan, wheel to zoom; hovering a node highlights its edges.
+  //  - Keyboard (3.10.2): Tab reaches the graph and then each node;
+  //    arrows move between nodes (or pan, with the graph itself
+  //    focused), + and − zoom, 0 fits, Enter or Space selects.
+  //  - A minimap appears when the graph is bigger than its box.
+  //  - The view survives a change of the same graph (a what-if value);
+  //    a different graph is fitted afresh.
+  //  - A run's status is a glyph as well as a colour.
   interface Props {
     nodes: GraphNode[]
     edges: GraphEdge[]
@@ -35,20 +45,37 @@
     legend?: { group: string; label: string }[]
     /** The node whose details are showing, drawn with a firm outline. */
     selected?: string | null
+    /** What a dashed edge and a dashed node mean here, for the legend. */
+    dashedEdge?: string
+    missingNode?: string
     onselect?: (id: string) => void
   }
 
-  let { nodes, edges, label, legend = [], selected = null, onselect }: Props = $props()
+  let { nodes, edges, label, legend = [], selected = null, dashedEdge = 'decided at run time', missingNode = 'not found', onselect }: Props = $props()
   const arrow = `graph-arrow-${++graphs}`
 
   const NODE_H = 46
-  const width = (n: GraphNode) => Math.min(280, Math.max(120, Math.max(n.label.length, (n.sub ?? '').length) * 7.2 + 32))
+  const MAX_W = 280
+  const CHAR = 7.2
+  const width = (n: GraphNode) => Math.min(MAX_W, Math.max(120, Math.max(n.label.length, (n.sub ?? '').length) * CHAR + 32 + (n.status ? 16 : 0)))
+  /** Text cut to the node's width; the whole of it is the node's tooltip. */
+  const cut = (text: string, w: number, per = CHAR) => {
+    const room = Math.max(4, Math.floor((w - 28) / per))
+    return text.length > room ? text.slice(0, room - 1) + '…' : text
+  }
+
+  const lanes = $derived([...new Set(nodes.map((n) => n.lane).filter((l): l is string => !!l))])
+  const laneId = (l: string) => '__lane__:' + l // not a node id any lens uses
 
   const laid = $derived.by(() => {
-    const g = new DagreGraph({ multigraph: true })
-    g.setGraph({ rankdir: 'LR', nodesep: 16, ranksep: 70, marginx: 20, marginy: 20 })
+    const g = new DagreGraph({ multigraph: true, compound: lanes.length > 0 })
+    g.setGraph({ rankdir: 'LR', nodesep: 16, ranksep: lanes.length ? 44 : 70, marginx: 20, marginy: lanes.length ? 28 : 20 })
     g.setDefaultEdgeLabel(() => ({}))
-    for (const n of nodes) g.setNode(n.id, { width: width(n), height: NODE_H })
+    for (const l of lanes) g.setNode(laneId(l), {})
+    for (const n of nodes) {
+      g.setNode(n.id, { width: width(n), height: NODE_H })
+      if (n.lane) g.setParent(n.id, laneId(n.lane))
+    }
     edges.forEach((e, i) => {
       if (g.hasNode(e.from) && g.hasNode(e.to)) g.setEdge(e.from, e.to, {}, String(i))
     })
@@ -62,9 +89,13 @@
       const pts = g.hasNode(e.from) && g.hasNode(e.to) ? (g.edge({ v: e.from, w: e.to, name: String(i) })?.points ?? []) : []
       return { e, d: smooth(pts), mid: pts[Math.floor(pts.length / 2)] }
     })
+    const bands = lanes
+      .map((l) => ({ name: l, box: g.node(laneId(l)) }))
+      .filter((b) => b.box && Number.isFinite(b.box.x))
+      .map((b) => ({ name: b.name, x: b.box.x - b.box.width / 2, y: b.box.y - b.box.height / 2, w: b.box.width, h: b.box.height }))
     const gw = g.graph().width ?? 0
     const gh = g.graph().height ?? 0
-    return { pos, paths, w: gw, h: gh }
+    return { pos, paths, bands, w: gw, h: gh }
   })
 
   // A curve through dagre's points (quadratic segments via midpoints).
@@ -82,6 +113,7 @@
 
   // --- pan and zoom ---
   let host = $state<HTMLDivElement>()
+  let box = $state({ w: 0, h: 0 })
   let view = $state({ x: 0, y: 0, k: 1 })
   let drag: { x: number; y: number; vx: number; vy: number } | null = null
 
@@ -101,9 +133,18 @@
     const y = laid.h * k < r.height ? (r.height - laid.h * k) / 2 : 8
     view = { k, x, y }
   }
+  // A new layout: fit it, unless it is the same graph changed a little
+  // (a what-if value typed, a file saved) and the user has arranged the
+  // view: then the view stays where it was (3.10.2).
+  let before = new Set<string>()
   $effect(() => {
     void laid
-    queueMicrotask(fit)
+    const now = new Set(nodes.map((n) => n.id))
+    let kept = 0
+    for (const idOf of now) if (before.has(idOf)) kept++
+    const same = before.size > 0 && kept >= Math.max(before.size, now.size) / 2
+    before = now
+    if (!(same && moved)) queueMicrotask(fit)
   })
   // The box changes size (a pane dragged, the window, a hidden tab
   // shown): fit again, unless the user has moved the view.
@@ -112,6 +153,7 @@
     let seen = false
     const ro = new ResizeObserver(() => {
       const r = host!.getBoundingClientRect()
+      box = { w: r.width, h: r.height }
       const shown = r.width > 0 && r.height > 0
       if (shown && (!moved || !seen)) fit()
       seen = seen || shown
@@ -128,13 +170,17 @@
     moved = true
     view = { k, x: x - ((x - view.x) * k) / view.k, y: y - ((y - view.y) * k) / view.k }
   }
+  function pan(dx: number, dy: number) {
+    moved = true
+    view = { ...view, x: view.x + dx, y: view.y + dy }
+  }
   function onwheel(e: WheelEvent) {
     e.preventDefault()
     const r = host!.getBoundingClientRect()
     zoom(e.deltaY < 0 ? 1.12 : 1 / 1.12, e.clientX - r.left, e.clientY - r.top)
   }
   function onpointerdown(e: PointerEvent) {
-    if ((e.target as Element).closest('.node')) return
+    if ((e.target as Element).closest('.node, .controls, .legend, .minimap')) return
     drag = { x: e.clientX, y: e.clientY, vx: view.x, vy: view.y }
     ;(e.currentTarget as Element).setPointerCapture(e.pointerId)
   }
@@ -142,6 +188,62 @@
     if (!drag) return
     moved = true
     view = { ...view, x: drag.vx + e.clientX - drag.x, y: drag.vy + e.clientY - drag.y }
+  }
+
+  // --- keyboard ---
+  /** The node nearest to `from` in a direction, by the layout. */
+  function towards(from: string, dx: number, dy: number): string | null {
+    const a = laid.pos.get(from)
+    if (!a) return null
+    let best: string | null = null
+    let score = Infinity
+    for (const [idOf, p] of laid.pos) {
+      if (idOf === from) continue
+      const along = (p.x - a.x) * dx + (p.y - a.y) * dy
+      if (along <= 1) continue
+      const across = Math.abs((p.x - a.x) * dy) + Math.abs((p.y - a.y) * dx)
+      const s = along + across * 2.5
+      if (s < score) [best, score] = [idOf, s]
+    }
+    return best
+  }
+  /** Bring a node into view, moving the view no more than needed. */
+  function reveal(idOf: string) {
+    const p = laid.pos.get(idOf)
+    if (!p || !box.w) return
+    const m = 24
+    const left = (p.x - p.w / 2) * view.k + view.x
+    const right = (p.x + p.w / 2) * view.k + view.x
+    const top = (p.y - NODE_H / 2) * view.k + view.y
+    const bottom = (p.y + NODE_H / 2) * view.k + view.y
+    let dx = 0
+    let dy = 0
+    if (left < m) dx = m - left
+    else if (right > box.w - m) dx = box.w - m - right
+    if (top < m) dy = m - top
+    else if (bottom > box.h - m) dy = box.h - m - bottom
+    if (dx || dy) pan(dx, dy)
+  }
+  const arrows: Record<string, [number, number]> = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }
+  function onkeydown(e: KeyboardEvent) {
+    if (e.ctrlKey || e.metaKey || e.altKey) return
+    const node = (e.target as Element).closest<SVGGElement>('.node')
+    const dir = arrows[e.key]
+    if (dir && node) {
+      const next = towards(node.dataset.id!, dir[0], dir[1])
+      if (next) {
+        const el = host?.querySelector<SVGGElement>(`.node[data-id="${CSS.escape(next)}"]`)
+        el?.focus({ preventScroll: true })
+        reveal(next)
+      }
+    } else if (dir) pan(-dir[0] * 60, -dir[1] * 60)
+    else if (e.key === '+' || e.key === '=') zoom(1.25)
+    else if (e.key === '-' || e.key === '_') zoom(0.8)
+    else if (e.key === '0') fit()
+    else if (node && (e.key === 'Enter' || e.key === ' ')) onselect?.(node.dataset.id!)
+    else return
+    e.preventDefault()
+    e.stopPropagation()
   }
 
   // --- hover highlighting ---
@@ -155,16 +257,60 @@
     }
     return s
   })
+
+  // --- minimap: the whole graph, with the part in view marked ---
+  const MINI_W = 148
+  const mini = $derived.by(() => {
+    if (!laid.w || !box.w) return null
+    const overflows = laid.w * view.k > box.w + 1 || laid.h * view.k > box.h + 1
+    if (!overflows) return null
+    const s = Math.min(MINI_W / laid.w, 90 / laid.h)
+    return {
+      s,
+      w: laid.w * s,
+      h: laid.h * s,
+      // The box's part of the graph, in graph coordinates.
+      vx: -view.x / view.k,
+      vy: -view.y / view.k,
+      vw: box.w / view.k,
+      vh: box.h / view.k,
+    }
+  })
+  function miniTo(e: PointerEvent) {
+    if (!mini || !(e.buttons & 1)) return
+    const r = (e.currentTarget as Element).getBoundingClientRect()
+    const gx = (e.clientX - r.left) / mini.s
+    const gy = (e.clientY - r.top) / mini.s
+    moved = true
+    view = { ...view, x: box.w / 2 - gx * view.k, y: box.h / 2 - gy * view.k }
+  }
+
+  // --- what the drawing uses, for the legend ---
+  const statusWords: Record<NonNullable<GraphNode['status']>, string> = { failed: 'failed', changed: 'changed', ok: 'ok', rescued: 'rescued', never: 'never ran' }
+  // A glyph per status, so a run reads without its colours.
+  const glyphs: Record<NonNullable<GraphNode['status']>, string> = {
+    failed: 'M-4,-4 L4,4 M4,-4 L-4,4',
+    changed: 'M0,-5 L5,4 L-5,4 Z',
+    ok: 'M-4.5,0 L-1.5,3.5 L4.5,-3.5',
+    rescued: 'M4,-2 A4.5,4.5 0 1 0 4.5,1 M4.5,-5 L4.5,-1.5 L1,-1.5',
+    never: 'M-4,0 L4,0',
+  }
+  const statuses = $derived([...new Set(nodes.map((n) => n.status).filter((s): s is NonNullable<GraphNode['status']> => !!s))])
+  const anyDashed = $derived(edges.some((e) => e.dashed))
+  const anyMissing = $derived(nodes.some((n) => n.missing))
 </script>
 
+<!-- svelte-ignore a11y_no_noninteractive_tabindex, a11y_no_noninteractive_element_interactions -->
 <div
   class="graph"
   bind:this={host}
-  role="img"
-  aria-label={label}
+  role="group"
+  aria-label="{label}. Arrow keys move between nodes, plus and minus zoom, 0 fits."
+  tabindex="0"
   {onwheel}
   {onpointerdown}
   {onpointermove}
+  {onkeydown}
   onpointerup={() => (drag = null)}
   onpointercancel={() => (drag = null)}
 >
@@ -175,6 +321,12 @@
       </marker>
     </defs>
     <g transform="translate({view.x},{view.y}) scale({view.k})">
+      {#each laid.bands as b (b.name)}
+        <g class="lane">
+          <rect x={b.x} y={b.y} width={b.w} height={b.h} rx="10" />
+          <text x={b.x + 10} y={b.y - 8}>{cut(b.name, b.w + 20, 6.4)}<title>{b.name}</title></text>
+        </g>
+      {/each}
       {#each laid.paths as p, i (i)}
         {@const lit = hover && (p.e.from === hover || p.e.to === hover)}
         <path d={p.d} class="edge" class:lit class:dashed={p.e.dashed} class:dim={hover && !lit} marker-end="url(#{arrow})" />
@@ -185,6 +337,9 @@
       {#each nodes as n (n.id)}
         {@const p = laid.pos.get(n.id)}
         {#if p}
+          <!-- Keys are handled on the graph (onkeydown above): Enter and
+               Space select the focused node. -->
+          <!-- svelte-ignore a11y_click_events_have_key_events -->
           <g
             class="node g-{n.group ?? 'other'} {n.status ? 's-' + n.status : ''}"
             class:missing={n.missing}
@@ -194,16 +349,22 @@
             transform="translate({p.x - p.w / 2},{p.y - NODE_H / 2})"
             role="button"
             tabindex="0"
-            aria-label="{n.sub ?? ''} {n.label}{n.status ? ', ' + (n.status === 'never' ? 'never ran' : n.status) : ''}"
+            data-id={n.id}
+            aria-label="{n.sub ?? ''} {n.label}{n.status ? ', ' + statusWords[n.status] : ''}{n.missing ? ', ' + missingNode : ''}"
             onpointerenter={() => (hover = n.id)}
             onpointerleave={() => (hover = null)}
+            onfocus={() => (hover = n.id)}
+            onblur={() => (hover = null)}
             onclick={() => onselect?.(n.id)}
-            onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && onselect?.(n.id)}
           >
-            <rect width={p.w} height={NODE_H} rx="7" />
+            <rect width={p.w} height={NODE_H} rx="8" />
             <rect class="stripe" width="4" height={NODE_H - 12} x="6" y="6" rx="2" />
-            {#if n.sub}<text x="18" y="18" class="sub">{n.sub}</text>{/if}
-            <text x="18" y={n.sub ? 35 : 28} class="name">{n.label.length > 34 ? n.label.slice(0, 33) + '…' : n.label}</text>
+            {#if n.sub}<text x="18" y="18" class="sub">{cut(n.sub, p.w - (n.status ? 16 : 0), 5.6)}</text>{/if}
+            <text x="18" y={n.sub ? 35 : 28} class="name">{cut(n.label, p.w - (n.status ? 16 : 0))}</text>
+            {#if n.status}<path class="glyph" d={glyphs[n.status]} transform="translate({p.w - 15},{NODE_H / 2})" />{/if}
+            <!-- Last, so the box stays the group's first child (its styles
+                 say rect:first-child): the whole text, as a tooltip. -->
+            <title>{n.sub ? n.sub + '\n' : ''}{n.label}{n.status ? '\n' + statusWords[n.status] : ''}</title>
           </g>
         {/if}
       {/each}
@@ -211,15 +372,32 @@
   </svg>
 
   <div class="controls">
-    <IconButton icon={Plus} label="Zoom in" size="sm" onclick={() => zoom(1.25)} />
-    <IconButton icon={Minus} label="Zoom out" size="sm" onclick={() => zoom(0.8)} />
-    <IconButton icon={Maximize} label="Fit to view" size="sm" onclick={fit} />
+    <IconButton icon={Plus} label="Zoom in" shortcut="+" size="sm" onclick={() => zoom(1.25)} />
+    <IconButton icon={Minus} label="Zoom out" shortcut="-" size="sm" onclick={() => zoom(0.8)} />
+    <IconButton icon={Maximize} label="Fit to view" shortcut="0" size="sm" onclick={fit} />
   </div>
-  {#if legend.length}
-    <div class="legend">
+  {#if legend.length || anyDashed || anyMissing || statuses.length}
+    <div class="legend" class:beside={!!mini}>
       {#each legend as l (l.group)}
         <span class="g-{l.group}"><i></i>{l.label}</span>
       {/each}
+      {#each statuses.filter((s) => !legend.some((l) => l.group === 's-' + s)) as s (s)}
+        <span class="g-s-{s}"><i></i>{statusWords[s]}</span>
+      {/each}
+      {#if anyMissing}<span><i class="dashed-box"></i>{missingNode}</span>{/if}
+      {#if anyDashed}<span><i class="dashed-line"></i>{dashedEdge}</span>{/if}
+    </div>
+  {/if}
+  {#if mini}
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div class="minimap" style:width="{mini.w}px" style:height="{mini.h}px" onpointerdown={miniTo} onpointermove={miniTo} aria-hidden="true">
+      <svg width={mini.w} height={mini.h} viewBox="0 0 {laid.w} {laid.h}">
+        {#each nodes as n (n.id)}
+          {@const p = laid.pos.get(n.id)}
+          {#if p}<rect class="mnode g-{n.group ?? 'other'} {n.status ? 's-' + n.status : ''}" class:on={n.id === selected} x={p.x - p.w / 2} y={p.y - NODE_H / 2} width={p.w} height={NODE_H} rx="6" />{/if}
+        {/each}
+        <rect class="mview" x={mini.vx} y={mini.vy} width={mini.vw} height={mini.vh} rx="4" />
+      </svg>
     </div>
   {/if}
 </div>
@@ -236,6 +414,38 @@
   }
   .graph:active {
     cursor: grabbing;
+  }
+  .graph:focus-visible {
+    outline: 2px solid var(--tool-accent, var(--accent));
+    outline-offset: -2px;
+  }
+  /* A lane: a quiet band behind the nodes of one stage, named above it. */
+  .lane rect {
+    fill: var(--bg-1);
+    stroke: var(--border);
+    stroke-dasharray: 2 4;
+  }
+  .lane text {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    fill: var(--fg-2);
+  }
+  /* A run's status as a glyph, in the status colour. */
+  .glyph {
+    fill: none;
+    stroke: var(--c);
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .node:focus-visible {
+    outline: none;
+  }
+  .node:focus-visible rect:first-child {
+    stroke: var(--tool-accent, var(--accent));
+    stroke-width: 2;
   }
   svg {
     display: block;
@@ -398,6 +608,10 @@
     border: 1px solid var(--border);
     border-radius: var(--r-md);
   }
+  /* Leaves the corner to the minimap. */
+  .legend.beside {
+    max-width: calc(100% - 180px);
+  }
   .legend span {
     display: inline-flex;
     align-items: center;
@@ -408,5 +622,45 @@
     height: 8px;
     border-radius: 2px;
     background: var(--c, var(--fg-2));
+  }
+  .legend .dashed-box {
+    width: 12px;
+    background: none;
+    border: 1px dashed var(--fg-2);
+  }
+  .legend .dashed-line {
+    width: 14px;
+    height: 0;
+    background: none;
+    border-top: 1px dashed var(--fg-2);
+    border-radius: 0;
+  }
+  /* The whole graph in a corner, when it is bigger than its box. */
+  .minimap {
+    position: absolute;
+    right: var(--s-2);
+    bottom: var(--s-2);
+    padding: 0;
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    overflow: hidden;
+    cursor: pointer;
+  }
+  .minimap svg {
+    display: block;
+  }
+  .mnode {
+    fill: var(--c, var(--fg-2));
+    opacity: 0.55;
+  }
+  .mnode.on {
+    opacity: 1;
+  }
+  .mview {
+    fill: var(--accent-soft);
+    stroke: var(--tool-accent, var(--accent));
+    stroke-width: 1.5;
+    vector-effect: non-scaling-stroke;
   }
 </style>

@@ -11,7 +11,7 @@ import {
   type LintRule,
   type LintSettings,
 } from '../../lib/api/lint'
-import { toast } from '../../lib/stores/toast.svelte'
+import { toast, toasts } from '../../lib/stores/toast.svelte'
 import { openSessions } from '../editor/active.svelte'
 
 class Lint {
@@ -76,8 +76,9 @@ class Lint {
   async turnOff(id: string) {
     if (!this.loaded) await this.load()
     const title = this.rule(id)?.title ?? id
+    const was = this.settings.rules?.[id] ?? this.rule(id)?.default
     await this.setLevel(id, 'off')
-    toast(`Turned off "${title}". Change it back in Settings.`)
+    toasts.show(`Turned off "${title}"`, 'neutral', 8000, was ? { label: 'Undo', run: () => void this.setLevel(id, was) } : undefined)
   }
 
   async runWorkspace() {

@@ -17,7 +17,7 @@
   import ToolLayout from '../shared/ToolLayout.svelte'
   import ToolTabs from '../shared/ToolTabs.svelte'
   import { TextJob } from '../shared/job.svelte'
-  import { toolShortcuts, toolStatus } from '../shared/tool.svelte'
+  import { cleared, toolShortcuts, toolStatus } from '../shared/tool.svelte'
   import ZonePicker from './ZonePicker.svelte'
   import { canonicalZone, zoneList, zoneNames } from './zone.svelte'
 
@@ -106,6 +106,8 @@
     job.run(call())
   }
   function clear() {
+    const was = job.input
+    if (was) cleared(() => job.input || (job.input = was))
     job.input = ''
     field?.focus()
   }

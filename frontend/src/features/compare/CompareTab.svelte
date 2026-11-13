@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { toolCommands } from '../shared/tool.svelte'
   import SplitPane from '../../lib/components/SplitPane.svelte'
   import ErrorNote from '../../lib/components/ErrorNote.svelte'
   import { hueVar, viewHue } from '../../lib/tools'
@@ -35,6 +36,18 @@
   }
 
   let { c, active, strip }: Props = $props()
+  // Ids unique to this instance: several are mounted at once (tabs stay
+  // mounted), and a label must point at its own field (3.10.2).
+  const uid = $props.id()
+
+  // In the palette while this comparison is shown (3.10.2).
+  toolCommands(
+    () => active,
+    () => [
+      { id: 'compare.view.run', title: 'Compare: Compare again', group: 'Compare', run: () => cmp.run() },
+      { id: 'compare.view.swap', title: 'Compare: Swap sides', group: 'Compare', run: () => cmp.swap() },
+    ],
+  )
   const cmp = untrack(() => c) // a tab component lives with one tab (keyed)
 
   let leftView = $state<CodeView>()
@@ -135,8 +148,8 @@
         </button>
       {/snippet}
       <div class="ignore">
-        <label for="ignore-list">One pattern per line; <code>*</code> matches anything.</label>
-        <textarea id="ignore-list" bind:value={ignoreText} rows="6" spellcheck="false" placeholder={'metadata.labels.helm.sh/chart\nspec.template.spec.containers[*].image'}></textarea>
+        <label for="{uid}-ignore">One pattern per line; <code>*</code> matches anything.</label>
+        <textarea id="{uid}-ignore" bind:value={ignoreText} rows="6" spellcheck="false" placeholder={'metadata.labels.helm.sh/chart\nspec.template.spec.containers[*].image'}></textarea>
         <div class="ignore-actions">
           <Button size="sm" variant="primary" onclick={() => cmp.setIgnore(ignoreText.split('\n'))}>Save</Button>
           <Button size="sm" variant="ghost" title="Fields a cluster adds to live objects: managedFields, resourceVersion, uid, status…" onclick={addLiveNoise}>Add live object noise</Button>

@@ -177,7 +177,11 @@ change to this file and `tokens.css` together.
   `ThreePanes` (side · main · detail, one remembered size for all of
   them). New lens views follow the same frame.
 - **A view's header** is `PanelHeader`: icon, name, what is known
-  (counts, a **What-if** badge), actions on the right.
+  (counts, a **What-if · N** badge with a reset beside it in the lens
+  views), actions on the right.
+- **A view that is drawn again and fails** keeps what it showed and
+  says so (`ErrorNote` at the top of its side panel, with Try again);
+  a first load that fails is an `EmptyState` with Try again.
 
 ## Components
 
@@ -194,11 +198,13 @@ Build once in `frontend/src/lib/components` and reuse:
 | `Chip` | A small choice in a row: a suggestion (a preset; `selected` marks the one in use) or a toggle (`pressed`: a flag, a weekday), `square` for one letter |
 | `SplitPane` | Two resizable panes: drag, arrow keys (Shift, Home, End), double click or Enter to reset; `direction`, `stackBelow`, `flush` (a line, for panes that touch), `px` (a side panel's width); sizes persisted by `id`, side by side and stacked apart |
 | `ThreePanes` | Side · main · detail, each resizable: the frame of the lens views |
-| `PanelHeader` | The strip at the top of a view: icon, title, `meta`, `actions` |
+| `PanelHeader` | The strip at the top of a view: icon (or `lead`, a file-type logo), title, `meta`, `actions`. Every view but the file view uses it; the file view's breadcrumb strip has the same height |
+| `Menu` | A button that opens a menu of named actions: the "…" at the end of a toolbar, for what doesn't earn a button. One main action per view as a button, the rest here |
+| `foldSections` (lib/actions) | On the side panel of a lens view: each `section > h3` folds (remembered per view), and Problems comes first when it has any |
 | `TreeView` | File trees and outlines; keyboard pattern, windowed over 300 rows |
 | `VirtualList` | Long lists of rows of any height (Problems, Resources cards, Log viewer): only rows in view are drawn, each measured once shown; `scrollToIndex`, `onrange` for page-by-page loading |
 | `CodeView` | Any code or YAML (CodeMirror 6), read-only or editable |
-| `Graph` | Node graphs (dagre layout, pan/zoom, colour groups `g-<group>`, dashed edges for run-time links, run status `s-failed/changed/ok/rescued/never`) |
+| `Graph` | Node graphs (dagre layout, colour groups `g-<group>`, dashed edges for run-time links, run status `s-failed/changed/ok/rescued/never` as a glyph as well as a colour). `selected` outlines the node whose details show; `lane` on a node puts it in a named band (a pipeline's stage). Pan by dragging, zoom with the wheel; keyboard: arrows move between nodes (or pan), `+` `-` zoom, `0` fits, Enter selects. A minimap appears when the graph is bigger than its box; the view is kept when the same graph changes (a what-if value) and fitted afresh for a different one. The legend adds what the drawing uses: dashed nodes (`missingNode`), dashed edges (`dashedEdge`), statuses. A cut label's whole text is the node's tooltip |
 | `EffectiveLines` | Config with an origin per line (CI, Compose) |
 | `Popover`, `Dialog`, `Tooltip` | Overlays; dialogs trap focus and close on Esc |
 | `ContextMenu` | Right-click menus (also Shift+F10); entries built per open from the event; sentence case, an icon per entry |
@@ -251,7 +257,14 @@ them when it changes, and rename the SVG if browser tabs keep the old one.
   sub-tab when first shown and keeps it; the last sub-tab is remembered,
   and Home and the palette list each one by name. Requests go through
   `Job` / `TextJob` (newest answer wins, debounced while typing). One
-  tool hands input to another with `handoff.send(tool, tab, input)`.
+  tool hands input to another with `handoff.send(tool, tab, input)`;
+  every output pane offers the tools that take text (**Send to**,
+  `features/shared/sendto.ts`): a tool that can take a text handed to
+  it calls `handoff.take` and is listed there.
+  One wording per action: **Try a sample**, **Clear** (the eraser),
+  **Copy**. An option that is how a result is written (hex or base64,
+  a diff's layout) is a display choice and is remembered; what was
+  typed is not.
   Results with several values give each its own copy button.
 - **Persistence.** `persisted()` is for display preferences only: the
   theme, sizes of panes, which tools are pinned or were opened last,
@@ -280,6 +293,12 @@ them when it changes, and rename the SVG if browser tabs keep the old one.
   input); a component that removes either shows an equivalent.
 - Every interactive element has an accessible name (text, `aria-label`
   or `label`). Icon-only buttons use `IconButton`.
+- An id in a component that can be mounted more than once (every view:
+  tabs stay mounted) starts with `$props.id()`, so a label points at
+  its own field.
+- A full-window overlay is a dialog: focus goes in, Tab stays in, and
+  it goes back where it was. A value that changes every second is a
+  `role="timer"`, never a live region.
 - Trees, lists, tabs, radio groups follow WAI-ARIA keyboard patterns.
 - Severity is never colour alone: pair it with an icon or a word.
 - Respect `prefers-reduced-motion`.

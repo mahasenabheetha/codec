@@ -391,8 +391,21 @@ class Reminders {
     return r
   }
 
+  /** Remove a reminder of your own; Undo puts it back where it was. */
   remove(id: string) {
+    const at = this.prefs.list.findIndex((r) => r.id === id)
+    if (at < 0) return
+    const was = this.prefs.list[at]
     this.prefs.list = this.prefs.list.filter((r) => r.id !== id)
+    toasts.show(`Removed "${was.name}"`, 'neutral', 7000, {
+      label: 'Undo',
+      run: () => {
+        if (this.prefs.list.some((r) => r.id === id)) return
+        const list = [...this.prefs.list]
+        list.splice(Math.min(at, list.length), 0, was)
+        this.prefs.list = list
+      },
+    })
   }
 }
 

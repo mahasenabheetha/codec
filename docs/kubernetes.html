@@ -72,7 +72,7 @@
 
 <h2 id="open">Opening it<a class="anchor" href="#open">#</a></h2>
 <ul>
-  <li><strong>A folder:</strong> the boxes icon on any Kubernetes file ("Kubernetes resources in this folder"), or "Kubernetes: resources in this folder" in the palette for the whole workspace. Helm templates are left out — render them instead.</li>
+  <li><strong>A folder:</strong> <strong>…</strong> → <em>Kubernetes resources in this folder</em> on a Kubernetes file's toolbar, the same entry in a folder's menu in the explorer, or "Kubernetes: resources in this folder" in the palette for the whole workspace. Helm templates are left out — render them instead.</li>
   <li><strong>A Helm render:</strong> the Resources tab of the <a href="helm.html">Helm view</a>.</li>
   <li><strong>A Kustomize build:</strong> the Resources tab of a <a href="#kustomize">Kustomize build</a>.</li>
 </ul>
@@ -91,7 +91,7 @@
   <tr><td>RoleBinding / ClusterRoleBinding</td><td>Role and subjects</td><td><code>roleRef</code> and <code>subjects</code>.</td></tr>
   <tr><td>HPA, PDB</td><td>Their target</td><td><code>scaleTargetRef</code>, PDB selector.</td></tr>
 </table></div>
-<p>The graph colours nodes by group (workloads, network, config, storage, access, scaling), highlights a node's neighbours on hover, and pans and zooms.</p>
+<p>The graph colours nodes by group (workloads, network, config, storage, access, scaling), highlights a node's neighbours on hover, and pans and zooms, by mouse or keyboard, with a minimap when it is bigger than its pane (<a href="workspace.html#graphs">Graphs</a>). A dashed node is referenced but not defined in the scope; the legend says so.</p>
 
 <h3 id="references">References<a class="anchor" href="#references">#</a></h3>
 <p>A reference to something that isn't in the scope — a Service whose selector matches no pods, a missing ConfigMap — is listed with where it is. These are warnings, not errors: the target may live in another folder, another chart, or be created at deploy time.</p>
@@ -111,14 +111,14 @@
 </ul>
 
 <h2 id="kustomize">Kustomize<a class="anchor" href="#kustomize">#</a></h2>
-<p>Any folder with a <code>kustomization.yaml</code> can be built from the palette ("Kustomize: build <em>folder</em>") or from the file's toolbar. codec runs the kustomize library in-process: the output is the same as <code>kubectl kustomize</code>, with no kubectl or kustomize installed.</p>
+<p>Any folder with a <code>kustomization.yaml</code> can be built from the palette ("Kustomize: build <em>folder</em>") from the <strong>Build</strong> button on the file's toolbar, or from its folder's menu in the explorer. codec runs the kustomize library in-process: the output is the same as <code>kubectl kustomize</code>, with no kubectl or kustomize installed.</p>
 <figure>
   <img src="images/kustomize.png" alt="Kustomize build of k8s/overlays/prod: the generated ConfigMap with a hash suffix, the Service and the Deployment" width="1400" height="820" loading="lazy">
   <figcaption>The prod overlay built: namespace, image tag, replicas patch and a generated ConfigMap with its hash suffix.</figcaption>
 </figure>
 <ul>
   <li>Files are collected from the kustomization and everything it references — resources, bases, components, patches, generator inputs — into memory, so <a href="workspace.html#whatif">what-if edits</a> in open tabs are used and nothing is written.</li>
-  <li>The build has Rendered, Resources and Problems tabs; problems include lint and schema findings on the output.</li>
+  <li>The build has Rendered, Resources and Problems tabs; problems include lint and schema findings on the output. A build that fails says why, with <strong>Try again</strong>.</li>
   <li><strong>Not supported:</strong> remote bases (git or http URLs — codec never downloads) and <code>helmCharts</code> (render the chart in the Helm view instead). Both are reported clearly.</li>
 </ul>
 

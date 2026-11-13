@@ -98,7 +98,7 @@
   }
   .moments {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
     gap: var(--s-2) var(--s-4);
     padding: var(--s-2) 0;
     border-top: 1px solid var(--border);

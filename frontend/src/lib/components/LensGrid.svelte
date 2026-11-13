@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Snippet } from 'svelte'
   import ThreePanes from './ThreePanes.svelte'
+  import { foldSections } from '../actions/foldSections'
 
   // The layout of a lens view: facts and problems on the side, the
   // main view (a graph, a tree, tables), and the selected item's
@@ -19,7 +20,7 @@
   let { side, main, detail, sideLabel, detailLabel }: Props = $props()
 </script>
 
-{#snippet sidePane()}<aside class="side" aria-label={sideLabel}>{@render side()}</aside>{/snippet}
+{#snippet sidePane()}<aside class="side" aria-label={sideLabel} use:foldSections={sideLabel}>{@render side()}</aside>{/snippet}
 {#snippet mainPane()}<main class="main">{@render main()}</main>{/snippet}
 {#snippet detailPane()}<aside class="detail" aria-label={detailLabel}>{@render detail()}</aside>{/snippet}
 

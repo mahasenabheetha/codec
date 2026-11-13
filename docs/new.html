@@ -108,7 +108,7 @@
   <img src="images/clone.png" alt="Clone view: argo/build.yaml cloned as shop-release; metadata.name renamed, the container image listed to check, and the copy passing the checks" width="1400" height="820" loading="lazy">
   <figcaption>Cloning <code>argo/build.yaml</code> as <code>shop-release</code>: one rename, one thing to check, and the copy passes lint and the Argo checks.</figcaption>
 </figure>
-<p>The clone button on a YAML file (or "Clone with a new name…" in the palette) copies the file, or one document of it, under a new name. codec guesses the old name — the name found in most other names — and you type the new one.</p>
+<p><strong>…</strong> → <em>Clone with a new name</em> on a YAML file's toolbar (also in the file's menu in the explorer, and "Clone with a new name…" in the palette) copies the file, or one document of it, under a new name. codec guesses the old name — the name found in most other names — and you type the new one.</p>
 <ul>
   <li><strong>Renamed:</strong> every whole-word use of the old name in values and keys (letters and digits bound a word, so <code>shop</code> doesn't touch <code>workshop</code>): <code>metadata.name</code>, labels and selectors, template and job names, internal references. Comments and layout stay exactly as they were.</li>
   <li><strong>Not renamed, suggested:</strong> references to objects that aren't part of the copy (renaming them would break the reference), Secrets, images and addresses (URLs, registries, hosts). Tick one to rename it anyway.</li>

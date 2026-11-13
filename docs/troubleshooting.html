@@ -113,6 +113,18 @@
 <h3 id="roles">Ansible: a role is "not found"<a class="anchor" href="#roles">#</a></h3>
 <p>codec looks in <code>roles/</code>, <code>roles_path</code> from <code>ansible.cfg</code> and folders up to the repository root. Roles installed from Galaxy or collections at run time can't be read; codec notes that rather than failing.</p>
 
+<h2 id="interface">The interface<a class="anchor" href="#interface">#</a></h2>
+<h3 id="cleared">I cleared a tool by mistake<a class="anchor" href="#cleared">#</a></h3>
+<p>The "Cleared" note has <strong>Undo</strong> for a few seconds. After that the text is gone: codec never stores what you paste. <kbd>Esc</kbd> clears only from a tool's main input or from outside any field.</p>
+<h3 id="panes">A pane is too small, or gone<a class="anchor" href="#panes">#</a></h3>
+<p>Double-click the line between two panes (or focus it and press <kbd>Enter</kbd>) to put it back to its first size. The explorer is <kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>E</kbd>, the rail's labels <kbd>Ctrl</kbd> <kbd>B</kbd>, and the outline panel has a switch on the file's toolbar.</p>
+<h3 id="colours">Too much colour, or too little<a class="anchor" href="#colours">#</a></h3>
+<p><em>Settings → Tool colours</em> (or "Toggle tool colours" in the palette) puts every tool in the theme's one accent. Dusk, Midnight, Forest, Rosé and Ocean are the softer dark themes; Mist and Paper the softer light ones.</p>
+<h3 id="motion">Animations distract<a class="anchor" href="#motion">#</a></h3>
+<p>codec follows your operating system's "reduce motion" setting: transitions are instant and a looping animation runs once and stops.</p>
+<h3 id="toolbar">A button I used is gone from a file's toolbar<a class="anchor" href="#toolbar">#</a></h3>
+<p>Since 3.10.2 the toolbar keeps one main button, the view of the file's type; compare, query, clone, the Kubernetes resources, the neat copy, reveal and copy path are under <strong>…</strong>, and in the file's menu in the explorer.</p>
+
 <h2 id="editor-links">Open in VS Code does nothing<a class="anchor" href="#editor-links">#</a></h2>
 <p>The button uses the <code>vscode://</code> (or <code>cursor://</code>) link your editor registers when installed normally. Portable installs may not register it. Check that the right editor is chosen in <a href="settings.html">Settings</a>; the first time, your browser asks whether to open the editor — allow it.</p>
 

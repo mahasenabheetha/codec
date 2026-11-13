@@ -12,6 +12,9 @@
 </script>
 
 <script lang="ts">
+  import Button from '../../lib/components/Button.svelte'
+  import ErrorNote from '../../lib/components/ErrorNote.svelte'
+  import { foldSections } from '../../lib/actions/foldSections'
   import ThreePanes from '../../lib/components/ThreePanes.svelte'
   import { untrack } from 'svelte'
   import CircleCheck from '@lucide/svelte/icons/circle-check'
@@ -41,6 +44,9 @@
   }
 
   let { path, overrides = {}, reload = 0, onopen, onstatus }: Props = $props()
+  // Ids unique to this instance: several are mounted at once (tabs stay
+  // mounted), and a label must point at its own field (3.10.2).
+  const uid = $props.id()
 
   let data = $state.raw<CIPipeline | null>(null)
   let error = $state<string | null>(null)
@@ -93,7 +99,9 @@
     (data?.jobs ?? []).map((j) => ({
       id: j.id,
       label: j.name,
-      sub: [staged ? j.stage : j.group, caption(j)].filter(Boolean).join(' · '),
+      // With stages, each job sits in its stage's lane; the lane names it.
+      sub: [staged ? '' : j.group, caption(j)].filter(Boolean).join(' · '),
+      lane: staged ? j.stage || undefined : undefined,
       group: jobGroup(j),
       missing: j.kind === 'template',
     })),
@@ -185,13 +193,16 @@
 
 <div class="ci">
   {#if error && !data}
-    <EmptyState icon={GitBranch} title="Can't read this pipeline" description={error} />
+    <EmptyState icon={GitBranch} title="Can't read this pipeline" description={error}>
+      <Button size="sm" onclick={load}>Try again</Button>
+    </EmptyState>
   {:else if !data}
     <div class="loading" aria-busy="true" aria-label="Reading the files"><Skeleton lines={8} /></div>
   {:else}
     {@const loaded = data}
     {#snippet sidePane()}
-      <aside class="side" aria-label="Pipeline">
+      <aside class="side" aria-label="Pipeline" use:foldSections={'ci'}>
+        {#if error}<ErrorNote inline message={`Showing the last result; reading again failed: ${error}`} retry={load} />{/if}
         <section>
           <p class="wf">
             <Badge tone="accent">{toolName[loaded.tool]}</Badge>
@@ -208,16 +219,16 @@
             <ul class="params">
               {#each loaded.inputs as p (p.name + p.from)}
                 <li>
-                  <label for="ci-param-{p.name}">{p.name} <span class="ptype">{p.type}{p.required ? ' · required' : ''}</span></label>
+                  <label for="{uid}-param-{p.name}">{p.name} <span class="ptype">{p.type}{p.required ? ' · required' : ''}</span></label>
                   {#if whatIf}
                     <div class="prow">
                       {#if p.options?.length}
-                        <select id="ci-param-{p.name}" value={params[p.name] ?? ''} onchange={(e) => setParam(p.name, e.currentTarget.value)}>
+                        <select id="{uid}-param-{p.name}" value={params[p.name] ?? ''} onchange={(e) => setParam(p.name, e.currentTarget.value)}>
                           <option value="">{p.hasDefault ? p.default + ' (default)' : '(no default)'}</option>
                           {#each p.options as opt (opt)}<option value={opt}>{opt}</option>{/each}
                         </select>
                       {:else}
-                        <input id="ci-param-{p.name}" value={params[p.name] ?? ''} placeholder={p.hasDefault ? p.default || '""' : 'no default'} spellcheck="false" oninput={(e) => setParam(p.name, e.currentTarget.value)} />
+                        <input id="{uid}-param-{p.name}" value={params[p.name] ?? ''} placeholder={p.hasDefault ? p.default || '""' : 'no default'} spellcheck="false" oninput={(e) => setParam(p.name, e.currentTarget.value)} />
                       {/if}
                       {#if p.name in params}<IconButton icon={RotateCcw} label="Back to the default" size="sm" onclick={() => resetParam(p.name)} />{/if}
                     </div>
@@ -299,7 +310,7 @@
           <EmptyState icon={GitBranch} title="No jobs" description={loaded.kind === 'template' ? 'This file is a template: open a pipeline that uses it.' : 'Nothing in this file runs as a job.'} />
         {:else if view === 'graph'}
           <div class="graph">
-            <Graph nodes={graphNodes} edges={graphEdges} label="Jobs of {loaded.file} in execution order" {legend} selected={selectedId} onselect={(id) => (selectedId = id)} />
+            <Graph nodes={graphNodes} edges={graphEdges} label="Jobs of {loaded.file} in execution order" {legend} selected={selectedId} missingNode="a template, not a job" onselect={(id) => (selectedId = id)} />
           </div>
         {:else}
           <div class="stages">

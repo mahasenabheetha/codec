@@ -1,6 +1,7 @@
 // Helm state: the workspace's charts, and one render session per open
 // Helm tab (layers, --set, release options, latest result).
 
+import { toasts } from '../../lib/stores/toast.svelte'
 import { isAbort } from '../../lib/api/client'
 import { listCharts, renderChart, saveProfiles, type HelmChart, type HelmProfile, type HelmResult } from '../../lib/api/helm'
 import { layout } from '../../lib/stores/layout.svelte'
@@ -147,13 +148,24 @@ export class HelmSession {
     await charts.load()
   }
 
+  /** Delete a saved profile; Undo saves it again as it was. */
   async deleteProfile(name: string) {
     if (!this.info) return
+    const was = this.info.profiles[name]
     const profiles = { ...this.info.profiles }
     delete profiles[name]
     await saveProfiles(this.chart, profiles, '')
     this.profile = ''
     await charts.load()
+    if (was)
+      toasts.show(`Deleted the profile "${name}"`, 'neutral', 7000, {
+        label: 'Undo',
+        run: async () => {
+          if (!this.info || this.info.profiles[name]) return
+          await saveProfiles(this.chart, { ...this.info.profiles, [name]: was }, '')
+          await charts.load()
+        },
+      })
   }
 
   scheduleRender(delay = 200) {

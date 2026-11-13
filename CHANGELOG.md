@@ -6,6 +6,144 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+## [3.10.2] - 2026-11-12
+
+The interface refreshed, second part: the views. Safer clearing with
+Undo, a file toolbar with one main action, graphs you can use from the
+keyboard, lens views that fold and say what failed, a log chart that
+keeps the whole log in view, a clearer diff, tools that hand their
+output on, themes as swatches, and breaks that behave as a dialog
+should. Frontend only.
+
+### Added
+
+- **Undo after a clear.** Clearing a tool (the button or Esc) shows
+  "Cleared" with **Undo** for a few seconds, and so do Unpin all in the
+  Log viewer, deleting a Helm profile, removing a reminder of your own,
+  Clear today, and turning a lint rule off from a finding. What was
+  cleared is held in memory only until the note goes.
+- **Each view's actions in the palette** while its tab is shown: Helm
+  (render again, copy the manifests, compare profiles, query, each
+  tab), Kustomize, Kubernetes, Problems, the Log viewer (search box,
+  next and previous error, copy the summary, unpin all, each tab) and
+  Compare (again, swap sides).
+
+- **Graphs** (Kubernetes, Argo, pipelines, Compose, Ansible):
+  - **Keyboard.** Arrow keys move from node to node (or move the view),
+    Enter selects, `+` and `-` zoom, `0` fits.
+  - **A minimap** in the corner when the graph is bigger than its pane;
+    click or drag in it to move.
+  - **Stage lanes.** A pipeline with stages draws each stage as a named
+    band with its jobs inside.
+  - **The view stays** where you put it when a what-if value or a saved
+    file changes the same graph.
+  - **A fuller legend**: what a dashed node and a dashed line mean in
+    this view, and a run's statuses, which now have a glyph each as
+    well as a colour.
+  - A label that doesn't fit is cut to the node's width, and the node's
+    tooltip has the whole of it. The Ansible map outlines the selected
+    node, as the others do.
+- **Send to.** The arrow beside Copy on a tool's output sends it to
+  another tool, which opens with it as its input (JSON & YAML,
+  Sanitize, CSV & TSV, the Log viewer, URL, Commands, Time, Network,
+  UUID, Colour). Handed over once, in memory.
+- **JWT and URL:** a copy button beside every claim, header field, the
+  signature, every URL part and every query value. A time claim also
+  shows the number as it is written.
+- **Log viewer:**
+  - **The chart keeps the whole log in view.** A time range you drag
+    is drawn as a window over all of it, the rest dimmed; drag again
+    for another range, or the × for everything.
+  - **A warning or an error is never lost** under a tall bar of info:
+    its part of a bar is at least a few pixels. The tallest bar's count
+    is shown, the time axis has ticks, and a fatal has a cap so it reads
+    apart from an error.
+  - **Options** puts the row of level, context, fold, column, chart,
+    time and line options away (and says what is set), so the entries
+    start higher.
+  - Fatal rows have a solid label and a firmer ground; trace lines are
+    muted more than debug.
+- **Text diff and Compare as text:**
+  - A **−** or **+** beside every changed line, so it is not its colour
+    alone; a line that changed (not removed and added) has one ground
+    on both sides, with the characters that differ in red and green.
+  - **Unified** is coloured: added, removed, and each hunk's header.
+  - A long run of unchanged lines **opens 20 at each end** at a time,
+    or all at once.
+  - A long diff has **marks down its right edge** where the changes
+    are; click one to go there.
+- **Lens views** (Argo, pipelines, Compose, Ansible):
+  - The side panel's sections **fold** at their heading, remembered per
+    view, and **Problems comes first** when there are any.
+  - **What-if** in the header counts the files with edits and has a
+    **reset** beside it; the view's file and the reset are in the
+    palette.
+  - When reading again fails, the view keeps what it showed and says so,
+    with **Try again**; a first load that fails has Try again too.
+- A file tab shows its shape while the file loads (it was blank).
+- **The explorer shows what is known about each file**: a pencil for
+  what-if edits in an open tab, and the errors and warnings of the last
+  workspace check, summed up each folder.
+- **Explorer menus per kind.** A file's menu opens the view of its type
+  (render its chart, build its kustomization, pipeline, Compose,
+  Ansible, Argo), queries or clones it and copies its path; folders
+  have a menu too (render the chart, build the kustomization, the
+  Kubernetes resources below, copy the path).
+
+### Changed
+
+- **The file toolbar has one main action**, the view of the file's
+  type, as a button; Open in your editor and the outline switch stay,
+  and everything else (compare, query, clone, Kubernetes resources,
+  neat copy, reveal, copy path) is under **…** with its name, where
+  there were up to nine unlabelled icons.
+- **Settings:**
+  - **Themes are a grid of swatches**, each drawn in its own colours,
+    in place of a menu of names; arrow keys move through them.
+  - The list of sections **marks the one in view** as you scroll.
+  - A **Wellness** section holds the sounds and notifications; the
+    Focus and Breaks tabs link to it instead of each carrying a copy.
+- **Breaks:**
+  - A full-window break **takes the focus and keeps it**: Tab stays
+    inside it, and focus goes back where it was when the break ends.
+  - Under reduced motion, looping animations run once and stop (they
+    used to loop at full speed).
+  - In a corner card the breathing guide's words stay readable, and
+    screen readers hear a break's name once, not its countdown every
+    second.
+  - Today's "now" mark moves with the clock.
+- **Regex and Commands** use the same page frame as the other tools:
+  their own colour, and Regex gets the input-over-output button.
+- One wording, **Try a sample**, on every tool's empty state; Clear is
+  the eraser everywhere.
+- How digests and UUIDs are written, and the text diff's layout and
+  ignore switches, are remembered.
+- The Helm view and Workspace problems use the same header as the other
+  views; Helm says **What-if** as they do.
+- **Esc clears a tool only from its main input** or from outside any
+  field. Typed in another field (a key, an option, "Leave out") it used
+  to wipe the whole tool.
+- **A full-window break needs Esc twice** to skip, so a reflex key
+  press doesn't throw it away.
+- **README and docs.** The README is shorter and in tables (features,
+  install, documentation), with a section on privacy. The docs have a
+  first look around in Getting started, "What every view shares" (the
+  header, the side panel, panes, graphs) in Workspace, an interface
+  section in Troubleshooting, and each guide says what changed in its
+  view.
+
+### Fixed
+
+- **Fields in two open tabs of one kind no longer share an id**, so a
+  label always points at its own field (Helm's profile name, Argo and
+  pipeline parameters, Compose variables, starters, Compare's ignore
+  list, the Log viewer's suggestions).
+- **Screen readers:** the Log viewer's search box says which suggestion
+  the arrows are on; "file changed on disk", "file deleted" and a Helm
+  render error are announced; Go to file says what it is picking a file
+  for.
+- The UUID options and the sound panel fit a narrow pane.
+
 ## [3.10.1] - 2026-11-12
 
 The interface refreshed, first part: colour in every theme, one look

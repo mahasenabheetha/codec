@@ -34,13 +34,53 @@
     lastSecond = left
   })
 
+  // A full-window break is a modal: focus goes into it, Tab stays in it,
+  // and it goes back to where it was when the break ends (3.10.2).
+  let panel = $state<HTMLDivElement>()
+  const modal = $derived(!!c && r?.style === 'window')
+  $effect(() => {
+    if (!modal || !panel) return
+    const before = document.activeElement as HTMLElement | null
+    panel.querySelector<HTMLElement>('button')?.focus()
+    return () => before?.focus?.({ preventScroll: true })
+  })
+  function trap(e: KeyboardEvent) {
+    if (e.key !== 'Tab' || !panel) return
+    const els = [...panel.querySelectorAll<HTMLElement>('button, [href], input, select, [tabindex]:not([tabindex="-1"])')].filter((el) => !el.hasAttribute('disabled'))
+    if (!els.length) return
+    const first = els[0]
+    const last = els[els.length - 1]
+    const inside = panel.contains(document.activeElement)
+    if (e.shiftKey && (!inside || document.activeElement === first)) {
+      e.preventDefault()
+      last.focus()
+    } else if (!e.shiftKey && (!inside || document.activeElement === last)) {
+      e.preventDefault()
+      first.focus()
+    }
+  }
+
+  // Escape twice skips a full-window break: a single one is too easily
+  // a reflex meant for something else (3.10.2).
+  let escAt = $state(0)
   function onkeydown(e: KeyboardEvent) {
+    if (modal) trap(e)
     if (c && r?.style === 'window' && e.key === 'Escape') {
       e.preventDefault()
       e.stopPropagation()
-      reminders.finish(false)
+      const now = Date.now()
+      if (now - escAt < 2000) {
+        escAt = 0
+        reminders.finish(false)
+      } else escAt = now
     }
   }
+  // The hint goes back to its usual words after the two seconds.
+  $effect(() => {
+    if (!escAt) return
+    const timer = setTimeout(() => (escAt = 0), 2000)
+    return () => clearTimeout(timer)
+  })
 </script>
 
 <svelte:window onkeydowncapture={onkeydown} />
@@ -48,7 +88,7 @@
 {#if c && r && t}
   {#if r.style === 'window'}
     <div class="backdrop" role="dialog" aria-modal="true" aria-label={r.name}>
-      <div class="panel">
+      <div class="panel" bind:this={panel}>
         <div class="pill">{#if Icon}<Icon size={15} strokeWidth={2} />{/if}{r.name}{#if c.test}<span class="test">· test</span>{/if}</div>
         <div class="guide">
           {#if guide === 'breathe'}
@@ -70,15 +110,15 @@
           <Button variant="ghost" icon={AlarmClockOff} onclick={() => reminders.snooze()}>Snooze 5 min</Button>
           <Button variant="secondary" icon={SkipForward} onclick={() => reminders.finish(false)}>Skip</Button>
         </div>
-        <span class="hint">Esc skips</span>
+        <span class="hint" aria-live="polite">{escAt ? 'Press Esc again to skip' : 'Esc twice skips'}</span>
       </div>
     </div>
   {:else}
-    <aside class="card" aria-label={r.name} role="status">
+    <aside class="card" aria-label={r.name}>
       <header>
         <span class="icon">{#if Icon}<Icon size={18} strokeWidth={2} />{/if}</span>
-        <strong>{r.name}</strong>
-        <span class="small-time">{formatClock(t.left)}</span>
+        <strong role="status">{r.name}</strong>
+        <span class="small-time" role="timer">{formatClock(t.left)}</span>
         <IconButton icon={X} label="Skip" size="sm" onclick={() => reminders.finish(false)} />
       </header>
       {#if guide !== 'none' && guide !== 'stretch'}
@@ -250,6 +290,11 @@
   }
   .mini :global(> *) {
     transform: scale(0.62);
+  }
+  /* The guide is drawn smaller in the card; its words are not (they
+     were scaled with it, to 8 px). */
+  .mini :global(.words) {
+    transform: scale(1.5);
   }
   .card .text {
     font-size: var(--fs-md);

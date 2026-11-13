@@ -1,6 +1,8 @@
 <script lang="ts">
   import { tick } from 'svelte'
   import Columns3 from '@lucide/svelte/icons/columns-3'
+  import SlidersHorizontal from '@lucide/svelte/icons/sliders-horizontal'
+  import type { Histogram } from '../../lib/api/logs'
   import Download from '@lucide/svelte/icons/download'
   import GitCompareArrows from '@lucide/svelte/icons/git-compare-arrows'
   import Logs from '@lucide/svelte/icons/logs'
@@ -20,7 +22,7 @@
   import { shortcut } from '../../lib/stores/shortcuts.svelte'
   import { toast } from '../../lib/stores/toast.svelte'
   import { copyText } from '../../lib/utils/clipboard'
-  import { toolShortcuts, toolStatus } from '../shared/tool.svelte'
+  import { toolCommands, toolShortcuts, toolStatus } from '../shared/tool.svelte'
   import { count, formatTime, formatWhen } from './format'
   import LogChart from './LogChart.svelte'
   import LogCompare from './LogCompare.svelte'
@@ -55,6 +57,28 @@
   let list = $state<LogList>()
   let tab = $state<'entries' | 'steps' | 'errors' | 'fields' | 'pins' | 'compare'>('entries')
   let columnFilter = $state('')
+
+  // The whole log's histogram, kept from before a time range was
+  // applied, so the chart can go on showing all of it with the range as
+  // a window (3.10.2). It belongs to one query: a new query while a
+  // range is on drops it, and the chart falls back to the range's own.
+  let overview = $state.raw<Histogram | null>(null)
+  let overviewOf = ''
+  $effect(() => {
+    const h = viewer.histogram
+    const q = viewer.applied.q ?? ''
+    const inRange = !!viewer.applied.from || !!viewer.applied.to
+    if (!inRange) {
+      overview = h ?? null
+      overviewOf = q
+    } else if (q !== overviewOf) overview = null
+  })
+  // What the options row holds, said in a few words when it is put away.
+  const optionsSummary = $derived(
+    [viewer.minLevel ? { info: 'Info+', warn: 'Warn+', error: 'Errors' }[viewer.minLevel] : '', viewer.view.context ? `±${viewer.view.context}` : '', viewer.columns.length ? `${viewer.columns.length} columns` : '']
+      .filter(Boolean)
+      .join(' · '),
+  )
   let comparePicker = $state(false)
 
   // The other tabs with a log, to compare this run with.
@@ -268,6 +292,24 @@
   const lanesShown = $derived(lanesOffered && prefs.chart.value === 'lanes' && (s?.timed ?? 0) > 0)
   const fieldsShown = $derived((viewer.fieldKeys ?? []).filter((k) => k.toLowerCase().includes(columnFilter.toLowerCase())))
 
+  // The viewer's actions, in the palette while a log is open (3.10.2).
+  toolCommands(
+    () => active && !!viewer.opened,
+    () => [
+      { id: 'logs.view.query', title: 'Log viewer: Go to the search box', group: 'Log viewer', shortcut: '/', run: () => queryField?.focus() },
+      { id: 'logs.view.nextError', title: 'Log viewer: Next error', group: 'Log viewer', shortcut: 'E', run: () => nextError(1) },
+      { id: 'logs.view.prevError', title: 'Log viewer: Previous error', group: 'Log viewer', shortcut: 'Shift+E', run: () => nextError(-1) },
+      { id: 'logs.view.summary', title: 'Log viewer: Copy the summary', group: 'Log viewer', shortcut: 'Alt+C', run: () => copySummary() },
+      { id: 'logs.view.unpin', title: 'Log viewer: Unpin all', group: 'Log viewer', run: () => viewer.clearPins() },
+      ...(['entries', 'steps', 'errors', 'fields', 'pins'] as const).map((t) => ({
+        id: 'logs.view.tab.' + t,
+        title: 'Log viewer: Show ' + t[0].toUpperCase() + t.slice(1),
+        group: 'Log viewer',
+        run: () => (tab = t),
+      })),
+    ],
+  )
+
   toolShortcuts(() => active, {
     run: () => viewer.run(),
     copy: () => copySummary(),
@@ -379,10 +421,19 @@
           <button type="button" class="chip-x" aria-label="Clear the time range" onclick={() => viewer.setRange()}><X size={12} /></button>
         </span>
       {/if}
+      <Button
+        size="sm"
+        variant="ghost"
+        icon={SlidersHorizontal}
+        aria-expanded={prefs.options.value}
+        title={prefs.options.value ? 'Put the options away' : 'Level, context, folds, columns, chart, times and lines'}
+        onclick={() => (prefs.options.value = !prefs.options.value)}>{prefs.options.value ? 'Options' : optionsSummary ? `Options · ${optionsSummary}` : 'Options'}</Button
+      >
       <span class="total" aria-live="polite">
         {viewer.loading ? 'Searching…' : viewer.applied.q || ranged ? `${count(viewer.total)} of ${count(s.entries)} entries` : `${count(viewer.total)} entries`}{#if viewer.view.context && (viewer.applied.q || ranged)}<span class="muted">{` · with ${viewer.view.context} around each`}</span>{/if}
       </span>
     </div>
+    {#if prefs.options.value}
     <div class="optionbar">
       <span class="label">Level</span>
       <SegmentedControl
@@ -480,6 +531,7 @@
         onchange={(v: 'wrap' | 'scroll') => (prefs.lines.value = v)}
       />
     </div>
+    {/if}
     {#if viewer.queryError}
       <p class="qerror">
         {viewer.queryError.message}
@@ -494,7 +546,15 @@
     {:else if lanesShown}
       <LogLanes {start} onjump={jump} />
     {:else if viewer.histogram?.buckets.length}
-      <LogChart histogram={viewer.histogram} mode={prefs.time.value} {start} onrange={(a, b) => viewer.setRange(a, b)} />
+      <LogChart
+        histogram={viewer.histogram}
+        {overview}
+        range={{ from: viewer.applied.from, to: viewer.applied.to }}
+        mode={prefs.time.value}
+        {start}
+        onrange={(a, b) => viewer.setRange(a, b)}
+        onclear={() => viewer.setRange()}
+      />
     {/if}
 
     <Tabs

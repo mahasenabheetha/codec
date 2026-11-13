@@ -87,13 +87,13 @@
   <tr><td>Release name, namespace</td><td><code>helm template NAME -n NS</code></td><td>Defaults: <code>release-name</code>, <code>default</code>.</td></tr>
   <tr><td>Kubernetes version</td><td><code>--kube-version</code></td><td>For charts that branch on <code>.Capabilities.KubeVersion</code>.</td></tr>
 </table></div>
-<p>Every change re-renders within a fraction of a second. A typical chart renders in well under 100 ms.</p>
+<p>Every change re-renders within a fraction of a second. A typical chart renders in well under 100 ms. The options panel and the list of documents can be sized by dragging their edge (<a href="workspace.html#panes">panes</a>).</p>
 
 <h3 id="profiles">Profiles<a class="anchor" href="#profiles">#</a></h3>
-<p>Save the current layers, <code>--set</code> lines and release options as a named profile — "dev", "prod", "prod-eu" — and switch between them from the profile menu. Profiles are stored in your user settings, keyed by the chart's folder, never in the repository. Compare two profiles' renders in <a href="compare.html">Compare</a>. Forget old ones in <a href="settings.html">Settings</a>.</p>
+<p>Save the current layers, <code>--set</code> lines and release options as a named profile — "dev", "prod", "prod-eu" — and switch between them from the profile menu. Profiles are stored in your user settings, keyed by the chart's folder, never in the repository. Compare two profiles' renders in <a href="compare.html">Compare</a>. Forget old ones in <a href="settings.html">Settings</a>. Deleting a profile offers <strong>Undo</strong> for a few seconds.</p>
 
 <h3 id="whatif">What-if edits<a class="anchor" href="#whatif">#</a></h3>
-<p>If a template or values file of the chart is open with <a href="workspace.html#whatif">what-if edits</a>, the render uses the edited text. The header counts the files involved. It is the quickest way to answer "what happens if I change this?" without touching the chart.</p>
+<p>If a template or values file of the chart is open with <a href="workspace.html#whatif">what-if edits</a>, the render uses the edited text. The header says <strong>What-if</strong> with the number of files involved. It is the quickest way to answer "what happens if I change this?" without touching the chart.</p>
 
 <h2 id="tabs">What you see<a class="anchor" href="#tabs">#</a></h2>
 <h3 id="rendered">Rendered<a class="anchor" href="#rendered">#</a></h3>
@@ -123,6 +123,9 @@
 
 <h3 id="argo">Argo and Notes<a class="anchor" href="#argo">#</a></h3>
 <p>If the chart renders Argo workflows, an <strong>Argo</strong> tab resolves them like the <a href="argo.html">Argo view</a>. <strong>Notes</strong> shows <code>NOTES.txt</code> rendered.</p>
+
+<h3 id="palette">From the palette<a class="anchor" href="#palette">#</a></h3>
+<p>While a Helm view is in front, <kbd>Ctrl</kbd> <kbd>K</kbd> lists its actions: render again, copy the manifests, compare two profiles, query the render, and each of its tabs.</p>
 
 <h2 id="how">How rendering works<a class="anchor" href="#how">#</a></h2>
 <div class="diagram">

@@ -99,7 +99,7 @@
           </ul>
         {:else}
           <EmptyState icon={GitCompare} title="The differences appear here" description="Each change by its path: added, removed, changed, or a type that changed. Key order and formatting don't count; 1.0 and 1 are the same.">
-            <Button size="sm" onclick={sample}>Try an example</Button>
+            <Button size="sm" onclick={sample}>Try a sample</Button>
           </EmptyState>
         {/if}
       </section>

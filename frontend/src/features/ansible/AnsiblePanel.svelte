@@ -1,4 +1,6 @@
 <script lang="ts">
+  import Button from '../../lib/components/Button.svelte'
+  import ErrorNote from '../../lib/components/ErrorNote.svelte'
   import { untrack } from 'svelte'
   import ChevronDown from '@lucide/svelte/icons/chevron-down'
   import ChevronRight from '@lucide/svelte/icons/chevron-right'
@@ -251,12 +253,15 @@
 
 <div class="ansible">
   {#if error && !data}
-    <EmptyState icon={ListTree} title="Can't read this Ansible file" description={error} />
+    <EmptyState icon={ListTree} title="Can't read this Ansible file" description={error}>
+      <Button size="sm" onclick={load}>Try again</Button>
+    </EmptyState>
   {:else if !data}
     <div class="loading" aria-busy="true" aria-label="Reading the files"><Skeleton lines={8} /></div>
   {:else}
     <LensGrid sideLabel="Ansible file" detailLabel="Selected item">
       {#snippet side()}
+        {#if error}<ErrorNote inline message={`Showing the last result; reading again failed: ${error}`} retry={load} />{/if}
         <section>
           <p class="kind">
             <Badge tone="accent">{inv ? 'Inventory' : pb?.kind === 'tasks' ? 'Task file' : 'Playbook'}</Badge>
@@ -337,13 +342,13 @@
             {:else if runs.length}
               <Select items={runItems} bind:value={colourBy} label="Colour by a run of the loaded log" />
             {:else}
-              <span class="muted">Solid: import · dashed: include, decided while running · load a log in Ansible log to colour by a run</span>
+              <span class="muted">Load a log in Ansible log to colour the map by a run</span>
             {/if}
           </nav>
           {#if view === 'map'}
             <div class="map">
               {#if graphNodes.length}
-                <Graph nodes={graphNodes} edges={graphEdges} label="Map of {base(path)}: plays, roles, task files and handlers" {legend} onselect={selectNode} />
+                <Graph nodes={graphNodes} edges={graphEdges} label="Map of {base(path)}: plays, roles, task files and handlers" {legend} selected={sel?.kind === 'node' ? sel.node.id : null} dashedEdge="include, decided while running" missingNode="not in this folder" onselect={selectNode} />
               {:else}
                 <EmptyState icon={ListTree} title="Nothing to draw" description="This file pulls in no roles, task files or handlers." />
               {/if}

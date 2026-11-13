@@ -58,10 +58,10 @@
     title="Validate against schemas"
     description="Kubernetes and CRDs, GitHub Actions, GitLab CI, Azure Pipelines, Compose. Also powers key completion and field docs."
   >
-    <Toggle checked={!lint.settings.noSchemas} label={lint.settings.noSchemas ? 'Off' : 'On'} onchange={(on) => lint.update({ noSchemas: !on || undefined })} />
+    <Toggle checked={!lint.settings.noSchemas} name="Validate against schemas" label={lint.settings.noSchemas ? 'Off' : 'On'} onchange={(on) => lint.update({ noSchemas: !on || undefined })} />
   </SettingRow>
   <SettingRow title="Offline" description="Never download: use schemas already cached and your custom folder.">
-    <Toggle checked={!!lint.settings.offline} label={lint.settings.offline ? 'On' : 'Off'} onchange={(on) => lint.update({ offline: on || undefined })} />
+    <Toggle checked={!!lint.settings.offline} name="Offline" label={lint.settings.offline ? 'On' : 'Off'} onchange={(on) => lint.update({ offline: on || undefined })} />
   </SettingRow>
   <SettingRow title="Custom schema folder" for="schema-dir">
     {#snippet details()}

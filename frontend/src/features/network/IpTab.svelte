@@ -86,7 +86,7 @@
         <Rows {rows} />
       {:else if !job.error}
         <EmptyState icon={Binary} title="The address in every notation appears here" description="As a number in decimal, hex and binary, IPv6 written out in full, and its reverse-DNS name.">
-          <Button size="sm" onclick={() => (job.input = '192.168.10.25')}>Try an example</Button>
+          <Button size="sm" onclick={() => (job.input = '192.168.10.25')}>Try a sample</Button>
         </EmptyState>
       {/if}
     </Pane>

@@ -1,5 +1,6 @@
 // Today's focus sessions and breaks (decision 96), kept in the browser's
 // storage until the day changes, then dropped: no history beyond today.
+import { toasts } from '../../lib/stores/toast.svelte'
 import { persisted } from '../../lib/stores/persist.svelte'
 
 export interface Block {
@@ -51,8 +52,17 @@ class Today {
     day().blocks.push({ kind: 'break', start, end })
   }
 
+  /** Forget today's blocks; Undo brings them back. */
   clear() {
+    const was = store.value
     store.value = { date: dateOf(Date.now()), blocks: [] }
+    if (was.blocks.length)
+      toasts.show('Cleared today', 'neutral', 7000, {
+        label: 'Undo',
+        run: () => {
+          if (!store.value.blocks.length) store.value = was
+        },
+      })
   }
 }
 

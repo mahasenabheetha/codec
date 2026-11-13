@@ -101,7 +101,7 @@
     {:else if !job.error}
       <Pane title="Cases" grow={false}>
         <EmptyState icon={CaseSensitive} title="Every case appears here" description="camelCase, PascalCase, snake_case, kebab-case, CONSTANT_CASE and more, and whether the name works for Kubernetes, Helm and environment variables.">
-          <Button size="sm" onclick={() => (job.input = 'Order Service v2')}>Try an example</Button>
+          <Button size="sm" onclick={() => (job.input = 'Order Service v2')}>Try a sample</Button>
         </EmptyState>
       </Pane>
     {/if}

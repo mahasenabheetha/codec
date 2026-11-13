@@ -13,6 +13,8 @@
 </script>
 
 <script lang="ts">
+  import ErrorNote from '../../lib/components/ErrorNote.svelte'
+  import { foldSections } from '../../lib/actions/foldSections'
   import ThreePanes from '../../lib/components/ThreePanes.svelte'
   import { untrack } from 'svelte'
   import ChevronRight from '@lucide/svelte/icons/chevron-right'
@@ -61,6 +63,9 @@
   }
 
   let { source, focus, reload = 0, onopen, onstatus }: Props = $props()
+  // Ids unique to this instance: several are mounted at once (tabs stay
+  // mounted), and a label must point at its own field (3.10.2).
+  const uid = $props.id()
 
   let data = $state.raw<ArgoAnalysis | null>(null)
   let error = $state<string | null>(null)
@@ -297,7 +302,9 @@
 
 <div class="argo">
   {#if error && !data}
-    <EmptyState icon={Workflow} title="Can't read this workflow" description={error} />
+    <EmptyState icon={Workflow} title="Can't read this workflow" description={error}>
+      <Button size="sm" onclick={load}>Try again</Button>
+    </EmptyState>
   {:else if !data}
     <div class="loading" aria-busy="true" aria-label="Reading the files"><Skeleton lines={8} /></div>
   {:else if !data.workflows.length && !data.apps.length}
@@ -305,7 +312,8 @@
   {:else}
     {@const loaded = data}
     {#snippet sidePane()}
-      <aside class="side" class:solo={!result} aria-label="Workflow and parameters">
+      <aside class="side" class:solo={!result} aria-label="Workflow and parameters" use:foldSections={'argo'}>
+          {#if error}<ErrorNote inline message={`Showing the last result; reading again failed: ${error}`} retry={load} />{/if}
         {#if loaded.workflows.length}
           <section>
             <h3>Workflow</h3>
@@ -341,16 +349,16 @@
               <ul class="params">
                 {#each result.params as p (p.name)}
                   <li>
-                    <label for="param-{p.name}">{p.name}</label>
+                    <label for="{uid}-param-{p.name}">{p.name}</label>
                     <div class="prow">
                       {#if p.enum?.length}
-                        <select id="param-{p.name}" value={params[p.name!] ?? ''} onchange={(e) => setParam(p.name!, e.currentTarget.value)}>
+                        <select id="{uid}-param-{p.name}" value={params[p.name!] ?? ''} onchange={(e) => setParam(p.name!, e.currentTarget.value)}>
                           <option value="">{p.state === 'known' ? p.text + ' (default)' : '(default)'}</option>
                           {#each p.enum as opt (opt)}<option value={opt}>{opt}</option>{/each}
                         </select>
                       {:else}
                         <input
-                          id="param-{p.name}"
+                          id="{uid}-param-{p.name}"
                           value={params[p.name!] ?? ''}
                           placeholder={p.state === 'known' ? p.text || '""' : p.state === 'runtime' ? 'known at run time' : 'no value'}
                           spellcheck="false"
@@ -454,8 +462,8 @@
           </nav>
           {#if runs.length}
             <div class="runbar">
-              <label for="argo-run">Coloured by the run</label>
-              <select id="argo-run" value={runPick ?? -1} onchange={(e) => (runPick = +e.currentTarget.value < 0 ? null : +e.currentTarget.value)}>
+              <label for="{uid}-run">Coloured by the run</label>
+              <select id="{uid}-run" value={runPick ?? -1} onchange={(e) => (runPick = +e.currentTarget.value < 0 ? null : +e.currentTarget.value)}>
                 <option value={-1}>Best fit{runChoice && runPick === null ? `: ${runChoice.run.name}` : ''}</option>
                 {#each runs as r (r.viewer.key)}<option value={r.viewer.key}>{r.run.name} ({r.run.phase ?? '?'}) · {r.viewer.title}</option>{/each}
                 <option value={0}>None</option>
@@ -464,7 +472,7 @@
             </div>
           {/if}
           <div class="graph">
-            <Graph nodes={graphNodes} edges={graphEdges} label="Steps and tasks of {container?.name ?? 'the workflow'}" {legend} selected={selectedId} onselect={select} />
+            <Graph nodes={graphNodes} edges={graphEdges} label="Steps and tasks of {container?.name ?? 'the workflow'}" {legend} selected={selectedId} missingNode="skipped or unresolved" onselect={select} />
           </div>
         </main>
     {/snippet}

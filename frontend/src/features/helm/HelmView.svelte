@@ -1,4 +1,6 @@
 <script lang="ts">
+  import PanelHeader from '../../lib/components/PanelHeader.svelte'
+  import { toolCommands } from '../shared/tool.svelte'
   import SplitPane from '../../lib/components/SplitPane.svelte'
   import { onDestroy, tick, untrack } from 'svelte'
   import { EditorView } from '@codemirror/view'
@@ -49,6 +51,9 @@
   }
 
   let { chart, active }: Props = $props()
+  // Ids unique to this instance: several are mounted at once (tabs stay
+  // mounted), and a label must point at its own field (3.10.2).
+  const uid = $props.id()
   const session = new HelmSession(untrack(() => chart))
   onDestroy(() => session.dispose())
 
@@ -115,6 +120,23 @@
   })
 
   const result = $derived(session.result)
+
+  // The view's actions, in the palette while its tab is shown (3.10.2).
+  toolCommands(
+    () => active,
+    () => [
+      { id: 'helm.view.render', title: 'Helm: Render again', group: 'Helm', run: () => session.render() },
+      { id: 'helm.view.copy', title: 'Helm: Copy the rendered manifests', group: 'Helm', run: () => result && copyText(result.manifest, 'Manifests') },
+      { id: 'helm.view.compare', title: 'Helm: Compare two profiles of this chart', group: 'Helm', run: () => compareProfiles() },
+      { id: 'helm.view.query', title: 'Helm: Query the rendered output (jq)', group: 'Helm', run: () => queries.open({ chart }) },
+      ...(['rendered', 'values', 'resources', 'notes', 'problems'] as const).map((t) => ({
+        id: 'helm.view.tab.' + t,
+        title: 'Helm: Show ' + t[0].toUpperCase() + t.slice(1),
+        group: 'Helm',
+        run: () => (tab = t),
+      })),
+    ],
+  )
   const errors = $derived(result?.diagnostics.filter((d) => d.severity === 'error') ?? [])
   const problems = $derived(result?.diagnostics.filter((d) => d.severity !== 'info') ?? [])
   const infos = $derived(result?.diagnostics.filter((d) => d.severity === 'info') ?? [])
@@ -205,9 +227,9 @@
 </script>
 
 <div class="helm" class:inactive={!active}>
-  <header>
-    <FileIcon file="helm-chart" size={16} />
-    <span class="title">{session.info?.name ?? chart}</span>
+  <PanelHeader title={session.info?.name ?? chart}>
+    {#snippet lead()}<FileIcon file="helm-chart" size={16} />{/snippet}
+    {#snippet meta()}
     {#if result?.chart.version}<Badge>{result.chart.version}</Badge>{/if}
     <div class="profile">
       <Select items={profileItems} value={session.profile} label="Profile" onchange={(v) => session.apply(v)} />
@@ -224,8 +246,8 @@
             if (newProfile.trim()) session.saveAs(newProfile.trim())
           }}
         >
-          <label for="profile-name">Save these layers and options as</label>
-          <input id="profile-name" bind:value={newProfile} placeholder={session.profile || 'e.g. prod'} />
+          <label for="{uid}-profile">Save these layers and options as</label>
+          <input id="{uid}-profile" bind:value={newProfile} placeholder={session.profile || 'e.g. prod'} />
           <Button type="submit" size="sm" variant="primary" disabled={!newProfile.trim()}>Save profile</Button>
           <p>Profiles are kept in your settings, not in the repository.</p>
         </form>
@@ -234,10 +256,11 @@
         <IconButton icon={Trash} tone="clear" label="Delete profile {session.profile}" size="sm" onclick={() => session.deleteProfile(session.profile)} />
       {/if}
     </div>
-    <div class="spacer"></div>
     {#if whatIf.length}
-      <span class="whatif" title={whatIf.join('\n')}><SquarePen size={12} strokeWidth={2} /> {whatIf.length} what-if {whatIf.length === 1 ? 'file' : 'files'}</span>
+      <span title={'What-if edits in open tabs, never saved:\n' + whatIf.join('\n')}><Badge tone="warn">What-if · {whatIf.length}</Badge></span>
     {/if}
+    {/snippet}
+    {#snippet actions()}
     <span class="status" role="status">
       {#if session.rendering && !result}
         Rendering…
@@ -249,7 +272,8 @@
     <IconButton icon={GitCompare} label="Compare two profiles of this chart" size="sm" onclick={compareProfiles} />
     <IconButton icon={TextSearch} label="Query the rendered output (jq)" size="sm" onclick={() => queries.open({ chart })} />
     <IconButton icon={RefreshCw} label="Render again" size="sm" onclick={() => session.render()} />
-  </header>
+    {/snippet}
+  </PanelHeader>
 
   {#snippet sidePane()}
     <aside class="side" aria-label="Render options">
@@ -334,7 +358,7 @@
         <div class="loading" aria-busy="true" aria-label="Rendering the chart"><Skeleton lines={12} /></div>
       {:else if tab === 'rendered'}
         {#if errors.length}
-          <div class="banner err">
+          <div class="banner err" role="alert">
             <CircleX size={14} strokeWidth={1.75} />
             <button type="button" class="link" onclick={() => openProblem(errors[0])}>
               {errors[0].file ? `${errors[0].file}${errors[0].line ? ':' + errors[0].line : ''}: ` : ''}{errors[0].message}
@@ -423,16 +447,6 @@
     display: flex;
     flex-direction: column;
     min-width: 0;
-  }
-  header {
-    display: flex;
-    align-items: center;
-    gap: var(--s-3);
-    height: 40px;
-    padding: 0 var(--s-2) 0 var(--s-4);
-    border-bottom: 1px solid var(--border);
-    background: var(--bg-1);
-    flex: 0 0 auto;
   }
   .title {
     font-size: var(--fs-lg);

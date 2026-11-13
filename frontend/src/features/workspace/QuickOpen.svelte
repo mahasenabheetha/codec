@@ -70,7 +70,7 @@
   }}>
   <Dialog.Portal>
     <Dialog.Overlay class="codec-overlay" />
-    <Dialog.Content class="codec-palette" aria-label="Go to file" onOpenAutoFocus={(e) => e.preventDefault()}>
+    <Dialog.Content class="codec-palette" aria-label={ws.picker ? ws.picker.title : 'Go to file'} onOpenAutoFocus={(e) => e.preventDefault()}>
       <Command.Root shouldFilter={false} loop>
         <div class="codec-palette-search">
           <Search size={16} strokeWidth={1.75} />

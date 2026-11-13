@@ -221,6 +221,8 @@ svg.lucide-icon[width='28'] {
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    /* Once, then still: an endless loop would otherwise spin flat out. */
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
 }
@@ -318,3 +320,48 @@ svg.lucide-icon[width='28'] {
 .syn-punct { color: var(--syn-punct); }
 .syn-accent { color: var(--accent); }
 .syn-err { color: var(--err); }
+
+/* The side panel of a lens view (foldSections, lib/actions): a column
+   of sections that fold at their heading, Problems first when it has
+   any. Shared by Argo, pipelines, Compose and Ansible. */
+.lens-side {
+  display: flex;
+  flex-direction: column;
+}
+.lens-side > * {
+  flex: 0 0 auto;
+}
+.lens-side > section.problems-first {
+  order: -1;
+}
+.lens-side > section > h3.fold-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+  cursor: pointer;
+  user-select: none;
+  border-radius: var(--r-sm);
+}
+.lens-side > section > h3.fold-toggle::before {
+  content: '';
+  flex: 0 0 auto;
+  width: 0;
+  height: 0;
+  margin-right: 2px;
+  border: 4px solid transparent;
+  border-top-color: currentColor;
+  border-bottom-width: 0;
+  transition: transform var(--dur) var(--ease);
+}
+.lens-side > section[data-folded] > h3.fold-toggle::before {
+  transform: rotate(-90deg);
+}
+.lens-side > section > h3.fold-toggle:hover {
+  color: var(--fg-0);
+}
+.lens-side > section[data-folded] > :not(h3) {
+  display: none;
+}
+.lens-side > section[data-folded] {
+  margin-bottom: var(--s-2);
+}

@@ -4,6 +4,7 @@
 
 import { untrack } from 'svelte'
 import { ApiError } from '../../lib/api/client'
+import { cleared } from './tool.svelte'
 import { transform, type TransformRequest, type TransformResponse } from '../../lib/api/transform'
 
 export interface ToolError {
@@ -61,7 +62,10 @@ export class TransformState {
     this.#timer = setTimeout(() => this.run(opts), ms)
   }
 
+  /** Empty the input; what was there comes back with Undo. */
   clear(): void {
+    const was = this.input
+    if (was) cleared(() => this.input || (this.input = was))
     this.#seq++
     clearTimeout(this.#timer)
     this.input = ''

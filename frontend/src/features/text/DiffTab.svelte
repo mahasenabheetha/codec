@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { persisted } from '../../lib/stores/persist.svelte'
   import { untrack } from 'svelte'
   import ArrowLeftRight from '@lucide/svelte/icons/arrow-left-right'
   import Diff from '@lucide/svelte/icons/diff'
@@ -14,7 +15,7 @@
   import ToolLayout from '../shared/ToolLayout.svelte'
   import ToolTabs from '../shared/ToolTabs.svelte'
   import { Job } from '../shared/job.svelte'
-  import { toolCommands, toolShortcuts, toolStatus } from '../shared/tool.svelte'
+  import { cleared, toolCommands, toolShortcuts, toolStatus } from '../shared/tool.svelte'
   import DiffSide from './DiffSide.svelte'
 
   // Two texts compared line by line, the changed words marked: the
@@ -26,7 +27,12 @@
   let right = $state('')
   let leftName = $state('')
   let rightName = $state('')
-  const opts = $state({ textView: 'split' as 'split' | 'unified', ignoreSpace: false, ignoreCase: false })
+  // The layout and what to ignore are display choices, remembered (3.10.2).
+  const saved = persisted('diff.options', { textView: 'split' as 'split' | 'unified', ignoreSpace: false, ignoreCase: false })
+  const opts = $state({ ...saved.value })
+  $effect(() => {
+    saved.value = { textView: opts.textView, ignoreSpace: opts.ignoreSpace, ignoreCase: opts.ignoreCase }
+  })
   const job = new Job<CompareResult>()
 
   const call = () => {
@@ -46,6 +52,8 @@
     ;[leftName, rightName] = [rightName, leftName]
   }
   function clear() {
+    const was = { left, right, leftName, rightName }
+    if (left || right) cleared(() => left || right || ({ left, right, leftName, rightName } = was))
     left = right = leftName = rightName = ''
     job.reset()
   }
@@ -94,7 +102,7 @@
           {#key result}<TextDiff {result} {opts} />{/key}
         {:else}
           <EmptyState icon={Diff} title="The differences appear here" description="Changed lines side by side with the changed words marked, or as a unified patch. Drop a file on either side to compare files.">
-            <Button size="sm" onclick={sample}>Try an example</Button>
+            <Button size="sm" onclick={sample}>Try a sample</Button>
           </EmptyState>
         {/if}
       </section>
