@@ -48,6 +48,20 @@ jobs:
       - name: Frontend build
         run: npm --prefix frontend run build
 
+      # proxy.golang.org now and then drops a module download mid-stream
+      # ("stream error ... INTERNAL_ERROR"), which fails an unrelated job.
+      # Fetch the modules first, with retries, so a hiccup costs seconds,
+      # not a re-run. Later steps then find everything in the cache.
+      - name: Download Go modules
+        shell: bash
+        run: |
+          for attempt in 1 2 3 4 5; do
+            go mod download && exit 0
+            echo "go mod download failed (attempt $attempt of 5); retrying"
+            sleep $((attempt * 10))
+          done
+          exit 1
+
       - name: Vet
         run: go vet ./...
 
