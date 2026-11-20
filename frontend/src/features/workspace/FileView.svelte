@@ -121,7 +121,9 @@
   $effect(() => {
     if (!active) return
     activeEditor.session = session
-    ws.noteOpened(path)
+    // Untracked: noting the file reads the recent list and writes a new
+    // one, which would run this again, and again, until Svelte stopped it.
+    untrack(() => ws.noteOpened(path))
     untrack(() => ws.reveal(path))
     return () => {
       if (activeEditor.session === session) activeEditor.session = null

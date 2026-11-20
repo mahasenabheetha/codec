@@ -21,6 +21,13 @@ All notable changes to codec are documented here. The format follows
   are banded, and a ticked task shows a green box. With **Tool colours**
   off, the headings go back to the text colour.
 
+### Fixed
+
+- **A file tab no longer loops when it becomes active.** Noting it as
+  recently opened ran the tab's own effect again, and again, until
+  Svelte stopped it with an error (five or more on every load, since
+  the workspace view was first written); now it is noted once.
+
 ## [3.10.2] - 2026-11-12
 
 The interface refreshed, second part: the views. Safer clearing with
