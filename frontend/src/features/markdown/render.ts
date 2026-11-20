@@ -5,7 +5,7 @@
 // scripts, event handlers, javascript: links, frames, forms, styles.
 // Images never load from here: their address moves to data-src, and the
 // preview decides what to show (remote images stay blocked).
-import { Marked, type Tokens } from 'marked'
+import { Lexer, Marked, type Tokens } from 'marked'
 import DOMPurify, { type WindowLike } from 'dompurify'
 
 const escapes: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }
@@ -26,6 +26,12 @@ function slug(html: string): string {
   return n ? `${base}-${n}` : base
 }
 
+// GitHub's alerts: a quote whose first line is only [!NOTE], [!TIP],
+// [!IMPORTANT], [!WARNING] or [!CAUTION] is a callout of that kind, its
+// name as a title, the rest of the quote inside (3.10.3).
+const alerts: Record<string, string> = { note: 'Note', tip: 'Tip', important: 'Important', warning: 'Warning', caution: 'Caution' }
+const alertMark = /^\[!(note|tip|important|warning|caution)\][ \t]*(?:\n|$)/i
+
 const marked = new Marked({
   gfm: true,
   async: false,
@@ -36,6 +42,13 @@ const marked = new Marked({
       const inner = this.parser.parseInline(tokens)
       const id = slug(inner)
       return `<h${depth} id="${id}">${inner}<a class="anchor" href="#${id}" aria-label="Link to this heading">#</a></h${depth}>\n`
+    },
+    blockquote({ tokens, text }: Tokens.Blockquote) {
+      const m = alertMark.exec(text)
+      if (!m) return `<blockquote>\n${this.parser.parse(tokens)}</blockquote>\n`
+      const kind = m[1].toLowerCase()
+      const body = this.parser.parse(Lexer.lex(text.slice(m[0].length), this.options))
+      return `<div class="alert alert-${kind}"><p class="alert-title">${alerts[kind]}</p>\n${body}</div>\n`
     },
   },
 })

@@ -6,6 +6,21 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- **Callouts in the Markdown preview.** GitHub's alerts (`> [!NOTE]`,
+  `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]`, `[!CAUTION]`) show as boxes
+  with an icon and a title, in the status colours.
+
+### Changed
+
+- **The Markdown preview has colour.** The first three heading levels
+  each have a colour of their own, and the first two are underlined to
+  match. List markers are coloured, and quotes have an accent bar and a
+  light tint. Inline code and table headers are tinted, alternate rows
+  are banded, and a ticked task shows a green box. With **Tool colours**
+  off, the headings go back to the text colour.
+
 ## [3.10.2] - 2026-11-12
 
 The interface refreshed, second part: the views. Safer clearing with
