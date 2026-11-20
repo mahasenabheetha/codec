@@ -6,6 +6,11 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+## [3.10.3] - 2026-11-20
+
+Mermaid diagrams, and a Markdown preview with colour. Frontend only;
+nothing about what codec reads or computes changes.
+
 ### Added
 
 - **Mermaid diagrams.** `.mmd` and `.mermaid` files open on the drawn
@@ -32,6 +37,8 @@ All notable changes to codec are documented here. The format follows
   light tint. Inline code and table headers are tinted, alternate rows
   are banded, and a ticked task shows a green box. With **Tool colours**
   off, the headings go back to the text colour.
+- CI downloads the Go modules in a step of their own, with retries, so a
+  dropped download from the module proxy no longer fails a job.
 
 ### Fixed
 
