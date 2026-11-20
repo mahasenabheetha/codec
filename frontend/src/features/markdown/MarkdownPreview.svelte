@@ -19,6 +19,9 @@
   import { workspace as ws } from '../workspace/workspace.svelte'
   import { linkTarget, type Target } from './links'
   import { renderMarkdown, sanitizeSVG } from './render'
+  import { drawMermaid } from './mermaid'
+  import { theme } from '../../lib/stores/theme.svelte'
+  import { toolColours } from '../../lib/stores/colour.svelte'
 
   // A Markdown file rendered (decision 84): the editor's text, so what-if
   // edits show. The app's routes live in the URL hash, so no link in here
@@ -89,9 +92,34 @@
     if (!el) return
     for (const code of el.querySelectorAll('pre > code[class*="language-"]')) {
       const lang = /(?:^|\s)language-(\S+)/.exec(code.className)?.[1]
-      if (lang) void highlightToAsync(code, code.textContent ?? '', lang)
+      if (lang === 'mermaid') void diagram(code.parentElement!, code.textContent ?? '')
+      else if (lang) void highlightToAsync(code, code.textContent ?? '', lang)
     }
+    // Drawn ones again, in the theme now in use.
+    for (const fig of el.querySelectorAll<HTMLElement>('figure.mermaid-block')) void diagram(fig, fig.dataset.src ?? '')
   })
+
+  // A ```mermaid block becomes its diagram (3.10.3); one that doesn't
+  // parse stays code, with the reason under it. The theme redraws it.
+  async function diagram(pre: Element, src: string) {
+    void theme.resolved
+    void toolColours.on
+    const r = await drawMermaid(src)
+    if (!pre.isConnected) return
+    if ('error' in r) {
+      if (pre.nextElementSibling?.classList.contains('mermaid-error')) return
+      const note = document.createElement('p')
+      note.className = 'mermaid-error'
+      note.textContent = `Mermaid couldn't draw this diagram: ${r.error.split('\n')[0]}`
+      pre.after(note)
+      return
+    }
+    const fig = document.createElement('figure')
+    fig.className = 'mermaid-block'
+    fig.dataset.src = src
+    fig.innerHTML = r.svg // cleaned by drawMermaid
+    pre.replaceWith(fig)
+  }
 
   // Take a heading another file's link asked for once this tab shows.
   $effect(() => {
@@ -429,6 +457,23 @@
     color: var(--fg-2);
     border: 1px dashed var(--border-strong);
     border-radius: var(--r-sm);
+  }
+  .md :global(.mermaid-block) {
+    margin: 0 0 var(--s-4);
+    padding: var(--s-3);
+    overflow: auto;
+    text-align: center;
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+  }
+  .md :global(.mermaid-block svg) {
+    max-width: 100%;
+    height: auto;
+  }
+  .md :global(.mermaid-error) {
+    margin-top: calc(-1 * var(--s-3));
+    font-size: var(--fs-sm);
+    color: var(--err);
   }
   .md :global(del) {
     color: var(--fg-2);
