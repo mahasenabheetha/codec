@@ -16,6 +16,8 @@ func langOf(name string) string {
 		return "json"
 	case ".md", ".markdown":
 		return "markdown"
+	case ".mmd", ".mermaid":
+		return "mermaid"
 	case ".sh", ".bash", ".zsh":
 		return "shell"
 	case ".ps1", ".psm1":

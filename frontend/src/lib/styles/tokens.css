@@ -118,6 +118,20 @@
      rail entry, a line along the top of a card. */
   --tint-fill: 60%;
 
+  /* The Markdown preview's grounds (3.10.3): a quote, inline code, a
+     table's header and every other row, and each kind of callout, as a
+     touch of colour on the preview's own ground. The contrast script
+     checks text on each of them. */
+  --md-quote-bg: color-mix(in srgb, var(--accent) 7%, var(--bg-2));
+  --md-code-bg: color-mix(in srgb, var(--accent) 13%, var(--bg-2));
+  --md-th-bg: color-mix(in srgb, var(--accent) 11%, var(--bg-2));
+  --md-stripe-bg: color-mix(in srgb, var(--accent) 4%, var(--bg-2));
+  --md-note-bg: color-mix(in srgb, var(--info) 8%, var(--bg-2));
+  --md-tip-bg: color-mix(in srgb, var(--ok) 8%, var(--bg-2));
+  --md-important-bg: color-mix(in srgb, var(--hue-violet) 9%, var(--bg-2));
+  --md-warning-bg: color-mix(in srgb, var(--warn) 8%, var(--bg-2));
+  --md-caution-bg: color-mix(in srgb, var(--err) 8%, var(--bg-2));
+
   /* A match of a search, wherever it is drawn (editor, log rows, find
      in files, the source peek). */
   --match-bg: var(--editor-search-match);

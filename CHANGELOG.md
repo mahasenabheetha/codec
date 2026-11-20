@@ -6,6 +6,40 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- **Mermaid diagrams.** `.mmd` and `.mermaid` files open on the drawn
+  diagram, with a Source / Preview switch as Markdown has: drag, the
+  wheel or the keyboard to move and zoom, fit, and Copy as SVG.
+  What-if edits redraw it, and it takes the theme's colours. A
+  diagram that doesn't parse shows Mermaid's message over the last
+  version that did. `` ```mermaid `` blocks in a Markdown preview are
+  drawn too. Mermaid is bundled and loaded the first time a diagram
+  is shown; the binary grows by about 5 MB.
+  - **Safe with untrusted files**: strict security level, which a
+    diagram's own `%%{init}%%` can't loosen; labels as plain text; the
+    drawing cleaned again, with no event handlers, outside links,
+    images or CSS URLs. Nothing is fetched.
+- **Callouts in the Markdown preview.** GitHub's alerts (`> [!NOTE]`,
+  `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]`, `[!CAUTION]`) show as boxes
+  with an icon and a title, in the status colours.
+
+### Changed
+
+- **The Markdown preview has colour.** The first three heading levels
+  each have a colour of their own, and the first two are underlined to
+  match. List markers are coloured, and quotes have an accent bar and a
+  light tint. Inline code and table headers are tinted, alternate rows
+  are banded, and a ticked task shows a green box. With **Tool colours**
+  off, the headings go back to the text colour.
+
+### Fixed
+
+- **A file tab no longer loops when it becomes active.** Noting it as
+  recently opened ran the tab's own effect again, and again, until
+  Svelte stopped it with an error (five or more on every load, since
+  the workspace view was first written); now it is noted once.
+
 ## [3.10.2] - 2026-11-12
 
 The interface refreshed, second part: the views. Safer clearing with

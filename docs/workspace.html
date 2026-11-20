@@ -154,7 +154,18 @@
   <li><strong>Links</strong> — a heading link scrolls; a link to another file opens it in a tab (and scrolls to its heading when that tab is in Preview); a folder link shows it in the explorer. Web and mail links open in your browser.</li>
   <li><strong>Images</strong> — images in the open folder show (PNG, JPEG, GIF, WebP, SVG, up to 10 MB). Images from the internet stay hidden until you click <strong>Load images</strong>, because loading one tells that server the file was opened; the choice lasts for the file until codec closes.</li>
   <li><strong>Safe by design</strong> — a README in a cloned repository can contain anything, so raw HTML shows as text and nothing in the file can run: no scripts, event handlers, frames or forms, and links never take codec off its own page.</li>
+  <li><strong>Colour</strong> — the first three heading levels each have a colour (or the text colour, with <em>Settings → Tool colours</em> off); quotes, inline code and table headers are tinted. GitHub's alerts (<code>&gt; [!NOTE]</code>, <code>[!TIP]</code>, <code>[!IMPORTANT]</code>, <code>[!WARNING]</code>, <code>[!CAUTION]</code>, alone on the quote's first line) show as callouts with an icon and a title.</li>
+  <li><strong>Diagrams</strong> — a <code>```mermaid</code> block shows as its diagram (see below); one that doesn't parse stays code, with the reason under it.</li>
 </ul>
+
+<h3 id="mermaid">Mermaid diagrams<a class="anchor" href="#mermaid">#</a></h3>
+<p><code>.mmd</code> and <code>.mermaid</code> files open on the diagram, with the same <strong>Source / Preview</strong> switch (and "Show Mermaid source" in the palette). Flowcharts, sequence, state, class, entity-relationship, Gantt, pie, mindmap and Mermaid's other kinds are drawn by Mermaid itself, bundled with codec and loaded the first time a diagram is shown.</p>
+<ul>
+  <li><strong>Move around</strong> — drag to move, the wheel to zoom, or focus the diagram and use the arrow keys, <kbd>+</kbd> and <kbd>-</kbd>; <kbd>0</kbd> fits it to the pane. <strong>Copy as SVG</strong> is in the corner.</li>
+  <li><strong>Live</strong> — what-if edits in Source redraw it a moment after you stop typing, and it redraws in the colours of the theme you pick. When the text doesn't parse, Mermaid's message (with the line and a caret) shows over the last version that did.</li>
+  <li><strong>Safe by design</strong> — Mermaid runs at its strict level and a diagram's own <code>%%{init}%%</code> can't loosen it: no click handlers, no scripts, labels as plain text, not HTML. The drawing is then cleaned again: no event handlers, no links or images that leave it, and no CSS that loads from elsewhere. Nothing is fetched.</li>
+</ul>
+<p><code>codec argo graph --format mermaid</code> and <code>codec ci graph --format mermaid</code> write Mermaid, so their output can be saved as a <code>.mmd</code> file and read here.</p>
 
 <p>The file's toolbar has one main button, the view of the file's type (<strong>Render</strong> for a chart's file, <strong>Build</strong> for a kustomization, <strong>Pipeline</strong>, <strong>Compose</strong>, <strong>Ansible</strong> or <strong>Argo</strong>), then <em>Open in</em> your editor, the outline panel's switch, and <strong>…</strong> for the rest: compare, query, clone, the Kubernetes resources of the folder, a copy without cluster noise, reveal in the explorer and copy the path.</p>
 

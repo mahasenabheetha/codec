@@ -48,6 +48,7 @@
   import { comparison, queries } from '../compare/compare.svelte'
   import { applyAnalysis, offsetOf, yamlIntel } from '../editor/intel'
   import MarkdownPreview from '../markdown/MarkdownPreview.svelte'
+  import MermaidPreview from '../markdown/MermaidPreview.svelte'
   import Outline from '../editor/Outline.svelte'
   import Problems from '../editor/Problems.svelte'
   import { FileSession, type SymbolRef } from '../editor/session.svelte'
@@ -83,9 +84,13 @@
   const argoDoc = $derived(session.analysis?.docs.find((d) => argoKinds.includes(d.name?.split('/')[0] ?? ''))?.name)
   // Markdown shows as source or rendered; the editor stays underneath,
   // so switching keeps the cursor, the scroll and any what-if edits.
+  // A Mermaid file the same way (3.10.3), opening on the diagram: it is
+  // what a diagram file is for.
   const markdown = $derived(session.disk?.lang === 'markdown')
-  let mdView = $state<'source' | 'preview'>(markdownView.value)
-  const previewing = $derived(markdown && mdView === 'preview')
+  const mermaid = $derived(session.disk?.lang === 'mermaid')
+  let mdView = $state<'source' | 'preview'>(untrack(() => (path.match(/\.(mmd|mermaid)$/i) ? 'preview' : markdownView.value)))
+  const previewing = $derived((markdown || mermaid) && mdView === 'preview')
+  const kindName = $derived(mermaid ? 'Mermaid' : 'Markdown')
   const lines = $derived(session.buffer ? session.buffer.split('\n').length - (session.buffer.endsWith('\n') ? 1 : 0) : 0)
 
   // Load on open, and again whenever the watcher reports a change.
@@ -121,7 +126,9 @@
   $effect(() => {
     if (!active) return
     activeEditor.session = session
-    ws.noteOpened(path)
+    // Untracked: noting the file reads the recent list and writes a new
+    // one, which would run this again, and again, until Svelte stopped it.
+    untrack(() => ws.noteOpened(path))
     untrack(() => ws.reveal(path))
     return () => {
       if (activeEditor.session === session) activeEditor.session = null
@@ -307,11 +314,11 @@
       { id: 'file.copy-path', title: 'Copy path', group: 'File', icon: Link, run: () => copyPath(false) },
       { id: 'file.copy-full-path', title: 'Copy full path', group: 'File', icon: Copy, run: () => copyPath(true) },
       { id: 'file.reveal', title: 'Reveal in explorer', group: 'File', icon: LocateFixed, run: () => ((layout.explorerOpen = true), ws.reveal(path)) },
-      ...(markdown
+      ...(markdown || mermaid
         ? [
             mdView === 'source'
-              ? { id: 'file.md-preview', title: 'Show Markdown preview', group: 'File', icon: BookOpen, keywords: ['render', 'readme'], run: () => (mdView = 'preview') }
-              : { id: 'file.md-source', title: 'Show Markdown source', group: 'File', icon: Code, keywords: ['edit', 'raw'], run: () => (mdView = 'source') },
+              ? { id: 'file.md-preview', title: `Show ${kindName} preview`, group: 'File', icon: BookOpen, keywords: ['render', 'readme', 'diagram'], run: () => (mdView = 'preview') }
+              : { id: 'file.md-source', title: `Show ${kindName} source`, group: 'File', icon: Code, keywords: ['edit', 'raw'], run: () => (mdView = 'source') },
           ]
         : []),
       { id: 'file.panel', title: 'Toggle outline and problems', group: 'File', icon: PanelRight, keywords: ['lens', 'side panel'], run: () => (lensOpen.value = !lensOpen.value) },
@@ -366,13 +373,13 @@
     {/if}
     {#if updated}<span class="updated" role="status"><RefreshCw size={12} strokeWidth={2} /> Updated from disk</span>{/if}
     <div class="spacer"></div>
-    {#if markdown}
+    {#if markdown || mermaid}
       <SegmentedControl
-        label="Markdown view"
+        label="{kindName} view"
         bind:value={mdView}
         options={[
-          { value: 'source', label: 'Source', icon: Code, title: 'The Markdown text, editable' },
-          { value: 'preview', label: 'Preview', icon: BookOpen, title: 'Rendered; shows what-if edits too' },
+          { value: 'source', label: 'Source', icon: Code, title: `The ${kindName} text, editable` },
+          { value: 'preview', label: 'Preview', icon: BookOpen, title: mermaid ? 'The diagram; shows what-if edits too' : 'Rendered; shows what-if edits too' },
         ]}
       />
     {/if}
@@ -444,7 +451,7 @@
             extensions={session.isYAML ? intel : []}
           />
         </div>
-        {#if previewing}<MarkdownPreview text={session.buffer} {path} {active} />{/if}
+        {#if previewing && mermaid}<MermaidPreview text={session.buffer} />{:else if previewing}<MarkdownPreview text={session.buffer} {path} {active} />{/if}
       {/snippet}
       {#if lensOpen.value}
         <SplitPane id="file-lens" initial={0.74} min={220}>

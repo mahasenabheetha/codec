@@ -51,6 +51,7 @@ const langs: Record<string, Omit<Look, 'logo'> & { logo?: string }> = {
   yaml: types.yaml,
   json: { title: 'JSON', icon: Braces, color: 'var(--brand-json)' },
   markdown: { title: 'Markdown', logo: 'markdown', color: 'var(--fg-1)' },
+  mermaid: { title: 'Mermaid', icon: Workflow, color: 'var(--hue-pink)' },
   dockerfile: { title: 'Dockerfile', logo: 'docker', color: 'var(--brand-docker)' },
   terraform: { title: 'Terraform', logo: 'terraform', color: 'var(--brand-terraform)' },
   shell: { title: 'Shell script', icon: SquareTerminal, color: 'var(--fg-1)' },

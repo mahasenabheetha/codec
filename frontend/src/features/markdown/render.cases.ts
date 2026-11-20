@@ -99,4 +99,10 @@ export const cases: Case[] = [
   { name: 'strikethrough', md: '~~gone~~', has: ['<del>gone</del>'] },
   { name: 'code block keeps text', md: '```html\n<script>alert(1)</script>\n```', has: ['&lt;script&gt;', 'language-html'] },
   { name: 'quote and list', md: '> quoted\n\n1. one\n2. two', has: ['<blockquote>', '<ol>', '<li>two</li>'] },
+  // GitHub's alerts: the marker alone on the first line of a quote.
+  { name: 'alert', md: '> [!WARNING]\n> Back up **first**.', has: ['<div class="alert alert-warning"><p class="alert-title">Warning</p>', '<strong>first</strong>'], not: ['[!WARNING]', '<blockquote>'] },
+  { name: 'alert kinds', md: '> [!note]\n> a\n\n> [!TIP]\n> b\n\n> [!Important]\n> c\n\n> [!CAUTION]\n> d', has: ['alert-note', 'alert-tip', 'alert-important', 'alert-caution'] },
+  { name: 'alert keeps blocks', md: '> [!NOTE]\n> - one\n> - two\n>\n> ```sh\n> make\n> ```', has: ['<li>two</li>', 'language-sh'] },
+  { name: 'not an alert', md: '> [!NOTE] same line\n\n> [!OTHER]\n> x', has: ['<blockquote>', '[!NOTE] same line', '[!OTHER]'], not: ['class="alert'] },
+  { name: 'alert with raw html', md: '> [!TIP]\n> <script>alert(1)</script>', has: ['alert-tip', '&lt;script&gt;'] },
 ]

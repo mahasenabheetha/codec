@@ -62,6 +62,7 @@ const langs: Record<string, string> = {
   yaml: 'yaml',
   json: 'json',
   markdown: 'markdown',
+  mermaid: 'mermaid',
   dockerfile: 'docker',
   terraform: 'terraform',
   shell: 'console',

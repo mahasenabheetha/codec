@@ -137,5 +137,19 @@ for (const h of hues) {
   check('contrast', '--accent-fg', h, 7)
 }
 
+// The Markdown preview (3.10.3): body and muted text on every ground it
+// tints, and each callout's title colour on its own ground; 7:1 in High
+// contrast.
+for (const theme of Object.keys(themes)) {
+  const min = theme === 'contrast' ? 7 : 4.5
+  for (const bg of Object.keys(themes[theme]).filter((k) => k.startsWith('--md-'))) {
+    check(theme, '--fg-0', bg, min)
+    check(theme, '--fg-1', bg, min)
+  }
+  const titles = { note: '--info', tip: '--ok', important: '--hue-violet', warning: '--warn', caution: '--err' }
+  for (const [kind, fg] of Object.entries(titles)) check(theme, fg, `--md-${kind}-bg`, min)
+  check(theme, '--accent', '--md-quote-bg', min)
+}
+
 console.log(failed ? `${failed} pair(s) fail` : `All contrast pairs pass in ${Object.keys(themes).join(', ')}.`)
 process.exit(failed ? 1 : 0)
