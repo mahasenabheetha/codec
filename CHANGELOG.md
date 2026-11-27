@@ -82,6 +82,20 @@ The interface redesign, Spectrum, first part (decision 106).
 - **Tool colours off.** Tools now take the theme's accent everywhere: tab
   icons, the selected rail entry and palette row, the edges of cards
   and chips. Icon tiles turn grey, as before.
+- **Home.** A new layout. At the top, the codec mark and a bigger
+  search box, beside a mosaic of tool colours. Then three columns:
+  Pinned, Opened lately and Workspace. Opened lately mixes tools and
+  the files opened this session, newest first, with how long ago (a
+  tool's time is kept with the list of recent tools; times start with
+  this version). Workspace shows the open folder, whether it is watched,
+  a bar of its files by kind (Kubernetes, Helm, Ansible, Argo, CI,
+  Compose), Go to a file, Open another folder and recent folders. Every
+  tool is listed by group, one card per tool; small groups get a card
+  with a description, Utilities a grid of tiles. Search for a sub-tab
+  (Cron, Password…) to open or pin it on its own. The first run shows
+  Get started in the same layout. The Compare text card and the
+  privacy line are gone: Compare is on the rail and the palette, and
+  the status bar says that everything runs on this machine.
 
 ## [3.10.3] - 2026-11-20
 

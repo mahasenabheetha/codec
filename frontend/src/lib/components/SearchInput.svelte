@@ -1,4 +1,5 @@
 <script lang="ts">
+  import type { Snippet } from 'svelte'
   import Search from '@lucide/svelte/icons/search'
   import X from '@lucide/svelte/icons/x'
 
@@ -6,19 +7,25 @@
     value: string
     placeholder?: string
     label?: string
+    /** The one search a page is built around (Home's): taller, bigger
+     *  text, the icon in the accent, and as wide as its box. */
+    large?: boolean
+    /** After the field, e.g. the shortcut that does more. */
+    end?: Snippet
   }
 
-  let { value = $bindable(), placeholder = 'Filter…', label = 'Filter' }: Props = $props()
+  let { value = $bindable(), placeholder = 'Filter…', label = 'Filter', large = false, end }: Props = $props()
 </script>
 
-<div class="search">
-  <Search size={14} />
+<div class="search" class:large>
+  <Search size={large ? 16 : 14} />
   <input type="search" bind:value {placeholder} aria-label={label} spellcheck="false" />
   {#if value}
     <button type="button" aria-label="Clear filter" onclick={() => (value = '')}>
       <X size={12} />
     </button>
   {/if}
+  {#if end}{@render end()}{/if}
 </div>
 
 <style>
@@ -62,6 +69,20 @@
   }
   input::-webkit-search-cancel-button {
     display: none;
+  }
+  .large {
+    height: calc(var(--control-h) + var(--s-3));
+    padding: 0 var(--s-3);
+    gap: var(--s-3);
+    border-radius: var(--r-lg);
+  }
+  .large > :global(svg:first-child) {
+    color: var(--tool-accent, var(--accent));
+  }
+  .large input {
+    flex: 1;
+    width: auto;
+    font-size: var(--fs-lg);
   }
   button {
     display: grid;

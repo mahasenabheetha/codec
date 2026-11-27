@@ -177,6 +177,7 @@
   --fw-regular: 400;
   --fw-medium: 500;
   --fw-semibold: 600;
+  --fw-bold: 700; /* the one page title, Home's */
 
   /* Layout */
   --rail-collapsed: 48px;

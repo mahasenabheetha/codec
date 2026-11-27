@@ -33,7 +33,7 @@ and a shell built around what you use most.
 | Hues | indigo `#8f9dff` · violet `#b794ff` · orchid `#e391f2` · pink `#ff8fc8` · peach `#ffa877` · lime `#b4e06a` · teal `#4fdcc2` · cyan `#5cc6ff` |
 | Space | 4px scale: `--s-1 4` `--s-2 8` `--s-3 12` `--s-4 16` `--s-5 20` `--s-6 24` `--s-8 32` `--s-12 48` |
 | Radius | `--r-sm 4` small marks (badges, checks, tree rows, tooltips) · `--r-md 8` buttons, fields, menu items · `--r-lg 12` panels, cards, menus · `--r-xl 16` dialogs · `--r-full` pills |
-| Type | `--font-ui` Inter, `--font-mono` JetBrains Mono (bundled, OFL). Sizes `--fs-xs 11` `-sm 12` `-md 13` (base) `-lg 14` `-xl 16` `-2xl 20` `-3xl 28`, each a step bigger at Interface size Large (12 … 30); line height 1.5 (code 1.55). Figures are tabular everywhere (`tnum`), so counts and times don't shift. The code font is for code, paths and values, never for sentences |
+| Type | `--font-ui` Inter, `--font-mono` JetBrains Mono (bundled, OFL). Sizes `--fs-xs 11` `-sm 12` `-md 13` (base) `-lg 14` `-xl 16` `-2xl 20` `-3xl 28`, each a step bigger at Interface size Large (12 … 30); line height 1.5 (code 1.55). Weights `--fw-regular 400` `-medium 500` `-semibold 600` (headings, titles) `-bold 700` (only Home's title). Figures are tabular everywhere (`tnum`), so counts and times don't shift. The code font is for code, paths and values, never for sentences |
 | Controls | Interface size (`data-size` on `<html>`): `--control-h` 28 / 32 / 36 and `--control-h-sm` 24 / 28 / 32 for Compact / Comfortable (default) / Large; Lucide icons keep the size written in code (the Compact one) and grow by `--icon-scale` 1 / 1.125 / 1.25, rounded to whole pixels (global.css), so write icon sizes for Compact · `--icon-stroke 1.9`, every icon's stroke · `--tabbar-h 40` · `--statusbar-h 28` · rail 48/220 |
 | Focus | Everything shows a 2 px outline 2 px out, in the tool's colour inside a tool (global.css). A field shows its border colour plus `--focus-ring` (a 3 px ring) instead; a field whose value is wrong (`aria-invalid`), `--err` plus `--invalid-ring` |
 | Match | `--match-bg`, `--match-current-bg`: a search hit, wherever it is drawn (editor, log rows, Find in Files, the source peek) |
@@ -202,9 +202,21 @@ change to this file and `tokens.css` together.
   are some to count; on the right the focus ring and time (Focus &
   breaks' colour), the folder with its watch state, "Local only" and
   the version.
-- **Home** is where a tool is found: a search box, pinned tools, the
-  ones opened lately, the workspace, then every tool by group; a star
-  on a card pins it.
+- **Home** is where a tool is found. A hero on `--bg-2`: the mark,
+  "codec", the line under it and the large search box, with a mosaic
+  of eight tools in the eight hues beside it (decoration, gone when
+  narrow); typing shows the tools found in place of the rest. Then
+  three columns: Pinned (a card with a hue edge each), Opened lately
+  (tools and this session's files, newest first, with how long ago)
+  and Workspace (the folder, its watch state, its files by kind as a
+  bar in the lens views' hues, Go to a file and Open another folder,
+  recent folders). Then every tool by group, a line after the name:
+  a group of up to four as cards (a 3 px top line in the tool's
+  colour, a soft tile, a star), a bigger one as tiles (a solid tile,
+  the name, the star under the pointer). On a first run Get started
+  (the sample, your own folder) takes the Workspace column, or the
+  whole row when nothing is pinned or opened yet. Narrow, the columns
+  go two by two and the grids halve.
 - **Panes resize.** Anything with two or three parts is a `SplitPane`
   or `ThreePanes`, never a fixed grid: sizes persist per `id`, a side
   panel keeps its width in px when the window changes (`px`), and the
@@ -236,7 +248,7 @@ Build once in `frontend/src/lib/components` and reuse:
 | `IconButton` | Icon-only actions; always a `label` (also its tooltip). `box` frames it, for a row of framed buttons; `active` is on (a soft fill in the tool's colour) |
 | `Tabs`, `SegmentedControl` | Switching views of the same thing; exclusive choices. The choice made is solid in the tool's colour; `soft` gives it a soft fill, for a setting (an interface size, local or UTC) rather than what the view shows |
 | `WorkTabStrip` + `WorkTabs` (features/shared) | Several of the same work open at once in one tool (pastes, comparisons, logs; decision 97): one store and strip, each tab's component kept mounted and hidden when not current. `fresh()` shows an empty one (the current tab if it is); `wantFreshTab(tool)` asks a tool for one once it is open, for the palette's Ctrl+Enter |
-| `Select`, `Toggle`, `SearchInput` | Form controls (Bits UI underneath) |
+| `Select`, `Toggle`, `SearchInput` | Form controls (Bits UI underneath). `SearchInput` `large` is the one search a page is built around (Home's): taller, bigger text, the icon in the accent; `end` puts something after the field, such as the shortcut that does more |
 | a plain `<input>`, `<textarea>`, `<select>`, checkbox | Text fields and native menus: global.css gives every one the same frame (`--control-h` high, on `--bg-1`), hover and focus (border colour plus `--focus-ring`), with no weight, so a view writes only what differs. A wrong value: `aria-invalid="true"` (the error colour and `--invalid-ring`) and an inline `ErrorNote` under the field saying how to fix it. A field inside its own framed box sets `box-shadow: none` and the box shows the focus (`:focus-within`). A checkbox is a small frame, filled in the tool's colour with a tick when on |
 | `Chip` | A small choice in a row: a suggestion (a preset; `selected` marks the one in use) or a toggle (`pressed`: a flag, a weekday), one look: on, a soft fill, an edge in the tool's colour and a tick. `square` for one letter (no tick), `mono` for code |
 | `SplitPane` | Two resizable panes: drag, arrow keys (Shift, Home, End), double click or Enter to reset; `direction`, `stackBelow`, `flush` (a line, for panes that touch), `px` (a side panel's width), `initialStacked`; sizes persisted by `id`, side by side and stacked apart. Hot (hover, drag, focus), the divider is a soft strip with a line in the tool's colour; while dragging, a badge shows the first pane's share |
