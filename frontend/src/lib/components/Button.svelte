@@ -32,12 +32,14 @@
     font-size: var(--fs-md);
     font-weight: var(--fw-medium);
     white-space: nowrap;
+    color: var(--fg-0);
     border: 1px solid transparent;
     border-radius: var(--r-md);
     transition:
-      background var(--dur) var(--ease),
-      border-color var(--dur) var(--ease),
-      color var(--dur) var(--ease);
+      background var(--dur-fast) var(--ease),
+      border-color var(--dur-fast) var(--ease),
+      color var(--dur-fast) var(--ease),
+      transform var(--dur-fast) var(--ease);
   }
   .btn.sm {
     height: var(--control-h-sm);
@@ -45,40 +47,44 @@
     font-size: var(--fs-sm);
     gap: var(--s-1);
   }
+  .btn:hover:not(:disabled) {
+    background: var(--bg-4);
+  }
+  /* Pressed: a step down, as if pushed. */
+  .btn:active:not(:disabled) {
+    background: var(--bg-4);
+    transform: translateY(1px);
+  }
   .btn:disabled {
     opacity: 0.45;
-    cursor: default;
+    cursor: not-allowed;
   }
 
   .toned:not(.primary, :disabled) :global(svg) {
     color: color-mix(in oklab, var(--act) var(--tint-action), currentColor);
   }
 
-  /* Inside a tool, the tool's accent (the plain accent unless the theme
-     shows tool colours). */
+  /* Inside a tool, the tool's accent (the plain accent with tool colours
+     off). Hover mixes in the text colour, pressing the ground. */
   .primary {
-    background: var(--tool-accent, var(--accent));
+    font-weight: var(--fw-semibold);
     color: var(--accent-fg);
+    background: var(--tool-accent, var(--accent));
+    border-color: var(--tool-accent, var(--accent));
   }
   .primary:hover:not(:disabled) {
-    background: var(--tool-accent-hover, var(--accent-hover));
+    background: color-mix(in srgb, var(--tool-accent, var(--accent)) 86%, var(--fg-0));
+  }
+  .primary:active:not(:disabled) {
+    background: color-mix(in srgb, var(--tool-accent, var(--accent)) 75%, var(--bg-0));
   }
 
   .secondary {
     background: var(--bg-3);
-    border-color: var(--border-strong);
-    color: var(--fg-0);
-  }
-  .secondary:hover:not(:disabled) {
-    background: var(--bg-4);
+    border-color: var(--border);
   }
 
   .ghost {
     background: transparent;
-    color: var(--fg-1);
-  }
-  .ghost:hover:not(:disabled) {
-    background: var(--bg-3);
-    color: var(--fg-0);
   }
 </style>

@@ -47,15 +47,17 @@ button {
    writes what differs. :where() gives these rules no weight: any rule
    of a component wins. A field with no frame of its own (inside a
    framed search box) sets box-shadow: none and lets its frame show the
-   focus. */
+   focus. A field whose value is wrong takes aria-invalid: the error
+   colour for the border and the ring, the reason in an inline ErrorNote
+   under it. */
 :where(input:not([type]), input[type='text'], input[type='search'], input[type='number'], input[type='password'], input[type='url'], input[type='email'], input[type='time'], input[type='date'], textarea, select) {
   min-width: 0;
-  height: var(--control-h-sm);
+  height: var(--control-h);
   padding: 0 var(--s-2);
   color: var(--fg-0);
-  background: var(--bg-0);
+  background: var(--bg-1);
   border: 1px solid var(--border-strong);
-  border-radius: var(--r-sm);
+  border-radius: var(--r-md);
   transition:
     border-color var(--dur) var(--ease),
     box-shadow var(--dur) var(--ease);
@@ -68,13 +70,61 @@ button {
 :where(input:not([type]), input[type='text'], input[type='search'], input[type='number'], input[type='password'], input[type='url'], input[type='email'], input[type='time'], input[type='date'], textarea, select)::placeholder {
   color: var(--fg-2);
 }
+:where(input:not([type]), input[type='text'], input[type='search'], input[type='number'], input[type='password'], input[type='url'], input[type='email'], input[type='time'], input[type='date'], textarea, select):where(:hover:not(:disabled)) {
+  border-color: var(--fg-2);
+}
 :where(input:not([type]), input[type='text'], input[type='search'], input[type='number'], input[type='password'], input[type='url'], input[type='email'], input[type='time'], input[type='date'], textarea, select):focus-visible {
   outline: none;
   border-color: var(--tool-accent, var(--accent));
   box-shadow: var(--focus-ring);
 }
+:where(input:not([type]), input[type='text'], input[type='search'], input[type='number'], input[type='password'], input[type='url'], input[type='email'], input[type='time'], input[type='date'], textarea, select)[aria-invalid='true'] {
+  border-color: var(--err);
+  box-shadow: var(--invalid-ring);
+}
 :where(input:not([type]), input[type='text'], input[type='search'], input[type='number'], input[type='password'], input[type='url'], input[type='email'], input[type='time'], input[type='date'], textarea, select):disabled {
-  opacity: 0.55;
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Checks: a native checkbox drawn as a small frame, filled in the tool's
+   colour with a tick when on. No weight, like the fields. */
+:where(input[type='checkbox']) {
+  appearance: none;
+  position: relative;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
+  background: transparent;
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  transition:
+    background var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease);
+}
+:where(input[type='checkbox']):where(:hover:not(:disabled)) {
+  border-color: var(--fg-2);
+}
+:where(input[type='checkbox']:checked) {
+  background: var(--tool-accent, var(--accent));
+  border-color: var(--tool-accent, var(--accent));
+}
+/* The tick: two borders of a box, turned. */
+:where(input[type='checkbox']:checked)::after {
+  content: '';
+  position: absolute;
+  left: 30%;
+  top: 8%;
+  width: 30%;
+  height: 58%;
+  border: solid var(--accent-fg);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+:where(input[type='checkbox']:disabled) {
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
@@ -103,13 +153,14 @@ p {
   background: var(--accent-soft);
 }
 
-/* Keyboard focus is always visible; mouse focus stays quiet. */
+/* Keyboard focus is always visible; mouse focus stays quiet. Inside a
+   tool the outline takes the tool's colour. */
 :focus {
   outline: none;
 }
 :focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
+  outline: 2px solid var(--tool-accent, var(--accent));
+  outline-offset: 2px;
   border-radius: var(--r-sm);
 }
 
@@ -155,7 +206,6 @@ p {
    colour (decision 94). */
 .hued {
   --tool-accent: color-mix(in oklab, var(--tool) var(--tint-tool), var(--accent));
-  --tool-accent-hover: color-mix(in oklab, var(--tool) var(--tint-tool), var(--accent-hover));
   --tool-accent-soft: color-mix(in oklab, color-mix(in srgb, var(--tool) var(--soft), transparent) var(--tint-tool), var(--accent-soft));
   --tool-icon: color-mix(in oklab, var(--tool) var(--tint-tool), currentColor);
   /* Spectrum (3.11.0): a ground washed with the tool's colour (a tool

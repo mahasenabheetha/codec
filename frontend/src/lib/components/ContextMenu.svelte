@@ -70,13 +70,16 @@
   :global(.codec-menu-trigger) {
     display: contents;
   }
+  /* The menu's radius is its items' plus its padding, so corners nest.
+     The item under the pointer or the keyboard takes a soft fill and its
+     icon the accent (a menu sits outside the tool, in <body>). */
   :global(.codec-menu) {
     z-index: var(--z-popover);
-    min-width: 200px;
+    min-width: 220px;
     max-width: 320px;
     padding: var(--s-1);
     background: var(--bg-2);
-    border-radius: var(--r-md);
+    border-radius: var(--r-lg);
     box-shadow: var(--shadow-pop);
     outline: none;
     animation: menu-in var(--dur) var(--ease);
@@ -88,8 +91,8 @@
     height: 28px;
     padding: 0 var(--s-2);
     font-size: var(--fs-sm);
-    color: var(--fg-1);
-    border-radius: var(--r-sm);
+    color: var(--fg-0);
+    border-radius: var(--r-md);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -97,19 +100,21 @@
     outline: none;
   }
   :global(.codec-menu-item[data-highlighted]) {
-    color: var(--fg-0);
-    background: var(--bg-3);
+    background: var(--accent-soft);
+  }
+  :global(.codec-menu-item[data-highlighted] .codec-menu-icon) {
+    color: var(--accent);
   }
   :global(.codec-menu-item[data-disabled]) {
     opacity: 0.45;
-    cursor: default;
+    cursor: not-allowed;
   }
   :global(.codec-menu-icon) {
     display: grid;
     place-items: center;
     width: 14px;
     flex: 0 0 auto;
-    color: var(--fg-2);
+    color: var(--fg-1);
   }
   :global(.codec-menu-sep) {
     height: 1px;

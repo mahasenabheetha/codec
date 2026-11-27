@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Check from '@lucide/svelte/icons/check'
   import type { Snippet } from 'svelte'
   import type { HTMLButtonAttributes } from 'svelte/elements'
 
@@ -6,8 +7,10 @@
   //  - a suggestion (a preset, an example): click to use it; `selected`
   //    marks the one in use, when that is known;
   //  - a toggle (a flag, a weekday): pass `pressed`, and it is a switch
-  //    with aria-pressed, filled in the tool's colour when on.
-  // `square` is for one-letter toggles (regex flags), `mono` for code.
+  //    with aria-pressed.
+  // On, it takes a soft fill and an edge in the tool's colour, and a
+  // tick. `square` is for one-letter toggles (regex flags), which have
+  // no room for the tick; `mono` for code.
   interface Props extends HTMLButtonAttributes {
     pressed?: boolean
     selected?: boolean
@@ -17,9 +20,11 @@
   }
 
   let { pressed, selected = false, square = false, mono = false, children, type = 'button', ...rest }: Props = $props()
+  const on = $derived(pressed || selected)
 </script>
 
-<button {type} class="chip" class:toggle={pressed !== undefined} class:on={pressed || selected} class:square class:mono aria-pressed={pressed} {...rest}>
+<button {type} class="chip" class:on class:square class:mono aria-pressed={pressed} {...rest}>
+  {#if on && !square}<Check size={12} />{/if}
   {@render children()}
 </button>
 
@@ -28,30 +33,23 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: var(--s-1);
     height: var(--control-h-sm);
     padding: 0 var(--s-3);
     font-size: var(--fs-sm);
     white-space: nowrap;
     color: var(--fg-1);
-    background: var(--bg-3);
+    background: var(--bg-2);
     border: 1px solid var(--border);
     border-radius: var(--r-full);
     transition:
-      background var(--dur) var(--ease),
-      border-color var(--dur) var(--ease),
-      color var(--dur) var(--ease);
+      background var(--dur-fast) var(--ease),
+      border-color var(--dur-fast) var(--ease),
+      color var(--dur-fast) var(--ease);
   }
   .chip:hover:not(:disabled) {
     color: var(--fg-0);
-    border-color: var(--border-strong);
-  }
-  /* A toggle is squarer, so a row of them reads as switches, not as
-     suggestions. */
-  .toggle {
-    padding: 0 var(--s-2);
-    background: var(--bg-0);
-    border-color: var(--border-strong);
-    border-radius: var(--r-md);
+    background: var(--bg-3);
   }
   .square {
     width: var(--control-h-sm);
@@ -60,20 +58,17 @@
   .mono {
     font-family: var(--font-mono);
   }
-  /* The suggestion in use: outlined in the tool's colour. */
-  .on {
+  .on,
+  .on:hover:not(:disabled) {
     color: var(--fg-0);
     background: var(--tool-accent-soft, var(--accent-soft));
-    border-color: var(--tool-accent, var(--accent));
+    border-color: var(--tool-line, color-mix(in srgb, var(--accent) 45%, var(--border)));
   }
-  /* A toggle that is on: filled. */
-  .toggle.on {
-    color: var(--accent-fg);
-    font-weight: var(--fw-semibold);
-    background: var(--tool-accent, var(--accent));
+  .on :global(svg) {
+    color: var(--tool-accent, var(--accent));
   }
   .chip:disabled {
-    opacity: 0.4;
+    opacity: 0.45;
     cursor: not-allowed;
   }
 </style>

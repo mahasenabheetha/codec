@@ -29,6 +29,22 @@ The interface redesign, Spectrum, first part (decision 106).
   command palette and Go to file, and along each theme card in
   Settings, in that theme's colours (Dark's and Light's cards were
   still showing their colours from before 3.11.0).
+- **Controls.** The selected option of a segmented control, a tool's
+  sub-tabs included, is filled with the tool's colour. A chip that is on
+  shows a tick. Text fields are as tall as buttons, and their border
+  darkens under the pointer. Checkboxes fill with the tool's colour.
+  Buttons move down a pixel when pressed. The keyboard focus outline
+  takes the tool's colour.
+- **Panes and overlays.** A tool's panes have a line in its colour along
+  the top, and their titles are no longer in capitals. Menus and
+  dropdown lists are rounder, and the item under the pointer is tinted.
+  Tooltips are dark on light themes and light on dark ones, with the
+  shortcut as text. Toasts start with a small mark in their colour.
+- **States.** An empty pane shows its icon on a tile in the tool's
+  colour. "Working…" has a dot in front. While you drag a divider, a
+  badge shows the first pane's share.
+- **Problems.** A finding shows its line and its rule's code together.
+  **Why?** and **Turn this rule off** (was **Turn off**) are buttons.
 
 ## [3.10.3] - 2026-11-20
 

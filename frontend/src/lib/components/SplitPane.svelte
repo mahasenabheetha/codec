@@ -1,5 +1,6 @@
 <script lang="ts">
   import { untrack, type Snippet } from 'svelte'
+  import Badge from './Badge.svelte'
 
   // Two resizable panes: drag the divider, or focus it and use the
   // arrow keys (Shift for bigger steps, Home and End for the limits);
@@ -145,7 +146,10 @@
     onpointercancel={() => (dragging = false)}
     ondblclick={reset}
     {onkeydown}
-  ><span class="grip" aria-hidden="true"></span></div>
+  >
+    <span class="grip" aria-hidden="true"></span>
+    {#if dragging}<span class="share" aria-hidden="true"><Badge tone="accent" solid>{Math.round(ratio * 100)}%</Badge></span>{/if}
+  </div>
   <div class="pane" style="flex-basis: {fixed ? '0' : (1 - ratio) * 100 + '%'}">{@render second()}</div>
 </div>
 
@@ -182,21 +186,28 @@
     position: relative;
     flex: 0 0 var(--s-2);
     cursor: col-resize;
-    border-radius: var(--r-full);
+    border-radius: var(--r-sm);
+    transition: background var(--dur) var(--ease);
   }
   .stacked > .divider {
     cursor: row-resize;
   }
-  /* Thin visual line inside a wider hit area. */
+  /* Hot (hovered, dragged, focused): a soft strip with a line down it,
+     in the tool's colour. */
+  .divider:hover,
+  .dragging > .divider,
+  .divider:focus-visible {
+    background: var(--tool-accent-soft, var(--accent-soft));
+  }
   .divider::after {
     content: '';
     position: absolute;
-    inset: var(--s-3) 3px;
+    inset: 0 3px;
     border-radius: var(--r-full);
     transition: background var(--dur) var(--ease);
   }
   .stacked > .divider::after {
-    inset: 3px var(--s-3);
+    inset: 3px 0;
   }
   .divider:hover::after,
   .dragging > .divider::after,
@@ -212,16 +223,25 @@
     position: absolute;
     left: 50%;
     top: 50%;
-    width: 4px;
-    height: 28px;
+    width: 2px;
+    height: 32px;
     transform: translate(-50%, -50%);
     background: var(--border-strong);
     border-radius: var(--r-full);
     transition: background var(--dur) var(--ease);
   }
   .stacked > .divider .grip {
-    width: 28px;
-    height: 4px;
+    width: 32px;
+    height: 2px;
+  }
+  /* While dragging, the first pane's share. */
+  .share {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: var(--z-sticky);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
   }
   .divider:hover .grip,
   .dragging > .divider .grip,

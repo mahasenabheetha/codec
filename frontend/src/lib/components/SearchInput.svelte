@@ -29,18 +29,27 @@
     height: var(--control-h);
     padding: 0 var(--s-2);
     color: var(--fg-2);
-    background: var(--bg-0);
-    border: 1px solid var(--border);
+    background: var(--bg-1);
+    border: 1px solid var(--border-strong);
     border-radius: var(--r-md);
-    transition: border-color var(--dur) var(--ease);
+    transition:
+      border-color var(--dur) var(--ease),
+      box-shadow var(--dur) var(--ease);
+  }
+  .search:hover {
+    border-color: var(--fg-2);
   }
   .search:focus-within {
     border-color: var(--tool-accent, var(--accent));
     box-shadow: var(--focus-ring);
   }
+  .search:focus-within > :global(svg) {
+    color: var(--tool-accent, var(--accent));
+  }
   input {
     width: 160px;
     min-width: 0;
+    height: 100%;
     font-size: var(--fs-sm);
     color: var(--fg-0);
     background: none;

@@ -579,10 +579,6 @@
     color: var(--fg-2);
     text-decoration: line-through;
   }
-  .layer input[type='checkbox'] {
-    height: auto;
-    accent-color: var(--accent);
-  }
   .swatch {
     display: inline-block;
     flex: 0 0 auto;

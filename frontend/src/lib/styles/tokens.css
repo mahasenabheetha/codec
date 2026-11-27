@@ -156,8 +156,8 @@
   --s-12: 48px;
 
   /* Radius */
-  --r-sm: 4px; /* inputs, small marks */
-  --r-md: 8px; /* buttons, rows */
+  --r-sm: 4px; /* small marks: badges, checks, tree rows, tooltips */
+  --r-md: 8px; /* buttons, fields, menu items */
   --r-lg: 12px; /* panels, cards */
   --r-xl: 16px; /* dialogs, the break card */
   --r-full: 999px;
@@ -203,6 +203,9 @@
   /* Focus: the ring a field shows around its border when it removes the
      outline (the rule: border colour plus this ring). */
   --focus-ring: 0 0 0 3px color-mix(in srgb, var(--tool-accent, var(--accent)) 28%, transparent);
+  /* The same ring in the error colour, on a field whose value is wrong
+     (aria-invalid), with the reason in a line under it. */
+  --invalid-ring: 0 0 0 3px color-mix(in srgb, var(--err) 22%, transparent);
 
   /* Motion: fast for hovers and presses, the default for most changes,
      slow for things that move across the screen. */

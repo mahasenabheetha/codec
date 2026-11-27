@@ -404,7 +404,6 @@
     background: var(--bg-3);
   }
   .kind input {
-    accent-color: var(--accent);
     margin: 0;
   }
   .kind-title {

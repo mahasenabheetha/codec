@@ -85,7 +85,7 @@
 
   const showHome = $derived(!toolById(router.toolId) && !router.filePath && !routeHelm(router.path) && !isView(router.path))
 
-  // Rule metadata, so findings everywhere can offer "Turn off".
+  // Rule metadata, so findings everywhere can offer "Turn this rule off".
   lint.load()
 
   // Is a newer codec out? The server asks GitHub at most daily, and only

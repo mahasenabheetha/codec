@@ -32,10 +32,10 @@ and a shell built around what you use most.
 | Status | `--ok #4cd38a` · `--warn #f2c14e` · `--err #ff6f7d` · `--info #5ab0ff`, each with `-soft` |
 | Hues | indigo `#8f9dff` · violet `#b794ff` · orchid `#e391f2` · pink `#ff8fc8` · peach `#ffa877` · lime `#b4e06a` · teal `#4fdcc2` · cyan `#5cc6ff` |
 | Space | 4px scale: `--s-1 4` `--s-2 8` `--s-3 12` `--s-4 16` `--s-5 20` `--s-6 24` `--s-8 32` `--s-12 48` |
-| Radius | `--r-sm 4` inputs, small marks · `--r-md 8` buttons, rows · `--r-lg 12` panels, cards · `--r-xl 16` dialogs · `--r-full` pills |
+| Radius | `--r-sm 4` small marks (badges, checks, tree rows, tooltips) · `--r-md 8` buttons, fields, menu items · `--r-lg 12` panels, cards, menus · `--r-xl 16` dialogs · `--r-full` pills |
 | Type | `--font-ui` Inter, `--font-mono` JetBrains Mono (bundled, OFL). Sizes `--fs-xs 11` `-sm 12` `-md 13` (base) `-lg 14` `-xl 16` `-2xl 20` `-3xl 28`, each a step bigger at Interface size Large (12 … 30); line height 1.5 (code 1.55). Figures are tabular everywhere (`tnum`), so counts and times don't shift. The code font is for code, paths and values, never for sentences |
 | Controls | Interface size (`data-size` on `<html>`): `--control-h` 28 / 32 / 36 and `--control-h-sm` 24 / 28 / 32 for Compact / Comfortable (default) / Large; Lucide icons keep the size written in code (the Compact one) and grow by `--icon-scale` 1 / 1.125 / 1.25, rounded to whole pixels (global.css), so write icon sizes for Compact · `--icon-stroke 1.9`, every icon's stroke · `--tabbar-h 40` · `--statusbar-h 28` · rail 48/220 |
-| Focus | `--focus-ring`: the ring a field shows around its border (in the tool's colour inside a tool). The global outline stays for everything else |
+| Focus | Everything shows a 2 px outline 2 px out, in the tool's colour inside a tool (global.css). A field shows its border colour plus `--focus-ring` (a 3 px ring) instead; a field whose value is wrong (`aria-invalid`), `--err` plus `--invalid-ring` |
 | Match | `--match-bg`, `--match-current-bg`: a search hit, wherever it is drawn (editor, log rows, Find in Files, the source peek) |
 | Motion | `--dur-fast 80ms` hovers and presses · `--dur 120ms` most changes · `--dur-slow 240ms` things that move across the screen · `--ease`; none under `prefers-reduced-motion` |
 | Elevation | `--shadow-pop` for popovers and dialogs; `--shadow-raise`, barely there, for a card that lifts under the pointer; depth otherwise comes from surface steps |
@@ -118,8 +118,8 @@ value in each theme block (Dusk may inherit Dark's).
   sits on a status colour: a blue or a green was left out for that). What belongs to
   the tool (its page, rail entry, Home card) sets `--tool` to
   `hueVar(hue)` and takes the `.hued` class, which works out
-  `--tool-accent`, `--tool-accent-hover`, `--tool-accent-soft` and
-  `--tool-icon` for everything inside. Shared components read
+  `--tool-accent`, `--tool-accent-soft` and `--tool-icon` for
+  everything inside. Shared components read
   `var(--tool-accent, var(--accent))`, so they work outside a tool too.
 - **Action tone.** `tone` on `IconButton` and `Button`: `copy`, `clear`,
   `save`, `swap`, `open`, `add`, `run` (`--act-*`). Only the icon takes
@@ -129,9 +129,9 @@ value in each theme block (Dusk may inherit Dark's).
   action uses, so colour never suggests a problem that isn't there.
 
 How much of the first two a theme shows is `--tint-tool` and
-`--tint-action`, and `--tint-fill` for fills drawn in the tool's colour
-(the selected sub-tab as a soft pill, the selected rail entry's glow, a
-line along the top of a `Pane`). Since 3.10.1 every theme shows them:
+`--tint-action`, and `--tint-fill` for fills the shell draws in the
+tool's colour (the selected rail entry, the current tab, a work tab's
+top line). Since 3.10.1 every theme shows them:
 tool and action `100%` everywhere, fills `60%` in Dark and Light (the
 quieter two) and `100%` in the rest; Light has its own hues, dark
 enough for white. Settings → Tool colours off sets
@@ -154,8 +154,8 @@ colour: 16% Dark and the Dusk family, 12% Light and Paper, 14% Mist,
 22% High contrast) and `--wash` (a tinted ground: 5% to 10%), give
 `.hued` two more roles: `--tool-wash`, a ground washed with the tool's
 colour (a tool page's header, a selected card), and `--tool-line`, a
-line in it (a pane's top edge, a card's hue edge). With tool colours
-off they are the plain `--bg-1` and `--border`.
+line in it (a card's hue edge, the edge of a chip that is on). With
+tool colours off they are the plain `--bg-1` and `--border`.
 
 Never hard-code a colour, size or font in a component. A new token is a
 change to this file and `tokens.css` together.
@@ -207,14 +207,14 @@ Build once in `frontend/src/lib/components` and reuse:
 
 | Component | Use for |
 |---|---|
-| `Button` | Actions with text (primary, secondary, ghost; `sm`) |
-| `IconButton` | Icon-only actions; always a `label` (also its tooltip) |
-| `Tabs`, `SegmentedControl` | Switching views of the same thing; exclusive choices |
+| `Button` | Actions with text (primary, secondary, ghost; `sm`). Primary is solid in the tool's colour, one per view |
+| `IconButton` | Icon-only actions; always a `label` (also its tooltip). `box` frames it, for a row of framed buttons; `active` is on (a soft fill in the tool's colour) |
+| `Tabs`, `SegmentedControl` | Switching views of the same thing; exclusive choices. The choice made is solid in the tool's colour; `soft` gives it a soft fill, for a setting (an interface size, local or UTC) rather than what the view shows |
 | `WorkTabStrip` + `WorkTabs` (features/shared) | Several of the same work open at once in one tool (pastes, comparisons, logs; decision 97): one store and strip, each tab's component kept mounted and hidden when not current |
 | `Select`, `Toggle`, `SearchInput` | Form controls (Bits UI underneath) |
-| a plain `<input>`, `<textarea>`, `<select>` | Text fields and native menus: global.css gives every one the same frame and focus (border colour plus `--focus-ring`), with no weight, so a view writes only what differs. A field inside its own framed box sets `box-shadow: none` and the box shows the focus (`:focus-within`) |
-| `Chip` | A small choice in a row: a suggestion (a preset; `selected` marks the one in use) or a toggle (`pressed`: a flag, a weekday), `square` for one letter |
-| `SplitPane` | Two resizable panes: drag, arrow keys (Shift, Home, End), double click or Enter to reset; `direction`, `stackBelow`, `flush` (a line, for panes that touch), `px` (a side panel's width); sizes persisted by `id`, side by side and stacked apart |
+| a plain `<input>`, `<textarea>`, `<select>`, checkbox | Text fields and native menus: global.css gives every one the same frame (`--control-h` high, on `--bg-1`), hover and focus (border colour plus `--focus-ring`), with no weight, so a view writes only what differs. A wrong value: `aria-invalid="true"` (the error colour and `--invalid-ring`) and an inline `ErrorNote` under the field saying how to fix it. A field inside its own framed box sets `box-shadow: none` and the box shows the focus (`:focus-within`). A checkbox is a small frame, filled in the tool's colour with a tick when on |
+| `Chip` | A small choice in a row: a suggestion (a preset; `selected` marks the one in use) or a toggle (`pressed`: a flag, a weekday), one look: on, a soft fill, an edge in the tool's colour and a tick. `square` for one letter (no tick), `mono` for code |
+| `SplitPane` | Two resizable panes: drag, arrow keys (Shift, Home, End), double click or Enter to reset; `direction`, `stackBelow`, `flush` (a line, for panes that touch), `px` (a side panel's width); sizes persisted by `id`, side by side and stacked apart. Hot (hover, drag, focus), the divider is a soft strip with a line in the tool's colour; while dragging, a badge shows the first pane's share |
 | `ThreePanes` | Side · main · detail, each resizable: the frame of the lens views |
 | `PanelHeader` | The strip at the top of a view: icon (or `lead`, a file-type logo), title, `meta`, `actions`. Every view but the file view uses it; the file view's breadcrumb strip has the same height |
 | `Menu` | A button that opens a menu of named actions: the "…" at the end of a toolbar, for what doesn't earn a button. One main action per view as a button, the rest here |
@@ -224,14 +224,19 @@ Build once in `frontend/src/lib/components` and reuse:
 | `CodeView` | Any code or YAML (CodeMirror 6), read-only or editable |
 | `Graph` | Node graphs (dagre layout, colour groups `g-<group>`, dashed edges for run-time links, run status `s-failed/changed/ok/rescued/never` as a glyph as well as a colour). `selected` outlines the node whose details show; `lane` on a node puts it in a named band (a pipeline's stage). Pan by dragging, zoom with the wheel; keyboard: arrows move between nodes (or pan), `+` `-` zoom, `0` fits, Enter selects. A minimap appears when the graph is bigger than its box; the view is kept when the same graph changes (a what-if value) and fitted afresh for a different one. The legend adds what the drawing uses: dashed nodes (`missingNode`), dashed edges (`dashedEdge`), statuses. A cut label's whole text is the node's tooltip |
 | `EffectiveLines` | Config with an origin per line (CI, Compose) |
-| `Popover`, `Dialog`, `Tooltip` | Overlays; dialogs trap focus and close on Esc |
-| `ContextMenu` | Right-click menus (also Shift+F10); entries built per open from the event; sentence case, an icon per entry |
-| `Badge`, `Kbd` | File type with logo; key combos |
-| `EmptyState` | Nothing to show yet: icon, one sentence, the action that fills it |
-| `ErrorNote` | Something failed: icon, the reason, and `retry` (Try again) or other ways forward; `inline` beside a field or a row. Never a bare red paragraph |
+| `Popover`, `Dialog`, `Tooltip` | Overlays; dialogs trap focus and close on Esc. A tooltip is inverted (the text colour as its ground), its shortcut quieter beside the words |
+| `ContextMenu` | Right-click menus (also Shift+F10); entries built per open from the event; sentence case, an icon per entry. The item under the pointer or keyboard takes a soft fill; `Menu` and `Select` lists look the same |
+| `Badge` | A short label: a count, a state, a rule's code. `tone` neutral (grey), accent (the tool's colour), ok, warn, err, info; `solid` for the one that must stand out (What-if · 2); `mono` for code |
+| `Kbd` | Key combos, as keycaps in the code font |
+| `Tile` | An icon on a rounded square in the tool's colour: soft or `solid`, `size` sm/md/lg/xl (20/28/40/56 at Comfortable, growing with the controls); `status` in place of the tool's colour. A soft tile turns grey with tool colours off |
+| `Card` | A framed block on the panel (a home card, a setting's group). `hue` gives the hue edge, a border in the tool's colour on a washed ground (the selected one, a callout), with `status` in that colour instead; `lift` for one that moves under the pointer |
+| `Pane` (features/shared) | A tool's titled panel: title, `meta`, `actions` over the body, with a 3 px line in the tool's colour along the top; `top={false}` for a pane beside the main ones |
+| `EmptyState` | Nothing to show yet: a soft `Tile`, one sentence, the action that fills it |
+| `ErrorNote` | Something failed: icon, the reason, and `retry` (Try again) or other ways forward; `title` names what failed, the reason quieter under it; `inline` beside a field or a row. Never a bare red paragraph |
+| `ProblemItem` (features/lint) | One finding: severity icon, message, hint, line and column with the rule's code as a mono `Badge`; **Why?** and **Turn this rule off** as small buttons, the second shown on hover or focus |
 | `Skeleton` | Loading placeholders in the content's shape |
-| `Working` | "Working…" in a pane's header while content already shown is worked out again; appears after 250 ms. Never a spinner |
-| `Toaster` / `toast()` | Brief confirmations and non-blocking errors; an optional action ("Cleared · Undo") for undoable clears |
+| `Working` | A dot in the tool's colour and "Working…" in a pane's header while content already shown is worked out again; appears after 250 ms. Never a spinner |
+| `Toaster` / `toast()` | Brief confirmations and non-blocking errors, marked by a small solid tile in the status's colour; an optional action ("Cleared · Undo") for undoable clears |
 | `BrandMark` | The codec mark: three bars (indigo, pink, teal) on a tile. In the rail only |
 | `Spectrum` | The eight hues in a row, 4 px: the top edge of the palettes (`flush`: square, no gaps) and the foot of a theme card (`hues`: that theme's, from `lib/themes.ts`) |
 
@@ -264,6 +269,14 @@ them when it changes, and rename the SVG if browser tabs keep the old one.
   Error → `ErrorNote`: a plain sentence, the reason, a way forward
   (`retry` wherever the thing can be asked for again); never a raw
   stack, never a spinner.
+- **Interaction states** (Spectrum), the same in every part. Hover: a
+  step up the surfaces (`--bg-4` on buttons, `--bg-3` on rows, chips
+  and choices; a field's border turns `--fg-2`); a primary button
+  mixes in the text colour. Focus: the global outline. Pressed: a
+  button steps down 1 px (a primary darkens toward the ground), an
+  icon button shows its frame. Disabled: 45% opacity and a not-allowed
+  cursor. Selected: a soft fill in the tool's colour (a tree row, a
+  menu item, a chip), solid where it is the one choice (a segment).
 - **Commands and shortcuts.** App-wide commands in `App.svelte`; a view's
   own commands registered while it is active
   (`$effect(() => active && commands.register([...]))`, or
@@ -315,9 +328,10 @@ them when it changes, and rename the SVG if browser tabs keep the old one.
 ## Accessibility checklist
 
 - Text contrast ≥ 4.5:1 on its surface; don't use `--fg-2` on `--bg-4`.
-- Keyboard focus visible (global 2 px accent ring); a field shows its
-  border colour plus `--focus-ring` (global.css does this for every
-  input); a component that removes either shows an equivalent.
+- Keyboard focus visible (global 2 px outline, in the tool's colour
+  inside a tool); a field shows its border colour plus `--focus-ring`
+  (global.css does this for every input); a component that removes
+  either shows an equivalent.
 - Every interactive element has an accessible name (text, `aria-label`
   or `label`). Icon-only buttons use `IconButton`.
 - An id in a component that can be mounted more than once (every view:

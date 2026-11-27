@@ -42,13 +42,14 @@
     color: var(--fg-0);
   }
   .toggle:disabled {
-    opacity: 0.4;
-    cursor: default;
+    opacity: 0.45;
+    cursor: not-allowed;
   }
   .track {
+    flex: none;
     position: relative;
-    width: 28px;
-    height: 16px;
+    width: 30px;
+    height: 18px;
     background: var(--bg-4);
     border-radius: var(--r-full);
     transition: background var(--dur) var(--ease);
@@ -58,11 +59,11 @@
   }
   .thumb {
     position: absolute;
-    top: 2px;
-    left: 2px;
+    top: 3px;
+    left: 3px;
     width: 12px;
     height: 12px;
-    background: var(--fg-0);
+    background: var(--fg-1);
     border-radius: 50%;
     transition: transform var(--dur) var(--ease);
   }

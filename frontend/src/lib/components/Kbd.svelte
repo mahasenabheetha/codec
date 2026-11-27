@@ -22,9 +22,8 @@
     padding: 0 var(--s-1);
     display: inline-grid;
     place-items: center;
-    font-family: var(--font-ui);
+    font-family: var(--font-mono);
     font-size: var(--fs-xs);
-    font-weight: var(--fw-medium);
     color: var(--fg-1);
     background: var(--bg-3);
     border: 1px solid var(--border-strong);

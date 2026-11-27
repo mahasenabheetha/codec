@@ -87,6 +87,8 @@ for (const theme of Object.keys(themes)) {
     check(theme, fg, fg + '-soft', 4.5)
   }
   check(theme, '--accent-fg', '--accent', 4.5)
+  // A solid status mark (a toast's tile, a solid badge): its text on the colour.
+  for (const s of status) check(theme, '--accent-fg', s, 4.5)
   for (const syn of Object.keys(t).filter((k) => k.startsWith('--syn-') && !k.endsWith('-bg'))) check(theme, syn, '--bg-2', 4.5)
   for (const logo of Object.keys(t).filter((k) => k.startsWith('--brand-'))) check(theme, logo, '--bg-1', 3)
   // Time zones' working hours: the hour labels on each kind of hour.

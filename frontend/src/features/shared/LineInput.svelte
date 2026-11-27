@@ -33,7 +33,7 @@
 
 <section class="line" aria-label={label}>
   <div class="row" class:invalid>
-    <input bind:this={field} bind:value aria-label={label} {placeholder} spellcheck="false" autocomplete="off" data-clears />
+    <input bind:this={field} bind:value aria-label={label} aria-invalid={invalid || undefined} {placeholder} spellcheck="false" autocomplete="off" data-clears />
     {#if actions}{@render actions()}{/if}
     <IconButton icon={ClipboardPaste} label="Paste from clipboard" size="sm" onclick={paste} />
     <IconButton icon={Eraser} tone="clear" label="Clear" shortcut="Escape" size="sm" disabled={!value} onclick={() => (onclear ? onclear() : (value = ''))} />
@@ -57,9 +57,15 @@
     align-items: center;
     gap: 2px;
     padding: 0 var(--s-1) 0 var(--s-3);
-    background: var(--bg-0);
+    background: var(--bg-1);
     border: 1px solid var(--border-strong);
     border-radius: var(--r-md);
+    transition:
+      border-color var(--dur) var(--ease),
+      box-shadow var(--dur) var(--ease);
+  }
+  .row:hover {
+    border-color: var(--fg-2);
   }
   .row:focus-within {
     border-color: var(--tool-accent, var(--accent));
@@ -67,6 +73,7 @@
   }
   .row.invalid {
     border-color: var(--err);
+    box-shadow: var(--invalid-ring);
   }
   input {
     flex: 1;
