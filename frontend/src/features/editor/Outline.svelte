@@ -139,7 +139,7 @@
     height: 16px;
     font-family: var(--font-ui);
     font-size: 10px;
-    color: var(--tool-accent, var(--accent));
+    color: var(--tool-ink, var(--accent));
     background: var(--tool-accent-soft, var(--accent-soft));
     border-radius: var(--r-sm);
   }

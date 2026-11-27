@@ -6,9 +6,39 @@ UI. The user-facing version is `docs/design.html`. Tokens live in
 
 Dark by default, ten themes in all [81, 94, 95]. Calm, dense, precise —
 a professional dev tool, closer to Linear or VS Code than to a
-marketing site. Refreshed in 3.10.1 and 3.10.2 (decision 105): colour
-in every theme, shared parts in place of copies, panes you can size,
-and a shell built around what you use most.
+marketing site. The look is **Spectrum** (3.11.0, decision 106): every
+tool and view has one of eight hues, and that colour marks what belongs
+to it, while the status colours keep to what is right or wrong. It
+builds on the 3.10.1 and 3.10.2 refresh (decision 105): shared parts in
+place of copies, panes you can size, and a shell built around what you
+use most.
+
+## Spectrum
+
+How a hue shows, the same everywhere:
+
+- **A tile.** A tool's or view's icon sits on a `Tile` in its colour:
+  soft in lists (the rail, the palette, Home, Settings' sections),
+  solid for the one that is open and in the view's own header.
+- **A washed header.** `PanelHeader` (and the file view's header) is on
+  `--tool-wash`, dotted in the hue towards the right (`.dotted`), with
+  the view's tile, its name and what is known under it.
+- **A line or an edge.** A tool's pane has a 3 px line in its colour
+  along the top; a `Card` with `hue` has an edge in it; the current tab
+  a 2 px line along its top.
+- **A fill for what is on.** The selected chip, segment, tree row,
+  menu item and rail entry take the hue's soft fill (solid for a
+  segment that is what the view shows); the primary button is solid
+  in it; focus is outlined in it.
+- **Words in it** sparingly, such as an accent badge (`--tool-ink`).
+  Body text stays the text colours, on any of these grounds.
+- **Status apart.** ok, warn, err and info only for findings and
+  states, always with an icon or a word; no tool takes their hues.
+- **The mark and the strip.** The codec mark (three bars) is the
+  rail's, nothing else's; the eight hues in a row (`Spectrum`) run
+  along the top of the palettes and the foot of each theme card.
+- **Tool colours off** (Settings) puts every hue to the accent: tiles
+  turn grey, washes and dots go, status colours stay.
 
 ## Principles
 
@@ -140,10 +170,11 @@ enough for white. Settings → Tool colours off sets
 theme: every tool takes the accent (its fills, lines and icons, so the
 fills `--tint-fill` draws are the accent's), a soft tile turns grey, a
 wash goes, and actions take the text colour; status colours stay.
-Workspace views (Compare,
-Query, New, Problems) are `.hued` too, with their `viewHue`. Never use a `--hue-*` or `--act-*` token directly; go through
-the roles, so a theme or the setting can turn them up or down in one
-place. A shared component reads `var(--tool-accent, var(--accent))`.
+Workspace views (the Explorer, Search, Problems, Compare, Query, New,
+Clone, a file and Settings' sections) are `.hued` too, with their
+`viewHue`. Never use a `--hue-*` or `--act-*` token directly; go
+through the roles, so a theme or the setting can turn them up or down
+in one place. A shared component reads `var(--tool-accent, var(--accent))`.
 The one exception is decoration that stands for codec rather than a
 tool, `BrandMark` and `Spectrum`: they draw the hues as they are, and
 keep them with tool colours off.
@@ -160,7 +191,12 @@ colour: 16% Dark and the Dusk family, 12% Light and Paper, 14% Mist,
 colour (a tool page's header, a selected card), and `--tool-line`, a
 line in it (a card's hue edge, the edge of a chip that is on). With
 tool colours off the wash is the plain `--bg-1` and the line the
-accent's.
+accent's. `--ink` (100% in Dark and the Dusk family, 80% in Light,
+Mist and Paper, 85% in High contrast) gives `--tool-ink`: the hue taken
+that far toward the text colour, for words on its own soft fill (an
+accent badge), so they stay readable on the lighter themes. The
+contrast script checks text on every hue's wash and soft fill in every
+theme.
 
 Never hard-code a colour, size or font in a component. A new token is a
 change to this file and `tokens.css` together.
@@ -404,7 +440,19 @@ them when it changes, and rename the SVG if browser tabs keep the old one.
   it goes back where it was. A value that changes every second is a
   `role="timer"`, never a live region.
 - Trees, lists, tabs, radio groups follow WAI-ARIA keyboard patterns.
-- Severity is never colour alone: pair it with an icon or a word.
+  `role="tab"` only where tabs switch a panel; a row of choices of what
+  shows is buttons with `aria-current` (New's files) or a
+  `SegmentedControl`.
+- Severity is never colour alone: pair it with an icon or a word. A
+  count in a status colour shows the severity's icon, and says it to a
+  screen reader (`SegmentedControl` `countTone`, a `Badge` with `icon`
+  and an `sr-only` word); a mark that is only a dot gets an `sr-only`
+  word too.
+- A field's help or error is tied to it with `aria-describedby`, and a
+  wrong value sets `aria-invalid`; a label points at a real control
+  (a choice that names itself gets a plain caption, not a `<label>`).
+- Buttons hold phrasing content only: a value shown in one is a `span`
+  with `white-space: pre-wrap`, not a `<pre>`.
 - Respect `prefers-reduced-motion`.
 
 ## Writing
@@ -423,7 +471,11 @@ them when it changes, and rename the SVG if browser tabs keep the old one.
    `SplitPane` exist for them.
 2. Empty, loading and error states present.
 3. Reachable by keyboard; has a palette entry if it is an action.
-4. Accessible names on controls; contrast checked for new colour pairs.
-5. Works at narrow widths (the app is used side by side with an editor).
-6. `npm --prefix frontend run check` passes; screenshots in `docs/`
+4. Accessible names on controls; contrast checked for new colour pairs
+   (a new ground or text colour goes into `frontend/scripts/contrast.mjs`).
+5. Spectrum: the hue only through `.hued` and its roles; a view's
+   header is `PanelHeader`; tiles, washes and edges as the "Spectrum"
+   section above has them.
+6. Works at narrow widths (the app is used side by side with an editor).
+7. `npm --prefix frontend run check` passes; screenshots in `docs/`
    updated if the view is shown there.

@@ -179,7 +179,7 @@
                   <span class="loc" title={h.path}>{fileOf(h)}</span>
                   <Badge mono>:{h.range?.start.line ?? '?'}</Badge>
                 </span>
-                <pre class="value">{clip(h.value)}</pre>
+                <span class="value">{clip(h.value)}</span>
               </button>
               <span class="copy"><IconButton icon={Copy} tone="copy" size="sm" label="Copy value" onclick={() => copyText(h.value, 'Value')} /></span>
             </li>
@@ -395,6 +395,7 @@
     right: var(--s-1);
   }
   .value {
+    display: block;
     margin: 0;
     padding: var(--s-2) var(--s-3);
     font-family: var(--font-mono);

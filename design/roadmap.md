@@ -105,18 +105,8 @@ Open before T1: whether the three-colour bars of the canvas become the
 app icon too (favicon, PWA icons, the desktop exe and the docs), or
 stay the rail's brand mark only. Until answered, the rail only.
 
-**3.11.0: the system, the shell and the workspace** (`feature/mab/v3.11.0`)
-
-| Task | What |
-|---|---|
-| T1 | Colours and tokens: option 3 above in `tokens.css`; the canvas's roles (soft fill, wash, tool line) mapped onto the existing `--tint-*` system so Tool colours off keeps working; tab bar 40 px, status bar 28 px; `npm run contrast` passes; the design language's colour section |
-| T2 | Icons and the brand mark: the canvas's 87 icons mapped to Lucide (one stroke width everywhere), the codec mark in the rail, the eight-hue spectrum strip where the canvas uses it |
-| T3 | Shared parts to "Parts" and "Interaction states": tiles (soft and solid), buttons and the action tones, segmented controls, chips, badges, fields (with the invalid state and its line), toggles and checks, panes with a top line, cards with a hue edge, menus and context menus, toasts, tooltips, skeletons, the error note, the problem item, keys; hover, focus, pressed, disabled and drag for each |
-| T4 | Shell: the rail (brand and version, groups, pinned, counts such as Problems, collapsed to 48 px), the tab bar (overflow "+N" menu, the drop marker while dragging), the status bar (the focus ring and time, the folder and its watch state, "Local only", the version), the command palette (grouped results, hints, Ctrl+Enter opens in a new tab) |
-| T5 | Sizes, narrow and plain: Interface size to "Interface sizes" (today's tokens, checked); the narrow layouts (the file view's panel under the editor below 1000 px, JSON stacked, Compare); Tool colours off to its two boards |
-| T6 | Home: the search hero and the hue mosaic, Pinned, Opened lately, the workspace card with files by kind, the tool sections; first-run Home from the same parts |
-| T7 | Workspace views: the file view and explorer, Problems (by severity, by kind of check, the files with most problems), Settings, Compare, Query (results by file, a hint for what it found), New, Search (a preview of the file beside the results), Clone ("Save as…" is a download, nothing is written to the folder), the Markdown and Mermaid previews (Mermaid adds PNG, drawn in the page) |
-| T8 | Accessibility pass on the new parts, the design language rewritten for Spectrum, docs and screenshots; release |
+**3.11.0: the system, the shell and the workspace** is released (see
+[Done](#done)); its plan is in git history.
 
 **3.12.0: the views** (`feature/mab/v3.12.0`, from `main` after 3.11.0)
 
@@ -143,9 +133,7 @@ on the log chart; undo for closing a pasted log (it is released on the
 server at once); the trees in JSON, steps and fields on the tree
 pattern; Argo's and the pipeline view's own copies of the lens styles
 merged into the shared ones; a filter and a reset for lint rules in
-Settings; Base64, JWT and Smart paste as Send-to targets; the docs
-screenshots of Compare, Query and Problems (they need steps the
-capture script does not do, and Problems a lint run).
+Settings; Base64, JWT and Smart paste as Send-to targets.
 
 Ideas from the 3.10.1 review: what-if diff on a graph (nodes added,
 removed or skipped by a parameter); a run replayed over the Argo or
@@ -198,6 +186,7 @@ script or a Makefile target.
 
 | Version | Items |
 |---|---|
+| 3.11.0 | The interface redesign, Spectrum, first part (decision 106): livelier Dark and Light, each tool colour as a tile, a wash, a line and a soft fill, with words on it kept readable; one icon per thing with one stroke, the codec mark on the rail and the eight-colour strip; shared parts redrawn (tiles, segmented controls with counts, chips, fields, panes with a top line, cards with an edge, menus, toasts, tooltips); the rail with tiles, the version and the Problems count, tabs with a +N list and a drop line, a status bar led by the view, a palette with tiles and Ctrl+Enter for a fresh tab; narrow layouts and Tool colours off checked; Home with a search hero, Pinned, Opened lately and the folder's files by kind; the workspace views on washed headers (Problems summary, Query by file with a hint, Compare cards, New, Find in Files with Match N of M, Clone's Save as…, Markdown and Mermaid previews, Mermaid to PNG); an accessibility pass, the design language for Spectrum, new screenshots |
 | 3.10.3 | Mermaid diagrams: `.mmd` and `.mermaid` files and ```` ```mermaid ```` blocks in a Markdown preview, drawn by the bundled Mermaid at its strict security level with its SVG cleaned again, redrawn on edits and theme changes; the Markdown preview in colour (headings, lists, quotes, code, tables, task boxes) with GitHub alerts as callouts; a file tab's effect loop fixed; CI downloads Go modules with retries |
 | 3.10.2 | The interface refresh, second part (decision 105): Esc scoped to the main input and Undo after every clear and delete; each view's actions in the palette; a file toolbar with one main action and a menu, explorer marks and menus per kind; graphs with keyboard, minimap, stage lanes, a kept view and status glyphs; lens views whose sections fold, with Problems first, a What-if reset and Try again; a log chart with a range window and a floor for rare errors, options that fold away; a diff with signs, a coloured unified view and gaps in steps; Send to between tools, a copy per value in JWT and URL, Regex and Commands on the shared frame; themes as a swatch grid, a Wellness section in Settings, breaks as a real dialog; unique field ids |
 | 3.10.1 | The interface refresh, first part (decision 105): each tool and action in its own colour in every theme, with a Tool colours setting; text that grows with Interface size Large, tabular figures, rounder shapes; one look for fields, errors (with Try again), chips, view headers and the output pane, no spinners; panes you can size everywhere (lens views, Helm, Compare, the Source drawer; input over output per tool); pinned and recent tools on the rail and Home, Home's search, tabs that overflow, move and have a menu and shortcuts, a palette that remembers and lists every setting; fixes to graphs, the Helm panel, fold arrows and the log list |

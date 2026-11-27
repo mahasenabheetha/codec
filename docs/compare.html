@@ -102,7 +102,7 @@ spec.template.spec.containers[*].image</code></pre>
 
 <h2 id="query">Query<a class="anchor" href="#query">#</a></h2>
 <figure>
-  <img src="images/query.png" alt="Query view: .spec.template.spec.containers[].image over the workspace, three results with file, line and path" width="1400" height="820" loading="lazy">
+  <img src="images/query.png" alt="Query view: .spec.template.spec.containers[].image over the workspace, three results with file and line, the results by file, and a hint that one image has no fixed tag" width="1400" height="820" loading="lazy">
   <figcaption>Every container image in the sample, with the file, line and path of each.</figcaption>
 </figure>
 <p>Query runs <a href="https://jqlang.github.io/jq/manual/">jq</a> expressions (through gojq, a pure-Go jq) where each YAML document is one input. Choose the scope — the whole <strong>workspace</strong>, the current <strong>file</strong>, or a <strong>Helm render</strong> with a profile — press <kbd>Enter</kbd>, and click any result to open the file at that line. Example expressions are one click away:</p>

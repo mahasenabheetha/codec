@@ -3,12 +3,14 @@
   import { hueVar, viewHue, viewIcon, type Hue } from '../../lib/tools'
   import type { Component } from 'svelte'
   import Check from '@lucide/svelte/icons/check'
+  import CircleX from '@lucide/svelte/icons/circle-x'
   import Copy from '@lucide/svelte/icons/copy'
   import Download from '@lucide/svelte/icons/download'
   import Plus from '@lucide/svelte/icons/plus'
   import FolderCog from '@lucide/svelte/icons/folder-cog'
   import Package from '@lucide/svelte/icons/package'
   import RotateCcw from '@lucide/svelte/icons/rotate-ccw'
+  import TriangleAlert from '@lucide/svelte/icons/triangle-alert'
   import { untrack } from 'svelte'
   import Badge from '../../lib/components/Badge.svelte'
   import Button from '../../lib/components/Button.svelte'
@@ -241,11 +243,16 @@
           <div class="pane-title">Fill in</div>
           <form onsubmit={(e) => e.preventDefault()}>
             {#each s.fields.filter(visible) as f (f.name)}
-              <div class="field" class:invalid={nf.fieldErrors[f.name]}>
+              <div class="field">
                 {#if f.type === 'bool'}
                   <Toggle checked={nf.form[f.name] === 'true'} label={f.label} onchange={(on) => nf.set(f.name, on ? 'true' : 'false')} />
                 {:else}
-                  <label for="{uid}-field-{f.name}">{f.label}{#if f.optional}<span class="muted">{' · optional'}</span>{/if}</label>
+                  <!-- A choice names itself (its control's label); a text field is named by this. -->
+                  {#if f.type === 'choice'}
+                    <span class="label">{f.label}{#if f.optional}<span class="muted">{' · optional'}</span>{/if}</span>
+                  {:else}
+                    <label class="label" for="{uid}-field-{f.name}">{f.label}{#if f.optional}<span class="muted">{' · optional'}</span>{/if}</label>
+                  {/if}
                   {#if f.type === 'choice' && (f.choices?.length ?? 0) <= 4}
                     <SegmentedControl soft options={(f.choices ?? []).map((c) => ({ value: c, label: c }))} value={nf.form[f.name] ?? ''} label={f.label} onchange={(v) => nf.set(f.name, v)} />
                   {:else if f.type === 'choice'}
@@ -257,11 +264,13 @@
                       spellcheck="false"
                       value={nf.form[f.name] ?? ''}
                       placeholder={f.default}
+                      aria-invalid={nf.fieldErrors[f.name] ? 'true' : undefined}
+                      aria-describedby={nf.fieldErrors[f.name] || f.help ? `${uid}-note-${f.name}` : undefined}
                       oninput={(e) => nf.set(f.name, e.currentTarget.value)}
                     />
                   {/if}
                 {/if}
-                {#if nf.fieldErrors[f.name]}<small class="error">{nf.fieldErrors[f.name]}</small>{:else if f.help}<small class="muted">{f.help}</small>{/if}
+                {#if nf.fieldErrors[f.name]}<small id="{uid}-note-{f.name}" class="error">{nf.fieldErrors[f.name]}</small>{:else if f.help}<small id="{uid}-note-{f.name}" class="muted">{f.help}</small>{/if}
               </div>
             {/each}
           </form>
@@ -270,19 +279,21 @@
         <section class="preview">
           {#if nf.renderError}<ErrorNote message={nf.renderError} />{/if}
           {#if nf.files.length}
-            <div class="files" role="tablist" aria-label="Generated files">
+            {#snippet found(c: { errors: number; warnings: number })}
+              {#if c.errors}<Badge tone="err" icon={CircleX}>{c.errors}<span class="sr-only"> {c.errors === 1 ? 'error' : 'errors'}</span></Badge>
+              {:else if c.warnings}<Badge tone="warn" icon={TriangleAlert}>{c.warnings}<span class="sr-only"> {c.warnings === 1 ? 'warning' : 'warnings'}</span></Badge>{/if}
+            {/snippet}
+            <div class="files" role="group" aria-label="Generated files">
               {#each nf.files as f, i (f.path)}
-                {@const c = nf.counts(f.path)}
-                <Chip mono role="tab" aria-selected={nf.active === i} selected={nf.active === i} onclick={() => (nf.active = i)} title={f.path}>
+                <Chip mono aria-current={nf.active === i ? 'true' : undefined} selected={nf.active === i} onclick={() => (nf.active = i)} title={f.path}>
                   {f.path}
-                  {#if c.errors}<Badge tone="err">{c.errors}</Badge>{:else if c.warnings}<Badge tone="warn">{c.warnings}</Badge>{/if}
+                  {@render found(nf.counts(f.path))}
                 </Chip>
               {/each}
               {#if chart}
-                {@const c = sev(chart.diagnostics)}
-                <Chip role="tab" aria-selected={nf.active === -1} selected={nf.active === -1} onclick={() => (nf.active = -1)} title="helm template output">
+                <Chip aria-current={nf.active === -1 ? 'true' : undefined} selected={nf.active === -1} onclick={() => (nf.active = -1)} title="helm template output">
                   <Package size={13} /> Rendered
-                  {#if c.errors}<Badge tone="err">{c.errors}</Badge>{:else if c.warnings}<Badge tone="warn">{c.warnings}</Badge>{/if}
+                  {@render found(sev(chart.diagnostics))}
                 </Chip>
               {/if}
               <span class="note">
@@ -487,29 +498,15 @@
   .field > :global(*) {
     max-width: 100%;
   }
-  label {
+  .label {
     font-size: var(--fs-sm);
     font-weight: var(--fw-medium);
     color: var(--fg-1);
   }
   input {
     align-self: stretch;
-    height: var(--control-h);
-    padding: 0 var(--s-3);
     font-family: var(--font-mono);
     font-size: var(--fs-sm);
-    color: var(--fg-0);
-    background: var(--bg-0);
-    border: 1px solid var(--border-strong);
-    border-radius: var(--r-md);
-  }
-  input:focus {
-    outline: none;
-    border-color: var(--tool-accent);
-    box-shadow: 0 0 0 1px var(--tool-accent);
-  }
-  .invalid input {
-    border-color: var(--err);
   }
   small {
     font-size: var(--fs-xs);

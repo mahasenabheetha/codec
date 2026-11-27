@@ -1,5 +1,7 @@
 <script lang="ts" generics="T extends string">
   import type { Component } from 'svelte'
+  import CircleX from '@lucide/svelte/icons/circle-x'
+  import TriangleAlert from '@lucide/svelte/icons/triangle-alert'
 
   // Mutually exclusive choice rendered as a pill group (radio semantics).
   interface Option {
@@ -58,7 +60,13 @@
     >
       {#if opt.icon}<opt.icon size={14} />{/if}
       {opt.label}
-      {#if opt.count !== undefined}<span class="count {opt.countTone ?? 'neutral'}">{opt.count}</span>{/if}
+      {#if opt.count !== undefined}
+        <!-- The worst of what it counts, by its icon too, not by colour alone. -->
+        <span class="count {opt.countTone ?? 'neutral'}">
+          {#if opt.countTone === 'err'}<CircleX size={10} />{:else if opt.countTone === 'warn'}<TriangleAlert size={10} />{/if}{opt.count}
+          {#if opt.countTone === 'err'}<span class="sr-only">, errors among them</span>{:else if opt.countTone === 'warn'}<span class="sr-only">, warnings</span>{/if}
+        </span>
+      {/if}
     </button>
   {/each}
 </div>
@@ -105,6 +113,10 @@
     background: var(--tool-accent-soft, var(--accent-soft));
   }
   .count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
     min-width: 16px;
     padding: 0 var(--s-1);
     font-size: var(--fs-xs);

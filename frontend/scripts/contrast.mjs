@@ -86,6 +86,8 @@ for (const theme of Object.keys(themes)) {
     check(theme, fg, '--bg-2', 4.5)
     check(theme, fg, fg + '-soft', 4.5)
   }
+  // On a card or a panel too (Problems' summary, 3.11.0).
+  for (const fg of ['--accent', ...status]) check(theme, fg, '--bg-1', 4.5)
   check(theme, '--accent-fg', '--accent', 4.5)
   // A solid status mark (a toast's tile, a solid badge): its text on the colour.
   for (const s of status) check(theme, '--accent-fg', s, 4.5)
@@ -151,6 +153,37 @@ for (const theme of Object.keys(themes)) {
   const titles = { note: '--info', tip: '--ok', important: '--hue-violet', warning: '--warn', caution: '--err' }
   for (const [kind, fg] of Object.entries(titles)) check(theme, fg, `--md-${kind}-bg`, min)
   check(theme, '--accent', '--md-quote-bg', min)
+}
+
+// Spectrum's grounds (3.11.0), worked out per hue in global.css's .hued:
+// a view's header and a selected card are washed with the tool's colour
+// (--wash of it on --bg-1), and a chip, choice or badge that is on sits
+// on its soft fill (--soft of it, over a panel or the page). The text
+// on each, and the hue's ink (--ink of it, the rest the text colour: an
+// accent badge's words) on its soft fill; 7:1 in High contrast. With
+// Tool colours off they are --bg-1 and --accent-soft, checked above.
+function pair(theme, fg, fgName, bg, bgName, min) {
+  const r = ratio(over(fg, bg), bg)
+  if (r < min) {
+    failed++
+    console.log(`${theme}: ${fgName} on ${bgName} is ${r.toFixed(2)}:1, wants ≥ ${min}`)
+  }
+}
+const mixed = (a, b, k) => a.map((c, i) => (i < 3 ? c * k + b[i] * (1 - k) : 1))
+for (const theme of Object.keys(themes)) {
+  const t = themes[theme]
+  const min = theme === 'contrast' ? 7 : 4.5
+  const share = (name) => parseFloat(t[name]) / 100
+  for (const h of hues) {
+    const hue = color(t, h)
+    const wash = mixed(hue, color(t, '--bg-1'), share('--wash'))
+    for (const fg of ['--fg-0', '--fg-1', '--fg-2', h]) pair(theme, color(t, fg), fg, wash, `${h} wash`, min)
+    for (const ground of ['--bg-1', '--bg-2']) {
+      const soft = over([...hue.slice(0, 3), share('--soft')], color(t, ground))
+      for (const fg of ['--fg-0', '--fg-1']) pair(theme, color(t, fg), fg, soft, `${h} soft on ${ground}`, min)
+      pair(theme, mixed(hue, color(t, '--fg-0'), share('--ink')), `${h} ink`, soft, `${h} soft on ${ground}`, min)
+    }
+  }
 }
 
 console.log(failed ? `${failed} pair(s) fail` : `All contrast pairs pass in ${Object.keys(themes).join(', ')}.`)

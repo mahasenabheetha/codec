@@ -236,7 +236,7 @@
             {@render glyph(t)}
             {t.title}
             {#if t.hint}<span class="hint">{t.hint}</span>{/if}
-            {#if t.file && workspace.dirty.has(t.file)}<span class="dirty" title="What-if edits (not saved)"></span>{/if}
+            {#if t.file && workspace.dirty.has(t.file)}<span class="dirty" title="What-if edits (not saved)"></span><span class="sr-only">, what-if edits</span>{/if}
           </button>
           <button type="button" class="close" aria-label="Close {t.title}" onclick={() => layout.close(route)}>
             <X size={12} />
@@ -263,6 +263,7 @@
               <button
                 type="button"
                 class="pick"
+                aria-current={router.path === route ? 'page' : undefined}
                 onclick={() => {
                   listOpen = false
                   router.go(route)

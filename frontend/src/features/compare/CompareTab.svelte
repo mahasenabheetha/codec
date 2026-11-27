@@ -270,7 +270,7 @@
             {#each g.items as { c, i } (i)}
               <div class="change {c.kind}" class:selected={cmp.selected === i}>
                 <button type="button" class="pick" onclick={() => select(i)}>
-                  <span class="sym">{symbols[c.kind]}</span>
+                  <span class="sym" aria-hidden="true">{symbols[c.kind]}</span><span class="sr-only">{c.kind}</span>
                   <span class="text">
                     <span class="path">{c.path || '(whole document)'}</span>
                     {#if c.kind === 'changed' && !(c.old ?? '').includes('\n') && !(c.new ?? '').includes('\n')}

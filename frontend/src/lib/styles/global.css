@@ -214,6 +214,9 @@ p {
      plain panel and the line the accent's. */
   --tool-wash: color-mix(in oklab, color-mix(in srgb, var(--tool) var(--wash), var(--bg-1)) var(--tint-tool), var(--bg-1));
   --tool-line: color-mix(in srgb, var(--tool-accent) 45%, var(--border));
+  /* Words in the tool's colour on its soft fill (an accent badge): the
+     hue taken toward the text colour where the theme needs it (--ink). */
+  --tool-ink: color-mix(in srgb, var(--tool-accent) var(--ink), var(--fg-0));
 }
 
 /* A view header's dots (PanelHeader, the file view's header): in the

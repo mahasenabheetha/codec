@@ -33,6 +33,8 @@
   // The hero's mosaic: eight tools in the eight hues, there to look at.
   const mosaic = ['base64', 'smart', 'encode', 'jwt', 'json', 'logs', 'network', 'time'].map(toolById).filter((t): t is ToolDef => !!t)
 
+  const uid = $props.id()
+
   // Find a tool by its name, what it does or a keyword.
   let query = $state('')
   const all = tools.flatMap(toolEntries)
@@ -157,11 +159,11 @@
 
 <div class="home">
   <div class="inner" class:narrow={narrow.current}>
-    <section class="hero" aria-labelledby="home-title">
+    <section class="hero" aria-labelledby="{uid}-home">
       <div class="intro">
         <div class="brand">
           <BrandMark size={44} />
-          <h1 id="home-title">codec</h1>
+          <h1 id="{uid}-home">codec</h1>
         </div>
         <p class="tagline">A read-only workbench for your YAML, and tools for the text you handle all day.</p>
         <SearchInput large bind:value={query} placeholder="Find a tool: base64, cron, diff, password…" label="Find a tool">
@@ -195,10 +197,10 @@
     {:else}
       <div class="row">
         {#if !bare}
-          <section class="col" aria-labelledby="pinned-title">
+          <section class="col" aria-labelledby="{uid}-pinned">
             <div class="head">
               <span class="mark warn"><Star size={14} fill="currentColor" /></span>
-              <h2 id="pinned-title">Pinned</h2>
+              <h2 id="{uid}-pinned">Pinned</h2>
             </div>
             {#each pinned as e (e.key)}
               <Card hue class="tool pinned hued" style="--tool: {hueVar(e.hue)}">
@@ -216,10 +218,10 @@
             {/each}
           </section>
 
-          <section class="col" aria-labelledby="lately-title">
+          <section class="col" aria-labelledby="{uid}-lately">
             <div class="head">
               <span class="mark"><Clock size={14} /></span>
-              <h2 id="lately-title">Opened lately</h2>
+              <h2 id="{uid}-lately">Opened lately</h2>
             </div>
             <Card class="list">
               {#each lately as r (r.key)}
@@ -235,10 +237,10 @@
           </section>
         {/if}
 
-        <section class="col folder hued" class:wide={bare} style:--tool={hueVar(viewHue.explorer)} aria-labelledby="folder-title">
+        <section class="col folder hued" class:wide={bare} style:--tool={hueVar(viewHue.explorer)} aria-labelledby="{uid}-folder">
           <div class="head">
             <span class="mark tool"><viewIcon.explorer size={14} /></span>
-            <h2 id="folder-title">{firstRun ? 'Get started' : 'Workspace'}</h2>
+            <h2 id="{uid}-folder">{firstRun ? 'Get started' : 'Workspace'}</h2>
           </div>
           {#if firstRun}
             <div class="steps">

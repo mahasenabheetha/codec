@@ -63,7 +63,7 @@
 <main>
 <article class="content">
 <h1>Design language</h1>
-<p class="lead">codec looks and behaves like a professional developer tool — calm, dense and precise, closer to Linear or VS Code than to a marketing site. This page describes the rules every screen follows. The same rules, with implementation detail, are in <code>design/design-language.md</code> for contributors and agents.</p>
+<p class="lead">codec looks and behaves like a professional developer tool — calm, dense and precise, closer to Linear or VS Code than to a marketing site. Its look, since 3.11.0, is called Spectrum: every tool and view has a colour of its own, and that colour marks what belongs to it. This page describes the rules every screen follows. The same rules, with implementation detail, are in <code>design/design-language.md</code> for contributors and agents.</p>
 
 <h2 id="principles">Principles<a class="anchor" href="#principles">#</a></h2>
 <div class="table-wrap"><table>
@@ -76,8 +76,30 @@
   <tr><td>Honest</td><td>What codec can't know (run-time values, remote files) is shown as such, never guessed.</td></tr>
 </table></div>
 
+<h2 id="spectrum">Spectrum<a class="anchor" href="#spectrum">#</a></h2>
+<p>Eight colours, one for each tool and view. No two tools in a group of the rail share one, and none is a status colour.</p>
+<div class="swatches">
+  <div class="swatch"><span style="background:#8f9dff"></span><div>indigo</div></div>
+  <div class="swatch"><span style="background:#b794ff"></span><div>violet</div></div>
+  <div class="swatch"><span style="background:#e391f2"></span><div>orchid</div></div>
+  <div class="swatch"><span style="background:#ff8fc8"></span><div>pink</div></div>
+  <div class="swatch"><span style="background:#ffa877"></span><div>peach</div></div>
+  <div class="swatch"><span style="background:#b4e06a"></span><div>lime</div></div>
+  <div class="swatch"><span style="background:#4fdcc2"></span><div>teal</div></div>
+  <div class="swatch"><span style="background:#5cc6ff"></span><div>cyan</div></div>
+</div>
+<p>A tool's colour shows the same way everywhere:</p>
+<ul>
+  <li><strong>A tile:</strong> its icon on a rounded square in its colour, soft in lists (the rail, the palette, Home, the sections of Settings) and filled for the one that is open.</li>
+  <li><strong>A washed header:</strong> a view's header is tinted with its colour and dotted towards the right, with its tile, its name and what is known under it.</li>
+  <li><strong>A line or an edge:</strong> along the top of a tool's panes and the current tab, and around a highlighted card.</li>
+  <li><strong>A fill for what is on:</strong> the selected chip, choice, row or rail entry; the main button of a view; the keyboard focus ring.</li>
+  <li><strong>The mark and the strip:</strong> the codec mark, three bars in tool colours, sits in the rail; the eight colours in a row run along the top of the command palette and Go to file, and under each theme in Settings.</li>
+</ul>
+<p>Text stays in the text colours on all of these; words in a tool's colour are kept for small labels. With <em>Settings → Tool colours</em> off, every tool takes the theme's accent, tiles turn grey and the tints go.</p>
+
 <h2 id="colour">Colour<a class="anchor" href="#colour">#</a></h2>
-<p>codec is dark by default, with more themes in Settings: <strong>Dusk</strong>, a softer, colourful dark theme for long days (a muted blue-violet ground, off-white text at about 10:1 instead of 16:1, pastel colours, each tool and kind of action in its own colour); <strong>Midnight</strong>, <strong>Forest</strong>, <strong>Rosé</strong> and <strong>Ocean</strong>, the same colours on deep navy, green-grey, pink-violet and deep blue grounds; <strong>High contrast</strong>, black and white with every text at least 7:1; <strong>Light</strong>; and <strong>Paper</strong>, a warm, low-glare light theme in which the tools keep their colours. System follows the operating system, using the light and the dark theme you choose for it. Depth comes from stepping surfaces, not from shadows; the one soft shadow is kept for popovers and dialogs. Every colour is a named token; components never use raw colours.</p>
+<p>codec is dark by default, with more themes in Settings: <strong>Dusk</strong>, a softer, colourful dark theme for long days (a muted blue-violet ground, off-white text at about 10:1 instead of 16:1, pastel colours, each tool and kind of action in its own colour); <strong>Midnight</strong>, <strong>Forest</strong>, <strong>Rosé</strong> and <strong>Ocean</strong>, the same colours on deep navy, green-grey, pink-violet and deep blue grounds; <strong>High contrast</strong>, black and white with every text at least 7:1; <strong>Light</strong>; <strong>Paper</strong>, a warm, low-glare light theme; and <strong>Mist</strong>, Light dimmed to grey. Tools keep their colours in every theme. System follows the operating system, using the light and the dark theme you choose for it. Depth comes from stepping surfaces, not from shadows; the one soft shadow is kept for popovers and dialogs. Every colour is a named token; components never use raw colours.</p>
 <p><strong>Colour has three jobs, kept apart.</strong> Each tool has its own colour (eight of them: indigo, violet, orchid, pink, peach, lime, teal, cyan), shown on the rail, its tab, its Home card and its page, in every theme; each kind of action has a tone (copy, clear, save, swap, open, add, run); and the status colours below are used by no tool, so a colour never suggests a problem that isn't there. <em>Settings → Tool colours</em> turns the first two off, and everything takes the theme's accent.</p>
 <h3 id="surfaces">Surfaces and text<a class="anchor" href="#surfaces">#</a></h3>
 <div class="swatches">
@@ -117,7 +139,7 @@
   <li><strong>UI:</strong> Inter, 13 px with 1.5 line height; 11 and 12 px for small text; 14, 16, 20 and 28 px for headings. Interface size Large makes each a step bigger. Figures keep one width, so counts and times don't shift as they change.</li>
   <li><strong>Code:</strong> JetBrains Mono, 13 px with 1.55 line height, for code, paths and values, never for sentences. Both fonts are bundled; nothing loads from the internet.</li>
   <li><strong>Spacing:</strong> a 4 px scale (4, 8, 12, 16, 20, 24, 32, 48).</li>
-  <li><strong>Radius:</strong> 4 px for inputs, 8 px for buttons, 12 px for panels and cards, 16 px for dialogs.</li>
+  <li><strong>Radius:</strong> 4 px for small marks (badges, checkboxes), 8 px for buttons and fields, 12 px for panels, cards and menus, 16 px for dialogs, and fully round for chips.</li>
   <li><strong>Controls:</strong> 28, 32 or 36 px tall for Compact, Comfortable (the default) and Large.</li>
   <li><strong>Motion:</strong> 80 ms for hovers, 120 ms for most changes, 240 ms for things that move across the screen, and none at all when the system asks for reduced motion.</li>
 </ul>
@@ -144,7 +166,7 @@
 <p><strong>The shell is built around what you use.</strong> The rail lists Home, your pinned tools, the workspace views and every tool by group. Tabs that don't fit scroll, and +N at the end lists the ones out of sight; drag one to move it, right-click it to close it, the others or all. Home finds a tool by name or by what it does, and shows the pinned ones, what was opened lately (tools and files, newest first) and the open folder's files by kind first. The palette (<kbd>Ctrl</kbd> <kbd>K</kbd>) lists every action, tool and setting, the ones run last first.</p>
 
 <h2 id="components">Components<a class="anchor" href="#components">#</a></h2>
-<p>Every screen is built from one shared set: buttons (primary, secondary, ghost), icon buttons with tooltips, tabs, segmented controls, selects, toggles, text fields with one frame and one focus ring, chips (presets and toggles), search inputs, split panes, a view header, the tree (keyboard navigable, windowed for long lists), the code view (CodeMirror), the graph (automatic layout, pan and zoom, hover highlights neighbours), popovers, context menus, dialogs, toasts (with an optional Undo), badges with file-type logos, empty states and skeletons.</p>
+<p>Every screen is built from one shared set: buttons (primary, secondary, ghost), icon buttons with tooltips, tabs, segmented controls, selects, toggles, text fields with one frame and one focus ring, chips (presets and toggles), search inputs, split panes, a view header, the tree (keyboard navigable, windowed for long lists), the code view (CodeMirror), the graph (automatic layout, pan and zoom, hover highlights neighbours), popovers, context menus, dialogs, toasts (with an optional Undo), badges with file-type logos, tiles, cards with a coloured edge, empty states and skeletons.</p>
 <ul>
   <li><strong>Icons:</strong> Lucide, 16 px, one 1.9 stroke for all, in the current text colour; one icon per meaning wherever it shows.</li>
   <li><strong>Logos:</strong> the official marks of Kubernetes, Helm, Argo, GitHub Actions, GitLab, Azure Pipelines, Ansible and Docker, used only to label file types, in brand colours adjusted for contrast in each theme.</li>
@@ -161,8 +183,9 @@
 
 <h2 id="a11y">Accessibility<a class="anchor" href="#a11y">#</a></h2>
 <ul>
-  <li>Text meets 4.5:1 contrast on its surface (muted text included, on every surface but pressed states).</li>
-  <li>A 2 px accent focus ring on keyboard focus, never removed without a visible replacement; a text field shows its border colour and a ring.</li>
+  <li>Text meets 4.5:1 contrast on its surface (muted text included, on every surface but pressed states), and on every tool colour's tint and fill, in every theme; 7:1 in High contrast.</li>
+  <li>A 2 px focus ring on keyboard focus, in the tool's colour, never removed without a visible replacement; a text field shows its border colour and a ring.</li>
+  <li>Severity is never colour alone: a count of errors or warnings has the matching icon, and a screen reader hears the word.</li>
   <li>Dividers between panes are focusable and move with the arrow keys.</li>
   <li>Every control has an accessible name; icon-only buttons have labels and tooltips.</li>
   <li>Trees, lists, tabs and radio groups follow the WAI-ARIA patterns for keyboard use.</li>

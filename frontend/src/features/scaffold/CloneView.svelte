@@ -305,22 +305,11 @@
   }
   .control input {
     width: 220px;
-    height: var(--control-h);
-    padding: 0 var(--s-3);
     font-family: var(--font-mono);
     font-size: var(--fs-sm);
-    color: var(--fg-0);
-    background: var(--bg-0);
-    border: 1px solid var(--border-strong);
-    border-radius: var(--r-md);
   }
   .control input.new-name {
     width: 260px;
-  }
-  .control input:focus {
-    outline: none;
-    border-color: var(--tool-accent);
-    box-shadow: 0 0 0 1px var(--tool-accent);
   }
   .tally {
     display: flex;

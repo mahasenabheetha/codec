@@ -222,9 +222,12 @@
   --z-toast: 70;
 
   /* Spectrum (3.11.0): a soft fill and a tinted ground in the tool's
-     colour, as much of it as this theme shows. */
+     colour, as much of it as this theme shows; and how much of the hue
+     words on its soft fill keep (the rest is the text colour), so they
+     stay readable. */
   --soft: 16%;
   --wash: 7%;
+  --ink: 100%;
 }
 
 /*
@@ -344,6 +347,7 @@
      colour, as much of it as this theme shows. */
   --soft: 12%;
   --wash: 5%;
+  --ink: 80%;
 }
 
 :root[data-theme='dusk'],
@@ -643,6 +647,7 @@
      colour, as much of it as this theme shows. */
   --soft: 12%;
   --wash: 6%;
+  --ink: 80%;
 }
 
 /* Mist (3.10.0): a light theme dimmed, for long days: grey grounds well
@@ -725,7 +730,7 @@
   /* Spectrum (3.11.0): a soft fill and a tinted ground in the tool's
      colour, as much of it as this theme shows. */
   --soft: 14%;
-  --wash: 7%;
+  --wash: 6%;
 }
 
 /* High contrast (3.10.0): black, white and bright colours, every text at
@@ -807,6 +812,7 @@
      colour, as much of it as this theme shows. */
   --soft: 22%;
   --wash: 10%;
+  --ink: 85%;
 }
 
 /* Settings → Tool colours off: every tool in the accent (its fills, lines

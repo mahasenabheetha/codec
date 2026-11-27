@@ -6,7 +6,11 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
-The interface redesign, Spectrum, first part (decision 106).
+## [3.11.0] - 2026-11-27
+
+The interface redesign, Spectrum, first part (decision 106): the
+colours, the shared parts, the shell, Home and the workspace views.
+Frontend only; nothing about what codec reads or computes changes.
 
 ### Added
 
@@ -147,6 +151,24 @@ The interface redesign, Spectrum, first part (decision 106).
   bottom right, with the kind of diagram and the zoom level at the
   bottom left; **Copy SVG** is in the header, and the header names the
   kind of diagram. A diagram that doesn't parse says so at the top.
+- **Light themes.** Words in a tool's colour on its tinted fill (a badge,
+  the outline's document entry) lean towards the text colour in Light,
+  Paper, Mist and High contrast, so they are easy to read. Mist's tinted
+  grounds are a touch lighter.
+- **Docs.** New screenshots of Home, the editor, Problems, Query,
+  Compare, New, Clone, Settings and the command palette, and a Spectrum
+  section on the design page. The contrast check now covers text on
+  every tool colour's tinted grounds, in every theme.
+
+### Fixed
+
+- **Screen readers and colour.** A count in a switch (Problems' kinds of
+  check) and New's count per file show an icon for errors or warnings,
+  not only a colour, and say what they count. A tab with what-if edits
+  says so, and the **+N** list marks the tab that is open. Compare's
+  change marks are read as added, removed or changed. New's fields are
+  named by their labels and say which one has an error; its files are a
+  row of buttons, no longer announced as tabs.
 
 ## [3.10.3] - 2026-11-20
 

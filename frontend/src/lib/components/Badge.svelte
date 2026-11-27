@@ -44,7 +44,7 @@
     background: var(--bg-3);
   }
   .accent {
-    color: var(--tool-accent, var(--accent));
+    color: var(--tool-ink, var(--accent));
     background: var(--tool-accent-soft, var(--accent-soft));
   }
   .ok {
