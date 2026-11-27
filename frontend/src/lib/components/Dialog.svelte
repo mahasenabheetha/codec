@@ -53,8 +53,8 @@
     max-height: 72vh;
     display: flex;
     flex-direction: column;
-    background: var(--bg-1);
-    border-radius: var(--r-lg);
+    background: var(--bg-2);
+    border-radius: var(--r-xl);
     box-shadow: var(--shadow-pop);
     animation: dialog-in 160ms var(--ease);
   }

@@ -31,6 +31,17 @@ class Lint {
   error = $state<string | null>(null)
   private inflight: AbortController | null = null
 
+  /** What the last workspace lint found, by severity; all 0 before one has run. */
+  totals = $derived.by(() => {
+    const t = { error: 0, warning: 0, info: 0 }
+    for (const f of this.results ?? []) for (const d of f.diagnostics) t[d.severity]++
+    return t
+  })
+  /** Its errors and warnings, as the Problems view lists them by default. */
+  get found(): number {
+    return this.totals.error + this.totals.warning
+  }
+
   async load() {
     try {
       const r = await getLintSettings()

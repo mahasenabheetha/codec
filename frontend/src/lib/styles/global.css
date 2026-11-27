@@ -298,8 +298,8 @@ svg.lucide-icon[width='28'] {
   transform: translateX(-50%);
   z-index: var(--z-dialog);
   width: min(640px, calc(100vw - 32px));
-  background: var(--bg-1);
-  border-radius: var(--r-lg);
+  background: var(--bg-2);
+  border-radius: var(--r-xl);
   box-shadow: var(--shadow-pop);
   overflow: hidden;
   animation: palette-in 140ms var(--ease);
@@ -312,10 +312,13 @@ svg.lucide-icon[width='28'] {
   color: var(--fg-2);
   border-bottom: 1px solid var(--border);
 }
+.codec-palette-search > .lucide-icon {
+  color: var(--accent);
+}
 .codec-palette-input {
   flex: 1;
-  height: 48px;
-  font-size: var(--fs-lg);
+  height: calc(var(--control-h) + var(--s-6));
+  font-size: var(--fs-xl);
   color: var(--fg-0);
   background: none;
   border: none;
@@ -331,7 +334,7 @@ svg.lucide-icon[width='28'] {
   padding: var(--s-2);
 }
 .codec-palette-heading {
-  padding: var(--s-2) var(--s-2) var(--s-1);
+  padding: var(--s-3) var(--s-2) var(--s-1);
   font-size: var(--fs-xs);
   font-weight: var(--fw-semibold);
   color: var(--fg-2);
@@ -349,13 +352,27 @@ svg.lucide-icon[width='28'] {
   border-radius: var(--r-md);
   cursor: pointer;
 }
+.codec-palette-item + .codec-palette-item {
+  margin-top: 2px;
+}
+/* The highlighted row in its colour (a tile row's tool or view), as
+   much of it as the theme shows (--tint-fill). */
 .codec-palette-item[data-selected] {
   color: var(--fg-0);
-  background: var(--bg-3);
+  background: color-mix(in oklab, var(--tool-accent-soft, var(--accent-soft)) var(--tint-fill), var(--bg-3));
+}
+/* The command palette's rows: a tile, the title and a hint under it. */
+.codec-palette-item.tiled {
+  height: auto;
+  min-height: calc(var(--control-h) + var(--s-3));
+  padding: var(--s-1) var(--s-2);
 }
 .codec-palette-item .title {
   flex: 1;
   min-width: 0;
+}
+.codec-palette-item.tiled[data-selected] .title {
+  font-weight: var(--fw-semibold);
 }
 .codec-palette-empty {
   padding: var(--s-6);

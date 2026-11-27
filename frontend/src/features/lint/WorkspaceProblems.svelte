@@ -67,11 +67,7 @@
     }
     return out
   })
-  const totals = $derived.by(() => {
-    const t = { error: 0, warning: 0, info: 0 }
-    for (const f of lint.results ?? []) for (const d of f.diagnostics) t[d.severity]++
-    return t
-  })
+  const totals = $derived(lint.totals)
   const groupItems = $derived([
     { value: 'all', label: 'All' },
     { value: 'syntax', label: 'Syntax' },

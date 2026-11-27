@@ -25,7 +25,7 @@ and a shell built around what you use most.
 
 | Group | Tokens |
 |---|---|
-| Surfaces | `--bg-0 #0c0e14` app/rail · `--bg-1 #11141c` panels · `--bg-2 #171b25` editor/cards · `--bg-3 #1f2431` hover/inputs · `--bg-4 #282e3d` pressed |
+| Surfaces | `--bg-0 #0c0e14` app/rail · `--bg-1 #11141c` panels · `--bg-2 #171b25` editor/cards/dialogs · `--bg-3 #1f2431` hover/inputs · `--bg-4 #282e3d` pressed |
 | Borders | `--border #262c3a` · `--border-strong #363e52` |
 | Text | `--fg-0 #eceef4` primary · `--fg-1 #b0b7c6` secondary · `--fg-2 #8b94a7` muted (≥ 4.5:1 on bg-0…bg-3) |
 | Accent | `--accent #7c9cff` · `--accent-hover` · `--accent-soft` (14%) · `--accent-fg` text on solid accent |
@@ -111,8 +111,9 @@ value in each theme block (Dusk may inherit Dark's).
 
 **Colour roles** (decision 94). Colour has three jobs, kept apart:
 
-- **Tool hue.** Each tool and workspace view has one (`hue` in
-  `lib/tools.ts`, `viewHue` for the rail's views), from `--hue-indigo`,
+- **Tool hue.** Each tool and view has one (`hue` in `lib/tools.ts`;
+  `viewHue` for the rail's workspace views and the lens views, a file
+  taking the Explorer's), from `--hue-indigo`,
   `-violet`, `-orchid`, `-pink`, `-peach`, `-lime`, `-teal`, `-cyan`
   (eight; no two tools in one group of the rail share one, and none
   sits on a status colour: a blue or a green was left out for that). What belongs to
@@ -130,7 +131,7 @@ value in each theme block (Dusk may inherit Dark's).
 
 How much of the first two a theme shows is `--tint-tool` and
 `--tint-action`, and `--tint-fill` for fills the shell draws in the
-tool's colour (the selected rail entry, the current tab, a work tab's
+tool's colour (the selected rail entry and palette row, a work tab's
 top line). Since 3.10.1 every theme shows them:
 tool and action `100%` everywhere, fills `60%` in Dark and Light (the
 quieter two) and `100%` in the rest; Light has its own hues, dark
@@ -168,21 +169,35 @@ change to this file and `tokens.css` together.
 │    │ tree  │ editor, lens    │ Outline        │
 │    │       │ view or tool    │ Problems       │
 ├────┴───────┴─────────────────┴────────────────┤
-│ status: type · path · counts · folder · ver   │
+│ view │ context · counts  focus · folder · ver │
 └───────────────────────────────────────────────┘
 ```
 
-- **Rail** 48/220 px (`Ctrl+B`): Home, then Pinned (the tools and
-  sub-tabs the user pinned, `lib/stores/usage.svelte.ts`), Workspace,
-  and the tool groups; Settings, Keyboard shortcuts and Collapse are
-  three icons in a row at the bottom. The list scrolls, and fades where
-  it goes on. A tool's menu (right-click, Shift+F10) pins it.
+- **Rail** 48/220 px (`Ctrl+B`): the mark, "codec" and the version
+  (major.minor); Home, then Pinned (the tools and sub-tabs the user
+  pinned, `lib/stores/usage.svelte.ts`), Workspace, and the tool
+  groups, each name followed by a line to the edge (only the line
+  when collapsed). Each entry's icon sits on a tile in its colour,
+  solid for the one that is open, on a soft fill; Problems shows what
+  the last workspace lint found. Settings, Keyboard shortcuts and
+  Collapse are three icons in a row at the bottom. The list scrolls,
+  and fades where it goes on. A tool's menu (right-click, Shift+F10)
+  pins it.
 - **Tabs.** Every view is a tab keyed by its route
   (`lib/stores/router.svelte.ts`); views stay mounted while their tab
-  is open (`active` prop hides them). Tabs that don't fit scroll (the
-  wheel too), the current one stays in view and a count at the end
-  lists them all; a tab drags to a new place and has a menu (close,
-  the others, to the right, all). `Alt+]`, `Alt+[`, `Alt+Shift+W`.
+  is open (`active` prop hides them). The current tab is on `--bg-1`
+  with a 2 px line in its colour along the top. Tabs that don't fit
+  scroll (the wheel too), the current one stays in view and **+N** at
+  the end lists the ones out of sight; a tab drags to a new place (it
+  dims, and a line in the accent marks where it lands) and has a menu
+  (close, the others, to the right, all). `Alt+]`, `Alt+[`,
+  `Alt+Shift+W`. The palette's button sits at the right end.
+- **Status bar.** The view's icon and name on a block of its colour,
+  what the view knows (a tool's line, a file's path and the path at the
+  cursor, what a lens view reads), and errors and warnings where there
+  are some to count; on the right the focus ring and time (Focus &
+  breaks' colour), the folder with its watch state, "Local only" and
+  the version.
 - **Home** is where a tool is found: a search box, pinned tools, the
   ones opened lately, the workspace, then every tool by group; a star
   on a card pins it.
@@ -210,7 +225,7 @@ Build once in `frontend/src/lib/components` and reuse:
 | `Button` | Actions with text (primary, secondary, ghost; `sm`). Primary is solid in the tool's colour, one per view |
 | `IconButton` | Icon-only actions; always a `label` (also its tooltip). `box` frames it, for a row of framed buttons; `active` is on (a soft fill in the tool's colour) |
 | `Tabs`, `SegmentedControl` | Switching views of the same thing; exclusive choices. The choice made is solid in the tool's colour; `soft` gives it a soft fill, for a setting (an interface size, local or UTC) rather than what the view shows |
-| `WorkTabStrip` + `WorkTabs` (features/shared) | Several of the same work open at once in one tool (pastes, comparisons, logs; decision 97): one store and strip, each tab's component kept mounted and hidden when not current |
+| `WorkTabStrip` + `WorkTabs` (features/shared) | Several of the same work open at once in one tool (pastes, comparisons, logs; decision 97): one store and strip, each tab's component kept mounted and hidden when not current. `fresh()` shows an empty one (the current tab if it is); `wantFreshTab(tool)` asks a tool for one once it is open, for the palette's Ctrl+Enter |
 | `Select`, `Toggle`, `SearchInput` | Form controls (Bits UI underneath) |
 | a plain `<input>`, `<textarea>`, `<select>`, checkbox | Text fields and native menus: global.css gives every one the same frame (`--control-h` high, on `--bg-1`), hover and focus (border colour plus `--focus-ring`), with no weight, so a view writes only what differs. A wrong value: `aria-invalid="true"` (the error colour and `--invalid-ring`) and an inline `ErrorNote` under the field saying how to fix it. A field inside its own framed box sets `box-shadow: none` and the box shows the focus (`:focus-within`). A checkbox is a small frame, filled in the tool's colour with a tick when on |
 | `Chip` | A small choice in a row: a suggestion (a preset; `selected` marks the one in use) or a toggle (`pressed`: a flag, a weekday), one look: on, a soft fill, an edge in the tool's colour and a tick. `square` for one letter (no tick), `mono` for code |
@@ -224,7 +239,7 @@ Build once in `frontend/src/lib/components` and reuse:
 | `CodeView` | Any code or YAML (CodeMirror 6), read-only or editable |
 | `Graph` | Node graphs (dagre layout, colour groups `g-<group>`, dashed edges for run-time links, run status `s-failed/changed/ok/rescued/never` as a glyph as well as a colour). `selected` outlines the node whose details show; `lane` on a node puts it in a named band (a pipeline's stage). Pan by dragging, zoom with the wheel; keyboard: arrows move between nodes (or pan), `+` `-` zoom, `0` fits, Enter selects. A minimap appears when the graph is bigger than its box; the view is kept when the same graph changes (a what-if value) and fitted afresh for a different one. The legend adds what the drawing uses: dashed nodes (`missingNode`), dashed edges (`dashedEdge`), statuses. A cut label's whole text is the node's tooltip |
 | `EffectiveLines` | Config with an origin per line (CI, Compose) |
-| `Popover`, `Dialog`, `Tooltip` | Overlays; dialogs trap focus and close on Esc. A tooltip is inverted (the text colour as its ground), its shortcut quieter beside the words |
+| `Popover`, `Dialog`, `Tooltip` | Overlays on `--bg-2`; dialogs (and the palettes) round by `--r-xl`, trap focus and close on Esc. A tooltip is inverted (the text colour as its ground), its shortcut quieter beside the words |
 | `ContextMenu` | Right-click menus (also Shift+F10); entries built per open from the event; sentence case, an icon per entry. The item under the pointer or keyboard takes a soft fill; `Menu` and `Select` lists look the same |
 | `Badge` | A short label: a count, a state, a rule's code. `tone` neutral (grey), accent (the tool's colour), ok, warn, err, info; `solid` for the one that must stand out (What-if · 2); `mono` for code |
 | `Kbd` | Key combos, as keycaps in the code font |
@@ -250,9 +265,11 @@ all, `--icon-stroke` (1.9, set in global.css), so no component passes
 `strokeWidth`. One icon per meaning, wherever it shows (rail, tab,
 header, palette, menu): Explorer `folder`, Open folder `upload`,
 Problems `triangle-alert`, Query and jq `braces`, New `plus`, Clone
-`copy`, Settings `sliders-horizontal`, Kubernetes `box`, Ansible
-`scroll-text`, Helm `ship-wheel`, Log viewer `list`, JWT `key`,
-Commands `terminal`; the other tools as `lib/tools.ts` has them.
+`copy`, Settings `sliders-horizontal`, Kubernetes `box`, Kustomize
+`layers`, Argo `workflow`, Pipeline `git-branch`, Compose `container`,
+Ansible `scroll-text`, Helm `ship-wheel`, Log viewer `list`, JWT
+`key`, Commands `terminal`; the other tools as `lib/tools.ts` has
+them, the views as its `viewIcon`.
 Logos: local SVGs in `frontend/src/assets/logos/`, source and licence
 per file in its `SOURCES.md`; only to label file types.
 App icon: `frontend/public/icon.svg` (also `docs/assets/logo.svg`), a YAML
@@ -314,7 +331,14 @@ them when it changes, and rename the SVG if browser tabs keep the old one.
   tools and their sub-tabs, files of the open folder's lenses, and one
   entry per setting (`features/settings/goto.svelte.ts`: "Settings:
   Theme" opens the page on its row). The commands run last come first
-  while nothing is typed.
+  while nothing is typed, then each group. A row is a tile in its
+  colour (the command's `hue`, else its group's tool or view, else
+  the accent), the title, a quieter `hint` (a tool's description) and
+  its shortcut; the highlighted one takes its colour. The foot lists
+  the keys and the number of results. `runNew` is the same in a new
+  tab: Ctrl+Enter opens a tool that keeps work tabs (`newTab` in
+  `lib/tools.ts`) on a fresh one, and the foot says so when the
+  highlighted row has it.
 - **API.** Components call the backend only through `lib/api/*`.
   Requests that follow typing are debounced and abortable.
 - **Desktop.** The same UI runs in the desktop window. Anything only it

@@ -1,21 +1,11 @@
 <script lang="ts">
   import Search from '@lucide/svelte/icons/search'
-  import Box from '@lucide/svelte/icons/box'
-  import GitCompare from '@lucide/svelte/icons/git-compare'
-  import Layers from '@lucide/svelte/icons/layers'
-  import Workflow from '@lucide/svelte/icons/workflow'
-  import GitBranch from '@lucide/svelte/icons/git-branch'
-  import Container from '@lucide/svelte/icons/container'
-  import ScrollText from '@lucide/svelte/icons/scroll-text'
-  import TriangleAlert from '@lucide/svelte/icons/triangle-alert'
-  import Braces from '@lucide/svelte/icons/braces'
-  import Plus from '@lucide/svelte/icons/plus'
-  import Copy from '@lucide/svelte/icons/copy'
   import SlidersHorizontal from '@lucide/svelte/icons/sliders-horizontal'
   import X from '@lucide/svelte/icons/x'
   import ChevronDown from '@lucide/svelte/icons/chevron-down'
   import ArrowRightToLine from '@lucide/svelte/icons/arrow-right-to-line'
   import Layers2 from '@lucide/svelte/icons/layers-2'
+  import type { Component } from 'svelte'
   import ContextMenu, { type MenuEntry } from '../components/ContextMenu.svelte'
   import Popover from '../components/Popover.svelte'
   import Kbd from '../components/Kbd.svelte'
@@ -41,7 +31,7 @@
     routeTool,
   } from '../stores/router.svelte'
   import { charts } from '../../features/helm/helm.svelte'
-  import { hueVar, toolById, viewHue, type Hue } from '../tools'
+  import { hueVar, toolById, viewHue, viewIcon, type Hue } from '../tools'
 
   // Open tools and files as tabs. Middle-click closes, like an editor.
   function onauxclick(e: MouseEvent, route: string) {
@@ -66,31 +56,43 @@
     )
   })
 
-  // Fixed views: title, icon and, as on the rail, their hue.
-  const views: Record<string, { title: string; icon: typeof X; hue?: Hue }> = {
-    [problemsRoute]: { title: 'Problems', icon: TriangleAlert, hue: viewHue.problems },
-    [settingsRoute]: { title: 'Settings', icon: SlidersHorizontal },
-    [compareRoute]: { title: 'Compare', icon: GitCompare, hue: viewHue.compare },
-    [queryRoute]: { title: 'Query', icon: Braces, hue: viewHue.query },
-    [newRoute]: { title: 'New', icon: Plus, hue: viewHue.new },
+  /** What a tab shows: its name, its icon (a file's or a chart's logo
+   *  when it has none) and, as on the rail, its colour. */
+  interface Tab {
+    title: string
+    icon?: Component
+    hue?: Hue
+    file?: string
+    chart?: string
+    hint?: string
   }
 
-  // Views over a folder: Kubernetes resources and Kustomize builds.
-  function scopedView(route: string): { title: string; icon: typeof X; hue?: Hue } | undefined {
+  // Fixed views.
+  const views: Record<string, Tab> = {
+    [problemsRoute]: { title: 'Problems', icon: viewIcon.problems, hue: viewHue.problems },
+    [settingsRoute]: { title: 'Settings', icon: SlidersHorizontal },
+    [compareRoute]: { title: 'Compare', icon: viewIcon.compare, hue: viewHue.compare },
+    [queryRoute]: { title: 'Query', icon: viewIcon.query, hue: viewHue.query },
+    [newRoute]: { title: 'New', icon: viewIcon.new, hue: viewHue.new },
+  }
+
+  // Views over a folder or a file: Kubernetes resources, Kustomize
+  // builds and the lens views.
+  function scopedView(route: string): Tab | undefined {
     const k8s = routeK8s(route)
-    if (k8s !== null) return { title: `K8s · ${k8s === '.' ? 'all' : base(k8s)}`, icon: Box }
+    if (k8s !== null) return { title: `K8s · ${k8s === '.' ? 'all' : base(k8s)}`, icon: viewIcon.k8s, hue: viewHue.k8s }
     const kz = routeKustomize(route)
-    if (kz !== null) return { title: `Kustomize · ${base(kz)}`, icon: Layers }
+    if (kz !== null) return { title: `Kustomize · ${base(kz)}`, icon: viewIcon.kustomize, hue: viewHue.kustomize }
     const ar = routeArgo(route)
-    if (ar !== null) return { title: `Argo · ${base(ar)}`, icon: Workflow }
+    if (ar !== null) return { title: `Argo · ${base(ar)}`, icon: viewIcon.argo, hue: viewHue.argo }
     const cr = routeCI(route)
-    if (cr !== null) return { title: `Pipeline · ${base(cr)}`, icon: GitBranch }
+    if (cr !== null) return { title: `Pipeline · ${base(cr)}`, icon: viewIcon.ci, hue: viewHue.ci }
     const co = routeCompose(route)
-    if (co !== null) return { title: `Compose · ${base(co)}`, icon: Container }
+    if (co !== null) return { title: `Compose · ${base(co)}`, icon: viewIcon.compose, hue: viewHue.compose }
     const an = routeAnsible(route)
-    if (an !== null) return { title: `Ansible · ${base(an)}`, icon: ScrollText }
+    if (an !== null) return { title: `Ansible · ${base(an)}`, icon: viewIcon.ansible, hue: viewHue.ansible }
     const cl = routeClone(route)
-    if (cl !== null) return { title: `Clone · ${base(cl)}`, icon: Copy }
+    if (cl !== null) return { title: `Clone · ${base(cl)}`, icon: viewIcon.clone, hue: viewHue.clone }
     return undefined
   }
 
@@ -98,16 +100,16 @@
     return p.slice(p.lastIndexOf('/') + 1)
   }
 
-  /** A tab's name, as the bar shows it; undefined for a route with no tab. */
-  function titleOf(route: string): string | undefined {
+  /** A route's tab; undefined for a route with no tab. */
+  function tabOf(route: string): Tab | undefined {
     const tool = toolById(routeTool(route))
-    if (tool) return tool.title
+    if (tool) return { title: tool.title, icon: tool.icon, hue: tool.hue }
     const view = views[route] ?? scopedView(route)
-    if (view) return view.title
+    if (view) return view
     const file = routeFile(route)
-    if (file) return names.get(file)?.name
+    if (file) return { title: names.get(file)?.name ?? base(file), hue: viewHue.explorer, file, hint: names.get(file)?.hint }
     const chart = routeHelm(route)
-    if (chart) return 'Helm · ' + (charts.byPath(chart)?.name ?? chart)
+    if (chart) return { title: 'Helm · ' + (charts.byPath(chart)?.name ?? chart), hue: viewHue.helm, chart }
     return undefined
   }
 
@@ -125,25 +127,44 @@
     ]
   }
 
-  // Drag a tab along the bar to move it.
+  // Drag a tab along the bar to move it. A line marks where it would
+  // land: after the tab it is over when moving right, before it when
+  // moving left (as moveTab places it).
   let dragged = $state<string | null>(null)
   let over = $state<string | null>(null)
+  const landing = $derived(
+    dragged && over && over !== dragged ? (layout.tabs.indexOf(dragged) < layout.tabs.indexOf(over) ? 'after' : 'before') : null,
+  )
   function drop(route: string) {
     if (dragged) layout.moveTab(dragged, route)
     dragged = over = null
   }
 
   // More tabs than fit: the bar scrolls (the wheel moves it sideways),
-  // the current tab is kept in view, and a menu at the end lists them all.
+  // the current tab is kept in view, and "+N" at the end lists the ones
+  // out of sight.
   let strip = $state<HTMLDivElement>()
-  let overflowing = $state(false)
+  let hidden = $state<string[]>([])
   let listOpen = $state(false)
+  function measure() {
+    const el = strip
+    if (!el) return
+    if (el.scrollWidth <= el.clientWidth + 1) {
+      hidden = []
+      return
+    }
+    const box = el.getBoundingClientRect()
+    hidden = [...el.querySelectorAll<HTMLElement>('.tab')]
+      .filter((t) => {
+        const r = t.getBoundingClientRect()
+        return r.left < box.left - 1 || r.right > box.right + 1
+      })
+      .map((t) => t.dataset.route!)
+  }
   $effect(() => {
     if (!strip) return
-    const el = strip
-    const measure = () => (overflowing = el.scrollWidth > el.clientWidth + 1)
     const ro = new ResizeObserver(measure)
-    ro.observe(el)
+    ro.observe(strip)
     void layout.tabs.length
     queueMicrotask(measure)
     return () => ro.disconnect()
@@ -154,37 +175,42 @@
     queueMicrotask(() => strip?.querySelector('.tab.selected')?.scrollIntoView({ block: 'nearest', inline: 'nearest' }))
   })
   function onwheel(e: WheelEvent) {
-    if (!strip || !overflowing || e.deltaX || e.shiftKey) return
+    if (!strip || !hidden.length || e.deltaX || e.shiftKey) return
     strip.scrollLeft += e.deltaY
     e.preventDefault()
   }
 </script>
 
+{#snippet glyph(t: Tab)}
+  {#if t.icon}
+    <t.icon size={14} />
+  {:else if t.chart}
+    <FileIcon file="helm-chart" />
+  {:else}
+    <FileIcon file={workspace.byPath.get(t.file!) ?? { lang: 'text' }} />
+  {/if}
+{/snippet}
+
 <div class="tabbar">
-  <div class="tabs" role="tablist" aria-label="Open tabs" bind:this={strip} {onwheel}>
+  <div class="tabs" role="tablist" aria-label="Open tabs" bind:this={strip} {onwheel} onscroll={measure}>
    <ContextMenu label="Tab" items={menuFor}>
     {#each layout.tabs as route (route)}
-      {@const tool = toolById(routeTool(route))}
-      {@const file = routeFile(route)}
-      {@const chart = routeHelm(route)}
-      {@const view = views[route] ?? scopedView(route)}
-      {#if tool || file || chart || view}
+      {@const t = tabOf(route)}
+      {#if t}
         {@const selected = router.path === route}
-        {@const title = tool ? tool.title : view ? view.title : file ? names.get(file)?.name : `Helm · ${charts.byPath(chart!)?.name ?? chart}`}
-        {@const hue = tool ? tool.hue : view?.hue}
         <!-- svelte-ignore a11y_no_static_element_interactions -->
         <div
-          class="tab"
+          class="tab {(over === route && landing) || ''}"
           class:selected
-          class:hued={!!hue}
-          class:over={over === route && dragged !== route}
-          style:--tool={hue && hueVar(hue)}
-          title={file ?? (chart ? `Helm view of ${chart}` : undefined)}
+          class:hued={!!t.hue}
+          class:dragging={dragged === route}
+          style:--tool={t.hue && hueVar(t.hue)}
+          title={t.file ?? (t.chart ? `Helm view of ${t.chart}` : undefined)}
           data-route={route}
           draggable="true"
           ondragstart={(e) => {
             dragged = route
-            e.dataTransfer?.setData('text/plain', title ?? route)
+            e.dataTransfer?.setData('text/plain', t.title)
             if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move'
           }}
           ondragover={(e) => {
@@ -207,20 +233,12 @@
             onclick={() => router.go(route)}
             onauxclick={(e) => onauxclick(e, route)}
           >
-            {#if tool}
-              <tool.icon size={14} />
-            {:else if view}
-              <view.icon size={14} />
-            {:else if chart}
-              <FileIcon file="helm-chart" />
-            {:else}
-              <FileIcon file={workspace.byPath.get(file!) ?? { lang: 'text' }} />
-            {/if}
-            {title}
-            {#if file && names.get(file)?.hint}<span class="hint">{names.get(file)?.hint}</span>{/if}
-            {#if file && workspace.dirty.has(file)}<span class="dirty" title="What-if edits (not saved)"></span>{/if}
+            {@render glyph(t)}
+            {t.title}
+            {#if t.hint}<span class="hint">{t.hint}</span>{/if}
+            {#if t.file && workspace.dirty.has(t.file)}<span class="dirty" title="What-if edits (not saved)"></span>{/if}
           </button>
-          <button type="button" class="close" aria-label="Close {title}" onclick={() => layout.close(route)}>
+          <button type="button" class="close" aria-label="Close {t.title}" onclick={() => layout.close(route)}>
             <X size={12} />
           </button>
         </div>
@@ -229,29 +247,32 @@
    </ContextMenu>
   </div>
 
-  {#if overflowing}
+  {#if hidden.length}
     <Popover side="bottom" align="end" bind:open={listOpen}>
       {#snippet trigger(props)}
-        <button {...props} type="button" class="all" aria-label="All open tabs ({layout.tabs.length})" title="All open tabs">
-          {layout.tabs.length}
+        <button {...props} type="button" class="more" aria-label="{hidden.length} more tabs" title="Tabs out of sight">
+          +{hidden.length}
           <ChevronDown size={13} />
         </button>
       {/snippet}
-      <ul class="tablist" aria-label="Open tabs">
-        {#each layout.tabs as route (route)}
-          {@const name = titleOf(route)}
-          {@const hint = names.get(routeFile(route) ?? '')?.hint}
-          {#if name}
-            <li class:current={router.path === route}>
+      <ul class="tablist" aria-label="Tabs out of sight">
+        {#each hidden as route (route)}
+          {@const t = tabOf(route)}
+          {#if t}
+            <li class:hued={!!t.hue} class:current={router.path === route} style:--tool={t.hue && hueVar(t.hue)}>
               <button
                 type="button"
                 class="pick"
                 onclick={() => {
                   listOpen = false
                   router.go(route)
-                }}>{name}{#if hint}<span class="hint">{hint}</span>{/if}</button
+                }}
               >
-              <button type="button" class="close shown" aria-label="Close {name}" onclick={() => layout.close(route)}><X size={12} /></button>
+                {@render glyph(t)}
+                <span class="name">{t.title}</span>
+                {#if t.hint}<span class="hint">{t.hint}</span>{/if}
+              </button>
+              <button type="button" class="close" aria-label="Close {t.title}" onclick={() => layout.close(route)}><X size={12} /></button>
             </li>
           {/if}
         {/each}
@@ -261,7 +282,7 @@
 
   <button type="button" class="palette" onclick={() => (layout.paletteOpen = true)}>
     <Search size={14} />
-    <span>Search tools and actions</span>
+    <span class="label">Search tools and actions</span>
     <Kbd combo="Mod+K" />
   </button>
 </div>
@@ -270,7 +291,7 @@
   .tabbar {
     display: flex;
     align-items: stretch;
-    gap: var(--s-3);
+    gap: var(--s-2);
     height: var(--tabbar-h);
     padding-right: var(--s-2);
     background: var(--bg-0);
@@ -290,14 +311,15 @@
     flex: 0 0 auto;
     border-right: 1px solid var(--border);
     color: var(--fg-1);
+    transition: background var(--dur) var(--ease);
+  }
+  .tab:hover:not(.selected) {
+    color: var(--fg-0);
+    background: var(--bg-2);
   }
   .tab.selected {
     color: var(--fg-0);
     background: var(--bg-1);
-  }
-  /* Where a dragged tab would land. */
-  .tab.over {
-    box-shadow: inset 2px 0 0 var(--tool-accent, var(--accent));
   }
   .tab.selected::before {
     content: '';
@@ -306,21 +328,33 @@
     right: 0;
     top: 0;
     height: 2px;
+    background: var(--tool-accent, var(--accent));
+  }
+  .tab.dragging {
+    opacity: 0.35;
+  }
+  /* Where a dragged tab would land. */
+  .tab.before::after,
+  .tab.after::after {
+    content: '';
+    position: absolute;
+    top: var(--s-2);
+    bottom: var(--s-2);
+    z-index: 1;
+    width: 2px;
     background: var(--accent);
+    border-radius: var(--r-full);
   }
-  /* A tool's or view's tab in its hue, as on the rail (decision 94):
-     the icon tinted, and the selected tab's bar and glow in the hue. */
-  .tab.hued .tab-main > :global(svg) {
-    color: var(--tool-icon);
+  .tab.before::after {
+    left: -1px;
   }
-  .tab.hued.selected .tab-main > :global(svg) {
-    color: var(--tool-accent);
+  .tab.after::after {
+    right: -1px;
   }
-  .tab.hued.selected {
-    background: color-mix(in oklab, var(--tool-accent-soft) var(--tint-fill), var(--bg-1));
-  }
-  .tab.hued.selected::before {
-    background: var(--tool-accent);
+  /* A tab's icon in its tool's or view's colour (the accent for
+     Settings), as far as the theme shows it (decision 94). */
+  .tab-main > :global(svg.lucide-icon) {
+    color: var(--tool-icon, color-mix(in oklab, var(--accent) var(--tint-tool), currentColor));
   }
   .tab-main {
     display: flex;
@@ -333,16 +367,17 @@
     background: none;
     border: none;
   }
-  .tab-main:hover {
-    color: var(--fg-0);
+  .tab.selected .tab-main {
+    font-weight: var(--fw-medium);
   }
   .hint {
     font-size: var(--fs-sm);
+    font-weight: var(--fw-regular);
     color: var(--fg-2);
   }
   .dirty {
-    width: 6px;
-    height: 6px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
     background: var(--warn);
   }
@@ -364,34 +399,38 @@
   .close:focus-visible {
     opacity: 1;
   }
+  .tab:hover:not(.selected) .close {
+    color: var(--fg-1);
+  }
   .close:hover {
     color: var(--fg-0);
     background: var(--bg-3);
   }
-  /* All open tabs, when they don't fit. */
-  .all {
+  /* The tabs out of sight, when they don't all fit. */
+  .more {
     align-self: center;
     flex: 0 0 auto;
     display: inline-flex;
     align-items: center;
     gap: 2px;
-    height: 26px;
+    height: var(--control-h-sm);
     padding: 0 var(--s-2);
     font-size: var(--fs-sm);
+    font-weight: var(--fw-medium);
     color: var(--fg-1);
-    background: var(--bg-1);
-    border: 1px solid var(--border);
+    background: none;
+    border: none;
     border-radius: var(--r-md);
   }
-  .all:hover {
+  .more:hover,
+  .more[aria-expanded='true'] {
     color: var(--fg-0);
-    border-color: var(--border-strong);
+    background: var(--bg-3);
   }
   .tablist {
     list-style: none;
-    margin: 0;
-    padding: var(--s-1);
-    min-width: 240px;
+    margin: calc(var(--s-2) * -1);
+    padding: 0;
     max-width: 360px;
     max-height: 60vh;
     overflow-y: auto;
@@ -401,54 +440,76 @@
     align-items: center;
     border-radius: var(--r-md);
   }
-  .tablist li:hover,
-  .tablist li.current {
+  .tablist li:hover {
     background: var(--bg-3);
+  }
+  .tablist li.current {
+    background: var(--tool-accent-soft, var(--accent-soft));
   }
   .pick {
     flex: 1;
     min-width: 0;
     display: flex;
-    align-items: baseline;
+    align-items: center;
     gap: var(--s-2);
-    height: var(--control-h-sm);
+    height: calc(var(--control-h) - 2px);
     padding: 0 var(--s-2);
     overflow: hidden;
-    text-overflow: ellipsis;
     white-space: nowrap;
     text-align: left;
     font-size: var(--fs-md);
-    color: var(--fg-1);
+    color: var(--fg-0);
     background: none;
     border: none;
   }
-  li.current .pick {
-    color: var(--fg-0);
-    font-weight: var(--fw-medium);
+  .pick > :global(svg.lucide-icon) {
+    flex: none;
+    color: var(--tool-icon, color-mix(in oklab, var(--accent) var(--tint-tool), currentColor));
   }
-  .close.shown {
-    opacity: 1;
+  .name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .tablist .close {
     margin-right: var(--s-1);
+  }
+  .tablist li:hover .close,
+  .tablist li:focus-within .close {
+    opacity: 1;
   }
   .palette {
     align-self: center;
+    flex: 0 1 260px;
+    min-width: 0;
     display: flex;
     align-items: center;
     gap: var(--s-2);
-    height: 26px;
+    height: var(--control-h-sm);
     padding: 0 var(--s-1) 0 var(--s-3);
     font-size: var(--fs-sm);
     color: var(--fg-2);
-    background: var(--bg-1);
+    background: var(--bg-2);
     border: 1px solid var(--border);
     border-radius: var(--r-md);
   }
   .palette:hover {
     color: var(--fg-1);
-    border-color: var(--border-strong);
+    border-color: var(--fg-2);
+  }
+  .label {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: left;
   }
   @media (max-width: 720px) {
-    .palette span {
+    .palette {
+      flex: none;
+    }
+    .palette .label {
       display: none;
     }
   }

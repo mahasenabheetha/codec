@@ -8,6 +8,17 @@ All notable changes to codec are documented here. The format follows
 
 The interface redesign, Spectrum, first part (decision 106).
 
+### Added
+
+- **Command palette.** Ctrl+Enter (⌘+Enter on macOS) on Smart paste,
+  Base64, JSON & YAML or Ansible log opens it on a fresh tab; the foot
+  of the palette says so when it applies. Tools show what they do
+  under their name, and the foot lists the keys and the number of
+  results.
+- The rail shows codec's version, and Problems shows how many errors
+  and warnings the last workspace check found. The status bar counts
+  them in the Problems view too, with the number of files checked.
+
 ### Changed
 
 - **Spectrum colours.** Dark and Light take livelier colours: a slightly
@@ -45,6 +56,23 @@ The interface redesign, Spectrum, first part (decision 106).
   badge shows the first pane's share.
 - **Problems.** A finding shows its line and its rule's code together.
   **Why?** and **Turn this rule off** (was **Turn off**) are buttons.
+- **Rail.** Each entry's icon sits on a tile in its colour, filled for
+  the one that is open, and each group's name has a line after it
+  (only the line when the rail is collapsed).
+- **Tabs.** The current tab has a line in its colour along the top and
+  no longer glows. When the tabs don't fit, **+N** at the end lists the
+  ones out of sight (it listed them all). A dragged tab dims, and a
+  line shows where it will land. Lens views' and files' tabs take their
+  colours too.
+- **Status bar.** It starts with the view's icon and name on a block of
+  its colour, and Home says that everything runs on this machine. A
+  file's path shows beside the path at the cursor, and its errors and
+  warnings are always counted. The focus ring takes the colour of
+  Focus & breaks, the folder's watch dot comes before its name, and the
+  version is quieter.
+- **Command palette.** Each result shows its icon on a tile in its
+  tool's colour, and the highlighted one takes that colour. The palette,
+  Go to file and dialogs are a step lighter and rounder.
 
 ## [3.10.3] - 2026-11-20
 

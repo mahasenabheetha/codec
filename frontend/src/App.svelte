@@ -67,7 +67,8 @@
   import OpenFolderDialog from './features/workspace/OpenFolderDialog.svelte'
   import QuickOpen from './features/workspace/QuickOpen.svelte'
   import { openFolder, openSample, workspace } from './features/workspace/workspace.svelte'
-  import { tools, toolById, toolEntries } from './lib/tools'
+  import { tools, toolById, toolEntries, viewHue } from './lib/tools'
+  import { wantFreshTab } from './features/shared/worktabs.svelte'
   import { ansibleRoute, argoRoute, ciRoute, cloneRoute, compareRoute, composeRoute, isView, k8sRoute, kustomizeRoute, settingsRoute, newRoute, problemsRoute, queryRoute, router, routeAnsible, routeArgo, routeCI, routeClone, routeCompose, routeFile, routeHelm, routeK8s, routeKustomize, routeTool } from './lib/stores/router.svelte'
   import { layout } from './lib/stores/layout.svelte'
   import { shortcut } from './lib/stores/shortcuts.svelte'
@@ -125,6 +126,7 @@
       title: 'Open folder…',
       group: 'Workspace',
       icon: Upload,
+      hue: viewHue.open,
       shortcut: 'Mod+O',
       keywords: ['repo', 'workspace', 'directory'],
       run: () => workspace.chooseFolder(),
@@ -134,6 +136,7 @@
       title: 'Go to file…',
       group: 'Workspace',
       icon: Search,
+      hue: viewHue.explorer,
       shortcut: 'Mod+P',
       keywords: ['find', 'search', 'quick open'],
       run: () => (workspace.quickOpen = true),
@@ -143,6 +146,7 @@
       title: 'Lint workspace',
       group: 'Workspace',
       icon: TriangleAlert,
+      hue: viewHue.problems,
       keywords: ['problems', 'check', 'validate', 'schema', 'errors'],
       run: () => {
         layout.open(problemsRoute)
@@ -154,6 +158,7 @@
       title: 'Compare files…',
       group: 'Workspace',
       icon: GitCompare,
+      hue: viewHue.compare,
       keywords: ['diff', 'semantic', 'difference', 'dev prod'],
       run: () => {
         layout.open(compareRoute)
@@ -165,6 +170,7 @@
       title: 'Find in files',
       group: 'Workspace',
       icon: Search,
+      hue: viewHue.search,
       shortcut: 'Mod+Shift+F',
       keywords: ['grep', 'text', 'search', 'find', 'word', 'regex'],
       run: findInFiles,
@@ -174,6 +180,7 @@
       title: 'Compare text',
       group: 'Tools',
       icon: GitCompare,
+      hue: viewHue.compare,
       keywords: ['diff', 'paste', 'kubectl', 'live', 'json'],
       run: () => comparison.pasteBoth(),
     },
@@ -182,6 +189,7 @@
       title: 'Query YAML (jq)…',
       group: 'Workspace',
       icon: Braces,
+      hue: viewHue.query,
       keywords: ['jq', 'yq', 'search', 'find', 'select'],
       run: () => queries.open(),
     },
@@ -190,6 +198,7 @@
       title: 'New file from a starter…',
       group: 'Workspace',
       icon: Plus,
+      hue: viewHue.new,
       keywords: ['new', 'create', 'template', 'starter', 'scaffold', 'generate', 'deployment', 'chart', 'workflow', 'pipeline', 'playbook'],
       run: () => layout.open(newRoute),
     },
@@ -198,6 +207,7 @@
       title: 'Clone with a new name…',
       group: 'Workspace',
       icon: Copy,
+      hue: viewHue.clone,
       keywords: ['copy', 'duplicate', 'rename', 'clone'],
       run: () => {
         const f = router.filePath
@@ -227,6 +237,7 @@
       title: 'Refresh file tree',
       group: 'Workspace',
       icon: RotateCw,
+      hue: viewHue.explorer,
       run: () => workspace.loadTree(),
     },
     // One entry per setting: "Settings: Theme" opens the page on its row.
@@ -241,14 +252,25 @@
         settingsGoto.to(e)
       },
     })),
-    ...tools.flatMap(toolEntries).map((e) => ({
-      id: `open.${e.key}`,
-      title: `Open ${e.title}`,
-      group: 'Tools',
-      icon: e.icon,
-      keywords: e.keywords,
-      run: () => layout.openTool(e.tool, e.tab),
-    })),
+    ...tools.flatMap(toolEntries).map((e) => {
+      const tool = toolById(e.tool)!
+      return {
+        id: `open.${e.key}`,
+        title: `Open ${e.title}`,
+        group: 'Tools',
+        icon: e.icon,
+        hue: e.hue,
+        hint: e.tab ? `${tool.title} · ${e.description}` : e.description,
+        keywords: e.keywords,
+        run: () => layout.openTool(e.tool, e.tab),
+        runNew: tool.newTab
+          ? () => {
+              wantFreshTab(e.tool)
+              layout.openTool(e.tool, e.tab)
+            }
+          : undefined,
+      }
+    }),
     { id: 'nav.home', title: 'Go to home', group: 'Navigation', icon: House, run: () => router.go('/') },
     {
       id: 'nav.close',

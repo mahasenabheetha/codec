@@ -8,7 +8,7 @@
   let { active }: { active: boolean } = $props()
 
   const add = () => smartTabs.add()
-  workTabShortcuts(() => active, smartTabs, add)
+  workTabShortcuts(() => active, smartTabs, add, 'smart')
 </script>
 
 {#snippet strip()}

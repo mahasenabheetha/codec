@@ -3,14 +3,21 @@
 // they are the active tab.
 
 import { untrack, type Component } from 'svelte'
+import type { Hue } from '../tools'
 
 export interface Command {
   id: string
   title: string
   group: string
   run: () => void
+  /** Ctrl+Enter: the same in a new tab (a tool's fresh work tab). */
+  runNew?: () => void
   shortcut?: string
   icon?: Component
+  /** Its colour on the palette; else its group's tool's or view's. */
+  hue?: Hue
+  /** A quieter line under the title: what it opens or does. */
+  hint?: string
   keywords?: string[]
 }
 

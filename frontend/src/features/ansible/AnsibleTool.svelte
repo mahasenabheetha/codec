@@ -9,7 +9,7 @@
   let { active }: { active: boolean } = $props()
 
   const add = () => ansibleTabs.add()
-  workTabShortcuts(() => active, ansibleTabs, add)
+  workTabShortcuts(() => active, ansibleTabs, add, 'ansible')
 </script>
 
 {#snippet strip()}
