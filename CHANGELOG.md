@@ -73,6 +73,15 @@ The interface redesign, Spectrum, first part (decision 106).
 - **Command palette.** Each result shows its icon on a tile in its
   tool's colour, and the highlighted one takes that colour. The palette,
   Go to file and dialogs are a step lighter and rounder.
+- **Narrow windows** (under 1000 px). A file's outline and problems sit
+  under the editor. A tool's input goes over its output, and its
+  controls move to a second row with a **Beside · Stacked** choice
+  (pick Beside to keep them side by side). Compare puts its two sides
+  one under the other, the changes above the code, and shows one side
+  at a time with a Left · Right switch.
+- **Tool colours off.** Tools now take the theme's accent everywhere: tab
+  icons, the selected rail entry and palette row, the edges of cards
+  and chips. Icon tiles turn grey, as before.
 
 ## [3.10.3] - 2026-11-20
 

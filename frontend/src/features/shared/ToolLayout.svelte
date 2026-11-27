@@ -9,13 +9,16 @@
   import Rows2 from '@lucide/svelte/icons/rows-2'
   import { hueVar, type ToolDef } from '../../lib/tools'
   import IconButton from '../../lib/components/IconButton.svelte'
+  import SegmentedControl from '../../lib/components/SegmentedControl.svelte'
   import SplitPane from '../../lib/components/SplitPane.svelte'
+  import { narrow } from '../../lib/stores/narrow.svelte'
   import { paneLayout } from './panes.svelte'
 
   // Standard tool page: title + toolbar, then input and output panes,
   // resizable, side by side or one over the other (the button at the
   // end of the toolbar; remembered per tool), or one column (body) for
-  // tools whose input is a line or a small form.
+  // tools whose input is a line or a small form. In a narrow window the
+  // panes stack and the controls take a second row with the choice.
   interface Props {
     tool: ToolDef
     controls?: Snippet
@@ -31,7 +34,17 @@
   // A tool whose sub-tabs sit inside work tabs (JSON & YAML) gives the
   // strip through context, so every sub-tab's page shows it.
   const tabs = $derived(own ?? getContext<Snippet | undefined>(workTabsStripKey))
-  const stacked = $derived(paneLayout.of(tool.id) === 'column')
+
+  // Side by side needs this much room (SplitPane's own default).
+  const ROOM = 760
+  let width = $state(0)
+  const split = $derived(!body && !!input && !!output)
+  const choice = $derived(paneLayout.of(tool.id))
+  const autoStacked = $derived(narrow.current || (width > 0 && width < ROOM))
+  const stacked = $derived(choice === 'column' || (choice === 'auto' && autoStacked))
+  // Stored as auto when auto already gives that layout, so it follows
+  // the window again later.
+  const choose = (s: boolean) => paneLayout.set(tool.id, s === autoStacked ? 'auto' : s ? 'column' : 'row')
 </script>
 
 <div class="tool hued" style:--tool={hueVar(tool.hue)}>
@@ -40,24 +53,43 @@
       <span class="icon"><tool.icon size={16} /></span>
       <h1>{tool.title}</h1>
     </div>
-    {#if controls}<div class="controls">{@render controls()}</div>{/if}
+    {#if controls && !narrow.current}<div class="controls">{@render controls()}</div>{/if}
     <div class="spacer"></div>
     {#if actions}<div class="actions">{@render actions()}</div>{/if}
-    {#if !body && input && output}
+    {#if split && !narrow.current}
       <IconButton
         icon={stacked ? Columns2 : Rows2}
         label={stacked ? 'Input beside output' : 'Input over output'}
         size="sm"
-        onclick={() => paneLayout.set(tool.id, stacked ? 'auto' : 'column')}
+        onclick={() => choose(!stacked)}
       />
+    {/if}
+    {#if narrow.current && (controls || split)}
+      <div class="second">
+        {#if controls}<div class="controls">{@render controls()}</div>{/if}
+        {#if split}
+          <span class="layout">
+            <SegmentedControl
+              soft
+              label="Layout"
+              value={stacked ? 'column' : 'row'}
+              options={[
+                { value: 'row', label: 'Beside', icon: Columns2, title: 'Input beside output' },
+                { value: 'column', label: 'Stacked', icon: Rows2, title: 'Input over output' },
+              ]}
+              onchange={(v) => choose(v === 'column')}
+            />
+          </span>
+        {/if}
+      </div>
     {/if}
   </header>
   {#if tabs}{@render tabs()}{/if}
   {#if body}
     <div class="body single">{@render body()}</div>
   {:else if input && output}
-    <div class="body">
-      <SplitPane id={tool.id} direction={paneLayout.of(tool.id)} first={input} second={output} />
+    <div class="body" bind:clientWidth={width}>
+      <SplitPane id={tool.id} direction={stacked ? 'column' : 'row'} first={input} second={output} />
     </div>
   {/if}
 </div>
@@ -105,6 +137,19 @@
   }
   .spacer {
     flex: 1;
+  }
+  /* Narrow: the title and actions on top, the controls and the layout
+     choice on a row of their own. */
+  .second {
+    flex: 1 0 100%;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--s-2) var(--s-4);
+    min-width: 0;
+  }
+  .layout {
+    margin-left: auto;
   }
   .body {
     flex: 1;

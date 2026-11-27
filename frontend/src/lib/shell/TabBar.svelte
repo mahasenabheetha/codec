@@ -354,7 +354,7 @@
   /* A tab's icon in its tool's or view's colour (the accent for
      Settings), as far as the theme shows it (decision 94). */
   .tab-main > :global(svg.lucide-icon) {
-    color: var(--tool-icon, color-mix(in oklab, var(--accent) var(--tint-tool), currentColor));
+    color: var(--tool-icon, var(--accent));
   }
   .tab-main {
     display: flex;
@@ -464,7 +464,7 @@
   }
   .pick > :global(svg.lucide-icon) {
     flex: none;
-    color: var(--tool-icon, color-mix(in oklab, var(--accent) var(--tint-tool), currentColor));
+    color: var(--tool-icon, var(--accent));
   }
   .name {
     min-width: 0;

@@ -74,8 +74,8 @@
   --brand-json: var(--syn-number);
 
   /* Colour roles (decision 94). Each tool has a hue and each action a
-     tone; --tint-tool and --tint-action say how much of them a theme
-     shows: 0% in Dark and Light, which keeps today's look, more in Dusk.
+     tone; --tint-tool and --tint-action say how much of them is shown:
+     100% in every theme, 0% with tool colours off.
      Components never use a hue directly: an element of a tool takes the
      .hued class (global.css) and reads --tool-accent, --tool-accent-soft
      and --tool-icon; IconButton and Button take a tone. Status colours
@@ -808,11 +808,11 @@
   --wash: 10%;
 }
 
-/* Settings → Tool colours off: every tool and action in the accent and
-   the text colour, in any theme (as Dark and Light were before 3.10.1).
-   Last, so it wins over the theme blocks. */
+/* Settings → Tool colours off: every tool in the accent (its fills, lines
+   and icons; a soft tile grey, a wash gone) and every action in the text
+   colour, in any theme. --tint-fill stays: the fills are the accent's
+   then. Last, so it wins over the theme blocks. */
 :root[data-colour='plain'] {
   --tint-tool: 0%;
   --tint-action: 0%;
-  --tint-fill: 0%;
 }

@@ -136,8 +136,11 @@ top line). Since 3.10.1 every theme shows them:
 tool and action `100%` everywhere, fills `60%` in Dark and Light (the
 quieter two) and `100%` in the rest; Light has its own hues, dark
 enough for white. Settings → Tool colours off sets
-`data-colour='plain'` on `<html>`, which zeroes all three in any theme
-(Dark and Light as they were before 3.10.1). Workspace views (Compare,
+`data-colour='plain'` on `<html>`, which zeroes the first two in any
+theme: every tool takes the accent (its fills, lines and icons, so the
+fills `--tint-fill` draws are the accent's), a soft tile turns grey, a
+wash goes, and actions take the text colour; status colours stay.
+Workspace views (Compare,
 Query, New, Problems) are `.hued` too, with their `viewHue`. Never use a `--hue-*` or `--act-*` token directly; go through
 the roles, so a theme or the setting can turn them up or down in one
 place. A shared component reads `var(--tool-accent, var(--accent))`.
@@ -156,7 +159,8 @@ colour: 16% Dark and the Dusk family, 12% Light and Paper, 14% Mist,
 `.hued` two more roles: `--tool-wash`, a ground washed with the tool's
 colour (a tool page's header, a selected card), and `--tool-line`, a
 line in it (a card's hue edge, the edge of a chip that is on). With
-tool colours off they are the plain `--bg-1` and `--border`.
+tool colours off the wash is the plain `--bg-1` and the line the
+accent's.
 
 Never hard-code a colour, size or font in a component. A new token is a
 change to this file and `tokens.css` together.
@@ -205,6 +209,12 @@ change to this file and `tokens.css` together.
   or `ThreePanes`, never a fixed grid: sizes persist per `id`, a side
   panel keeps its width in px when the window changes (`px`), and the
   parts stack when narrow. Explorer and lens panel resize and collapse.
+- **Narrow** is a window under 1000 px (`narrow` in
+  `lib/stores/narrow.svelte.ts`): the file view's panel goes under the
+  editor (two thirds and one third), a tool's input over its output,
+  and Compare puts its sides one under the other, the changes above
+  the code and one side at a time (Right first). The rail stays as the
+  user left it.
 - **Lens views** (Argo, Pipeline, Compose, Ansible) use `LensView`
   (`PanelHeader`, what-if overrides, reload counter) and `LensGrid` or
   `ThreePanes` (side · main · detail, one remembered size for all of
@@ -229,7 +239,7 @@ Build once in `frontend/src/lib/components` and reuse:
 | `Select`, `Toggle`, `SearchInput` | Form controls (Bits UI underneath) |
 | a plain `<input>`, `<textarea>`, `<select>`, checkbox | Text fields and native menus: global.css gives every one the same frame (`--control-h` high, on `--bg-1`), hover and focus (border colour plus `--focus-ring`), with no weight, so a view writes only what differs. A wrong value: `aria-invalid="true"` (the error colour and `--invalid-ring`) and an inline `ErrorNote` under the field saying how to fix it. A field inside its own framed box sets `box-shadow: none` and the box shows the focus (`:focus-within`). A checkbox is a small frame, filled in the tool's colour with a tick when on |
 | `Chip` | A small choice in a row: a suggestion (a preset; `selected` marks the one in use) or a toggle (`pressed`: a flag, a weekday), one look: on, a soft fill, an edge in the tool's colour and a tick. `square` for one letter (no tick), `mono` for code |
-| `SplitPane` | Two resizable panes: drag, arrow keys (Shift, Home, End), double click or Enter to reset; `direction`, `stackBelow`, `flush` (a line, for panes that touch), `px` (a side panel's width); sizes persisted by `id`, side by side and stacked apart. Hot (hover, drag, focus), the divider is a soft strip with a line in the tool's colour; while dragging, a badge shows the first pane's share |
+| `SplitPane` | Two resizable panes: drag, arrow keys (Shift, Home, End), double click or Enter to reset; `direction`, `stackBelow`, `flush` (a line, for panes that touch), `px` (a side panel's width), `initialStacked`; sizes persisted by `id`, side by side and stacked apart. Hot (hover, drag, focus), the divider is a soft strip with a line in the tool's colour; while dragging, a badge shows the first pane's share |
 | `ThreePanes` | Side · main · detail, each resizable: the frame of the lens views |
 | `PanelHeader` | The strip at the top of a view: icon (or `lead`, a file-type logo), title, `meta`, `actions`. Every view but the file view uses it; the file view's breadcrumb strip has the same height |
 | `Menu` | A button that opens a menu of named actions: the "…" at the end of a toolbar, for what doesn't earn a button. One main action per view as a button, the rest here |
@@ -303,7 +313,10 @@ them when it changes, and rename the SVG if browser tabs keep the old one.
   (`ToolLayout`, `InputPane`, `Pane`) when the input can be a document;
   the two resize, and a button at the end of the toolbar puts the
   input over the output instead (remembered per tool,
-  `features/shared/panes.svelte.ts`). The output pane is `TextOutput`
+  `features/shared/panes.svelte.ts`: auto, or always side by side or
+  stacked). Under 760 px of room or in a narrow window auto stacks
+  them, and the toolbar puts its controls on a second row with a
+  soft Beside · Stacked choice. The output pane is `TextOutput`
   (`OutputPane` is the same, fed from a transform session).
   When it is a value or a small form (a timestamp, a cron expression,
   generator options), one column instead (`ToolLayout` `body`,

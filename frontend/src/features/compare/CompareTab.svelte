@@ -5,6 +5,7 @@
   import { hueVar, viewHue } from '../../lib/tools'
   import { untrack, type Snippet } from 'svelte'
   import ArrowLeftRight from '@lucide/svelte/icons/arrow-left-right'
+  import ArrowUpDown from '@lucide/svelte/icons/arrow-up-down'
   import CircleCheck from '@lucide/svelte/icons/circle-check'
   import EyeOff from '@lucide/svelte/icons/eye-off'
   import FilterX from '@lucide/svelte/icons/filter-x'
@@ -19,6 +20,7 @@
   import SegmentedControl from '../../lib/components/SegmentedControl.svelte'
   import Toggle from '../../lib/components/Toggle.svelte'
   import type { Change, CompareMode, Side } from '../../lib/api/compare'
+  import { narrow } from '../../lib/stores/narrow.svelte'
   import type { Comparison } from './compare.svelte'
   import { changeMarks, reveal } from './marks'
   import SidePicker from './SidePicker.svelte'
@@ -83,6 +85,20 @@
     reveal(leftView?.getView(), changes[i], 'old')
     reveal(rightView?.getView(), changes[i], 'new')
   }
+
+  // Narrow: one side at a time, the right (what it became) first. The
+  // side shown is mounted afresh, so it is taken to the selected change.
+  let showing = $state<'left' | 'right'>('right')
+  $effect(() => {
+    const v = showing === 'left' ? leftView : rightView
+    if (!narrow.current || !v) return
+    untrack(() => {
+      const ch = changes[cmp.selected]
+      if (ch) queueMicrotask(() => reveal(v.getView(), ch, showing === 'left' ? 'old' : 'new'))
+    })
+  })
+  /** A side's title without its folders: the switch is short of room. */
+  const short = (title: string) => title.replace(/[^\s/]+\//g, '')
 
   /** A pattern for "changes like this one": list items by any name. */
   function patternFor(path: string) {
@@ -164,10 +180,10 @@
 
   <!-- Each side's picker heads its own column, above its paste box and
        its half of a side-by-side diff. -->
-  <div class="sides">
+  <div class="sides" class:narrow={narrow.current}>
     <SidePicker label="Left" bind:side={cmp.left} bind:whatIf={cmp.leftWhatIf} onchange={() => cmp.run()} onclear={() => cmp.clear('left')} replace={(s) => cmp.setSide('left', s)} />
     <SidePicker label="Right" bind:side={cmp.right} bind:whatIf={cmp.rightWhatIf} onchange={() => cmp.run()} onclear={() => cmp.clear('right')} replace={(s) => cmp.setSide('right', s)} />
-    <span class="swap"><IconButton icon={ArrowLeftRight} tone="swap" label="Swap sides" size="sm" onclick={() => cmp.swap()} /></span>
+    <span class="swap"><IconButton icon={narrow.current ? ArrowUpDown : ArrowLeftRight} tone="swap" label="Swap sides" size="sm" onclick={() => cmp.swap()} /></span>
   </div>
 
   {#if pasting}
@@ -263,10 +279,31 @@
         </div>
       {/snippet}
       {#snippet sidesPane()}
-        <SplitPane id="compare-sides" min={200} stackBelow={520} flush first={leftPane} second={rightPane} />
+        {#if narrow.current}
+          <div class="code">
+            <div class="pane-title one">
+              <SegmentedControl
+                soft
+                label="Side to show"
+                bind:value={showing}
+                options={[
+                  { value: 'left', label: `Left · ${short(result!.left.title)}`, title: result!.left.title },
+                  { value: 'right', label: `Right · ${short(result!.right.title)}`, title: result!.right.title },
+                ]}
+              />
+            </div>
+            {#if showing === 'left'}
+              <CodeView bind:this={leftView} value={result!.left.text} label="Left" language="yaml" readonly extensions={leftMarks} />
+            {:else}
+              <CodeView bind:this={rightView} value={result!.right.text} label="Right" language="yaml" readonly extensions={rightMarks} />
+            {/if}
+          </div>
+        {:else}
+          <SplitPane id="compare-sides" min={200} stackBelow={520} flush first={leftPane} second={rightPane} />
+        {/if}
       {/snippet}
       <div class="body">
-        <SplitPane id="compare-changes" initial={0.3} px={290} min={200} stackBelow={640} flush first={changesPane} second={sidesPane} />
+        <SplitPane id="compare-changes" initial={0.3} px={290} min={200} stackBelow={640} direction={narrow.current ? 'column' : 'auto'} flush first={changesPane} second={sidesPane} />
       </div>
     {/if}
   {/if}
@@ -319,6 +356,24 @@
     transform: translateX(-50%);
     background: var(--bg-1);
     border-radius: var(--r-sm);
+  }
+  /* Narrow: one side under the other, and swap on the line between
+     them at the right. */
+  .sides.narrow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sides.narrow > :global(.side) {
+    padding-right: calc(var(--control-h-sm) + var(--s-4));
+  }
+  .sides.narrow > :global(.side + .side) {
+    border-left: none;
+    border-top: 1px solid var(--border);
+  }
+  .sides.narrow .swap {
+    top: 50%;
+    left: auto;
+    right: var(--s-2);
+    transform: translateY(-50%);
   }
   .ignore-btn {
     display: inline-flex;
@@ -550,6 +605,9 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+  .pane-title.one {
+    padding: var(--s-1) var(--s-2);
   }
   .muted {
     color: var(--fg-2);

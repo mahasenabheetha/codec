@@ -202,18 +202,18 @@ p {
 /* Something that belongs to a tool (a tool page, its rail entry, its
    Home card) sets --tool to its hue and takes this class. The values are
    worked out here, where --tool is known, and inherited by what is
-   inside; at --tint-tool 0% they are exactly the accent and the text
-   colour (decision 94). */
+   inside; at --tint-tool 0% (tool colours off) they are the accent's
+   (decision 94). */
 .hued {
   --tool-accent: color-mix(in oklab, var(--tool) var(--tint-tool), var(--accent));
   --tool-accent-soft: color-mix(in oklab, color-mix(in srgb, var(--tool) var(--soft), transparent) var(--tint-tool), var(--accent-soft));
-  --tool-icon: color-mix(in oklab, var(--tool) var(--tint-tool), currentColor);
+  --tool-icon: var(--tool-accent);
   /* Spectrum (3.11.0): a ground washed with the tool's colour (a tool
      page's header, a selected card) and a line in it (a pane's top
-     edge, a card's hue edge). With tool colours off they are the plain
-     panel and border. */
+     edge, a card's hue edge). With tool colours off the ground is the
+     plain panel and the line the accent's. */
   --tool-wash: color-mix(in oklab, color-mix(in srgb, var(--tool) var(--wash), var(--bg-1)) var(--tint-tool), var(--bg-1));
-  --tool-line: color-mix(in oklab, color-mix(in srgb, var(--tool) 45%, var(--border)) var(--tint-tool), var(--border));
+  --tool-line: color-mix(in srgb, var(--tool-accent) 45%, var(--border));
 }
 
 /* Every Lucide icon has the one stroke (Spectrum, 3.11.0); CSS beats the

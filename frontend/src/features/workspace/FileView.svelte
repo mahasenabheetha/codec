@@ -19,6 +19,7 @@
   import GitCompare from '@lucide/svelte/icons/git-compare'
   import Link from '@lucide/svelte/icons/link'
   import LocateFixed from '@lucide/svelte/icons/locate-fixed'
+  import PanelBottom from '@lucide/svelte/icons/panel-bottom'
   import PanelRight from '@lucide/svelte/icons/panel-right'
   import RefreshCw from '@lucide/svelte/icons/refresh-cw'
   import RotateCcw from '@lucide/svelte/icons/rotate-ccw'
@@ -38,6 +39,7 @@
   import { completeAt, definitionAt, diffFile, hoverAt, type Diagnostic, type Pos } from '../../lib/api/yaml'
   import { commands } from '../../lib/stores/commands.svelte'
   import { layout } from '../../lib/stores/layout.svelte'
+  import { narrow } from '../../lib/stores/narrow.svelte'
   import { ansibleRoute, argoRoute, ciRoute, cloneRoute, composeRoute, k8sRoute, kustomizeRoute } from '../../lib/stores/router.svelte'
   import { neat } from '../../lib/api/k8s'
   import { toast } from '../../lib/stores/toast.svelte'
@@ -417,7 +419,7 @@
         />
         <Menu label="Choose editor" icon={ChevronDown} slim items={editorItems} />
       </span>
-      <IconButton icon={PanelRight} label="Outline and problems" size="sm" active={lensOpen.value} onclick={() => (lensOpen.value = !lensOpen.value)} />
+      <IconButton icon={narrow.current ? PanelBottom : PanelRight} label="Outline and problems" size="sm" active={lensOpen.value} onclick={() => (lensOpen.value = !lensOpen.value)} />
       <Menu label="More actions for this file" items={more} />
     </div>
   </header>
@@ -453,7 +455,7 @@
         {#if previewing && mermaid}<MermaidPreview text={session.buffer} />{:else if previewing}<MarkdownPreview text={session.buffer} {path} {active} />{/if}
       {/snippet}
       {#if lensOpen.value}
-        <SplitPane id="file-lens" initial={0.74} min={220}>
+        <SplitPane id="file-lens" initial={0.74} initialStacked={0.66} min={220} direction={narrow.current ? 'column' : 'auto'}>
           {#snippet first()}{@render editor()}{/snippet}
           {#snippet second()}
             <aside class="lens" aria-label="Outline and problems">
@@ -618,6 +620,11 @@
     min-width: 0;
     background: var(--bg-1);
     border-left: 1px solid var(--border);
+  }
+  /* Under the editor (narrow, or a narrow view). */
+  :global(.split.stacked) .lens {
+    border-left: none;
+    border-top: 1px solid var(--border);
   }
   .lens-head {
     display: flex;

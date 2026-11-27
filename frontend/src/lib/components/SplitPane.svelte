@@ -11,6 +11,8 @@
   interface Props {
     id: string
     initial?: number // share of the first pane, 0..1
+    /** The first pane's share when stacked, if not `initial`. */
+    initialStacked?: number
     min?: number // minimum pane size in px
     /** auto: side by side unless narrower than `stackBelow`. */
     direction?: 'auto' | 'row' | 'column'
@@ -25,23 +27,24 @@
     second: Snippet
   }
 
-  let { id, initial = 0.5, min = 180, direction = 'auto', stackBelow = 760, flush = false, px, first, second }: Props = $props()
+  let { id, initial = 0.5, initialStacked, min = 180, direction = 'auto', stackBelow = 760, flush = false, px, first, second }: Props = $props()
 
   // A pane's identity is fixed for its lifetime, so the key is read once.
   const key = untrack(() => `codec:split:${id}`)
+  const initialFor = (isStacked: boolean) => (isStacked ? (initialStacked ?? initial) : initial)
 
-  function loadRatio(k: string): number {
+  function loadRatio(k: string, fallback: number): number {
     try {
       const v = Number(localStorage.getItem(k))
-      return v > 0 && v < 1 ? v : initial
+      return v > 0 && v < 1 ? v : fallback
     } catch {
-      return initial
+      return fallback
     }
   }
 
   // One share for each way of laying the panes out: what suits a wide
   // row rarely suits a column.
-  let ratios = $state({ row: loadRatio(key), column: loadRatio(key + ':stacked') })
+  let ratios = $state(untrack(() => ({ row: loadRatio(key, initialFor(false)), column: loadRatio(key + ':stacked', initialFor(true)) })))
   let width = $state(
     untrack(() => {
       try {
@@ -108,7 +111,7 @@
 
   function reset() {
     if (fixed) width = px!
-    else set(initial)
+    else set(initialFor(stacked))
   }
 
   function onkeydown(e: KeyboardEvent) {
