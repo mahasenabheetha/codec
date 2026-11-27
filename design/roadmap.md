@@ -72,6 +72,67 @@ keep the UI consistent and polished. Work efficiently: read only what a
 task needs and run only the tests for packages touched (the full suite
 runs once, at step 4).
 
+### 3.11.0 and 3.12.0: Spectrum, the interface redesign
+
+Asked for 2026-11-27 (decision 106), from the owner's "codec · Spectrum
+revamp" design canvas (65 artboards on seven pages: themes and parts;
+shell and workspace; lens views; logs; tools; wellness; states, sizes
+and modes). It redraws what codec has, with the information
+architecture kept: the same rail groups, views, tabs and tool hues. It
+is a redesign of the look, frontend only: no engine, API, CLI or
+settings change, nothing persisted that decision 19 rules out, and no
+new dependency. The canvas is the reference for every task: each view
+is built to its artboard, its parts to "Parts" and "Interaction
+states", and its sizes, narrow layouts and Tool colours off to the
+"States, sizes & modes" page.
+
+Colours (option 3 of the canvas's "Palette decision"): Dark and Light
+take the Spectrum values (grounds, text, accent, the eight hues and the
+four status colours); Dusk, Midnight, Forest, Rosé and Ocean keep
+today's values, since their point is being muted; Paper, Mist and High
+contrast take Spectrum's small tweaks (at most 11 per channel). The
+contrast script stays the gate, unchanged in its rules.
+
+Views the canvas does not draw follow from its parts and states: the
+Open folder dialog, Go to file, the shortcuts overlay, first-run Home,
+the changed and deleted file banners, the Source drawer, Send to, and
+the tool sub-tabs it leaves out (Case and names, Test data, URL, Hex,
+Checksum, Secrets, UUID, htpasswd; Network's IP, URL builder and HTTP;
+JSON's Convert, Diff, Paths, Schema and Query; Helm's Values, Resources
+and Notes; the Ansible map; the Argo CD panel).
+
+Open before T1: whether the three-colour bars of the canvas become the
+app icon too (favicon, PWA icons, the desktop exe and the docs), or
+stay the rail's brand mark only. Until answered, the rail only.
+
+**3.11.0: the system, the shell and the workspace** (`feature/mab/v3.11.0`)
+
+| Task | What |
+|---|---|
+| T1 | Colours and tokens: option 3 above in `tokens.css`; the canvas's roles (soft fill, wash, tool line) mapped onto the existing `--tint-*` system so Tool colours off keeps working; tab bar 40 px, status bar 28 px; `npm run contrast` passes; the design language's colour section |
+| T2 | Icons and the brand mark: the canvas's 87 icons mapped to Lucide (one stroke width everywhere), the codec mark in the rail, the eight-hue spectrum strip where the canvas uses it |
+| T3 | Shared parts to "Parts" and "Interaction states": tiles (soft and solid), buttons and the action tones, segmented controls, chips, badges, fields (with the invalid state and its line), toggles and checks, panes with a top line, cards with a hue edge, menus and context menus, toasts, tooltips, skeletons, the error note, the problem item, keys; hover, focus, pressed, disabled and drag for each |
+| T4 | Shell: the rail (brand and version, groups, pinned, counts such as Problems, collapsed to 48 px), the tab bar (overflow "+N" menu, the drop marker while dragging), the status bar (the focus ring and time, the folder and its watch state, "Local only", the version), the command palette (grouped results, hints, Ctrl+Enter opens in a new tab) |
+| T5 | Sizes, narrow and plain: Interface size to "Interface sizes" (today's tokens, checked); the narrow layouts (the file view's panel under the editor below 1000 px, JSON stacked, Compare); Tool colours off to its two boards |
+| T6 | Home: the search hero and the hue mosaic, Pinned, Opened lately, the workspace card with files by kind, the tool sections; first-run Home from the same parts |
+| T7 | Workspace views: the file view and explorer, Problems (by severity, by kind of check, the files with most problems), Settings, Compare, Query (results by file, a hint for what it found), New, Search (a preview of the file beside the results), Clone ("Save as…" is a download, nothing is written to the folder), the Markdown and Mermaid previews (Mermaid adds PNG, drawn in the page) |
+| T8 | Accessibility pass on the new parts, the design language rewritten for Spectrum, docs and screenshots; release |
+
+**3.12.0: the views** (`feature/mab/v3.12.0`, from `main` after 3.11.0)
+
+| Task | What |
+|---|---|
+| T1 | Graphs: nodes with a hue tile, a title and a line under it; edges by kind (hot, run time, dashed for missing); selection, legend and minimap restyled; for Resources, Argo, the pipeline view, Compose and the Ansible map |
+| T2 | Lens views: Helm, Kustomize (its layers and patches, in order), Resources (inventory, images, requests and limits as bars), Argo, the pipeline view, Compose, Ansible |
+| T3 | Logs: the Log viewer, Steps (a timeline with the longest step), Fields (filled and distinct), Pins (where the pins sit in the run), Compare (a table of what changed between runs), the Ansible log |
+| T4 | Tools, decoding and text: Smart paste (what it detected, most likely first), Base64, JSON & YAML (all tabs), JWT, and Text & data (Text diff, CSV & TSV with a profile per column, Sanitize, Quote, Case & names, Test data) |
+| T5 | Tools, utilities: Time (Timestamp with a month and "around the world", Zones, Formats with each part one colour in every language, Cron with the week it fires in), Encode & hash (the hash fingerprint, Password, the other tabs), Network (the CIDR bit grid, the other tabs), Commands, Regex, QR code, Colour (harmony) |
+| T6 | Wellness: Focus, Breaks, Today, the break itself |
+| T7 | Consistency and accessibility pass over every view, docs and screenshots; release |
+
+Not in these two: the ideas under "Later" below, and any change to what
+a view does beyond what its artboard shows.
+
 ### Later
 The rest of "Next", picked up when it fits.
 
