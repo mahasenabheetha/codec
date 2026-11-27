@@ -125,6 +125,8 @@
   }
   .detail {
     min-width: 0;
+    margin-left: auto;
+    padding-right: var(--s-2);
     overflow: hidden;
     text-overflow: ellipsis;
     font-size: var(--fs-xs);
@@ -137,8 +139,8 @@
     height: 16px;
     font-family: var(--font-ui);
     font-size: 10px;
-    color: var(--accent);
-    background: var(--accent-soft);
+    color: var(--tool-accent, var(--accent));
+    background: var(--tool-accent-soft, var(--accent-soft));
     border-radius: var(--r-sm);
   }
   .hint {

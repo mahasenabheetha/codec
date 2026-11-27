@@ -7,6 +7,9 @@
     label: string
     icon?: Component
     title?: string
+    /** A count after the label, in a status colour when it is one. */
+    count?: number
+    countTone?: 'neutral' | 'err' | 'warn'
   }
 
   interface Props {
@@ -55,6 +58,7 @@
     >
       {#if opt.icon}<opt.icon size={14} />{/if}
       {opt.label}
+      {#if opt.count !== undefined}<span class="count {opt.countTone ?? 'neutral'}">{opt.count}</span>{/if}
     </button>
   {/each}
 </div>
@@ -99,5 +103,26 @@
   .soft button.checked {
     color: var(--fg-0);
     background: var(--tool-accent-soft, var(--accent-soft));
+  }
+  .count {
+    min-width: 16px;
+    padding: 0 var(--s-1);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-semibold);
+    line-height: 16px;
+    text-align: center;
+    border-radius: var(--r-sm);
+  }
+  .count.neutral {
+    color: var(--fg-1);
+    background: var(--bg-3);
+  }
+  .count.err {
+    color: var(--err);
+    background: var(--err-soft);
+  }
+  .count.warn {
+    color: var(--warn);
+    background: var(--warn-soft);
   }
 </style>

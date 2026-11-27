@@ -33,7 +33,7 @@ and a shell built around what you use most.
 | Hues | indigo `#8f9dff` · violet `#b794ff` · orchid `#e391f2` · pink `#ff8fc8` · peach `#ffa877` · lime `#b4e06a` · teal `#4fdcc2` · cyan `#5cc6ff` |
 | Space | 4px scale: `--s-1 4` `--s-2 8` `--s-3 12` `--s-4 16` `--s-5 20` `--s-6 24` `--s-8 32` `--s-12 48` |
 | Radius | `--r-sm 4` small marks (badges, checks, tree rows, tooltips) · `--r-md 8` buttons, fields, menu items · `--r-lg 12` panels, cards, menus · `--r-xl 16` dialogs · `--r-full` pills |
-| Type | `--font-ui` Inter, `--font-mono` JetBrains Mono (bundled, OFL). Sizes `--fs-xs 11` `-sm 12` `-md 13` (base) `-lg 14` `-xl 16` `-2xl 20` `-3xl 28`, each a step bigger at Interface size Large (12 … 30); line height 1.5 (code 1.55). Weights `--fw-regular 400` `-medium 500` `-semibold 600` (headings, titles) `-bold 700` (only Home's title). Figures are tabular everywhere (`tnum`), so counts and times don't shift. The code font is for code, paths and values, never for sentences |
+| Type | `--font-ui` Inter, `--font-mono` JetBrains Mono (bundled, OFL). Sizes `--fs-xs 11` `-sm 12` `-md 13` (base) `-lg 14` `-xl 16` `-2xl 20` `-3xl 28`, each a step bigger at Interface size Large (12 … 30); line height 1.5 (code 1.55). Weights `--fw-regular 400` `-medium 500` `-semibold 600` (headings, titles) `-bold 700` (page titles only: Home's, Settings' and its sections', and a Markdown preview's h1 and h2). Figures are tabular everywhere (`tnum`), so counts and times don't shift. The code font is for code, paths and values, never for sentences |
 | Controls | Interface size (`data-size` on `<html>`): `--control-h` 28 / 32 / 36 and `--control-h-sm` 24 / 28 / 32 for Compact / Comfortable (default) / Large; Lucide icons keep the size written in code (the Compact one) and grow by `--icon-scale` 1 / 1.125 / 1.25, rounded to whole pixels (global.css), so write icon sizes for Compact · `--icon-stroke 1.9`, every icon's stroke · `--tabbar-h 40` · `--statusbar-h 28` · rail 48/220 |
 | Focus | Everything shows a 2 px outline 2 px out, in the tool's colour inside a tool (global.css). A field shows its border colour plus `--focus-ring` (a 3 px ring) instead; a field whose value is wrong (`aria-invalid`), `--err` plus `--invalid-ring` |
 | Match | `--match-bg`, `--match-current-bg`: a search hit, wherever it is drawn (editor, log rows, Find in Files, the source peek) |
@@ -232,8 +232,22 @@ change to this file and `tokens.css` together.
   `ThreePanes` (side · main · detail, one remembered size for all of
   them). New lens views follow the same frame.
 - **A view's header** is `PanelHeader`: icon, name, what is known
-  (counts, a **What-if · N** badge with a reset beside it in the lens
-  views), actions on the right.
+  under it (counts, a **What-if · N** badge with a reset beside it in
+  the lens views), actions on the right, the primary one last.
+- **Workspace views** (3.11.0). The file view: breadcrumb, kind and
+  state badges, and **Match N of M** with previous and next while a
+  Search hit is open in it. Problems: three summary cards (by severity,
+  by kind of check, the files with most), then a row per file over its
+  findings, inline. Compare: the sides as cards, left indigo and right
+  pink, the swap between them. Query: results as cards, by file beside
+  them, and a hint for what they show (`queryHint.ts`). New: starters
+  as tiles in their kind's colour, the form beside the preview. Clone:
+  renames, suggestions and checks as panes beside the code; **Save
+  as…** is a download. Settings: sections as tiles on the left, each a
+  bold title over a card of rows; a rule's level is a
+  `SegmentedControl`. Markdown: headings in the text colour, colour in
+  the grounds. Mermaid: a grid behind, zoom at the bottom right, Copy
+  SVG and PNG (drawn in the page) in the file's header.
 - **A view that is drawn again and fails** keeps what it showed and
   says so (`ErrorNote` at the top of its side panel, with Try again);
   a first load that fails is an `EmptyState` with Try again.
@@ -246,14 +260,14 @@ Build once in `frontend/src/lib/components` and reuse:
 |---|---|
 | `Button` | Actions with text (primary, secondary, ghost; `sm`). Primary is solid in the tool's colour, one per view |
 | `IconButton` | Icon-only actions; always a `label` (also its tooltip). `box` frames it, for a row of framed buttons; `active` is on (a soft fill in the tool's colour) |
-| `Tabs`, `SegmentedControl` | Switching views of the same thing; exclusive choices. The choice made is solid in the tool's colour; `soft` gives it a soft fill, for a setting (an interface size, local or UTC) rather than what the view shows |
+| `Tabs`, `SegmentedControl` | Switching views of the same thing; exclusive choices. The choice made is solid in the tool's colour; `soft` gives it a soft fill, for a setting (an interface size, local or UTC) rather than what the view shows. An option's `count` follows its label, `countTone` err or warn when it counts problems |
 | `WorkTabStrip` + `WorkTabs` (features/shared) | Several of the same work open at once in one tool (pastes, comparisons, logs; decision 97): one store and strip, each tab's component kept mounted and hidden when not current. `fresh()` shows an empty one (the current tab if it is); `wantFreshTab(tool)` asks a tool for one once it is open, for the palette's Ctrl+Enter |
 | `Select`, `Toggle`, `SearchInput` | Form controls (Bits UI underneath). `SearchInput` `large` is the one search a page is built around (Home's): taller, bigger text, the icon in the accent; `end` puts something after the field, such as the shortcut that does more |
 | a plain `<input>`, `<textarea>`, `<select>`, checkbox | Text fields and native menus: global.css gives every one the same frame (`--control-h` high, on `--bg-1`), hover and focus (border colour plus `--focus-ring`), with no weight, so a view writes only what differs. A wrong value: `aria-invalid="true"` (the error colour and `--invalid-ring`) and an inline `ErrorNote` under the field saying how to fix it. A field inside its own framed box sets `box-shadow: none` and the box shows the focus (`:focus-within`). A checkbox is a small frame, filled in the tool's colour with a tick when on |
 | `Chip` | A small choice in a row: a suggestion (a preset; `selected` marks the one in use) or a toggle (`pressed`: a flag, a weekday), one look: on, a soft fill, an edge in the tool's colour and a tick. `square` for one letter (no tick), `mono` for code |
 | `SplitPane` | Two resizable panes: drag, arrow keys (Shift, Home, End), double click or Enter to reset; `direction`, `stackBelow`, `flush` (a line, for panes that touch), `px` (a side panel's width), `initialStacked`; sizes persisted by `id`, side by side and stacked apart. Hot (hover, drag, focus), the divider is a soft strip with a line in the tool's colour; while dragging, a badge shows the first pane's share |
 | `ThreePanes` | Side · main · detail, each resizable: the frame of the lens views |
-| `PanelHeader` | The strip at the top of a view: icon (or `lead`, a file-type logo), title, `meta`, `actions`. Every view but the file view uses it; the file view's breadcrumb strip has the same height |
+| `PanelHeader` | The strip at the top of a view: its icon on a solid `lg` `Tile` (or `lead`, a file-type logo), the title with `meta` under it, `actions` on the right. On `--tool-wash`, dotted towards the right (`.dotted` in global.css: the tool's colour, gone with tool colours off). Every view but the file view uses it; the file view's breadcrumb strip has the same ground |
 | `Menu` | A button that opens a menu of named actions: the "…" at the end of a toolbar, for what doesn't earn a button. One main action per view as a button, the rest here |
 | `foldSections` (lib/actions) | On the side panel of a lens view: each `section > h3` folds (remembered per view), and Problems comes first when it has any |
 | `TreeView` | File trees and outlines; keyboard pattern, windowed over 300 rows |
@@ -270,7 +284,7 @@ Build once in `frontend/src/lib/components` and reuse:
 | `Pane` (features/shared) | A tool's titled panel: title, `meta`, `actions` over the body, with a 3 px line in the tool's colour along the top; `top={false}` for a pane beside the main ones |
 | `EmptyState` | Nothing to show yet: a soft `Tile`, one sentence, the action that fills it |
 | `ErrorNote` | Something failed: icon, the reason, and `retry` (Try again) or other ways forward; `title` names what failed, the reason quieter under it; `inline` beside a field or a row. Never a bare red paragraph |
-| `ProblemItem` (features/lint) | One finding: severity icon, message, hint, line and column with the rule's code as a mono `Badge`; **Why?** and **Turn this rule off** as small buttons, the second shown on hover or focus |
+| `ProblemItem` (features/lint) | One finding: severity icon, message, hint, line and column with the rule's code as a mono `Badge`; **Why?** and **Turn this rule off** as small buttons, the second shown on hover or focus. `inline` puts it on one line, for a long list (Problems) |
 | `Skeleton` | Loading placeholders in the content's shape |
 | `Working` | A dot in the tool's colour and "Working…" in a pane's header while content already shown is worked out again; appears after 250 ms. Never a spinner |
 | `Toaster` / `toast()` | Brief confirmations and non-blocking errors, marked by a small solid tile in the status's colour; an optional action ("Cleared · Undo") for undoable clears |

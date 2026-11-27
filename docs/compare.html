@@ -111,6 +111,7 @@ select(.kind == "Deployment") | .spec.replicas            <span class="c"># repl
 select(.kind == "Ingress") | .spec.rules[].host           <span class="c"># every host</span>
 .. | .image? | strings                                    <span class="c"># any "image" field anywhere</span></code></pre>
 <p>Results carry their position because codec asks jq for the path of every result and maps it back to the YAML tree. Environment variables are not available to expressions.</p>
+<p>Beside the results, a list shows how they spread over files. When the results are images and some use <code>latest</code> or no tag, a hint says how many: pin a tag so a pull can't change them.</p>
 
 <h2 id="cli">From the command line<a class="anchor" href="#cli">#</a></h2>
 <pre><code>codec yaml diff charts/shop/values.yaml charts/shop/values-prod.yaml    <span class="c"># exit 2 when different</span>

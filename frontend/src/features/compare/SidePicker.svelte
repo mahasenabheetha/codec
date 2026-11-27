@@ -1,23 +1,28 @@
 <script lang="ts">
+  import ClipboardPaste from '@lucide/svelte/icons/clipboard-paste'
+  import PlainFile from '@lucide/svelte/icons/file'
   import FileSearch from '@lucide/svelte/icons/file-search'
   import X from '@lucide/svelte/icons/x'
   import IconButton from '../../lib/components/IconButton.svelte'
   import SegmentedControl from '../../lib/components/SegmentedControl.svelte'
   import Select from '../../lib/components/Select.svelte'
+  import Tile from '../../lib/components/Tile.svelte'
   import Toggle from '../../lib/components/Toggle.svelte'
   import { TREE_DRAG_TYPE } from '../../lib/components/TreeView.svelte'
   import type { Side } from '../../lib/api/compare'
+  import { hueVar, viewIcon, type Hue } from '../../lib/tools'
   import { openSessions } from '../editor/active.svelte'
   import { sideChosen } from './compare.svelte'
   import { charts } from '../helm/helm.svelte'
-  import FileIcon from '../workspace/FileIcon.svelte'
   import { workspace } from '../workspace/workspace.svelte'
 
   // One side of a comparison: a workspace file (optionally one of its
   // documents, optionally with its what-if edits), a Helm render, or
-  // pasted text (typed into the box below the header).
+  // pasted text (typed into the box below the header). A card in the
+  // side's colour, which its pane below shares.
   interface Props {
     label: string
+    hue: Hue
     side: Side
     whatIf: boolean
     onchange: () => void
@@ -26,7 +31,7 @@
     replace: (next: Side) => void
   }
 
-  let { label, side = $bindable(), whatIf = $bindable(), onchange, onclear, replace }: Props = $props()
+  let { label, hue, side = $bindable(), whatIf = $bindable(), onchange, onclear, replace }: Props = $props()
 
   const filled = $derived(sideChosen(side))
 
@@ -41,6 +46,9 @@
     { value: '', label: 'Chart defaults' },
     ...Object.keys(chart?.profiles ?? {}).map((p) => ({ value: p, label: p })),
   ])
+
+  const kinds = { file: { label: 'File', icon: PlainFile }, helm: { label: 'Helm render', icon: viewIcon.helm }, paste: { label: 'Paste', icon: ClipboardPaste } }
+  const caption = $derived(`${label} · ${kinds[side.kind].label}${whatIf && session?.dirty ? ' · what-if edits on' : ''}`)
 
   function setKind(k: Side['kind']) {
     replace(k === 'helm' ? { kind: 'helm', chart: charts.list[0]?.path, profile: '' } : k === 'paste' ? { kind: 'paste', content: '' } : { kind: 'file' })
@@ -75,9 +83,61 @@
   }
 </script>
 
-<div class="side" class:dropping role="group" aria-label="{label} side" {ondragover} ondragleave={() => (dropping = false)} {ondrop}>
-  <span class="label">{label}</span>
+<div class="side hued" class:dropping style:--tool={hueVar(hue)} role="group" aria-label="{label} side" {ondragover} ondragleave={() => (dropping = false)} {ondrop}>
+  <Tile icon={kinds[side.kind].icon} size="md" solid />
+  <div class="what">
+    <span class="caption">{caption}</span>
+    <div class="pick">
+      {#if side.kind === 'file'}
+        <button type="button" class="file" title={side.path ?? 'Choose a file'} onclick={choose}>
+          {#if side.path}
+            <span class="name">{side.path}</span>
+          {:else}
+            <FileSearch size={14} /> <span class="muted">Choose or drop a file…</span>
+          {/if}
+        </button>
+        {#if docs.length > 1}
+          <Select
+            items={docItems}
+            value={side.doc === undefined ? '' : String(side.doc)}
+            label="Document"
+            onchange={(v) => {
+              side = { ...side, doc: v === '' ? undefined : Number(v) }
+              onchange()
+            }}
+          />
+        {/if}
+        {#if session?.dirty}
+          <Toggle bind:checked={whatIf} label="What-if edits" title="Use this tab's unsaved what-if edits instead of the file on disk" {onchange} />
+        {/if}
+      {:else if side.kind === 'paste'}
+        <span class="muted">Typed in the box below</span>
+      {:else if charts.list.length === 0}
+        <span class="muted">No charts in this folder</span>
+      {:else}
+        <Select
+          items={charts.list.map((c) => ({ value: c.path, label: c.path === '.' ? c.name : `${c.name} (${c.path})` }))}
+          value={side.chart ?? '.'}
+          label="Chart"
+          onchange={(v) => {
+            side = { kind: 'helm', chart: v, profile: '' }
+            onchange()
+          }}
+        />
+        <Select
+          items={profileItems}
+          value={side.profile ?? ''}
+          label="Profile"
+          onchange={(v) => {
+            side = { ...side, profile: v }
+            onchange()
+          }}
+        />
+      {/if}
+    </div>
+  </div>
   <SegmentedControl
+    soft
     label="{label} source"
     options={[
       { value: 'file', label: 'File' },
@@ -87,53 +147,6 @@
     value={side.kind}
     onchange={setKind}
   />
-  {#if side.kind === 'file'}
-    <button type="button" class="file" title={side.path ?? 'Choose a file'} onclick={choose}>
-      {#if side.path}
-        <FileIcon file={workspace.byPath.get(side.path) ?? { lang: 'yaml' }} />
-        <span class="name">{side.path.split('/').pop()}</span>
-      {:else}
-        <FileSearch size={14} /> <span class="muted">Choose or drop a file…</span>
-      {/if}
-    </button>
-    {#if docs.length > 1}
-      <Select
-        items={docItems}
-        value={side.doc === undefined ? '' : String(side.doc)}
-        label="Document"
-        onchange={(v) => {
-          side = { ...side, doc: v === '' ? undefined : Number(v) }
-          onchange()
-        }}
-      />
-    {/if}
-    {#if session?.dirty}
-      <Toggle bind:checked={whatIf} label="What-if edits" title="Use this tab's unsaved what-if edits instead of the file on disk" {onchange} />
-    {/if}
-  {:else if side.kind === 'paste'}
-    <!-- The paste box sits under the header, in CompareView. -->
-  {:else if charts.list.length === 0}
-    <span class="muted">No charts in this folder</span>
-  {:else}
-    <Select
-      items={charts.list.map((c) => ({ value: c.path, label: c.path === '.' ? c.name : `${c.name} (${c.path})` }))}
-      value={side.chart ?? '.'}
-      label="Chart"
-      onchange={(v) => {
-        side = { kind: 'helm', chart: v, profile: '' }
-        onchange()
-      }}
-    />
-    <Select
-      items={profileItems}
-      value={side.profile ?? ''}
-      label="Profile"
-      onchange={(v) => {
-        side = { ...side, profile: v }
-        onchange()
-      }}
-    />
-  {/if}
   {#if filled}
     <IconButton icon={X} tone="clear" label="Clear {label.toLowerCase()} side" size="sm" onclick={onclear} />
   {/if}
@@ -143,45 +156,61 @@
   .side {
     display: flex;
     align-items: center;
-    gap: var(--s-2);
-    min-width: 0;
     flex-wrap: wrap;
-    border-radius: var(--r-md);
+    gap: var(--s-2) var(--s-3);
+    min-width: 0;
+    padding: var(--s-2) var(--s-3);
+    background: var(--tool-wash);
+    border: 1px solid var(--tool-line);
+    border-radius: var(--r-lg);
     outline: 1px dashed transparent;
     outline-offset: 3px;
     transition: outline-color var(--dur) var(--ease);
   }
   .side.dropping {
-    outline-color: var(--accent);
-    background: var(--accent-soft);
+    outline-color: var(--tool-accent);
+    background: var(--tool-accent-soft);
   }
-  .label {
+  .what {
+    flex: 1 1 12rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  .caption {
     font-size: var(--fs-xs);
-    font-weight: var(--fw-semibold);
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
     color: var(--fg-2);
+  }
+  .pick {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--s-2);
+    min-width: 0;
   }
   .file {
     display: inline-flex;
     align-items: center;
-    gap: var(--s-2);
-    max-width: 240px;
-    height: var(--control-h-sm);
-    padding: 0 var(--s-2);
-    font-size: var(--fs-sm);
+    gap: var(--s-1);
+    max-width: 100%;
+    min-width: 0;
+    padding: 0;
+    font-size: var(--fs-md);
     color: var(--fg-0);
-    background: var(--bg-1);
-    border: 1px solid var(--border-strong);
+    background: none;
+    border: none;
     border-radius: var(--r-sm);
   }
-  .file:hover {
-    border-color: var(--accent);
+  .file:hover .name {
+    text-decoration: underline;
   }
   .name {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    font-family: var(--font-mono);
+    font-weight: var(--fw-medium);
   }
   .muted {
     font-size: var(--fs-sm);

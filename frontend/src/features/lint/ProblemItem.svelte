@@ -17,22 +17,27 @@
     where?: string // e.g. "12:3"
     onjump: () => void
     tag?: 'li' | 'div' // div inside a windowed list, which has no <ul>
+    /** One line, Why? at its end: for a long list (Problems). */
+    inline?: boolean
   }
 
-  let { severity, message, hint, why, code, where, onjump, tag = 'li' }: Props = $props()
+  let { severity, message, hint, why, code, where, onjump, tag = 'li', inline = false }: Props = $props()
   let open = $state(false)
   const icons = { error: CircleX, warning: TriangleAlert, info: Info }
   const Icon = $derived(icons[severity])
   const rule = $derived(code ? lint.rule(code) : undefined)
 </script>
 
-<svelte:element this={tag} class="item {severity}">
+<svelte:element this={tag} class="item {severity}" class:inline>
   <button type="button" class="main" onclick={onjump}>
     <span class="icon"><Icon size={15} /></span>
     <span class="text">
       <span class="msg">{message}</span>
       {#if hint}<span class="hint-line">{hint}</span>{/if}
-      {#if where || code}
+      {#if inline}
+        {#if where}<span class="where">{where}</span>{/if}
+        {#if code}<Badge mono>{code}</Badge>{/if}
+      {:else if where || code}
         <span class="place">
           {#if where}<span class="where">{where}</span>{/if}
           {#if code}<Badge mono>{code}</Badge>{/if}
@@ -134,5 +139,37 @@
     font-size: var(--fs-sm);
     color: var(--fg-1);
     line-height: 1.45;
+  }
+  /* Inline: the message, where and the rule on one line (the hint
+     under the message), Why? and Turn this rule off at its end. */
+  .inline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .inline .main {
+    flex: 1;
+    min-width: 0;
+  }
+  .inline .text {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: var(--s-3);
+  }
+  .inline .msg {
+    flex: 1 1 240px;
+  }
+  .inline .hint-line {
+    order: 1;
+    flex-basis: 100%;
+    font-size: var(--fs-xs);
+  }
+  .inline .extra {
+    flex: none;
+    padding: 0 var(--s-3) 0 0;
+  }
+  .inline .why {
+    flex-basis: 100%;
   }
 </style>

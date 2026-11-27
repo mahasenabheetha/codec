@@ -18,6 +18,18 @@ The interface redesign, Spectrum, first part (decision 106).
 - The rail shows codec's version, and Problems shows how many errors
   and warnings the last workspace check found. The status bar counts
   them in the Problems view too, with the number of files checked.
+- **Problems summary.** The Problems view starts with three cards: the
+  findings by severity, by kind of check, and the files with the most.
+  It says how many YAML files were checked and how long that took.
+- **Query.** Beside the results, how they spread over files, and a hint
+  when they show something to fix: images that use `latest` or no tag.
+  The count says how long the query took.
+- **Find in Files.** A hit opened from the results shows **Match N of M** in
+  the file's header, with buttons for the previous and next match.
+- **Clone.** **Save as…** downloads the clone, named after the new name.
+  Nothing is written to the folder.
+- **Mermaid.** **PNG** saves the diagram as a picture, drawn in the page
+  on the preview's background; nothing is sent anywhere.
 
 ### Changed
 
@@ -96,6 +108,45 @@ The interface redesign, Spectrum, first part (decision 106).
   Get started in the same layout. The Compare text card and the
   privacy line are gone: Compare is on the rail and the palette, and
   the status bar says that everything runs on this machine.
+- **View headers.** A view's header shows its icon on a filled tile in
+  its colour, its name with what is known under it, on a ground washed
+  with its colour and dotted towards the right (not with tool colours
+  off). The file view's header has the same ground.
+- **Explorer.** The folder's icon sits on a tile, its name is no longer
+  in capitals, and a file with what-if edits says so in words. Marks
+  for what-if edits, warnings and errors are small pills.
+- **Problems.** Choose the kind of check with a switch, and filter by
+  path or rule. Each file is a row with its kind and its count, and its
+  findings are one line each.
+- **Settings.** The sections are listed with their icons on tiles in
+  their colours, and the page says where settings are kept. Each
+  section has a big title, and its settings are in a card. A rule shows
+  its code beside its name, and its level is an Off · Info · Warning ·
+  Error switch; each group says how many rules are on.
+- **Compare.** The two sides are cards, the left one indigo and the
+  right one pink, with the swap button between them. The summary counts
+  what was added, removed and changed, with a bar. **Ignored paths ·
+  N** and **Compare again** are in the header.
+- **Query.** Examples to try are chips. Each result is a card with its
+  file and line; open it or copy its value.
+- **New.** Starters are tiles in the colour of their kind. The form is
+  beside the preview, short choices are switches, and the files are
+  tabs with their counts. **Save as zip** and **Copy** (the file shown)
+  are in the header.
+- **Find in Files.** The search options sit in the field, and a bar shows how
+  the hits spread over files. The hit you are on is marked.
+- **Clone.** The old and new names sit in one row with what was found.
+  Renames, suggestions and checks are groups beside the code, each
+  rename showing the value before and after. **Copy** and **Save as…**
+  are in the header.
+- **Markdown preview.** Headings are bold, in the text colour; colour
+  stays in code, quotes, table heads and callouts. Quotes, code blocks
+  and callouts are rounder, callouts have a border in their colour, and
+  a table sits in a rounded frame.
+- **Mermaid preview.** A faint grid behind the diagram. Zoom is at the
+  bottom right, with the kind of diagram and the zoom level at the
+  bottom left; **Copy SVG** is in the header, and the header names the
+  kind of diagram. A diagram that doesn't parse says so at the top.
 
 ## [3.10.3] - 2026-11-20
 

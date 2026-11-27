@@ -70,7 +70,7 @@
   <img src="images/new.png" alt="The New view: the Helm chart starter selected, a short form, and seven generated files with Chart.yaml shown, lint clean" width="1400" height="820">
   <figcaption>The Helm chart starter: fill in a few fields, read the result — linted, schema-checked and rendered — then copy it or download a zip.</figcaption>
 </figure>
-<p>Open <strong>New</strong> in the sidebar or "New file from a starter…" in the palette. Pick a starter, fill in the short form (defaults are sensible), and read the result on the right. Every file is linted and schema-checked as you type; a chart is also rendered with <code>helm template</code> and its output checked (the <strong>Rendered</strong> tab). You can edit the preview — edits are what-if and are re-checked — then <strong>Copy</strong> a file or <strong>Download</strong> them all as a zip. codec writes nothing itself.</p>
+<p>Open <strong>New</strong> in the sidebar or "New file from a starter…" in the palette. Pick a starter, fill in the short form (defaults are sensible), and read the result on the right. Every file is linted and schema-checked as you type; a chart is also rendered with <code>helm template</code> and its output checked (the <strong>Rendered</strong> tab). You can edit the preview — edits are what-if and are re-checked — then <strong>Copy</strong> the file shown or <strong>Save as zip</strong> to download them all. codec writes nothing itself.</p>
 <div class="table-wrap"><table>
   <tr><th>Group</th><th>Starters</th></tr>
   <tr><td>Kubernetes</td><td>Deployment and Service (optional Ingress), ConfigMap, Secret</td></tr>
@@ -115,7 +115,7 @@
   <li><strong>Check:</strong> things copies usually change even when they don't contain the name — images, hosts, Secret references.</li>
   <li>Label and annotation <em>keys</em> are never renamed.</li>
 </ul>
-<p>Every change is listed and can be unticked; changed lines are tinted in the preview. The copy is checked like the original (lint, schemas and the lens's checks), then you copy the text into a new file.</p>
+<p>Every change is listed and can be unticked; changed lines are tinted in the preview. The copy is checked like the original (lint, schemas and the lens's checks), then you <strong>Copy</strong> its text or <strong>Save as…</strong> to download it as a file named after the new name. Nothing is written to the open folder.</p>
 
 <h2 id="snippets">Snippets<a class="anchor" href="#snippets">#</a></h2>
 <p>In the editor, at the start of a key or a list item, <kbd>Ctrl</kbd> <kbd>Space</kbd> offers snippets for the file type; <kbd>Tab</kbd> moves between their fields:</p>

@@ -3,6 +3,8 @@
 
 import { isAbort } from '../../lib/api/client'
 import { searchFiles, type SearchMatch, type SearchResult } from '../../lib/api/search'
+import { layout } from '../../lib/stores/layout.svelte'
+import { editorNav } from '../editor/active.svelte'
 
 export interface FileHits {
   path: string
@@ -17,6 +19,9 @@ class Search {
   globs = $state('') // comma-separated, as typed
 
   result = $state.raw<SearchResult | null>(null)
+  /** The match last opened, by its place in the result; -1 for none.
+   *  The file view steps from it (Match 2 of 14). */
+  at = $state(-1)
   error = $state<string | null>(null)
   running = $state(false)
   collapsed = $state(new Set<string>())
@@ -64,6 +69,7 @@ class Search {
       )
       if (ctrl.signal.aborted) return
       this.result = r
+      this.at = -1
       this.error = null
       this.collapsed = new Set()
     } catch (e) {
@@ -73,6 +79,17 @@ class Search {
     } finally {
       if (this.inflight === ctrl) this.running = false
     }
+  }
+
+  /** Open a match in its file, the hit selected; past either end it
+   *  wraps round. */
+  go(i: number) {
+    const ms = this.result?.matches ?? []
+    if (!ms.length) return
+    this.at = (i + ms.length) % ms.length
+    const m = ms[this.at]
+    layout.openFile(m.path)
+    editorNav.request(m.path, m.line, m.col, m.endCol)
   }
 
   toggleFile(path: string) {
@@ -86,6 +103,7 @@ class Search {
     this.inflight?.abort()
     this.query = ''
     this.result = null
+    this.at = -1
     this.error = null
   }
 }

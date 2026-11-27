@@ -41,6 +41,8 @@
   import { toast } from '../../lib/stores/toast.svelte'
   import { comparison } from '../compare/compare.svelte'
   import { logTabs } from '../logs/viewer.svelte'
+  import Tile from '../../lib/components/Tile.svelte'
+  import { hueVar, viewHue, viewIcon } from '../../lib/tools'
   import FileIcon from './FileIcon.svelte'
   import { kindOf, lookOf } from './filetypes'
   import { folderIconUrl } from './icons.svelte'
@@ -202,8 +204,9 @@
   }
 </script>
 
-<aside class="explorer" aria-label="Explorer">
+<aside class="explorer hued" aria-label="Explorer" style:--tool={hueVar(viewHue.explorer)}>
   <header>
+    <Tile icon={viewIcon.explorer} size="sm" solid={!!ws.info?.open} />
     {#if ws.info?.open}
       <span class="name" title={ws.info.root}>{ws.info.name}</span>
     {:else}
@@ -294,7 +297,7 @@
             {#if m}
               <span class="marks">
                 {#if m.whatif}
-                  <span class="wi" title={node.file ? 'What-if edits (not saved)' : `${plural(m.whatif, 'file')} with what-if edits`}><PencilLine size={11} /><span class="sr-only">what-if edits</span></span>
+                  <span class="wi" title={node.file ? 'What-if edits (not saved)' : `${plural(m.whatif, 'file')} with what-if edits`}><PencilLine size={11} />{node.file ? 'what-if' : m.whatif}<span class="sr-only"> what-if edits</span></span>
                 {/if}
                 {#if m.e}<span class="e" title={plural(m.e, 'error')}><CircleX size={11} />{m.e}<span class="sr-only"> errors</span></span>{/if}
                 {#if m.w}<span class="w" title={plural(m.w, 'warning')}><TriangleAlert size={11} />{m.w}<span class="sr-only"> warnings</span></span>{/if}
@@ -322,7 +325,7 @@
     display: flex;
     align-items: center;
     gap: var(--s-2);
-    height: var(--tabbar-h);
+    height: calc(var(--control-h) + var(--s-3));
     padding: 0 var(--s-1) 0 var(--s-3);
     border-bottom: 1px solid var(--border);
     flex: 0 0 auto;
@@ -333,10 +336,8 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-size: var(--fs-xs);
+    font-size: var(--fs-sm);
     font-weight: var(--fw-semibold);
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
   }
   .muted {
     color: var(--fg-2);
@@ -361,8 +362,8 @@
     background: var(--bg-3);
   }
   .filter-btn.active {
-    color: var(--accent);
-    background: var(--accent-soft);
+    color: var(--tool-accent);
+    background: var(--tool-accent-soft);
   }
   .filter {
     display: flex;
@@ -435,21 +436,27 @@
     flex: 0 0 auto;
     display: inline-flex;
     align-items: center;
-    gap: var(--s-2);
-    padding: 0 var(--s-2) 0 var(--s-1);
+    gap: var(--s-1);
+    padding: 0 var(--s-1);
     font-size: var(--fs-xs);
+    font-weight: var(--fw-semibold);
   }
   .marks > span {
     display: inline-flex;
     align-items: center;
     gap: 2px;
+    height: 16px;
+    padding: 0 var(--s-1);
+    border-radius: var(--r-sm);
   }
   .wi,
   .w {
     color: var(--warn);
+    background: var(--warn-soft);
   }
   .e {
     color: var(--err);
+    background: var(--err-soft);
   }
   .folder {
     display: grid;

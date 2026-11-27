@@ -1,4 +1,5 @@
 <script lang="ts">
+  import SegmentedControl from '../../lib/components/SegmentedControl.svelte'
   import Select from '../../lib/components/Select.svelte'
   import Toggle from '../../lib/components/Toggle.svelte'
   import type { Level } from '../../lib/api/lint'
@@ -10,11 +11,12 @@
   // They apply to the editor, workspace lint, Helm output and
   // `codec yaml lint` alike.
 
+  // Quietest first, as the levels read left to right.
   const levels: { value: Level; label: string }[] = [
-    { value: 'error', label: 'Error' },
-    { value: 'warning', label: 'Warning' },
-    { value: 'info', label: 'Info' },
     { value: 'off', label: 'Off' },
+    { value: 'info', label: 'Info' },
+    { value: 'warning', label: 'Warning' },
+    { value: 'error', label: 'Error' },
   ]
   const versionItems = $derived([
     { value: '', label: `Default (${lint.defaultK8sVersion})` },
@@ -81,10 +83,10 @@
 </SettingSection>
 
 {#each groups as g (g.id)}
-  <SettingSection id="rules-{g.id}" title="{g.title} rules">
+  {@const off = g.rules.filter((r) => lint.level(r.id) === 'off').length}
+  <SettingSection id="rules-{g.id}" title="{g.title} rules" description="{g.rules.length - off} on, {off} off">
     {#each g.rules as r (r.id)}
-      <SettingRow title={r.title} description={r.why}>
-        {#snippet details()}<code class="id">{r.id}</code>{/snippet}
+      <SettingRow title={r.title} description={r.why} code={r.id}>
         {#if r.id === 'line-length' && lint.level(r.id) !== 'off'}
           <input
             class="num"
@@ -96,7 +98,7 @@
             onkeydown={(e) => e.key === 'Enter' && saveLength()}
           />
         {/if}
-        <Select items={levels} value={lint.level(r.id)} label="Level of {r.title}" onchange={(v) => lint.setLevel(r.id, v as Level)} />
+        <SegmentedControl options={levels} value={lint.level(r.id)} label="Level of {r.title}" onchange={(v) => lint.setLevel(r.id, v)} />
       </SettingRow>
     {/each}
   </SettingSection>
@@ -106,10 +108,6 @@
   code {
     font-family: var(--font-mono);
     font-size: 0.92em;
-  }
-  .id {
-    font-size: var(--fs-xs);
-    color: var(--fg-1);
   }
   input {
     width: 260px;

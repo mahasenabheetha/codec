@@ -5,7 +5,11 @@
   import ErrorNote from '../../lib/components/ErrorNote.svelte'
   import Copy from '@lucide/svelte/icons/copy'
   import Plus from '@lucide/svelte/icons/plus'
+  import ShieldCheck from '@lucide/svelte/icons/shield-check'
   import X from '@lucide/svelte/icons/x'
+  import Tile from '../../lib/components/Tile.svelte'
+  import { hueVar } from '../../lib/tools'
+  import { sectionLook } from './sections'
   import Button from '../../lib/components/Button.svelte'
   import IconButton from '../../lib/components/IconButton.svelte'
   import SegmentedControl from '../../lib/components/SegmentedControl.svelte'
@@ -15,7 +19,7 @@
   import { forget, getSettings, type FolderID, type SettingsInfo } from '../../lib/api/settings'
   import { copyText } from '../../lib/utils/clipboard'
   import { toast } from '../../lib/stores/toast.svelte'
-  import { theme, themes, type DarkStyle, type LightStyle, type ThemePref } from '../../lib/stores/theme.svelte'
+  import { theme, themes, type DarkStyle, type LightStyle } from '../../lib/stores/theme.svelte'
   import { uiSize, type UiSize } from '../../lib/stores/size.svelte'
   import { toolColours } from '../../lib/stores/colour.svelte'
   import { iconStyle, type IconStyle } from '../workspace/icons.svelte'
@@ -187,27 +191,34 @@
     <h1>Settings</h1>
     <ul>
       {#each nav as n (n.id)}
-        <li><button type="button" aria-current={current === n.id ? 'true' : undefined} onclick={() => jump(n.id)}>{n.title}</button></li>
+        {@const look = sectionLook(n.id)}
+        {@const on = current === n.id}
+        <li>
+          <button type="button" class:hued={!!look.hue} style:--tool={look.hue ? hueVar(look.hue) : undefined} aria-current={on ? 'true' : undefined} onclick={() => jump(n.id)}>
+            <Tile icon={look.icon} size="sm" solid={on} />{n.title}
+          </button>
+        </li>
       {/each}
     </ul>
+    <p class="kept"><ShieldCheck size={14} />Saved in your user profile, never in a repository. codec only reads the folders you open.</p>
   </nav>
 
   <div class="scroll" bind:this={scroller} onscroll={spy}>
     <div class="content">
-      <p class="intro">Saved in your user profile, never in a repository. codec only reads the folders you open.</p>
-
-      <SettingSection id="general" title="General">
-        <SettingRow wide title="Theme" description="Dark, the soft and colourful Dusk, Midnight, Forest, Rosé and Ocean, High contrast, Light, the warm Paper and the dimmed Mist. System follows your operating system's light or dark setting. It changes at once.">
-          <ThemeGrid />
-        </SettingRow>
-        {#if theme.pref === 'system'}
-          <SettingRow title="When the system is light" description="The light theme System uses.">
-            <Select items={lightItems} value={theme.lightStyle} label="When the system is light" onchange={(v) => (theme.lightStyle = v as LightStyle)} />
+      <SettingSection id="general" title="General" description="How codec looks and opens things">
+        {#snippet lead()}
+          <SettingRow wide title="Theme" description="Dark, the soft and colourful Dusk, Midnight, Forest, Rosé and Ocean, High contrast, Light, the warm Paper and the dimmed Mist. System follows your operating system's light or dark setting. It changes at once.">
+            <ThemeGrid />
           </SettingRow>
-          <SettingRow title="When the system is dark" description="The dark theme System uses.">
-            <Select items={darkItems} value={theme.darkStyle} label="When the system is dark" onchange={(v) => (theme.darkStyle = v as DarkStyle)} />
-          </SettingRow>
-        {/if}
+          {#if theme.pref === 'system'}
+            <SettingRow title="When the system is light" description="The light theme System uses.">
+              <Select items={lightItems} value={theme.lightStyle} label="When the system is light" onchange={(v) => (theme.lightStyle = v as LightStyle)} />
+            </SettingRow>
+            <SettingRow title="When the system is dark" description="The dark theme System uses.">
+              <Select items={darkItems} value={theme.darkStyle} label="When the system is dark" onchange={(v) => (theme.darkStyle = v as DarkStyle)} />
+            </SettingRow>
+          {/if}
+        {/snippet}
         <SettingRow title="Tool colours" description="Each tool and action in its own colour, on the rail, tabs, Home and its page. Off: everything in the theme's accent.">
           <Toggle checked={toolColours.on} name="Tool colours" label={toolColours.on ? 'On' : 'Off'} onchange={(on) => (toolColours.on = on)} />
         </SettingRow>
@@ -333,45 +344,75 @@
   .settings {
     height: 100%;
     display: grid;
-    grid-template-columns: 200px minmax(0, 1fr);
+    grid-template-columns: 230px minmax(0, 1fr);
     min-height: 0;
   }
   .inactive {
     display: none;
   }
   nav {
-    padding: var(--s-6) var(--s-3) var(--s-6) var(--s-6);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding: var(--s-5) var(--s-3);
     border-right: 1px solid var(--border);
+    overflow: auto;
   }
   h1 {
-    margin: 0 0 var(--s-4);
-    font-size: var(--fs-xl);
-    font-weight: var(--fw-semibold);
+    margin: 0;
+    padding: 0 var(--s-2) var(--s-3);
+    font-size: var(--fs-2xl);
+    font-weight: var(--fw-bold);
   }
   ul {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
     list-style: none;
     margin: 0;
     padding: 0;
   }
+  /* As the rail draws its items: a tile in the section's colour, solid
+     and on a soft ground for the section in view. */
   nav button {
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
     width: 100%;
-    padding: var(--s-1) var(--s-2);
+    height: calc(var(--control-h) - 2px);
+    padding: 0 var(--s-2);
     text-align: left;
     color: var(--fg-1);
     background: none;
     border: none;
-    border-radius: var(--r-sm);
+    border-radius: var(--r-md);
+    white-space: nowrap;
   }
   nav button:hover {
     color: var(--fg-0);
     background: var(--bg-2);
   }
-  /* The section in view: a bar and firmer words, not colour alone. */
+  /* The section in view: a solid tile and firmer words, not colour alone. */
   nav button[aria-current] {
     color: var(--fg-0);
-    font-weight: var(--fw-medium);
-    background: var(--bg-3);
-    box-shadow: inset 2px 0 0 var(--accent);
+    font-weight: var(--fw-semibold);
+    background: color-mix(in oklab, var(--tool-accent-soft, var(--accent-soft)) var(--tint-fill), var(--bg-3));
+  }
+  .kept {
+    display: flex;
+    gap: var(--s-2);
+    margin: auto 0 0;
+    padding: var(--s-3);
+    font-size: var(--fs-xs);
+    line-height: 1.4;
+    color: var(--fg-1);
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+  }
+  .kept :global(svg) {
+    flex: none;
+    color: var(--ok);
   }
   .embed {
     padding: var(--s-3) 0;
@@ -381,15 +422,11 @@
     overflow: auto;
   }
   .content {
-    max-width: 820px;
-    padding: var(--s-6) var(--s-6) var(--s-12);
+    max-width: 860px;
+    padding: var(--s-6) var(--s-8) var(--s-12);
   }
   .content :global(h2:focus) {
     outline: none;
-  }
-  .intro {
-    margin: 0 0 var(--s-6);
-    color: var(--fg-1);
   }
   .skeletons {
     display: flex;
@@ -431,7 +468,7 @@
     border-radius: 999px;
   }
   .chip.current {
-    border-color: var(--accent);
+    border-color: var(--tool-accent);
   }
   .chip button {
     display: grid;
@@ -488,13 +525,14 @@
       border-right: none;
     }
     ul {
-      display: flex;
+      flex-direction: row;
       gap: var(--s-1);
       overflow-x: auto;
       padding-bottom: var(--s-2);
     }
-    nav button {
-      white-space: nowrap;
+    .kept {
+      margin: 0 0 var(--s-2);
+      padding: var(--s-2);
     }
     .content {
       padding: var(--s-4);

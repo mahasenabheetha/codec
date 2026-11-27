@@ -216,6 +216,31 @@ p {
   --tool-line: color-mix(in srgb, var(--tool-accent) 45%, var(--border));
 }
 
+/* A view header's dots (PanelHeader, the file view's header): in the
+   view's colour, fading out to the left. None outside a .hued view or
+   with tool colours off. What is in the header sits above them. */
+.dotted {
+  position: relative;
+  overflow: hidden;
+}
+.dotted::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: min(420px, 40%);
+  pointer-events: none;
+  background-image: radial-gradient(color-mix(in srgb, var(--tool-accent, transparent) 55%, transparent) 1px, transparent 1.5px);
+  background-size: var(--s-3) var(--s-3);
+  mask-image: linear-gradient(to left, rgb(0 0 0 / 0.55), transparent);
+}
+:root[data-colour='plain'] .dotted::after {
+  display: none;
+}
+.dotted > * {
+  position: relative;
+  z-index: 1;
+}
+
 /* Every Lucide icon has the one stroke (Spectrum, 3.11.0); CSS beats the
    stroke-width attribute, so components don't pass strokeWidth. */
 svg.lucide-icon {

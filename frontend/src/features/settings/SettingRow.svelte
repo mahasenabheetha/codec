@@ -1,10 +1,13 @@
 <script lang="ts">
   import type { Snippet } from 'svelte'
+  import Badge from '../../lib/components/Badge.svelte'
 
   // One setting: what it is and why on the left, its control on the right.
   interface Props {
     title: string
     description?: string
+    /** A name beside the title, in a badge (a lint rule's id). */
+    code?: string
     /** id of the control, so clicking the title focuses it. */
     for?: string
     /** The control under the text, the row's whole width (a grid of
@@ -15,12 +18,12 @@
     children: Snippet
   }
 
-  let { title, description, for: forId, wide = false, details, children }: Props = $props()
+  let { title, description, code, for: forId, wide = false, details, children }: Props = $props()
 </script>
 
 <div class="row" class:wide data-setting={title}>
   <svelte:element this={forId ? 'label' : 'div'} class="label" for={forId}>
-    <span class="title">{title}</span>
+    <span class="title">{title}{#if code}<Badge mono>{code}</Badge>{/if}</span>
     {#if description}<small>{description}</small>{/if}
     {#if details}<small>{@render details()}</small>{/if}
   </svelte:element>
@@ -67,6 +70,14 @@
     gap: 2px;
     min-width: 0;
     font-size: var(--fs-md);
+  }
+  .title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s-2);
+    font-weight: var(--fw-medium);
+    color: var(--fg-0);
   }
   small {
     font-size: var(--fs-sm);

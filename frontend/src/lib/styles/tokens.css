@@ -177,7 +177,7 @@
   --fw-regular: 400;
   --fw-medium: 500;
   --fw-semibold: 600;
-  --fw-bold: 700; /* the one page title, Home's */
+  --fw-bold: 700; /* page titles: Home's, Settings' and its sections', a Markdown preview's h1 and h2 */
 
   /* Layout */
   --rail-collapsed: 48px;
