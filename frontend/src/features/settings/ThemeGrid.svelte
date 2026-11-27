@@ -1,14 +1,16 @@
 <script lang="ts">
   import Monitor from '@lucide/svelte/icons/monitor'
+  import Spectrum from '../../lib/components/Spectrum.svelte'
   import { theme, themes, type Theme, type ThemePref } from '../../lib/stores/theme.svelte'
 
   // The themes as a grid of swatches (3.10.2), in place of a menu of ten
   // names: each card is the theme's own ground, text, accent and one tool
-  // colour, so you pick by looking. A radio group: arrow keys move and
-  // choose, as radio buttons do.
-  const options: { value: ThemePref; label: string; note: string; swatch?: [string, string, string, string] }[] = [
+  // colour, with its eight tool colours along the foot (3.11.0), so you
+  // pick by looking. A radio group: arrow keys move and choose, as radio
+  // buttons do.
+  const options: { value: ThemePref; label: string; note: string; swatch?: [string, string, string, string]; hues?: readonly string[] }[] = [
     { value: 'system', label: 'System', note: "follows your operating system's light or dark" },
-    ...themes.map((t) => ({ value: t.value as ThemePref, label: t.label, note: t.note, swatch: t.swatch })),
+    ...themes.map((t) => ({ value: t.value as ThemePref, label: t.label, note: t.note, swatch: t.swatch, hues: t.hues })),
   ]
 
   function pick(v: ThemePref) {
@@ -35,11 +37,14 @@
     <button type="button" role="radio" aria-checked={on} tabindex={on ? 0 : -1} class="card" class:on data-theme-option={o.value} title={o.note} onclick={() => pick(o.value)}>
       {#if o.swatch}
         <span class="swatch" style:background={o.swatch[0]} style:color={o.swatch[1]} aria-hidden="true">
-          <span class="aa">Aa</span>
-          <span class="dots"><i style:background={o.swatch[2]}></i><i style:background={o.swatch[3]}></i></span>
+          <span class="row">
+            <span class="aa">Aa</span>
+            <span class="dots"><i style:background={o.swatch[2]}></i><i style:background={o.swatch[3]}></i></span>
+          </span>
+          <Spectrum hues={o.hues} />
         </span>
       {:else}
-        <span class="swatch system" aria-hidden="true"><Monitor size={18} strokeWidth={1.75} /></span>
+        <span class="swatch system" aria-hidden="true"><Monitor size={18} /></span>
       {/if}
       <span class="name">{o.label}</span>
       <span class="note">{o.note}</span>
@@ -80,16 +85,22 @@
   }
   .swatch {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--s-1);
     height: 44px;
     margin-bottom: var(--s-1);
     padding: 0 var(--s-3);
     border: 1px solid var(--border);
     border-radius: var(--r-md);
   }
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
   .swatch.system {
-    justify-content: center;
+    align-items: center;
     color: var(--fg-1);
     background: linear-gradient(105deg, var(--bg-0) 50%, var(--bg-3) 50%);
   }

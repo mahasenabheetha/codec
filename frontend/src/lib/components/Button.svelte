@@ -17,7 +17,7 @@
 </script>
 
 <button {type} class="btn {variant} {size}" class:toned={!!tone} style:--act={tone && `var(--act-${tone})`} {...rest}>
-  {#if Icon}<Icon size={size === 'sm' ? 14 : 15} strokeWidth={1.75} />{/if}
+  {#if Icon}<Icon size={size === 'sm' ? 14 : 15} />{/if}
   {#if children}<span>{@render children()}</span>{/if}
 </button>
 

@@ -64,17 +64,17 @@
     <div class="today">
       <div class="stats">
         <div class="stat">
-          <span class="icon focus"><Check size={18} strokeWidth={2} /></span>
+          <span class="icon focus"><Check size={18} /></span>
           <span class="num">{today.sessions}</span>
           <span class="what">{today.sessions === 1 ? 'focus session' : 'focus sessions'}</span>
         </div>
         <div class="stat">
-          <span class="icon focus"><Brain size={18} strokeWidth={2} /></span>
+          <span class="icon focus"><Brain size={18} /></span>
           <span class="num">{today.focusMinutes >= 60 ? `${Math.floor(today.focusMinutes / 60)}h ${today.focusMinutes % 60}m` : `${today.focusMinutes} min`}</span>
           <span class="what">focused</span>
         </div>
         <div class="stat">
-          <span class="icon rest"><Coffee size={18} strokeWidth={2} /></span>
+          <span class="icon rest"><Coffee size={18} /></span>
           <span class="num">{today.breaks}</span>
           <span class="what">{today.breaks === 1 ? 'break taken' : 'breaks taken'}</span>
         </div>
@@ -104,7 +104,7 @@
           <ol class="list">
             {#each [...blocks].reverse() as b, i (i)}
               <li>
-                <span class="mark {b.kind}">{#if b.kind === 'focus'}<Brain size={14} strokeWidth={2} />{:else}<Coffee size={14} strokeWidth={2} />{/if}</span>
+                <span class="mark {b.kind}">{#if b.kind === 'focus'}<Brain size={14} />{:else}<Coffee size={14} />{/if}</span>
                 <span class="when">{time(b.start)} – {time(b.end)}</span>
                 <span class="kind">{b.kind === 'focus' ? (b.complete ? 'Focus session' : 'Focus, cut short') : 'Break'}</span>
                 <span class="len">{duration(mins(b))}</span>

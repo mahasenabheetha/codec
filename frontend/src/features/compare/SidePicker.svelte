@@ -93,7 +93,7 @@
         <FileIcon file={workspace.byPath.get(side.path) ?? { lang: 'yaml' }} />
         <span class="name">{side.path.split('/').pop()}</span>
       {:else}
-        <FileSearch size={14} strokeWidth={1.75} /> <span class="muted">Choose or drop a file…</span>
+        <FileSearch size={14} /> <span class="muted">Choose or drop a file…</span>
       {/if}
     </button>
     {#if docs.length > 1}

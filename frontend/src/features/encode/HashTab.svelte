@@ -130,7 +130,7 @@
               <div class="name">
                 {prefix}{d.algorithm}
                 {#if d.weak}<Badge tone="warn">checksums only</Badge>{/if}
-                {#if hit}<span class="match"><CircleCheck size={14} strokeWidth={2} /> matches</span>{/if}
+                {#if hit}<span class="match"><CircleCheck size={14} /> matches</span>{/if}
               </div>
               <code>{value(d)}</code>
               <IconButton icon={Copy} tone="copy" label="Copy {prefix}{d.algorithm}" size="sm" onclick={() => copyText(value(d), prefix + d.algorithm)} />

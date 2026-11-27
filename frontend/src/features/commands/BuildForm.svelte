@@ -110,7 +110,7 @@
     <label class="head">
       <input type="checkbox" checked={uses.length > 0} onchange={(e) => toggle(f, e.currentTarget.checked)} />
       <span class="names">{f.names.filter((n) => n !== '-<n>').join(', ')}{#if f.value}<span class="ph">{f.optionalValue ? `[=${f.value}]` : f.value}</span>{/if}</span>
-      {#if f.danger}<span class="danger {f.danger.level}" title={f.danger.note}><TriangleAlert size={12} strokeWidth={2} /></span>{/if}
+      {#if f.danger}<span class="danger {f.danger.level}" title={f.danger.note}><TriangleAlert size={12} /></span>{/if}
       {#if before(f)}<span class="where">before {before(f)}</span>{/if}
     </label>
     <p class="sum">{f.summary}</p>
@@ -135,7 +135,7 @@
           {#if f.repeat && uses.length > 1}<IconButton icon={X} label="Remove this one" size="sm" onclick={() => remove(u)} />{/if}
         </div>
       {/each}
-      {#if f.repeat}<button type="button" class="add" onclick={() => addAnother(f)}><Plus size={12} strokeWidth={2} /> Another {f.value}</button>{/if}
+      {#if f.repeat}<button type="button" class="add" onclick={() => addAnother(f)}><Plus size={12} /> Another {f.value}</button>{/if}
     {/if}
   </div>
 {/snippet}
@@ -155,7 +155,7 @@
   </div>
   <p class="what">{cmd.summary}</p>
   {#if cmd.danger}
-    <p class="callout {cmd.danger.level}"><TriangleAlert size={14} strokeWidth={2} /> <span>{cmd.danger.note}{#if cmd.danger.safer}<span class="safer"> · safer: <code>{cmd.danger.safer}</code></span>{/if}</span></p>
+    <p class="callout {cmd.danger.level}"><TriangleAlert size={14} /> <span>{cmd.danger.note}{#if cmd.danger.safer}<span class="safer"> · safer: <code>{cmd.danger.safer}</code></span>{/if}</span></p>
   {/if}
 
   {#if cmd.args?.length}

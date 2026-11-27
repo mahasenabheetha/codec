@@ -12,7 +12,7 @@
   import Lock from '@lucide/svelte/icons/lock'
   import GitCompare from '@lucide/svelte/icons/git-compare'
   import RefreshCw from '@lucide/svelte/icons/refresh-cw'
-  import TextSearch from '@lucide/svelte/icons/text-search'
+  import Braces from '@lucide/svelte/icons/braces'
   import Save from '@lucide/svelte/icons/save'
   import SquarePen from '@lucide/svelte/icons/square-pen'
   import Trash from '@lucide/svelte/icons/trash-2'
@@ -236,7 +236,7 @@
       <Popover side="bottom" align="start">
         {#snippet trigger(props)}
           <button {...props} type="button" class="icon" aria-label="Save as profile" title="Save as profile">
-            <Save size={14} strokeWidth={1.75} />
+            <Save size={14} />
           </button>
         {/snippet}
         <form
@@ -265,12 +265,12 @@
       {#if session.rendering && !result}
         Rendering…
       {:else if result}
-        {#if errors.length}<span class="err"><CircleX size={12} strokeWidth={2} /> Render failed</span>
-        {:else}<span class="ok"><CircleCheck size={12} strokeWidth={2} /></span> {result.docs.length} documents · {ms} ms{/if}
+        {#if errors.length}<span class="err"><CircleX size={12} /> Render failed</span>
+        {:else}<span class="ok"><CircleCheck size={12} /></span> {result.docs.length} documents · {ms} ms{/if}
       {/if}
     </span>
     <IconButton icon={GitCompare} label="Compare two profiles of this chart" size="sm" onclick={compareProfiles} />
-    <IconButton icon={TextSearch} label="Query the rendered output (jq)" size="sm" onclick={() => queries.open({ chart })} />
+    <IconButton icon={Braces} label="Query the rendered output (jq)" size="sm" onclick={() => queries.open({ chart })} />
     <IconButton icon={RefreshCw} label="Render again" size="sm" onclick={() => session.render()} />
     {/snippet}
   </PanelHeader>
@@ -282,7 +282,7 @@
         <p class="note">Later layers win. Edits in open tabs apply as what-if.</p>
         <ul class="layers">
           <li class="layer locked" title="The chart's own defaults always apply first">
-            <Lock size={12} strokeWidth={2} />
+            <Lock size={12} />
             <span class="name">values.yaml</span>
             <span class="muted">chart defaults</span>
           </li>
@@ -359,7 +359,7 @@
       {:else if tab === 'rendered'}
         {#if errors.length}
           <div class="banner err" role="alert">
-            <CircleX size={14} strokeWidth={1.75} />
+            <CircleX size={14} />
             <button type="button" class="link" onclick={() => openProblem(errors[0])}>
               {errors[0].file ? `${errors[0].file}${errors[0].line ? ':' + errors[0].line : ''}: ` : ''}{errors[0].message}
             </button>
@@ -430,7 +430,7 @@
               onjump={() => openProblem(d)}
             />
           {:else}
-            <li class="note ok"><CircleCheck size={14} strokeWidth={1.75} /> No problems found.</li>
+            <li class="note ok"><CircleCheck size={14} /> No problems found.</li>
           {/each}
         </ul>
       {/if}

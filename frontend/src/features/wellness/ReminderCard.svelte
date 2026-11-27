@@ -69,7 +69,7 @@
 
 <article class="reminder" class:on={r.enabled}>
   <div class="head">
-    <span class="icon"><Icon size={20} strokeWidth={1.9} /></span>
+    <span class="icon"><Icon size={20} /></span>
     <div class="what">
       {#if r.kind === 'custom'}
         <input class="name" bind:value={r.name} aria-label="Reminder name" maxlength="40" />
@@ -90,7 +90,7 @@
 
   <button type="button" class="more" aria-expanded={open} onclick={() => (open = !open)}>
     {open ? 'Less' : 'Settings'}
-    <ChevronDown size={14} strokeWidth={2} style="transform: rotate({open ? 180 : 0}deg)" />
+    <ChevronDown size={14} style="transform: rotate({open ? 180 : 0}deg)" />
   </button>
 
   {#if open}

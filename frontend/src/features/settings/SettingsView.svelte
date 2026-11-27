@@ -274,7 +274,7 @@
                       <button
                         type="button"
                         aria-label="Forget profile {p} of {chartName(c.chart)}"
-                        onclick={() => run({ helm: { chart: c.chart, profile: p } }, `Profile ${p} forgotten`)}><X size={12} strokeWidth={2} /></button
+                        onclick={() => run({ helm: { chart: c.chart, profile: p } }, `Profile ${p} forgotten`)}><X size={12} /></button
                       >
                     </span>
                   {/each}

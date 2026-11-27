@@ -1,17 +1,17 @@
 <script lang="ts">
   import Search from '@lucide/svelte/icons/search'
-  import Boxes from '@lucide/svelte/icons/boxes'
+  import Box from '@lucide/svelte/icons/box'
   import GitCompare from '@lucide/svelte/icons/git-compare'
   import Layers from '@lucide/svelte/icons/layers'
   import Workflow from '@lucide/svelte/icons/workflow'
   import GitBranch from '@lucide/svelte/icons/git-branch'
   import Container from '@lucide/svelte/icons/container'
-  import ListTree from '@lucide/svelte/icons/list-tree'
-  import ListChecks from '@lucide/svelte/icons/list-checks'
-  import TextSearch from '@lucide/svelte/icons/text-search'
-  import FilePlus from '@lucide/svelte/icons/file-plus'
-  import CopyPlus from '@lucide/svelte/icons/copy-plus'
-  import Settings2 from '@lucide/svelte/icons/settings-2'
+  import ScrollText from '@lucide/svelte/icons/scroll-text'
+  import TriangleAlert from '@lucide/svelte/icons/triangle-alert'
+  import Braces from '@lucide/svelte/icons/braces'
+  import Plus from '@lucide/svelte/icons/plus'
+  import Copy from '@lucide/svelte/icons/copy'
+  import SlidersHorizontal from '@lucide/svelte/icons/sliders-horizontal'
   import X from '@lucide/svelte/icons/x'
   import ChevronDown from '@lucide/svelte/icons/chevron-down'
   import ArrowRightToLine from '@lucide/svelte/icons/arrow-right-to-line'
@@ -68,17 +68,17 @@
 
   // Fixed views: title, icon and, as on the rail, their hue.
   const views: Record<string, { title: string; icon: typeof X; hue?: Hue }> = {
-    [problemsRoute]: { title: 'Problems', icon: ListChecks, hue: viewHue.problems },
-    [settingsRoute]: { title: 'Settings', icon: Settings2 },
+    [problemsRoute]: { title: 'Problems', icon: TriangleAlert, hue: viewHue.problems },
+    [settingsRoute]: { title: 'Settings', icon: SlidersHorizontal },
     [compareRoute]: { title: 'Compare', icon: GitCompare, hue: viewHue.compare },
-    [queryRoute]: { title: 'Query', icon: TextSearch, hue: viewHue.query },
-    [newRoute]: { title: 'New', icon: FilePlus, hue: viewHue.new },
+    [queryRoute]: { title: 'Query', icon: Braces, hue: viewHue.query },
+    [newRoute]: { title: 'New', icon: Plus, hue: viewHue.new },
   }
 
   // Views over a folder: Kubernetes resources and Kustomize builds.
   function scopedView(route: string): { title: string; icon: typeof X; hue?: Hue } | undefined {
     const k8s = routeK8s(route)
-    if (k8s !== null) return { title: `K8s · ${k8s === '.' ? 'all' : base(k8s)}`, icon: Boxes }
+    if (k8s !== null) return { title: `K8s · ${k8s === '.' ? 'all' : base(k8s)}`, icon: Box }
     const kz = routeKustomize(route)
     if (kz !== null) return { title: `Kustomize · ${base(kz)}`, icon: Layers }
     const ar = routeArgo(route)
@@ -88,9 +88,9 @@
     const co = routeCompose(route)
     if (co !== null) return { title: `Compose · ${base(co)}`, icon: Container }
     const an = routeAnsible(route)
-    if (an !== null) return { title: `Ansible · ${base(an)}`, icon: ListTree }
+    if (an !== null) return { title: `Ansible · ${base(an)}`, icon: ScrollText }
     const cl = routeClone(route)
-    if (cl !== null) return { title: `Clone · ${base(cl)}`, icon: CopyPlus }
+    if (cl !== null) return { title: `Clone · ${base(cl)}`, icon: Copy }
     return undefined
   }
 
@@ -208,9 +208,9 @@
             onauxclick={(e) => onauxclick(e, route)}
           >
             {#if tool}
-              <tool.icon size={14} strokeWidth={1.75} />
+              <tool.icon size={14} />
             {:else if view}
-              <view.icon size={14} strokeWidth={1.75} />
+              <view.icon size={14} />
             {:else if chart}
               <FileIcon file="helm-chart" />
             {:else}
@@ -221,7 +221,7 @@
             {#if file && workspace.dirty.has(file)}<span class="dirty" title="What-if edits (not saved)"></span>{/if}
           </button>
           <button type="button" class="close" aria-label="Close {title}" onclick={() => layout.close(route)}>
-            <X size={12} strokeWidth={2} />
+            <X size={12} />
           </button>
         </div>
       {/if}
@@ -234,7 +234,7 @@
       {#snippet trigger(props)}
         <button {...props} type="button" class="all" aria-label="All open tabs ({layout.tabs.length})" title="All open tabs">
           {layout.tabs.length}
-          <ChevronDown size={13} strokeWidth={2} />
+          <ChevronDown size={13} />
         </button>
       {/snippet}
       <ul class="tablist" aria-label="Open tabs">
@@ -251,7 +251,7 @@
                   router.go(route)
                 }}>{name}{#if hint}<span class="hint">{hint}</span>{/if}</button
               >
-              <button type="button" class="close shown" aria-label="Close {name}" onclick={() => layout.close(route)}><X size={12} strokeWidth={2} /></button>
+              <button type="button" class="close shown" aria-label="Close {name}" onclick={() => layout.close(route)}><X size={12} /></button>
             </li>
           {/if}
         {/each}
@@ -260,7 +260,7 @@
   {/if}
 
   <button type="button" class="palette" onclick={() => (layout.paletteOpen = true)}>
-    <Search size={14} strokeWidth={1.75} />
+    <Search size={14} />
     <span>Search tools and actions</span>
     <Kbd combo="Mod+K" />
   </button>

@@ -57,7 +57,7 @@
         {:else}
           {@const Icon = entry.icon}
           <ContextMenu.Item class="codec-menu-item" disabled={entry.disabled} onSelect={entry.run}>
-            <span class="codec-menu-icon">{#if Icon}<Icon size={14} strokeWidth={1.75} />{/if}</span>
+            <span class="codec-menu-icon">{#if Icon}<Icon size={14} />{/if}</span>
             {entry.label}
           </ContextMenu.Item>
         {/if}

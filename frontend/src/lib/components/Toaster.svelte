@@ -12,7 +12,7 @@
   {#each toasts.items as t (t.id)}
     {@const Icon = icons[t.tone]}
     <div class="toast {t.tone}">
-      <Icon size={15} strokeWidth={2} />
+      <Icon size={15} />
       <span>{t.message}</span>
       {#if t.action}
         {@const action = t.action}

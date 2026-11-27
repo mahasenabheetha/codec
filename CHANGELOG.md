@@ -17,6 +17,18 @@ The interface redesign, Spectrum, first part (decision 106).
   their muted colours; Paper, Mist and High contrast change only a
   little. Every theme still passes the contrast rules.
 - The tab bar is 40 px and the status bar 28 px (were 38 and 26).
+- **Icons.** Every icon has the same, slightly firmer stroke, and a
+  thing has one icon wherever it shows (rail, tab, view header, palette,
+  menu): Explorer is a folder, Open folder an upload arrow, Problems a
+  warning triangle, Query braces, New a plus, Clone a copy, Settings
+  sliders, Kubernetes a box, Ansible a scroll, Helm a ship's wheel, Log
+  viewer a list, JWT a key, Commands a terminal.
+- **The codec mark.** The rail shows the new mark, three bars in tool
+  colours. The app, browser and installer icons don't change.
+- **Spectrum strip.** The eight tool colours run along the top of the
+  command palette and Go to file, and along each theme card in
+  Settings, in that theme's colours (Dark's and Light's cards were
+  still showing their colours from before 3.11.0).
 
 ## [3.10.3] - 2026-11-20
 

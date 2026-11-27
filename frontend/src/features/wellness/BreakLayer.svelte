@@ -89,7 +89,7 @@
   {#if r.style === 'window'}
     <div class="backdrop" role="dialog" aria-modal="true" aria-label={r.name}>
       <div class="panel" bind:this={panel}>
-        <div class="pill">{#if Icon}<Icon size={15} strokeWidth={2} />{/if}{r.name}{#if c.test}<span class="test">· test</span>{/if}</div>
+        <div class="pill">{#if Icon}<Icon size={15} />{/if}{r.name}{#if c.test}<span class="test">· test</span>{/if}</div>
         <div class="guide">
           {#if guide === 'breathe'}
             <Breathing rhythm={reminders.prefs.rhythm} />
@@ -116,7 +116,7 @@
   {:else}
     <aside class="card" aria-label={r.name}>
       <header>
-        <span class="icon">{#if Icon}<Icon size={18} strokeWidth={2} />{/if}</span>
+        <span class="icon">{#if Icon}<Icon size={18} />{/if}</span>
         <strong role="status">{r.name}</strong>
         <span class="small-time" role="timer">{formatClock(t.left)}</span>
         <IconButton icon={X} label="Skip" size="sm" onclick={() => reminders.finish(false)} />

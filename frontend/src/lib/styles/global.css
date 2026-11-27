@@ -166,6 +166,12 @@ p {
   --tool-line: color-mix(in oklab, color-mix(in srgb, var(--tool) 45%, var(--border)) var(--tint-tool), var(--border));
 }
 
+/* Every Lucide icon has the one stroke (Spectrum, 3.11.0); CSS beats the
+   stroke-width attribute, so components don't pass strokeWidth. */
+svg.lucide-icon {
+  stroke-width: var(--icon-stroke);
+}
+
 /* Interface size: every Lucide icon grows from the size written in the
    code by --icon-scale, rounded to whole pixels so strokes stay sharp.
    CSS beats the width and height attributes the icon sets. */

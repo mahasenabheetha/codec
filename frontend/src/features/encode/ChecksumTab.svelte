@@ -184,7 +184,7 @@
               {@const v = verdict(r)}
               <li class={v}>
                 <div class="head">
-                  {#if v === 'ok'}<CircleCheck size={16} strokeWidth={2} class="ok" />{:else if v === 'bad'}<CircleX size={16} strokeWidth={2} class="bad" />{/if}
+                  {#if v === 'ok'}<CircleCheck size={16} class="ok" />{:else if v === 'bad'}<CircleX size={16} class="bad" />{/if}
                   <span class="name" title={r.name}>{r.name}</span>
                   <span class="muted">{r.folder ? 'open folder · ' : ''}{size(r.size)}</span>
                   {#if r.busy}<span class="muted">hashing…</span>{/if}

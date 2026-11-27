@@ -10,7 +10,7 @@
   <span class="wave"></span>
   <span class="wave" style:animation-delay="-2s"></span>
   <span class="wave" style:animation-delay="-4s"></span>
-  <span class="eye"><Eye size={34} strokeWidth={1.6} /></span>
+  <span class="eye"><Eye size={34} /></span>
 </div>
 
 <style>

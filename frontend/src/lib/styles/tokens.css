@@ -189,6 +189,9 @@
   --icon-scale: 1.125;
   --control-h: 32px;
   --control-h-sm: 28px;
+  /* One stroke for every icon (Spectrum, 3.11.0), in the icon's own
+     24-unit grid, so it thins and thickens with the icon's size. */
+  --icon-stroke: 1.9;
 
   /* Elevation: --shadow-pop for popovers and dialogs; --shadow-raise,
      barely there, for a card that lifts under the pointer. Depth

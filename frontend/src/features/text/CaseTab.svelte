@@ -80,7 +80,7 @@
             {#each res.checks as c (c.rule)}
               <li class:bad={!c.valid}>
                 <div class="head">
-                  <span class="mark" aria-hidden="true">{#if c.valid}<Check size={14} strokeWidth={2} />{:else}<X size={14} strokeWidth={2} />{/if}</span>
+                  <span class="mark" aria-hidden="true">{#if c.valid}<Check size={14} />{:else}<X size={14} />{/if}</span>
                   <strong>{c.rule}</strong>
                   <span class="sr-only">{c.valid ? 'passes' : 'fails'}</span>
                 </div>

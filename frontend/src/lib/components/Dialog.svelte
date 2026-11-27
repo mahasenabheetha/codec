@@ -28,7 +28,7 @@
           {/if}
         </div>
         <Dialog.Close class="codec-dialog-close" aria-label="Close">
-          <X size={16} strokeWidth={1.75} />
+          <X size={16} />
         </Dialog.Close>
       </header>
       <div class="body">{@render children()}</div>

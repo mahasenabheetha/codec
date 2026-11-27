@@ -34,7 +34,7 @@ and a shell built around what you use most.
 | Space | 4px scale: `--s-1 4` `--s-2 8` `--s-3 12` `--s-4 16` `--s-5 20` `--s-6 24` `--s-8 32` `--s-12 48` |
 | Radius | `--r-sm 4` inputs, small marks · `--r-md 8` buttons, rows · `--r-lg 12` panels, cards · `--r-xl 16` dialogs · `--r-full` pills |
 | Type | `--font-ui` Inter, `--font-mono` JetBrains Mono (bundled, OFL). Sizes `--fs-xs 11` `-sm 12` `-md 13` (base) `-lg 14` `-xl 16` `-2xl 20` `-3xl 28`, each a step bigger at Interface size Large (12 … 30); line height 1.5 (code 1.55). Figures are tabular everywhere (`tnum`), so counts and times don't shift. The code font is for code, paths and values, never for sentences |
-| Controls | Interface size (`data-size` on `<html>`): `--control-h` 28 / 32 / 36 and `--control-h-sm` 24 / 28 / 32 for Compact / Comfortable (default) / Large; Lucide icons keep the size written in code (the Compact one) and grow by `--icon-scale` 1 / 1.125 / 1.25, rounded to whole pixels (global.css), so write icon sizes for Compact · `--tabbar-h 40` · `--statusbar-h 28` · rail 48/220 |
+| Controls | Interface size (`data-size` on `<html>`): `--control-h` 28 / 32 / 36 and `--control-h-sm` 24 / 28 / 32 for Compact / Comfortable (default) / Large; Lucide icons keep the size written in code (the Compact one) and grow by `--icon-scale` 1 / 1.125 / 1.25, rounded to whole pixels (global.css), so write icon sizes for Compact · `--icon-stroke 1.9`, every icon's stroke · `--tabbar-h 40` · `--statusbar-h 28` · rail 48/220 |
 | Focus | `--focus-ring`: the ring a field shows around its border (in the tool's colour inside a tool). The global outline stays for everything else |
 | Match | `--match-bg`, `--match-current-bg`: a search hit, wherever it is drawn (editor, log rows, Find in Files, the source peek) |
 | Motion | `--dur-fast 80ms` hovers and presses · `--dur 120ms` most changes · `--dur-slow 240ms` things that move across the screen · `--ease`; none under `prefers-reduced-motion` |
@@ -140,6 +140,9 @@ enough for white. Settings → Tool colours off sets
 Query, New, Problems) are `.hued` too, with their `viewHue`. Never use a `--hue-*` or `--act-*` token directly; go through
 the roles, so a theme or the setting can turn them up or down in one
 place. A shared component reads `var(--tool-accent, var(--accent))`.
+The one exception is decoration that stands for codec rather than a
+tool, `BrandMark` and `Spectrum`: they draw the hues as they are, and
+keep them with tool colours off.
 
 **Spectrum** (3.11.0, decision 106): Dark and Light take the Spectrum
 values above, livelier than before; the Dusk family keeps its own muted
@@ -229,13 +232,22 @@ Build once in `frontend/src/lib/components` and reuse:
 | `Skeleton` | Loading placeholders in the content's shape |
 | `Working` | "Working…" in a pane's header while content already shown is worked out again; appears after 250 ms. Never a spinner |
 | `Toaster` / `toast()` | Brief confirmations and non-blocking errors; an optional action ("Cleared · Undo") for undoable clears |
+| `BrandMark` | The codec mark: three bars (indigo, pink, teal) on a tile. In the rail only |
+| `Spectrum` | The eight hues in a row, 4 px: the top edge of the palettes (`flush`: square, no gaps) and the foot of a theme card (`hues`: that theme's, from `lib/themes.ts`) |
 
 Shell pieces live in `lib/shell` (Rail, TabBar, StatusBar,
 CommandPalette, ShortcutsDialog). New tools register in `lib/tools.ts`
 (rail, home, tabs and palette are generated from it).
 
 Icons: `@lucide/svelte`, imported per icon
-(`@lucide/svelte/icons/<name>`), 16 px, stroke 1.75, `currentColor`.
+(`@lucide/svelte/icons/<name>`), 16 px, `currentColor`. One stroke for
+all, `--icon-stroke` (1.9, set in global.css), so no component passes
+`strokeWidth`. One icon per meaning, wherever it shows (rail, tab,
+header, palette, menu): Explorer `folder`, Open folder `upload`,
+Problems `triangle-alert`, Query and jq `braces`, New `plus`, Clone
+`copy`, Settings `sliders-horizontal`, Kubernetes `box`, Ansible
+`scroll-text`, Helm `ship-wheel`, Log viewer `list`, JWT `key`,
+Commands `terminal`; the other tools as `lib/tools.ts` has them.
 Logos: local SVGs in `frontend/src/assets/logos/`, source and licence
 per file in its `SOURCES.md`; only to label file types.
 App icon: `frontend/public/icon.svg` (also `docs/assets/logo.svg`), a YAML

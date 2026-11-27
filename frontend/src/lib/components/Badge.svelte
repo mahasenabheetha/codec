@@ -12,7 +12,7 @@
 </script>
 
 <span class="badge {tone}" class:solid>
-  {#if Icon}<Icon size={12} strokeWidth={2} />{/if}
+  {#if Icon}<Icon size={12} />{/if}
   {@render children()}
 </span>
 

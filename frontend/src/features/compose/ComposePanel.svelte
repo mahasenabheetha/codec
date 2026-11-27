@@ -249,7 +249,7 @@
                 }}
               />
             {:else}
-              <li class="note ok"><CircleCheck size={14} strokeWidth={1.75} /> No problems found.</li>
+              <li class="note ok"><CircleCheck size={14} /> No problems found.</li>
             {/each}
           </ul>
         </section>

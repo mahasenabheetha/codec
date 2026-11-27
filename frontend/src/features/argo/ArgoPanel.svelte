@@ -336,7 +336,7 @@
               <div class="h3row">
                 <h3>Parameters</h3>
                 <Button size="sm" variant="ghost" onclick={pickParamFile} title="Load values from a YAML/JSON file (name: value), like argo submit --parameter-file">
-                  <FileText size={12} strokeWidth={2} /> File…
+                  <FileText size={12} /> File…
                 </Button>
               </div>
               {#if paramFile}
@@ -394,7 +394,7 @@
                   }}
                 />
               {:else}
-                <li class="note ok"><CircleCheck size={14} strokeWidth={1.75} /> No problems found.</li>
+                <li class="note ok"><CircleCheck size={14} /> No problems found.</li>
               {/each}
             </ul>
           </section>
@@ -427,7 +427,7 @@
                     {#if s.local}
                       <dt></dt>
                       <dd>
-                        <Button size="sm" variant="primary" onclick={() => renderApp(app, si)}><Play size={12} strokeWidth={2} /> Render this app</Button>
+                        <Button size="sm" variant="primary" onclick={() => renderApp(app, si)}><Play size={12} /> Render this app</Button>
                         <span class="note">{s.local.match === 'name' ? `chart ${s.local.chart} here (the app pulls it from a registry)` : s.local.chart}</span>
                       </dd>
                     {:else if s.tool === 'helm' || s.chart}
@@ -455,7 +455,7 @@
               </select>
             {/if}
             {#each trail as t, i (t.id)}
-              {#if i > 0}<ChevronRight size={12} strokeWidth={2} />{/if}
+              {#if i > 0}<ChevronRight size={12} />{/if}
               <button type="button" class="crumb" class:current={t.id === containerId} onclick={() => openContainer(t.id)}>{t.name}</button>
             {/each}
             {#if loading}<span class="muted">Resolving…</span>{/if}
@@ -520,11 +520,11 @@
               {/if}
             </dl>
             {#if runChoice && ran(selected)}
-              <Button size="sm" variant="ghost" onclick={() => openLog(selected)}>Open its log <ChevronRight size={12} strokeWidth={2} /></Button>
+              <Button size="sm" variant="ghost" onclick={() => openLog(selected)}>Open its log <ChevronRight size={12} /></Button>
             {/if}
             {#if selected.children?.length && selected.id !== containerId}
               <Button size="sm" variant="ghost" onclick={() => openContainer(selected.id)}>
-                Show its {selected.children.length} {selected.type === 'dag' ? 'tasks' : 'steps'} <ChevronRight size={12} strokeWidth={2} />
+                Show its {selected.children.length} {selected.type === 'dag' ? 'tasks' : 'steps'} <ChevronRight size={12} />
               </Button>
             {/if}
 

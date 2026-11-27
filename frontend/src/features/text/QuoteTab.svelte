@@ -137,7 +137,7 @@
     </div>
     <section class="value" aria-label="Value">
       <CodeView bind:this={editor} bind:value label={mode === 'quote' ? 'The value as it should arrive' : 'The quoted value'} placeholder={mode === 'quote' ? "The value as it should arrive: it's $5 & \"done\"" : "A value as written for the target: 'it'\\''s'"} wrap />
-      {#if value}<button type="button" class="clear" onclick={clear} aria-label="Clear"><X size={14} strokeWidth={2} /></button>{/if}
+      {#if value}<button type="button" class="clear" onclick={clear} aria-label="Clear"><X size={14} /></button>{/if}
     </section>
 
     {#if error}
@@ -160,7 +160,7 @@
         {/each}
         {#if notes.length}
           <ul class="notes">
-            {#each notes as n (n)}<li><TriangleAlert size={13} strokeWidth={2} /> <span>{n}</span></li>{/each}
+            {#each notes as n (n)}<li><TriangleAlert size={13} /> <span>{n}</span></li>{/each}
           </ul>
         {/if}
       </Pane>

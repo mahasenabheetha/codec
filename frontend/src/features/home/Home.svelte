@@ -1,12 +1,12 @@
 <script lang="ts">
   import ArrowRight from '@lucide/svelte/icons/arrow-right'
   import GitCompare from '@lucide/svelte/icons/git-compare'
-  import FolderGit from '@lucide/svelte/icons/folder-git-2'
-  import FolderOpen from '@lucide/svelte/icons/folder-open'
+  import Folder from '@lucide/svelte/icons/folder'
   import History from '@lucide/svelte/icons/history'
   import ShieldCheck from '@lucide/svelte/icons/shield-check'
   import FlaskConical from '@lucide/svelte/icons/flask-conical'
   import Star from '@lucide/svelte/icons/star'
+  import Upload from '@lucide/svelte/icons/upload'
   import Button from '../../lib/components/Button.svelte'
   import Kbd from '../../lib/components/Kbd.svelte'
   import SearchInput from '../../lib/components/SearchInput.svelte'
@@ -50,14 +50,14 @@
   {@const on = usage.isPinned(t.key)}
   <div class="card tool" class:small class:pinned={on}>
     <button type="button" class="open" onclick={() => layout.openTool(t.tool, t.tab)}>
-      <span class="icon hued" style:--tool={hueVar(t.hue)}><t.icon size={18} strokeWidth={1.75} /></span>
+      <span class="icon hued" style:--tool={hueVar(t.hue)}><t.icon size={18} /></span>
       <span class="text">
         <span class="title">{t.title}</span>
         {#if !small}<span class="desc">{t.description}</span>{/if}
       </span>
     </button>
     <button type="button" class="pin" aria-pressed={on} aria-label="{on ? 'Unpin' : 'Pin'} {t.title}" title={on ? 'Unpin from the top' : 'Pin to the top of Home and the rail'} onclick={() => usage.togglePin(t.key)}>
-      <Star size={14} strokeWidth={1.75} fill={on ? 'currentColor' : 'none'} />
+      <Star size={14} fill={on ? 'currentColor' : 'none'} />
     </button>
   </div>
 {/snippet}
@@ -106,7 +106,7 @@
               <span class="title">Open your own folder</span>
               <span class="desc">A repository on this machine. codec reads it and never writes to it.</span>
             </span>
-            <Button icon={FolderOpen} tone="open" onclick={() => ws.chooseFolder()}>Open folder…</Button>
+            <Button icon={Upload} tone="open" onclick={() => ws.chooseFolder()}>Open folder…</Button>
           </li>
         </ol>
       </section>
@@ -130,41 +130,41 @@
       <div class="grid">
         {#if ws.info?.open}
           <button type="button" class="card" onclick={() => (ws.quickOpen = true)}>
-            <span class="icon"><FolderGit size={18} strokeWidth={1.75} /></span>
+            <span class="icon"><Folder size={18} /></span>
             <span class="text">
               <span class="title">{ws.info.name}</span>
               <span class="desc path">{ws.info.root}</span>
               <span class="desc">Go to a file with <Kbd combo="Mod+P" /></span>
             </span>
-            <span class="go"><ArrowRight size={16} strokeWidth={1.75} /></span>
+            <span class="go"><ArrowRight size={16} /></span>
           </button>
         {/if}
         <button type="button" class="card" onclick={() => ws.chooseFolder()}>
-          <span class="icon"><FolderOpen size={18} strokeWidth={1.75} /></span>
+          <span class="icon"><Upload size={18} /></span>
           <span class="text">
             <span class="title">{ws.info?.open ? 'Open another folder' : 'Open a folder'}</span>
             <span class="desc">Browse a repository's Kubernetes, Helm, Argo and CI YAML. codec only reads it.</span>
           </span>
-          <span class="go"><ArrowRight size={16} strokeWidth={1.75} /></span>
+          <span class="go"><ArrowRight size={16} /></span>
         </button>
         {#if !ws.info?.sample}
           <button type="button" class="card" onclick={trySample} disabled={opening}>
-            <span class="icon muted"><FlaskConical size={18} strokeWidth={1.75} /></span>
+            <span class="icon muted"><FlaskConical size={18} /></span>
             <span class="text">
               <span class="title">Sample repository</span>
               <span class="desc">Every file type codec understands, in a made-up repo. Opens on a rendered Helm chart.</span>
             </span>
-            <span class="go"><ArrowRight size={16} strokeWidth={1.75} /></span>
+            <span class="go"><ArrowRight size={16} /></span>
           </button>
         {/if}
         {#each recent as dir (dir)}
           <button type="button" class="card" onclick={() => openFolder(dir)}>
-            <span class="icon muted"><History size={18} strokeWidth={1.75} /></span>
+            <span class="icon muted"><History size={18} /></span>
             <span class="text">
               <span class="title">{dir.split(/[\\/]/).filter(Boolean).pop()}</span>
               <span class="desc path">{dir}</span>
             </span>
-            <span class="go"><ArrowRight size={16} strokeWidth={1.75} /></span>
+            <span class="go"><ArrowRight size={16} /></span>
           </button>
         {/each}
       </div>
@@ -175,12 +175,12 @@
       <div class="grid">
         {#if i === 0}
           <button type="button" class="card" onclick={() => comparison.pasteBoth()}>
-            <span class="icon hued" style:--tool={hueVar(viewHue.compare)}><GitCompare size={18} strokeWidth={1.75} /></span>
+            <span class="icon hued" style:--tool={hueVar(viewHue.compare)}><GitCompare size={18} /></span>
             <span class="text">
               <span class="title">Compare text</span>
               <span class="desc">Paste two YAML, JSON or plain texts and see what differs. No folder needed.</span>
             </span>
-            <span class="go"><ArrowRight size={16} strokeWidth={1.75} /></span>
+            <span class="go"><ArrowRight size={16} /></span>
           </button>
         {/if}
         {#each g.tools.flatMap(toolEntries) as t (t.key)}{@render toolCard(t)}{/each}
@@ -188,7 +188,7 @@
     {/each}
     {/if}
 
-    <p class="privacy"><ShieldCheck size={14} strokeWidth={2} /> Everything runs on this machine. Nothing you paste leaves it.</p>
+    <p class="privacy"><ShieldCheck size={14} /> Everything runs on this machine. Nothing you paste leaves it.</p>
   </div>
 </div>
 

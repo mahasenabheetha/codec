@@ -46,7 +46,7 @@
   {#if !compact}
     <ul class="checks">
       {#each checks as c, i (c)}
-        <li class:done={i < done}><span class="tick"><Check size={12} strokeWidth={3} /></span>{c}</li>
+        <li class:done={i < done}><span class="tick"><Check size={12} /></span>{c}</li>
       {/each}
     </ul>
   {/if}

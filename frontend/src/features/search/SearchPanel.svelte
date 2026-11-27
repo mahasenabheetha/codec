@@ -2,7 +2,7 @@
   import CaseSensitive from '@lucide/svelte/icons/case-sensitive'
   import ChevronRight from '@lucide/svelte/icons/chevron-right'
   import ChevronsDownUp from '@lucide/svelte/icons/chevrons-down-up'
-  import FolderOpen from '@lucide/svelte/icons/folder-open'
+  import Upload from '@lucide/svelte/icons/upload'
   import Regex from '@lucide/svelte/icons/regex'
   import RotateCw from '@lucide/svelte/icons/rotate-cw'
   import TextSearch from '@lucide/svelte/icons/text-search'
@@ -87,7 +87,7 @@
   {#if !ws.info?.open}
     <div class="empty-wrap">
       <EmptyState icon={TextSearch} title="No folder open" description="Find in Files searches the text of every file in the open folder.">
-        <Button variant="primary" size="sm" icon={FolderOpen} tone="open" onclick={() => ws.chooseFolder()}>Open folder</Button>
+        <Button variant="primary" size="sm" icon={Upload} tone="open" onclick={() => ws.chooseFolder()}>Open folder</Button>
       </EmptyState>
     </div>
   {:else}
@@ -138,7 +138,7 @@
       {#each f.byFile as g (g.path)}
         {@const open_ = !f.collapsed.has(g.path)}
         <button type="button" class="file" aria-expanded={open_} title={g.path} onclick={() => f.toggleFile(g.path)}>
-          <span class="twisty" class:open={open_}><ChevronRight size={14} strokeWidth={1.75} /></span>
+          <span class="twisty" class:open={open_}><ChevronRight size={14} /></span>
           <FileIcon file={ws.byPath.get(g.path) ?? { lang: 'text' }} />
           <span class="fname">{g.path.split('/').pop()}</span>
           <span class="dir">{dirOf(g.path)}</span>

@@ -6,13 +6,13 @@
   import { onDestroy, untrack } from 'svelte'
   import { EditorView } from '@codemirror/view'
   import BookOpen from '@lucide/svelte/icons/book-open'
-  import Boxes from '@lucide/svelte/icons/boxes'
+  import Box from '@lucide/svelte/icons/box'
+  import Braces from '@lucide/svelte/icons/braces'
   import ChevronDown from '@lucide/svelte/icons/chevron-down'
   import ChevronRight from '@lucide/svelte/icons/chevron-right'
   import Code from '@lucide/svelte/icons/code'
   import Copy from '@lucide/svelte/icons/copy'
   import Eraser from '@lucide/svelte/icons/eraser'
-  import CopyPlus from '@lucide/svelte/icons/copy-plus'
   import ExternalLink from '@lucide/svelte/icons/external-link'
   import FileDiff from '@lucide/svelte/icons/file-diff'
   import FileWarning from '@lucide/svelte/icons/file-warning'
@@ -24,7 +24,6 @@
   import RotateCcw from '@lucide/svelte/icons/rotate-ccw'
   import ShieldCheck from '@lucide/svelte/icons/shield-check'
   import ShieldOff from '@lucide/svelte/icons/shield-off'
-  import TextSearch from '@lucide/svelte/icons/text-search'
   import Trash from '@lucide/svelte/icons/trash-2'
   import X from '@lucide/svelte/icons/x'
   import Badge from '../../lib/components/Badge.svelte'
@@ -267,11 +266,11 @@
     const out: MenuEntry[] = []
     if (session.isYAML) {
       out.push({ label: session.dirty ? 'Compare what-if edits with disk' : 'Compare with another file…', icon: GitCompare, run: compareThis })
-      out.push({ label: 'Query this file (jq)', icon: TextSearch, run: () => queries.open({ path }) })
-      out.push({ label: 'Clone with a new name…', icon: CopyPlus, run: () => layout.open(cloneRoute(path)) })
+      out.push({ label: 'Query this file (jq)', icon: Braces, run: () => queries.open({ path }) })
+      out.push({ label: 'Clone with a new name…', icon: Copy, run: () => layout.open(cloneRoute(path)) })
     }
     if (kind === 'kubernetes') {
-      out.push({ label: 'Kubernetes resources in this folder', icon: Boxes, run: () => layout.open(k8sRoute(dirOf(path))) })
+      out.push({ label: 'Kubernetes resources in this folder', icon: Box, run: () => layout.open(k8sRoute(dirOf(path))) })
       out.push({ label: 'Copy without cluster noise (neat)', icon: Eraser, run: () => void copyNeat() })
     }
     if (out.length) out.push('separator')
@@ -331,8 +330,8 @@
       ...(yaml
         ? [
             { id: 'file.compare', title: session.dirty ? 'Compare what-if edits with disk' : `Compare ${name} with…`, group: 'File', icon: GitCompare, keywords: ['diff'], run: compareThis },
-            { id: 'file.query', title: `Query ${name} (jq)`, group: 'File', icon: TextSearch, run: () => queries.open({ path }) },
-            { id: 'file.clone', title: `Clone ${name} with a new name`, group: 'File', icon: CopyPlus, keywords: ['copy', 'rename', 'duplicate'], run: () => layout.open(cloneRoute(path)) },
+            { id: 'file.query', title: `Query ${name} (jq)`, group: 'File', icon: Braces, run: () => queries.open({ path }) },
+            { id: 'file.clone', title: `Clone ${name} with a new name`, group: 'File', icon: Copy, keywords: ['copy', 'rename', 'duplicate'], run: () => layout.open(cloneRoute(path)) },
           ]
         : []),
     ])
@@ -343,7 +342,7 @@
   <header>
     <nav class="crumbs" aria-label="File path">
       {#each segments as seg, i (i)}
-        {#if i > 0}<ChevronRight size={12} strokeWidth={1.75} />{/if}
+        {#if i > 0}<ChevronRight size={12} />{/if}
         {#if i === segments.length - 1}
           {#if session.disk}<FileIcon file={{ type: kind, lang: session.disk.lang, path: session.disk.path }} />{/if}
           <span class="file">{seg}</span>
@@ -356,9 +355,9 @@
     {#if schema}
       <span class="schema {schema.state}" title={schema.state === 'ok' ? `Checked against ${schema.url}` : schema.message}>
         {#if schema.state === 'ok'}
-          <ShieldCheck size={12} strokeWidth={2} />
+          <ShieldCheck size={12} />
         {:else if schema.state !== 'pending'}
-          <ShieldOff size={12} strokeWidth={2} />
+          <ShieldOff size={12} />
         {/if}
         {schema.state === 'pending' ? 'Loading schema…' : schema.title}
       </span>
@@ -371,7 +370,7 @@
         <IconButton icon={FileDiff} label="Copy diff (for git apply)" size="sm" onclick={copyDiff} />
       </span>
     {/if}
-    {#if updated}<span class="updated" role="status"><RefreshCw size={12} strokeWidth={2} /> Updated from disk</span>{/if}
+    {#if updated}<span class="updated" role="status"><RefreshCw size={12} /> Updated from disk</span>{/if}
     <div class="spacer"></div>
     {#if markdown || mermaid}
       <SegmentedControl
@@ -425,13 +424,13 @@
 
   {#if session.pendingDisk}
     <div class="banner warn" role="alert">
-      <RefreshCw size={14} strokeWidth={1.75} />
+      <RefreshCw size={14} />
       <span>The file changed on disk while you were editing.</span>
       <Button size="sm" onclick={() => session.reloadFromDisk()}>Reload from disk</Button>
       <Button size="sm" variant="ghost" onclick={() => session.keepEdits()}>Keep my edits</Button>
     </div>
   {:else if deleted}
-    <div class="banner warn" role="alert"><Trash size={14} strokeWidth={1.75} /> This file was deleted on disk. What you see is the last version codec read.</div>
+    <div class="banner warn" role="alert"><Trash size={14} /> This file was deleted on disk. What you see is the last version codec read.</div>
   {/if}
 
   <div class="body">

@@ -90,11 +90,11 @@
             <circle cx="8" cy="8" r={R} class="arc" stroke-dasharray={C} stroke-dashoffset={C * (1 - t.progress)} transform="rotate(-90 8 8)" />
           </svg>
           <span class="time">{formatClock(focus.left)}</span>
-          {#if t.state === 'paused'}<Pause size={11} strokeWidth={2.5} />{/if}
+          {#if t.state === 'paused'}<Pause size={11} />{/if}
         {:else if paused}
-          <BellOff size={12} strokeWidth={2} /> Paused
+          <BellOff size={12} /> Paused
         {:else if up}
-          <UpIcon size={12} strokeWidth={2} />
+          <UpIcon size={12} />
           <span class="time">{formatClock(up.at - clock.now)}</span>
         {/if}
       </button>
@@ -103,7 +103,7 @@
       <section>
         <header>
           <span class="tag" class:rest={isBreak}>
-            {#if isBreak}<Coffee size={12} strokeWidth={2} />{:else}<Brain size={12} strokeWidth={2} />{/if}
+            {#if isBreak}<Coffee size={12} />{:else}<Brain size={12} />{/if}
             {phaseLabel[focus.phase]}
           </span>
           <span class="big">{formatClock(focus.left)}</span>
@@ -145,7 +145,7 @@
         </p>
       {/if}
       <button type="button" class="open" onclick={() => openTool(focus.active ? 'focus' : 'breaks')}>
-        <Leaf size={13} strokeWidth={2} /> Open Focus &amp; breaks
+        <Leaf size={13} /> Open Focus &amp; breaks
       </button>
     </div>
   </Popover>

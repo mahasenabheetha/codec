@@ -247,7 +247,7 @@
           ontoggle(r.id)
         }}
       >
-        {#if r.expandable}<ChevronRight size={14} strokeWidth={1.75} />{/if}
+        {#if r.expandable}<ChevronRight size={14} />{/if}
       </span>
       {@render row(r.data, r)}
     </div>

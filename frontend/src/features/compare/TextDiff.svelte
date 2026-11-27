@@ -200,7 +200,7 @@
             {#each unfold(r, 0, k) as u, j (u.left!.line)}{@render line(u, j === 0 ? i : undefined)}{/each}
             <div class="gap">
               <button type="button" class="more" onclick={() => unfoldAt(i)}>
-                <ChevronsUpDown size={12} strokeWidth={1.75} /> {plural(total - 2 * k, total - 2 * k === 1 ? 'unchanged line' : 'unchanged lines')}{total - 2 * k > STEP * 2 ? ` · show ${STEP} more at each end` : ''}
+                <ChevronsUpDown size={12} /> {plural(total - 2 * k, total - 2 * k === 1 ? 'unchanged line' : 'unchanged lines')}{total - 2 * k > STEP * 2 ? ` · show ${STEP} more at each end` : ''}
               </button>
               {#if total - 2 * k > STEP * 2}<button type="button" class="all" onclick={() => unfoldAt(i, true)}>Show all</button>{/if}
             </div>

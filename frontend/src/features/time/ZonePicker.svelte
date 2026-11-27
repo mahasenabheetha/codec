@@ -27,7 +27,7 @@
 </script>
 
 <label class="zone" class:bad={!ok} title={ok ? label : 'Not a time zone; type a name such as Europe/Stockholm'}>
-  <Globe size={14} strokeWidth={1.75} />
+  <Globe size={14} />
   <span class="sr-only">{label}</span>
   <input
     bind:value={text}

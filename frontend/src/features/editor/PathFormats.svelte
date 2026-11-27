@@ -41,7 +41,7 @@
       <button type="button" class="row" onclick={() => copyText(value!, labels[style] + ' path')}>
         <span class="label">{labels[style] ?? style}</span>
         <code>{value}</code>
-        <Copy size={12} strokeWidth={1.75} />
+        <Copy size={12} />
       </button>
     {/each}
   {/if}

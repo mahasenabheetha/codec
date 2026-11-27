@@ -12,7 +12,7 @@
 </script>
 
 <div class="empty">
-  <div class="icon"><Icon size={22} strokeWidth={1.5} /></div>
+  <div class="icon"><Icon size={22} /></div>
   <p class="title">{title}</p>
   {#if description}<p class="desc">{description}</p>{/if}
   {#if children}<div class="actions">{@render children()}</div>{/if}

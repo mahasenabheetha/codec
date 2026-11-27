@@ -159,7 +159,7 @@
                 <ErrorBanner error={{ message: res.error.message }} />
                 {#if res.error.hint}
                   <p class="hint">
-                    <Lightbulb size={14} strokeWidth={2} />
+                    <Lightbulb size={14} />
                     <span>{res.error.hint}</span>
                     {#if style === 'go'}<Button size="sm" onclick={() => (style = 'pcre')}>Switch</Button>{/if}
                   </p>
@@ -223,7 +223,7 @@
             {@const r = res.result}
             <div class="scroll">
               {#if r.timedOut}
-                <p class="warn"><TriangleAlert size={14} strokeWidth={2} /> Stopped after 2 seconds: the pattern backtracks badly (nested repeats such as (a+)+). Go's RE2 style runs it in linear time.</p>
+                <p class="warn"><TriangleAlert size={14} /> Stopped after 2 seconds: the pattern backtracks badly (nested repeats such as (a+)+). Go's RE2 style runs it in linear time.</p>
               {/if}
               {#if r.truncated}
                 <p class="note">Showing the first {r.matches.length} matches.</p>

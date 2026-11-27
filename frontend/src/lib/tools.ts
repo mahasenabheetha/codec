@@ -6,12 +6,12 @@ import type { Component } from 'svelte'
 import Sparkles from '@lucide/svelte/icons/sparkles'
 import Binary from '@lucide/svelte/icons/binary'
 import Braces from '@lucide/svelte/icons/braces'
-import KeyRound from '@lucide/svelte/icons/key-round'
+import Key from '@lucide/svelte/icons/key'
 import SquareAsterisk from '@lucide/svelte/icons/square-asterisk'
 import QuoteIcon from '@lucide/svelte/icons/quote'
 import ScrollText from '@lucide/svelte/icons/scroll-text'
 import ShieldCheck from '@lucide/svelte/icons/shield-check'
-import Logs from '@lucide/svelte/icons/logs'
+import List from '@lucide/svelte/icons/list'
 import Clock from '@lucide/svelte/icons/clock'
 import CalendarClock from '@lucide/svelte/icons/calendar-clock'
 import CalendarSync from '@lucide/svelte/icons/calendar-sync'
@@ -48,7 +48,7 @@ import GitCompare from '@lucide/svelte/icons/git-compare'
 import Route from '@lucide/svelte/icons/route'
 import FileJson from '@lucide/svelte/icons/file-braces'
 import TextSearch from '@lucide/svelte/icons/text-search'
-import SquareTerminal from '@lucide/svelte/icons/square-terminal'
+import Terminal from '@lucide/svelte/icons/terminal'
 
 /** A tool's colour (decision 94): a `--hue-*` token. How much of it shows
  *  is up to the theme (`--tint-tool`): none in Dark and Light. */
@@ -137,7 +137,7 @@ export const tools: ToolDef[] = [
     title: 'JWT',
     group: 'Encode & decode',
     description: 'Decode a JSON Web Token into readable claims, with expiry at a glance.',
-    icon: KeyRound,
+    icon: Key,
     hue: 'pink',
     keywords: ['token', 'jws', 'claims', 'auth', 'bearer'],
     load: () => import('../features/jwt/JwtTool.svelte'),
@@ -157,7 +157,7 @@ export const tools: ToolDef[] = [
     title: 'Log viewer',
     group: 'Logs',
     description: 'Read ECS, JSON, logfmt, klog and text logs: filter, chart, error groups and fields, across several files merged by time.',
-    icon: Logs,
+    icon: List,
     hue: 'lime',
     keywords: ['log', 'ecs', 'json', 'logfmt', 'klog', 'argo', 'kubectl', 'slog', 'zap', 'logrus', 'kibana', 'error', 'trace'],
     load: () => import('../features/logs/LogViewer.svelte'),
@@ -369,7 +369,7 @@ export const tools: ToolDef[] = [
     title: 'Commands',
     group: 'Utilities',
     description: 'What every part of a git, kubectl, helm, docker or Linux command does, and a form to build one, each following the other.',
-    icon: SquareTerminal,
+    icon: Terminal,
     hue: 'indigo',
     keywords: ['command', 'cli', 'shell', 'bash', 'explain', 'build', 'flags', 'options', 'git', 'kubectl', 'helm', 'docker', 'linux', 'cheat sheet', 'man'],
     load: () => import('../features/commands/CommandsTool.svelte'),

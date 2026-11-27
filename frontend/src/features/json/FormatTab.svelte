@@ -115,10 +115,10 @@
           {@const d = job.result.dialect}
           <div class="verdict">
             {#if d === 'json'}
-              <CircleCheck size={30} strokeWidth={1.75} class="ok-icon" />
+              <CircleCheck size={30} class="ok-icon" />
               <p class="headline">Valid JSON</p>
             {:else}
-              <TriangleAlert size={30} strokeWidth={1.75} class="warn-icon" />
+              <TriangleAlert size={30} class="warn-icon" />
               <p class="headline">Valid {dialectName[d]}, not strict JSON</p>
               <p class="sub">{d === 'jsonc' ? 'It has comments or trailing commas.' : 'It uses JSON5: unquoted keys, single quotes, hex numbers or the like.'} Pretty writes it as JSON.</p>
             {/if}

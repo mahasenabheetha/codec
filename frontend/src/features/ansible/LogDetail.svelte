@@ -113,7 +113,7 @@
         </p>
       {/if}
       {#if result.censored}
-        <p class="note"><EyeOff size={14} strokeWidth={1.75} /> The output is hidden: the task sets <code>no_log: true</code>.</p>
+        <p class="note"><EyeOff size={14} /> The output is hidden: the task sets <code>no_log: true</code>.</p>
       {:else if result.status === 'included'}
         <p class="note">Included <span class="mono">{result.file}</span>.</p>
       {:else if parsed}
@@ -136,7 +136,7 @@
     {#if task.other?.length}
       <section class="other">
         <button type="button" class="sec-title" aria-expanded={otherOpen} onclick={() => (otherOpen = !otherOpen)}>
-          <span class="chev" class:open={otherOpen}><ChevronRight size={14} strokeWidth={2} /></span>
+          <span class="chev" class:open={otherOpen}><ChevronRight size={14} /></span>
           Other lines under this task <span class="muted">{task.other.length}</span>
         </button>
         {#if otherOpen}

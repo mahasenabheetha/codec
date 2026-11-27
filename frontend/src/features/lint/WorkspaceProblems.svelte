@@ -1,5 +1,5 @@
 <script lang="ts">
-  import ListChecks from '@lucide/svelte/icons/list-checks'
+  import TriangleAlert from '@lucide/svelte/icons/triangle-alert'
   import PanelHeader from '../../lib/components/PanelHeader.svelte'
   import { toolCommands } from '../shared/tool.svelte'
   import ErrorNote from '../../lib/components/ErrorNote.svelte'
@@ -9,7 +9,7 @@
   import CircleCheck from '@lucide/svelte/icons/circle-check'
   import FolderOpen from '@lucide/svelte/icons/folder-open'
   import Play from '@lucide/svelte/icons/play'
-  import Settings from '@lucide/svelte/icons/settings'
+  import SlidersHorizontal from '@lucide/svelte/icons/sliders-horizontal'
   import { SvelteSet } from 'svelte/reactivity'
   import Button from '../../lib/components/Button.svelte'
   import EmptyState from '../../lib/components/EmptyState.svelte'
@@ -85,7 +85,7 @@
 </script>
 
 <div class="problems-view hued" class:inactive={!active} style:--tool={hueVar(viewHue.problems)}>
-  <PanelHeader icon={ListChecks} title="Workspace problems">
+  <PanelHeader icon={TriangleAlert} title="Workspace problems">
     {#snippet meta()}
       {#if lint.results}
         <span>
@@ -99,7 +99,7 @@
       {/if}
     {/snippet}
     {#snippet actions()}
-    <Button variant="ghost" size="sm" icon={Settings} onclick={() => layout.open(settingsRoute)}>Settings</Button>
+    <Button variant="ghost" size="sm" icon={SlidersHorizontal} onclick={() => layout.open(settingsRoute)}>Settings</Button>
     <Button variant="primary" size="sm" icon={Play} tone="run" disabled={!workspace.info?.open || lint.running} onclick={() => lint.runWorkspace()}>
       {lint.running ? 'Checking…' : lint.results ? 'Check again' : 'Lint workspace'}
     </Button>
@@ -124,7 +124,7 @@
       <SegmentedControl label="Kind of check" options={groupItems} bind:value={group} />
     </div>
     {#if shown.length === 0}
-      <p class="ok"><CircleCheck size={14} strokeWidth={1.75} /> Nothing at this level.</p>
+      <p class="ok"><CircleCheck size={14} /> Nothing at this level.</p>
     {:else}
       <div class="files">
         <VirtualList count={rows.length} key={(i) => rows[i].key} estimate={40}>

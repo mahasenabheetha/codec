@@ -3,7 +3,7 @@
   import { hueVar, viewHue } from '../../lib/tools'
   import Copy from '@lucide/svelte/icons/copy'
   import Download from '@lucide/svelte/icons/download'
-  import FilePlus from '@lucide/svelte/icons/file-plus'
+  import Plus from '@lucide/svelte/icons/plus'
   import FolderCog from '@lucide/svelte/icons/folder-cog'
   import Package from '@lucide/svelte/icons/package'
   import RotateCcw from '@lucide/svelte/icons/rotate-ccw'
@@ -188,7 +188,7 @@
     </ul>
     {#if nf.list}
       <div class="personal">
-        <FolderCog size={14} strokeWidth={1.75} />
+        <FolderCog size={14} />
         <div>
           <p>Your own starters go in</p>
           <button type="button" class="dir" title="Copy the path" onclick={() => copyText(nf.list!.personalDir, 'Path')}>{nf.list.personalDir}</button>
@@ -234,7 +234,7 @@
         <Button size="sm" variant="ghost" icon={RotateCcw} onclick={() => nf.reset()}>Defaults</Button>
       </div>
     {:else if nf.list}
-      <EmptyState icon={FilePlus} title="Pick a starter" />
+      <EmptyState icon={Plus} title="Pick a starter" />
     {/if}
   </section>
 
@@ -252,7 +252,7 @@
         {#if chart}
           {@const c = sev(chart.diagnostics)}
           <button type="button" role="tab" aria-selected={nf.active === -1} class="file rendered" onclick={() => (nf.active = -1)} title="helm template output">
-            <Package size={13} strokeWidth={1.75} /> Rendered
+            <Package size={13} /> Rendered
             {#if c.errors}<span class="count err">{c.errors}</span>{:else if c.warnings}<span class="count warn">{c.warnings}</span>{/if}
           </button>
         {/if}

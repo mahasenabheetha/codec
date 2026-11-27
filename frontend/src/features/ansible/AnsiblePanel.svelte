@@ -5,7 +5,7 @@
   import ChevronDown from '@lucide/svelte/icons/chevron-down'
   import ChevronRight from '@lucide/svelte/icons/chevron-right'
   import CircleCheck from '@lucide/svelte/icons/circle-check'
-  import ListTree from '@lucide/svelte/icons/list-tree'
+  import ScrollText from '@lucide/svelte/icons/scroll-text'
   import Skeleton from '../../lib/components/Skeleton.svelte'
   import Badge from '../../lib/components/Badge.svelte'
   import EmptyState from '../../lib/components/EmptyState.svelte'
@@ -253,7 +253,7 @@
 
 <div class="ansible">
   {#if error && !data}
-    <EmptyState icon={ListTree} title="Can't read this Ansible file" description={error}>
+    <EmptyState icon={ScrollText} title="Can't read this Ansible file" description={error}>
       <Button size="sm" onclick={load}>Try again</Button>
     </EmptyState>
   {:else if !data}
@@ -319,7 +319,7 @@
             {#each problems as p, i (i)}
               <ProblemItem severity={p.severity} message={p.message} hint={p.hint} where={where(p.source)} onjump={() => jump(p.source)} />
             {:else}
-              <li class="note ok"><CircleCheck size={14} strokeWidth={1.75} /> No problems found.</li>
+              <li class="note ok"><CircleCheck size={14} /> No problems found.</li>
             {/each}
           </ul>
         </section>
@@ -350,7 +350,7 @@
               {#if graphNodes.length}
                 <Graph nodes={graphNodes} edges={graphEdges} label="Map of {base(path)}: plays, roles, task files and handlers" {legend} selected={sel?.kind === 'node' ? sel.node.id : null} dashedEdge="include, decided while running" missingNode="not in this folder" onselect={selectNode} />
               {:else}
-                <EmptyState icon={ListTree} title="Nothing to draw" description="This file pulls in no roles, task files or handlers." />
+                <EmptyState icon={ScrollText} title="Nothing to draw" description="This file pulls in no roles, task files or handlers." />
               {/if}
             </div>
           {:else}
@@ -376,7 +376,7 @@
                   {/if}
                 </section>
               {:else}
-                <EmptyState icon={ListTree} title="No plays" description="This playbook has no plays." />
+                <EmptyState icon={ScrollText} title="No plays" description="This playbook has no plays." />
               {/each}
             {/if}
           </div>

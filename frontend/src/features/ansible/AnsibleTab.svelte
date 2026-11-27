@@ -157,7 +157,7 @@
       {#if fileSource}
         <!-- A file is read as it is; a big log doesn't belong in an editor. -->
         <div class="file-card">
-          <FileText size={28} strokeWidth={1.5} />
+          <FileText size={28} />
           <div class="file-meta">
             <span class="file-name" title={fileSource.name}>{fileSource.name}</span>
             <span class="muted">{size(fileSource.size)} · read as a file, not stored</span>

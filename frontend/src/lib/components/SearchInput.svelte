@@ -12,11 +12,11 @@
 </script>
 
 <div class="search">
-  <Search size={14} strokeWidth={1.75} />
+  <Search size={14} />
   <input type="search" bind:value {placeholder} aria-label={label} spellcheck="false" />
   {#if value}
     <button type="button" aria-label="Clear filter" onclick={() => (value = '')}>
-      <X size={12} strokeWidth={2} />
+      <X size={12} />
     </button>
   {/if}
 </div>

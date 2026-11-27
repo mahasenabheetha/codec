@@ -24,7 +24,7 @@
 </script>
 
 <div class="note" class:inline role="alert">
-  <CircleX size={inline ? 13 : 15} strokeWidth={2} />
+  <CircleX size={inline ? 13 : 15} />
   <span class="msg">{message}</span>
   {#if retry || children}
     <span class="actions">

@@ -47,7 +47,7 @@
 
 {#if open && (name || path)}
   <div class="def">
-    <FileSearch size={14} strokeWidth={1.75} />
+    <FileSearch size={14} />
     {#if error}
       <span class="muted">Can't search the folder: {error}</span>
     {:else if matches === null}

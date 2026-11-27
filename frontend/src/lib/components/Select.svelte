@@ -46,7 +46,7 @@
   <Select.Trigger class="codec-select-trigger" aria-label={label}>
     {#if selected?.swatch}{@render chip(selected.swatch)}{/if}
     <span>{selectedLabel}</span>
-    <ChevronDown size={14} strokeWidth={1.75} />
+    <ChevronDown size={14} />
   </Select.Trigger>
   <Select.Portal>
     <Select.Content class="codec-select-content" sideOffset={4}>
@@ -74,7 +74,7 @@
         <span>{item.label}</span>
         {#if item.note}<span class="codec-select-note">{item.note}</span>{/if}
       </span>
-      {#if selected}<Check size={14} strokeWidth={2} />{/if}
+      {#if selected}<Check size={14} />{/if}
     {/snippet}
   </Select.Item>
 {/snippet}

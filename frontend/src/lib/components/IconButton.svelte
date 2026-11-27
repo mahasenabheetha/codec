@@ -35,7 +35,7 @@
       {disabled}
       onclick={chain(props.onclick, onclick)}
     >
-      <Icon size={size === 'sm' ? 14 : 16} strokeWidth={1.75} />
+      <Icon size={size === 'sm' ? 14 : 16} />
     </button>
   {/snippet}
 </Tooltip>

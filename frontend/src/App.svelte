@@ -1,29 +1,29 @@
 <script lang="ts">
   import { Tooltip } from 'bits-ui'
   import { untrack, type Component } from 'svelte'
-  import FolderOpen from '@lucide/svelte/icons/folder-open'
-  import FolderTree from '@lucide/svelte/icons/folder-tree'
+  import Folder from '@lucide/svelte/icons/folder'
+  import Upload from '@lucide/svelte/icons/upload'
   import History from '@lucide/svelte/icons/history'
   import House from '@lucide/svelte/icons/house'
   import Keyboard from '@lucide/svelte/icons/keyboard'
   import PanelLeft from '@lucide/svelte/icons/panel-left'
   import RotateCw from '@lucide/svelte/icons/rotate-cw'
   import Search from '@lucide/svelte/icons/search'
-  import Boxes from '@lucide/svelte/icons/boxes'
+  import Box from '@lucide/svelte/icons/box'
   import GitCompare from '@lucide/svelte/icons/git-compare'
   import Layers from '@lucide/svelte/icons/layers'
   import Workflow from '@lucide/svelte/icons/workflow'
   import GitBranch from '@lucide/svelte/icons/git-branch'
   import Container from '@lucide/svelte/icons/container'
-  import ListTree from '@lucide/svelte/icons/list-tree'
-  import ListChecks from '@lucide/svelte/icons/list-checks'
-  import TextSearch from '@lucide/svelte/icons/text-search'
-  import FilePlus from '@lucide/svelte/icons/file-plus'
-  import CopyPlus from '@lucide/svelte/icons/copy-plus'
+  import ScrollText from '@lucide/svelte/icons/scroll-text'
+  import TriangleAlert from '@lucide/svelte/icons/triangle-alert'
+  import Braces from '@lucide/svelte/icons/braces'
+  import Plus from '@lucide/svelte/icons/plus'
+  import Copy from '@lucide/svelte/icons/copy'
   import Scaling from '@lucide/svelte/icons/scaling'
   import Palette from '@lucide/svelte/icons/palette'
-  import Settings2 from '@lucide/svelte/icons/settings-2'
-  import Ship from '@lucide/svelte/icons/ship'
+  import SlidersHorizontal from '@lucide/svelte/icons/sliders-horizontal'
+  import ShipWheel from '@lucide/svelte/icons/ship-wheel'
   import FlaskConical from '@lucide/svelte/icons/flask-conical'
   import X from '@lucide/svelte/icons/x'
   import ArrowLeft from '@lucide/svelte/icons/arrow-left'
@@ -124,7 +124,7 @@
       id: 'workspace.open',
       title: 'Open folder…',
       group: 'Workspace',
-      icon: FolderOpen,
+      icon: Upload,
       shortcut: 'Mod+O',
       keywords: ['repo', 'workspace', 'directory'],
       run: () => workspace.chooseFolder(),
@@ -142,7 +142,7 @@
       id: 'lint.workspace',
       title: 'Lint workspace',
       group: 'Workspace',
-      icon: ListChecks,
+      icon: TriangleAlert,
       keywords: ['problems', 'check', 'validate', 'schema', 'errors'],
       run: () => {
         layout.open(problemsRoute)
@@ -181,7 +181,7 @@
       id: 'query.yaml',
       title: 'Query YAML (jq)…',
       group: 'Workspace',
-      icon: TextSearch,
+      icon: Braces,
       keywords: ['jq', 'yq', 'search', 'find', 'select'],
       run: () => queries.open(),
     },
@@ -189,7 +189,7 @@
       id: 'scaffold.new',
       title: 'New file from a starter…',
       group: 'Workspace',
-      icon: FilePlus,
+      icon: Plus,
       keywords: ['new', 'create', 'template', 'starter', 'scaffold', 'generate', 'deployment', 'chart', 'workflow', 'pipeline', 'playbook'],
       run: () => layout.open(newRoute),
     },
@@ -197,7 +197,7 @@
       id: 'scaffold.clone',
       title: 'Clone with a new name…',
       group: 'Workspace',
-      icon: CopyPlus,
+      icon: Copy,
       keywords: ['copy', 'duplicate', 'rename', 'clone'],
       run: () => {
         const f = router.filePath
@@ -209,7 +209,7 @@
       id: 'settings.open',
       title: 'Settings',
       group: 'Settings',
-      icon: Settings2,
+      icon: SlidersHorizontal,
       shortcut: 'Mod+,',
       keywords: ['preferences', 'options', 'lint rules', 'schema', 'kubernetes version', 'offline', 'helm profiles', 'editor', 'vs code', 'cursor'],
       run: () => layout.open(settingsRoute),
@@ -234,7 +234,7 @@
       id: 'settings.' + e.section + '.' + (e.row ?? ''),
       title: 'Settings: ' + e.title,
       group: 'Settings',
-      icon: Settings2,
+      icon: SlidersHorizontal,
       keywords: ['preferences', 'options', ...e.keywords],
       run: () => {
         layout.open(settingsRoute)
@@ -266,7 +266,7 @@
       id: 'view.explorer',
       title: 'Toggle explorer',
       group: 'View',
-      icon: FolderTree,
+      icon: Folder,
       shortcut: 'Mod+Shift+E',
       run: () => layout.toggleExplorer(),
     },
@@ -333,7 +333,7 @@
         id: `helm.${c.path}`,
         title: `Helm: render ${c.name}${c.path === '.' ? '' : ' (' + c.path + ')'}`,
         group: 'Helm',
-        icon: Ship,
+        icon: ShipWheel,
         keywords: ['helm', 'template', 'chart', c.path],
         run: () => layout.openHelm(c.path),
       })),
@@ -346,7 +346,7 @@
         id: 'k8s.workspace',
         title: 'Kubernetes: resources in this folder',
         group: 'Kubernetes',
-        icon: Boxes,
+        icon: Box,
         keywords: ['k8s', 'graph', 'inventory', 'images', 'references', 'selector'],
         run: () => layout.open(k8sRoute('.')),
       },
@@ -399,7 +399,7 @@
           id: `ansible.${f.path}`,
           title: `Ansible: ${f.path}`,
           group: 'Ansible',
-          icon: ListTree,
+          icon: ScrollText,
           keywords: ['ansible', 'playbook', 'roles', 'tasks', 'inventory', 'variables', f.path],
           run: () => layout.open(ansibleRoute(f.path)),
         })),

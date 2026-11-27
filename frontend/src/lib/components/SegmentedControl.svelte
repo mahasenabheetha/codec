@@ -50,7 +50,7 @@
       title={opt.title}
       onclick={() => select(opt.value)}
     >
-      {#if opt.icon}<opt.icon size={14} strokeWidth={1.75} />{/if}
+      {#if opt.icon}<opt.icon size={14} />{/if}
       {opt.label}
     </button>
   {/each}

@@ -24,7 +24,7 @@
 
 <DropdownMenu.Root>
   <DropdownMenu.Trigger class="codec-menu-button {slim ? 'slim' : ''}" aria-label={label} title={label}>
-    <Icon size={slim ? 12 : 15} strokeWidth={slim ? 2 : 1.75} />
+    <Icon size={slim ? 12 : 15} />
   </DropdownMenu.Trigger>
   <DropdownMenu.Portal>
     <DropdownMenu.Content class="codec-menu" {align} sideOffset={6} aria-label={label}>
@@ -34,7 +34,7 @@
         {:else}
           {@const EntryIcon = entry.icon}
           <DropdownMenu.Item class="codec-menu-item" disabled={entry.disabled} onSelect={entry.run}>
-            <span class="codec-menu-icon">{#if EntryIcon}<EntryIcon size={14} strokeWidth={1.75} />{/if}</span>
+            <span class="codec-menu-icon">{#if EntryIcon}<EntryIcon size={14} />{/if}</span>
             {entry.label}
           </DropdownMenu.Item>
         {/if}

@@ -2,7 +2,7 @@
   import ClipboardPaste from '@lucide/svelte/icons/clipboard-paste'
   import FilePlus from '@lucide/svelte/icons/file-plus'
   import FileUp from '@lucide/svelte/icons/file-up'
-  import Logs from '@lucide/svelte/icons/logs'
+  import List from '@lucide/svelte/icons/list'
   import Button from '../../lib/components/Button.svelte'
   import Dialog from '../../lib/components/Dialog.svelte'
   import EmptyState from '../../lib/components/EmptyState.svelte'
@@ -138,7 +138,7 @@
       {#if !logTabs.list.length}
         <div class="empty">
           <EmptyState
-            icon={Logs}
+            icon={List}
             title="Read structured logs"
             description="ECS and other JSON (slog, zap, logrus, zerolog…), logfmt, klog and plain text with stack traces, as argo logs, kubectl logs, containers or CI print them. Open or drop one or more files (merged by time), or paste with Ctrl+V; each log you open gets a tab. Nothing is stored."
           >

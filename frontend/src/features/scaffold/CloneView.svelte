@@ -3,7 +3,6 @@
   import PanelHeader from '../../lib/components/PanelHeader.svelte'
   import ErrorNote from '../../lib/components/ErrorNote.svelte'
   import Copy from '@lucide/svelte/icons/copy'
-  import CopyPlus from '@lucide/svelte/icons/copy-plus'
   import { RangeSetBuilder, type Text } from '@codemirror/state'
   import { Decoration, EditorView } from '@codemirror/view'
   import { untrack } from 'svelte'
@@ -132,7 +131,7 @@
 </script>
 
 <div class="clone" class:inactive={!active}>
-  <PanelHeader icon={CopyPlus} title="Clone {path}">
+  <PanelHeader icon={Copy} title="Clone {path}">
     {#snippet meta()}
       {#if content !== undefined}<span title="The copy starts from your what-if edits"><Badge tone="warn">What-if</Badge></span>{/if}
     {/snippet}

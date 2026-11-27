@@ -2,6 +2,7 @@
   import { Command, Dialog } from 'bits-ui'
   import Search from '@lucide/svelte/icons/search'
   import Kbd from '../components/Kbd.svelte'
+  import Spectrum from '../components/Spectrum.svelte'
   import { commands, type Command as Cmd } from '../stores/commands.svelte'
   import { layout } from '../stores/layout.svelte'
   import { usage } from '../stores/usage.svelte'
@@ -59,9 +60,10 @@
       aria-label="Command palette"
       onOpenAutoFocus={(e) => e.preventDefault()}
     >
+      <Spectrum flush />
       <Command.Root loop>
         <div class="codec-palette-search">
-          <Search size={16} strokeWidth={1.75} />
+          <Search size={16} />
           <Command.Input bind:value={search} placeholder="Search tools and actions…" class="codec-palette-input" />
         </div>
         <Command.List class="codec-palette-list">
@@ -73,7 +75,7 @@
                 <Command.GroupItems>
                   {#each recent as cmd (cmd.id)}
                     <Command.Item value={'recent:' + cmd.id} keywords={[cmd.title]} onSelect={() => run(cmd)} class="codec-palette-item">
-                      {#if cmd.icon}<cmd.icon size={15} strokeWidth={1.75} />{/if}
+                      {#if cmd.icon}<cmd.icon size={15} />{/if}
                       <span class="title">{cmd.title}</span>
                       {#if cmd.shortcut}<Kbd combo={cmd.shortcut} />{/if}
                     </Command.Item>
@@ -92,7 +94,7 @@
                       onSelect={() => run(cmd)}
                       class="codec-palette-item"
                     >
-                      {#if cmd.icon}<cmd.icon size={15} strokeWidth={1.75} />{/if}
+                      {#if cmd.icon}<cmd.icon size={15} />{/if}
                       <span class="title">{cmd.title}</span>
                       {#if cmd.shortcut}<Kbd combo={cmd.shortcut} />{/if}
                     </Command.Item>

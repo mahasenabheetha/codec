@@ -163,9 +163,9 @@
       {:else if !making && checked.result}
         <div class="verdict" class:ok={checked.result.match}>
           {#if checked.result.match}
-            <CircleCheck size={28} strokeWidth={1.75} /><span>The password matches this line.</span>
+            <CircleCheck size={28} /><span>The password matches this line.</span>
           {:else}
-            <CircleX size={28} strokeWidth={1.75} /><span>The password does not match this line.</span>
+            <CircleX size={28} /><span>The password does not match this line.</span>
           {/if}
         </div>
       {:else if !job.error}

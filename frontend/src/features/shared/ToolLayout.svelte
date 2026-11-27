@@ -37,7 +37,7 @@
 <div class="tool hued" style:--tool={hueVar(tool.hue)}>
   <header class="toolbar">
     <div class="title">
-      <span class="icon"><tool.icon size={16} strokeWidth={1.75} /></span>
+      <span class="icon"><tool.icon size={16} /></span>
       <h1>{tool.title}</h1>
     </div>
     {#if controls}<div class="controls">{@render controls()}</div>{/if}

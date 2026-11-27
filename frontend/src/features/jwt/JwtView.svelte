@@ -73,7 +73,7 @@
     <Tooltip text="codec decodes tokens; it never verifies signatures (that needs the signing key).">
       {#snippet children(props)}
         <button {...props} type="button" class="unverified">
-          <ShieldAlert size={13} strokeWidth={2} /> Signature not verified
+          <ShieldAlert size={13} /> Signature not verified
         </button>
       {/snippet}
     </Tooltip>

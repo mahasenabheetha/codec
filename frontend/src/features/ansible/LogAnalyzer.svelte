@@ -194,13 +194,13 @@
             onkeydown={(e) => e.key === 'Enter' && choose(r)}
           >
             {#if r.type === 'other'}
-              <SquareTerminal size={14} strokeWidth={1.75} />
+              <SquareTerminal size={14} />
               <span class="name muted">Other output{b.title ? ` · ${b.title}` : ''}</span>
               <span class="meta">{b.to - b.from + 1} lines</span>
               {#if b.errors}<span class="err-count">{b.errors}</span>{/if}
             {:else if r.type === 'run'}
               {@const run = b.run!}
-              <Play size={13} strokeWidth={2} />
+              <Play size={13} />
               <span class="name">Run {r.n}{run.playbook ? ` · ${run.playbook}` : ''}</span>
               <span class="meta">{duration(run.durationMs)}</span>
               <span class="dot {run.status}" title={run.status}></span>
@@ -209,7 +209,7 @@
             {:else}
               {@const t = b.run!.plays[r.play].tasks[r.task]}
               {@const Icon = icons[t.status] ?? CircleCheck}
-              <span class="ic {t.status}"><Icon size={14} strokeWidth={2} /></span>
+              <span class="ic {t.status}"><Icon size={14} /></span>
               <span class="name">{#if t.handler}<span class="tag">handler</span>{/if}{#if t.role}<span class="role">{t.role} :&nbsp;</span>{/if}{t.name}</span>
               {#if t.results.length > 1}<span class="meta">{t.results.length}</span>{/if}
               <span class="meta">{duration(t.durationMs)}</span>

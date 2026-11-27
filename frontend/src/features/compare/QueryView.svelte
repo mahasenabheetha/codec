@@ -93,7 +93,7 @@
             <FileIcon file={workspace.byPath.get(q.path) ?? { lang: 'yaml' }} />
             <span>{q.path}</span>
           {:else}
-            <FileSearch size={14} strokeWidth={1.75} /> <span class="muted">Choose a file…</span>
+            <FileSearch size={14} /> <span class="muted">Choose a file…</span>
           {/if}
         </button>
       {:else if q.scope === 'helm'}

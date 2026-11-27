@@ -114,8 +114,8 @@
     {#snippet actions()}
     <span class="status" role="status">
       {#if building && !data}Building…
-      {:else if data?.error}<span class="err"><CircleX size={12} strokeWidth={2} /> Build failed</span>
-      {:else if data}<span class="ok"><CircleCheck size={12} strokeWidth={2} /></span> {data.cards.length} objects · {ms} ms{/if}
+      {:else if data?.error}<span class="err"><CircleX size={12} /> Build failed</span>
+      {:else if data}<span class="ok"><CircleCheck size={12} /></span> {data.cards.length} objects · {ms} ms{/if}
     </span>
     <IconButton icon={RefreshCw} label="Build again" size="sm" onclick={build} />
     {/snippet}

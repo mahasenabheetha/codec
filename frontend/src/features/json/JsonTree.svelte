@@ -43,14 +43,14 @@
   <div class="row" style:padding-left="{depth * 16}px">
     {#if container}
       <button type="button" class="twist" class:open={expanded} aria-expanded={expanded} aria-label={expanded ? 'Fold' : 'Unfold'} onclick={() => (expanded = !expanded)}>
-        <ChevronRight size={14} strokeWidth={2} />
+        <ChevronRight size={14} />
       </button>
     {:else}
       <span class="twist-space"></span>
     {/if}
     {#if name !== undefined}<span class="key" class:index={Array.isArray(value) === false && /^\d+$/.test(name)}>{name}</span><span class="colon">:</span>{/if}
     <span class="val {kind}" class:count={container}>{preview}</span>
-    <button type="button" class="copy" title="Copy the path {path}" aria-label="Copy the path {path}" onclick={() => copyText(path, 'Path')}><Copy size={12} strokeWidth={2} /></button>
+    <button type="button" class="copy" title="Copy the path {path}" aria-label="Copy the path {path}" onclick={() => copyText(path, 'Path')}><Copy size={12} /></button>
   </div>
   {#if container && expanded}
     {#each kids.slice(0, shown) as [k, v, p] (p)}

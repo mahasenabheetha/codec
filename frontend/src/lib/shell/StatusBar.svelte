@@ -6,7 +6,7 @@
   import WellnessWidget from '../../features/wellness/WellnessWidget.svelte'
   import ShieldCheck from '@lucide/svelte/icons/shield-check'
   import ExternalLink from '@lucide/svelte/icons/external-link'
-  import FolderGit from '@lucide/svelte/icons/folder-git-2'
+  import Folder from '@lucide/svelte/icons/folder'
   import Unplug from '@lucide/svelte/icons/unplug'
   import CircleCheck from '@lucide/svelte/icons/circle-check'
   import CircleX from '@lucide/svelte/icons/circle-x'
@@ -54,10 +54,10 @@
       {#if s?.isYAML && s.path === file}
         <span class="counts" title="Problems in this file">
           {#if s.counts.error + s.counts.warning === 0}
-            <span class="ok"><CircleCheck size={12} strokeWidth={2} /></span>
+            <span class="ok"><CircleCheck size={12} /></span>
           {:else}
-            {#if s.counts.error}<span class="e"><CircleX size={12} strokeWidth={2} /> {s.counts.error}</span>{/if}
-            {#if s.counts.warning}<span class="w"><TriangleAlert size={12} strokeWidth={2} /> {s.counts.warning}</span>{/if}
+            {#if s.counts.error}<span class="e"><CircleX size={12} /> {s.counts.error}</span>{/if}
+            {#if s.counts.warning}<span class="w"><TriangleAlert size={12} /> {s.counts.warning}</span>{/if}
           {/if}
         </span>
         <Popover side="top" align="start">
@@ -123,17 +123,17 @@
       {@const n = updates.notice}
       <span class="update">
         <button type="button" class="update-link" title="Open the release page" onclick={() => openLink(n.url)}>
-          <ArrowUpCircle size={12} strokeWidth={2} /> codec {n.version} is available
+          <ArrowUpCircle size={12} /> codec {n.version} is available
         </button>
         <button type="button" class="update-x" aria-label="Dismiss until the next release" title="Dismiss until the next release" onclick={() => updates.dismiss()}>
-          <X size={11} strokeWidth={2.5} />
+          <X size={11} />
         </button>
       </span>
     {/if}
     <WellnessWidget />
     {#if workspace.disconnected && !connection.restarted}
       <button type="button" class="warn-btn" onclick={() => location.reload()} title="codec was restarted or stopped">
-        <Unplug size={12} strokeWidth={2} /> Disconnected — reload
+        <Unplug size={12} /> Disconnected — reload
       </button>
     {/if}
     {#if workspace.info?.open}
@@ -143,13 +143,13 @@
         title={`${workspace.info.root}\n${watchText[workspace.info.watch ?? ''] ?? watchText['']}\nClick to open another folder.`}
         onclick={() => workspace.chooseFolder()}
       >
-        <FolderGit size={12} strokeWidth={2} />
+        <Folder size={12} />
         {workspace.info.name}
         <span class="watch {workspace.info.watch ?? ''}"></span>
       </button>
     {/if}
     <span class="local" title="codec runs entirely on this machine; nothing is sent anywhere">
-      <ShieldCheck size={12} strokeWidth={2} /> Local only
+      <ShieldCheck size={12} /> Local only
     </span>
     <Popover>
       {#snippet trigger(props)}
@@ -168,7 +168,7 @@
         {/if}
       </dl>
       <a class="repo" href="https://github.com/mahasenabheetha/codec" target="_blank" rel="noopener">
-        Source on GitHub <ExternalLink size={12} strokeWidth={2} />
+        Source on GitHub <ExternalLink size={12} />
       </a>
     </Popover>
   </div>

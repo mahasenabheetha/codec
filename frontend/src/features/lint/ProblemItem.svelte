@@ -27,7 +27,7 @@
 
 <svelte:element this={tag} class="item {severity}">
   <button type="button" class="main" onclick={onjump}>
-    <span class="icon"><Icon size={14} strokeWidth={1.75} /></span>
+    <span class="icon"><Icon size={14} /></span>
     <span class="text">
       <span class="msg">{message}</span>
       {#if hint}<span class="hint-line">{hint}</span>{/if}
@@ -42,7 +42,7 @@
       {#if code}<span class="code">{code}</span>{/if}
       {#if rule}
         <button type="button" class="link off" title="Turn this rule off (change it back in Settings)" onclick={() => lint.turnOff(rule.id)}>
-          <EyeOff size={12} strokeWidth={1.75} /> Turn off
+          <EyeOff size={12} /> Turn off
         </button>
       {/if}
     </div>

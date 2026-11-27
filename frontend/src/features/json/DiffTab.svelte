@@ -76,7 +76,7 @@
         {#if job.error}
           <ErrorBanner error={job.error} />
         {:else if job.result && !changes.length}
-          <p class="same"><CircleCheck size={16} strokeWidth={1.75} /> No differences: the same data, whatever the key order and formatting.</p>
+          <p class="same"><CircleCheck size={16} /> No differences: the same data, whatever the key order and formatting.</p>
         {:else if job.result}
           <header>
             <span class="add">{counts.added} added</span> · <span class="del">{counts.removed} removed</span> · <span class="chg">{counts.changed} changed</span>{#if counts.type}

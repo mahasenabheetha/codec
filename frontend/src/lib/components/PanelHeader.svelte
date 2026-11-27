@@ -20,7 +20,7 @@
 </script>
 
 <header class="panel-header">
-  {#if lead}<span class="icon">{@render lead()}</span>{:else if Icon}<span class="icon"><Icon size={16} strokeWidth={1.75} /></span>{/if}
+  {#if lead}<span class="icon">{@render lead()}</span>{:else if Icon}<span class="icon"><Icon size={16} /></span>{/if}
   <h1 class="title" {title}>{title}</h1>
   {#if meta}<div class="meta">{@render meta()}</div>{/if}
   <div class="spacer"></div>

@@ -144,7 +144,7 @@
     <Popover side="bottom" align="end">
       {#snippet trigger(props)}
         <button {...props} type="button" class="ignore-btn">
-          <FilterX size={14} strokeWidth={1.75} /> Ignored paths{cmp.ignore.length ? ` (${cmp.ignore.length})` : ''}
+          <FilterX size={14} /> Ignored paths{cmp.ignore.length ? ` (${cmp.ignore.length})` : ''}
         </button>
       {/snippet}
       <div class="ignore">
@@ -203,7 +203,7 @@
         <span class:note={!!result.note}>{result.note ?? 'Compared as text.'}</span>
         {#if cmp.mode !== 'structure'}<button type="button" class="link" onclick={() => switchMode('structure')}>Compare as structure</button>{/if}
       {:else if changes.length === 0}
-        <span class="same"><CircleCheck size={14} strokeWidth={1.75} /> No differences{cmp.ignore.length ? ' (outside ignored paths)' : ''}.</span>
+        <span class="same"><CircleCheck size={14} /> No differences{cmp.ignore.length ? ' (outside ignored paths)' : ''}.</span>
       {:else}
         <span class="add">{counts.added} added</span> · <span class="del">{counts.removed} removed</span> ·
         <span class="chg">{counts.changed} changed</span>
@@ -240,7 +240,7 @@
                 </button>
                 {#if c.path}
                   <button type="button" class="hide" title="Ignore {patternFor(c.path)}" aria-label="Ignore this path" onclick={() => cmp.addIgnore(patternFor(c.path))}>
-                    <EyeOff size={12} strokeWidth={1.75} />
+                    <EyeOff size={12} />
                   </button>
                 {/if}
               </div>

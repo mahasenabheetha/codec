@@ -1,19 +1,19 @@
 <script lang="ts">
-  import FolderOpen from '@lucide/svelte/icons/folder-open'
-  import FolderTree from '@lucide/svelte/icons/folder-tree'
+  import Braces from '@lucide/svelte/icons/braces'
+  import Folder from '@lucide/svelte/icons/folder'
   import House from '@lucide/svelte/icons/house'
   import Keyboard from '@lucide/svelte/icons/keyboard'
   import GitCompare from '@lucide/svelte/icons/git-compare'
-  import ListChecks from '@lucide/svelte/icons/list-checks'
-  import TextSearch from '@lucide/svelte/icons/text-search'
+  import TriangleAlert from '@lucide/svelte/icons/triangle-alert'
   import Search from '@lucide/svelte/icons/search'
-  import FilePlus from '@lucide/svelte/icons/file-plus'
-  import Settings2 from '@lucide/svelte/icons/settings-2'
-  import PanelLeftClose from '@lucide/svelte/icons/panel-left-close'
-  import PanelLeftOpen from '@lucide/svelte/icons/panel-left-open'
+  import Plus from '@lucide/svelte/icons/plus'
+  import SlidersHorizontal from '@lucide/svelte/icons/sliders-horizontal'
+  import PanelLeft from '@lucide/svelte/icons/panel-left'
+  import Upload from '@lucide/svelte/icons/upload'
   import Pin from '@lucide/svelte/icons/pin'
   import PinOff from '@lucide/svelte/icons/pin-off'
   import type { Component } from 'svelte'
+  import BrandMark from '../components/BrandMark.svelte'
   import ContextMenu, { type MenuEntry } from '../components/ContextMenu.svelte'
   import Tooltip from '../components/Tooltip.svelte'
   import { usage } from '../stores/usage.svelte'
@@ -56,7 +56,7 @@
         data-pin={pin}
         onclick={chain(props.onclick, onclick)}
       >
-        <Icon size={17} strokeWidth={1.75} />
+        <Icon size={17} />
         {#if !collapsed && !bare}<span class="label">{label}</span>{/if}
       </button>
     {/snippet}
@@ -65,7 +65,7 @@
 
 <nav class="rail" class:collapsed aria-label="Tools">
   <div class="brand">
-    <img src="/icon.svg" alt="" width="22" height="22" />
+    <BrandMark />
     {#if !collapsed}<span>codec</span>{/if}
   </div>
 
@@ -89,16 +89,16 @@
     {:else}
       <div class="group">Workspace</div>
     {/if}
-    {@render item(FolderTree, 'Explorer', layout.explorerOpen && layout.sidebarView === 'explorer', () => layout.toggleExplorer(), 'Mod+Shift+E', viewHue.explorer)}
+    {@render item(Folder, 'Explorer', layout.explorerOpen && layout.sidebarView === 'explorer', () => layout.toggleExplorer(), 'Mod+Shift+E', viewHue.explorer)}
     {@render item(Search, 'Search', layout.explorerOpen && layout.sidebarView === 'search', () => {
       layout.toggleSearch()
       finder.focusTick++
     }, 'Mod+Shift+F', viewHue.search)}
-    {@render item(FolderOpen, 'Open folder…', false, () => workspace.chooseFolder(), 'Mod+O', viewHue.open)}
-    {@render item(ListChecks, 'Problems', router.path === problemsRoute, () => layout.open(problemsRoute), undefined, viewHue.problems)}
+    {@render item(Upload, 'Open folder…', false, () => workspace.chooseFolder(), 'Mod+O', viewHue.open)}
+    {@render item(TriangleAlert, 'Problems', router.path === problemsRoute, () => layout.open(problemsRoute), undefined, viewHue.problems)}
     {@render item(GitCompare, 'Compare', router.path === compareRoute, () => layout.open(compareRoute), undefined, viewHue.compare)}
-    {@render item(TextSearch, 'Query', router.path === queryRoute, () => layout.open(queryRoute), undefined, viewHue.query)}
-    {@render item(FilePlus, 'New', router.path === newRoute, () => layout.open(newRoute), undefined, viewHue.new)}
+    {@render item(Braces, 'Query', router.path === queryRoute, () => layout.open(queryRoute), undefined, viewHue.query)}
+    {@render item(Plus, 'New', router.path === newRoute, () => layout.open(newRoute), undefined, viewHue.new)}
 
     {#each groups as g (g.group)}
       {#if collapsed}
@@ -116,10 +116,10 @@
   <!-- Three icons in a row while the rail is open (a column when it is
        collapsed): the list above keeps the room. -->
   <div class="bottom">
-    {@render item(Settings2, 'Settings', router.path === settingsRoute, () => layout.open(settingsRoute), 'Mod+,', undefined, undefined, true)}
+    {@render item(SlidersHorizontal, 'Settings', router.path === settingsRoute, () => layout.open(settingsRoute), 'Mod+,', undefined, undefined, true)}
     {@render item(Keyboard, 'Keyboard shortcuts', false, () => (layout.shortcutsOpen = true), '?', undefined, undefined, true)}
     {@render item(
-      collapsed ? PanelLeftOpen : PanelLeftClose,
+      PanelLeft,
       collapsed ? 'Expand sidebar' : 'Collapse sidebar',
       false,
       () => layout.toggleRail(),
