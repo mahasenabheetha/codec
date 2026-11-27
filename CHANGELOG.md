@@ -6,6 +6,18 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+The interface redesign, Spectrum, first part (decision 106).
+
+### Changed
+
+- **Spectrum colours.** Dark and Light take livelier colours: a slightly
+  deeper ground and crisper text in Dark, and in both, tool colours and
+  status colours that are more vivid (teal, cyan and lime in Dark; deep
+  jewel tones in Light). Dusk, Midnight, Forest, Rosé and Ocean keep
+  their muted colours; Paper, Mist and High contrast change only a
+  little. Every theme still passes the contrast rules.
+- The tab bar is 40 px and the status bar 28 px (were 38 and 26).
+
 ## [3.10.3] - 2026-11-20
 
 Mermaid diagrams, and a Markdown preview with colour. Frontend only;

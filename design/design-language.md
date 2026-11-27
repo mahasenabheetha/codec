@@ -25,15 +25,16 @@ and a shell built around what you use most.
 
 | Group | Tokens |
 |---|---|
-| Surfaces | `--bg-0 #0b0d12` app/rail · `--bg-1 #10131a` panels · `--bg-2 #161a23` editor/cards · `--bg-3 #1d2230` hover/inputs · `--bg-4 #252b3a` pressed |
-| Borders | `--border #252b38` · `--border-strong #323a4b` |
-| Text | `--fg-0 #e6e8ee` primary · `--fg-1 #a9b0bf` secondary · `--fg-2 #878fa0` muted (≥ 4.5:1 on bg-0…bg-3) |
-| Accent | `--accent #7aa2ff` · `--accent-hover` · `--accent-soft` (14%) · `--accent-fg` text on solid accent |
-| Status | `--ok #3fb971` · `--warn #e5b449` · `--err #f06b75` · `--info #5ab0ff`, each with `-soft` |
+| Surfaces | `--bg-0 #0c0e14` app/rail · `--bg-1 #11141c` panels · `--bg-2 #171b25` editor/cards · `--bg-3 #1f2431` hover/inputs · `--bg-4 #282e3d` pressed |
+| Borders | `--border #262c3a` · `--border-strong #363e52` |
+| Text | `--fg-0 #eceef4` primary · `--fg-1 #b0b7c6` secondary · `--fg-2 #8b94a7` muted (≥ 4.5:1 on bg-0…bg-3) |
+| Accent | `--accent #7c9cff` · `--accent-hover` · `--accent-soft` (14%) · `--accent-fg` text on solid accent |
+| Status | `--ok #4cd38a` · `--warn #f2c14e` · `--err #ff6f7d` · `--info #5ab0ff`, each with `-soft` |
+| Hues | indigo `#8f9dff` · violet `#b794ff` · orchid `#e391f2` · pink `#ff8fc8` · peach `#ffa877` · lime `#b4e06a` · teal `#4fdcc2` · cyan `#5cc6ff` |
 | Space | 4px scale: `--s-1 4` `--s-2 8` `--s-3 12` `--s-4 16` `--s-5 20` `--s-6 24` `--s-8 32` `--s-12 48` |
 | Radius | `--r-sm 4` inputs, small marks · `--r-md 8` buttons, rows · `--r-lg 12` panels, cards · `--r-xl 16` dialogs · `--r-full` pills |
 | Type | `--font-ui` Inter, `--font-mono` JetBrains Mono (bundled, OFL). Sizes `--fs-xs 11` `-sm 12` `-md 13` (base) `-lg 14` `-xl 16` `-2xl 20` `-3xl 28`, each a step bigger at Interface size Large (12 … 30); line height 1.5 (code 1.55). Figures are tabular everywhere (`tnum`), so counts and times don't shift. The code font is for code, paths and values, never for sentences |
-| Controls | Interface size (`data-size` on `<html>`): `--control-h` 28 / 32 / 36 and `--control-h-sm` 24 / 28 / 32 for Compact / Comfortable (default) / Large; Lucide icons keep the size written in code (the Compact one) and grow by `--icon-scale` 1 / 1.125 / 1.25, rounded to whole pixels (global.css), so write icon sizes for Compact · `--tabbar-h 38` · `--statusbar-h 26` · rail 48/220 |
+| Controls | Interface size (`data-size` on `<html>`): `--control-h` 28 / 32 / 36 and `--control-h-sm` 24 / 28 / 32 for Compact / Comfortable (default) / Large; Lucide icons keep the size written in code (the Compact one) and grow by `--icon-scale` 1 / 1.125 / 1.25, rounded to whole pixels (global.css), so write icon sizes for Compact · `--tabbar-h 40` · `--statusbar-h 28` · rail 48/220 |
 | Focus | `--focus-ring`: the ring a field shows around its border (in the tool's colour inside a tool). The global outline stays for everything else |
 | Match | `--match-bg`, `--match-current-bg`: a search hit, wherever it is drawn (editor, log rows, Find in Files, the source peek) |
 | Motion | `--dur-fast 80ms` hovers and presses · `--dur 120ms` most changes · `--dur-slow 240ms` things that move across the screen · `--ease`; none under `prefers-reduced-motion` |
@@ -54,11 +55,12 @@ colours only; space, type, layout and motion are shared:
 
 | Group | Light values |
 |---|---|
-| Surfaces | `--bg-0 #f2f3f6` · `--bg-1 #f8f9fb` · `--bg-2 #ffffff` · `--bg-3 #eaecf1` · `--bg-4 #dfe2e9` |
-| Borders | `--border #d9dce3` · `--border-strong #c3c8d2` |
-| Text | `--fg-0 #1b1f27` · `--fg-1 #485062` · `--fg-2 #5f6778` |
-| Accent | `--accent #2b5cd6` (hover darker) · `--accent-fg #ffffff` |
-| Status | `--ok #16702f` · `--warn #8a5d00` · `--err #c62a35` · `--info #0a68cf`; `-soft` at 12% |
+| Surfaces | `--bg-0 #edf0f6` · `--bg-1 #f6f7fb` · `--bg-2 #ffffff` · `--bg-3 #e8ebf2` · `--bg-4 #dce0ea` |
+| Borders | `--border #d8dce6` · `--border-strong #c1c7d4` |
+| Text | `--fg-0 #151922` · `--fg-1 #434b5d` · `--fg-2 #5a6275` |
+| Accent | `--accent #3756d8` (hover darker) · `--accent-fg #ffffff` |
+| Status | `--ok #147b3b` · `--warn #8a5d00` · `--err #c82835` · `--info #0a68cf`; `-soft` at 12% |
+| Hues | indigo `#4652d6` · violet `#7444d4` · orchid `#9b3ab0` · pink `#bf2f7a` · peach `#b64d0c` · lime `#4a7400` · teal `#00796a` · cyan `#006da8`: deep jewel tones that carry white text |
 | Syntax | key `#0550ae` · string `#1f6f2b` · number `#a64d00` · bool/null `#7c3fd1` · comment `#626b7a` · anchor `#0b7268` · tag `#8a5d00` · template `#875400` · run time `#b0246f` |
 | Logos | official colours where they reach 3:1 on `--bg-1`; Helm `#3346c9` and Argo `#d9592b` adjusted |
 
@@ -138,6 +140,19 @@ enough for white. Settings → Tool colours off sets
 Query, New, Problems) are `.hued` too, with their `viewHue`. Never use a `--hue-*` or `--act-*` token directly; go through
 the roles, so a theme or the setting can turn them up or down in one
 place. A shared component reads `var(--tool-accent, var(--accent))`.
+
+**Spectrum** (3.11.0, decision 106): Dark and Light take the Spectrum
+values above, livelier than before; the Dusk family keeps its own muted
+ones; Paper, Mist and High contrast took Spectrum's small tweaks. In
+Light, ok, err and peach are a shade deeper than the canvas drew, and
+in Paper the body text a shade softer, so each passes the rules here.
+Two mixing amounts per theme, `--soft` (a soft fill in the tool's
+colour: 16% Dark and the Dusk family, 12% Light and Paper, 14% Mist,
+22% High contrast) and `--wash` (a tinted ground: 5% to 10%), give
+`.hued` two more roles: `--tool-wash`, a ground washed with the tool's
+colour (a tool page's header, a selected card), and `--tool-line`, a
+line in it (a pane's top edge, a card's hue edge). With tool colours
+off they are the plain `--bg-1` and `--border`.
 
 Never hard-code a colour, size or font in a component. A new token is a
 change to this file and `tokens.css` together.

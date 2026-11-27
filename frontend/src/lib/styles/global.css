@@ -156,8 +156,14 @@ p {
 .hued {
   --tool-accent: color-mix(in oklab, var(--tool) var(--tint-tool), var(--accent));
   --tool-accent-hover: color-mix(in oklab, var(--tool) var(--tint-tool), var(--accent-hover));
-  --tool-accent-soft: color-mix(in oklab, rgb(from var(--tool) r g b / 0.16) var(--tint-tool), var(--accent-soft));
+  --tool-accent-soft: color-mix(in oklab, color-mix(in srgb, var(--tool) var(--soft), transparent) var(--tint-tool), var(--accent-soft));
   --tool-icon: color-mix(in oklab, var(--tool) var(--tint-tool), currentColor);
+  /* Spectrum (3.11.0): a ground washed with the tool's colour (a tool
+     page's header, a selected card) and a line in it (a pane's top
+     edge, a card's hue edge). With tool colours off they are the plain
+     panel and border. */
+  --tool-wash: color-mix(in oklab, color-mix(in srgb, var(--tool) var(--wash), var(--bg-1)) var(--tint-tool), var(--bg-1));
+  --tool-line: color-mix(in oklab, color-mix(in srgb, var(--tool) 45%, var(--border)) var(--tint-tool), var(--border));
 }
 
 /* Interface size: every Lucide icon grows from the size written in the
