@@ -6,6 +6,177 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+### Changed
+
+- **New app icon, Spectrum keys.** The YAML-key mark now shows each
+  key and value in its own tool colour, on the app icon, the browser
+  tab, the desktop app and installer, the docs and the rail. In the
+  rail it follows the theme.
+
+## [3.11.0] - 2026-11-27
+
+The interface redesign, Spectrum, first part (decision 106): the
+colours, the shared parts, the shell, Home and the workspace views.
+Frontend only; nothing about what codec reads or computes changes.
+
+### Added
+
+- **Command palette.** Ctrl+Enter (⌘+Enter on macOS) on Smart paste,
+  Base64, JSON & YAML or Ansible log opens it on a fresh tab; the foot
+  of the palette says so when it applies. Tools show what they do
+  under their name, and the foot lists the keys and the number of
+  results.
+- The rail shows codec's version, and Problems shows how many errors
+  and warnings the last workspace check found. The status bar counts
+  them in the Problems view too, with the number of files checked.
+- **Problems summary.** The Problems view starts with three cards: the
+  findings by severity, by kind of check, and the files with the most.
+  It says how many YAML files were checked and how long that took.
+- **Query.** Beside the results, how they spread over files, and a hint
+  when they show something to fix: images that use `latest` or no tag.
+  The count says how long the query took.
+- **Find in Files.** A hit opened from the results shows **Match N of M** in
+  the file's header, with buttons for the previous and next match.
+- **Clone.** **Save as…** downloads the clone, named after the new name.
+  Nothing is written to the folder.
+- **Mermaid.** **PNG** saves the diagram as a picture, drawn in the page
+  on the preview's background; nothing is sent anywhere.
+
+### Changed
+
+- **Spectrum colours.** Dark and Light take livelier colours: a slightly
+  deeper ground and crisper text in Dark, and in both, tool colours and
+  status colours that are more vivid (teal, cyan and lime in Dark; deep
+  jewel tones in Light). Dusk, Midnight, Forest, Rosé and Ocean keep
+  their muted colours; Paper, Mist and High contrast change only a
+  little. Every theme still passes the contrast rules.
+- The tab bar is 40 px and the status bar 28 px (were 38 and 26).
+- **Icons.** Every icon has the same, slightly firmer stroke, and a
+  thing has one icon wherever it shows (rail, tab, view header, palette,
+  menu): Explorer is a folder, Open folder an upload arrow, Problems a
+  warning triangle, Query braces, New a plus, Clone a copy, Settings
+  sliders, Kubernetes a box, Ansible a scroll, Helm a ship's wheel, Log
+  viewer a list, JWT a key, Commands a terminal.
+- **The codec mark.** The rail shows the new mark, three bars in tool
+  colours. The app, browser and installer icons don't change.
+- **Spectrum strip.** The eight tool colours run along the top of the
+  command palette and Go to file, and along each theme card in
+  Settings, in that theme's colours (Dark's and Light's cards were
+  still showing their colours from before 3.11.0).
+- **Controls.** The selected option of a segmented control, a tool's
+  sub-tabs included, is filled with the tool's colour. A chip that is on
+  shows a tick. Text fields are as tall as buttons, and their border
+  darkens under the pointer. Checkboxes fill with the tool's colour.
+  Buttons move down a pixel when pressed. The keyboard focus outline
+  takes the tool's colour.
+- **Panes and overlays.** A tool's panes have a line in its colour along
+  the top, and their titles are no longer in capitals. Menus and
+  dropdown lists are rounder, and the item under the pointer is tinted.
+  Tooltips are dark on light themes and light on dark ones, with the
+  shortcut as text. Toasts start with a small mark in their colour.
+- **States.** An empty pane shows its icon on a tile in the tool's
+  colour. "Working…" has a dot in front. While you drag a divider, a
+  badge shows the first pane's share.
+- **Problems.** A finding shows its line and its rule's code together.
+  **Why?** and **Turn this rule off** (was **Turn off**) are buttons.
+- **Rail.** Each entry's icon sits on a tile in its colour, filled for
+  the one that is open, and each group's name has a line after it
+  (only the line when the rail is collapsed).
+- **Tabs.** The current tab has a line in its colour along the top and
+  no longer glows. When the tabs don't fit, **+N** at the end lists the
+  ones out of sight (it listed them all). A dragged tab dims, and a
+  line shows where it will land. Lens views' and files' tabs take their
+  colours too.
+- **Status bar.** It starts with the view's icon and name on a block of
+  its colour, and Home says that everything runs on this machine. A
+  file's path shows beside the path at the cursor, and its errors and
+  warnings are always counted. The focus ring takes the colour of
+  Focus & breaks, the folder's watch dot comes before its name, and the
+  version is quieter.
+- **Command palette.** Each result shows its icon on a tile in its
+  tool's colour, and the highlighted one takes that colour. The palette,
+  Go to file and dialogs are a step lighter and rounder.
+- **Narrow windows** (under 1000 px). A file's outline and problems sit
+  under the editor. A tool's input goes over its output, and its
+  controls move to a second row with a **Beside · Stacked** choice
+  (pick Beside to keep them side by side). Compare puts its two sides
+  one under the other, the changes above the code, and shows one side
+  at a time with a Left · Right switch.
+- **Tool colours off.** Tools now take the theme's accent everywhere: tab
+  icons, the selected rail entry and palette row, the edges of cards
+  and chips. Icon tiles turn grey, as before.
+- **Home.** A new layout. At the top, the codec mark and a bigger
+  search box, beside a mosaic of tool colours. Then three columns:
+  Pinned, Opened lately and Workspace. Opened lately mixes tools and
+  the files opened this session, newest first, with how long ago (a
+  tool's time is kept with the list of recent tools; times start with
+  this version). Workspace shows the open folder, whether it is watched,
+  a bar of its files by kind (Kubernetes, Helm, Ansible, Argo, CI,
+  Compose), Go to a file, Open another folder and recent folders. Every
+  tool is listed by group, one card per tool; small groups get a card
+  with a description, Utilities a grid of tiles. Search for a sub-tab
+  (Cron, Password…) to open or pin it on its own. The first run shows
+  Get started in the same layout. The Compare text card and the
+  privacy line are gone: Compare is on the rail and the palette, and
+  the status bar says that everything runs on this machine.
+- **View headers.** A view's header shows its icon on a filled tile in
+  its colour, its name with what is known under it, on a ground washed
+  with its colour and dotted towards the right (not with tool colours
+  off). The file view's header has the same ground.
+- **Explorer.** The folder's icon sits on a tile, its name is no longer
+  in capitals, and a file with what-if edits says so in words. Marks
+  for what-if edits, warnings and errors are small pills.
+- **Problems.** Choose the kind of check with a switch, and filter by
+  path or rule. Each file is a row with its kind and its count, and its
+  findings are one line each.
+- **Settings.** The sections are listed with their icons on tiles in
+  their colours, and the page says where settings are kept. Each
+  section has a big title, and its settings are in a card. A rule shows
+  its code beside its name, and its level is an Off · Info · Warning ·
+  Error switch; each group says how many rules are on.
+- **Compare.** The two sides are cards, the left one indigo and the
+  right one pink, with the swap button between them. The summary counts
+  what was added, removed and changed, with a bar. **Ignored paths ·
+  N** and **Compare again** are in the header.
+- **Query.** Examples to try are chips. Each result is a card with its
+  file and line; open it or copy its value.
+- **New.** Starters are tiles in the colour of their kind. The form is
+  beside the preview, short choices are switches, and the files are
+  tabs with their counts. **Save as zip** and **Copy** (the file shown)
+  are in the header.
+- **Find in Files.** The search options sit in the field, and a bar shows how
+  the hits spread over files. The hit you are on is marked.
+- **Clone.** The old and new names sit in one row with what was found.
+  Renames, suggestions and checks are groups beside the code, each
+  rename showing the value before and after. **Copy** and **Save as…**
+  are in the header.
+- **Markdown preview.** Headings are bold, in the text colour; colour
+  stays in code, quotes, table heads and callouts. Quotes, code blocks
+  and callouts are rounder, callouts have a border in their colour, and
+  a table sits in a rounded frame.
+- **Mermaid preview.** A faint grid behind the diagram. Zoom is at the
+  bottom right, with the kind of diagram and the zoom level at the
+  bottom left; **Copy SVG** is in the header, and the header names the
+  kind of diagram. A diagram that doesn't parse says so at the top.
+- **Light themes.** Words in a tool's colour on its tinted fill (a badge,
+  the outline's document entry) lean towards the text colour in Light,
+  Paper, Mist and High contrast, so they are easy to read. Mist's tinted
+  grounds are a touch lighter.
+- **Docs.** New screenshots of Home, the editor, Problems, Query,
+  Compare, New, Clone, Settings and the command palette, and a Spectrum
+  section on the design page. The contrast check now covers text on
+  every tool colour's tinted grounds, in every theme.
+
+### Fixed
+
+- **Screen readers and colour.** A count in a switch (Problems' kinds of
+  check) and New's count per file show an icon for errors or warnings,
+  not only a colour, and say what they count. A tab with what-if edits
+  says so, and the **+N** list marks the tab that is open. Compare's
+  change marks are read as added, removed or changed. New's fields are
+  named by their labels and say which one has an error; its files are a
+  row of buttons, no longer announced as tabs.
+
 ## [3.10.3] - 2026-11-20
 
 Mermaid diagrams, and a Markdown preview with colour. Frontend only;

@@ -134,10 +134,10 @@
       {#snippet badges()}
         {#if session.result}<Badge tone="accent" icon={Sparkles}>{detectedLabel[session.result.kind]}</Badge>{/if}
         {#if secrets}
-          <button type="button" class="open warn" onclick={openSanitize} title="It has secrets: take them out before you share it">{secrets} {secrets === 1 ? 'secret' : 'secrets'} · Sanitize <ArrowRight size={12} strokeWidth={2} /></button>
+          <button type="button" class="open warn" onclick={openSanitize} title="It has secrets: take them out before you share it">{secrets} {secrets === 1 ? 'secret' : 'secrets'} · Sanitize <ArrowRight size={12} /></button>
         {/if}
         {#if session.result?.utility}
-          <button type="button" class="open" onclick={openUtility}>{openLabel[session.result.utility.tab]} <ArrowRight size={12} strokeWidth={2} /></button>
+          <button type="button" class="open" onclick={openUtility}>{openLabel[session.result.utility.tab]} <ArrowRight size={12} /></button>
         {/if}
       {/snippet}
     </OutputPane>

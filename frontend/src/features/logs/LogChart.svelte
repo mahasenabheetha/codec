@@ -159,7 +159,7 @@
     <span class="peak" title="The tallest bar">{count(peak)}</span>
     {#if win && onclear}
       <button type="button" class="clear" style:left="{Math.min(width - 22, win.hi * bw + 2)}px" aria-label="Show the whole time range again" title="Show the whole time range again" onclick={onclear}>
-        <X size={11} strokeWidth={2.5} />
+        <X size={11} />
       </button>
     {/if}
   </div>

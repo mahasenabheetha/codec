@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Command, Dialog } from 'bits-ui'
   import Search from '@lucide/svelte/icons/search'
+  import Spectrum from '../../lib/components/Spectrum.svelte'
   import { layout } from '../../lib/stores/layout.svelte'
   import FileIcon from './FileIcon.svelte'
   import { rank, type Match } from './fuzzy'
@@ -71,9 +72,10 @@
   <Dialog.Portal>
     <Dialog.Overlay class="codec-overlay" />
     <Dialog.Content class="codec-palette" aria-label={ws.picker ? ws.picker.title : 'Go to file'} onOpenAutoFocus={(e) => e.preventDefault()}>
+      <Spectrum flush />
       <Command.Root shouldFilter={false} loop>
         <div class="codec-palette-search">
-          <Search size={16} strokeWidth={1.75} />
+          <Search size={16} />
           <Command.Input
             bind:value={query}
             placeholder={ws.picker ? ws.picker.title : ws.info?.open ? `Search files in ${ws.info.name}…` : 'Open a folder first'}

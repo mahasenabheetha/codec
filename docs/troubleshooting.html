@@ -93,7 +93,7 @@
   <li>It is behind a symlinked folder, which codec doesn't follow.</li>
 </ul>
 <h3 id="changes">Changes on disk don't show up<a class="anchor" href="#changes">#</a></h3>
-<p>codec uses native file events and falls back to polling when they fail. Some setups report events unreliably (network drives, WSL paths, Docker bind mounts); start with <code>--poll</code> to force polling. The dot next to the folder name in the status bar shows the watch mode (hover it for details).</p>
+<p>codec uses native file events and falls back to polling when they fail. Some setups report events unreliably (network drives, WSL paths, Docker bind mounts); start with <code>--poll</code> to force polling. The dot before the folder name in the status bar shows the watch mode (hover it for details).</p>
 <h3 id="bigfile">A huge file is slow<a class="anchor" href="#bigfile">#</a></h3>
 <p>Files up to 8 MB are supported: typing stays responsive and analysis runs a little later than usual. The outline of very large files keeps fewer levels (it says so). Files over 8 MB are not opened.</p>
 

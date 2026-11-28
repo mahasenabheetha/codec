@@ -115,7 +115,7 @@
             <ul>
               {#each checks as k (k.name)}
                 <li class:pass={k.pass} title={k.title}>
-                  {#if k.pass}<CircleCheck size={14} strokeWidth={2} />{:else}<CircleX size={14} strokeWidth={2} />{/if}
+                  {#if k.pass}<CircleCheck size={14} />{:else}<CircleX size={14} />{/if}
                   {k.name} <span class="need">{k.need}:1</span>
                 </li>
               {/each}

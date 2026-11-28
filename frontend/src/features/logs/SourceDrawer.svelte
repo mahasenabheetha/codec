@@ -19,7 +19,7 @@
   import ErrorNote from '../../lib/components/ErrorNote.svelte'
   import ChevronDown from '@lucide/svelte/icons/chevron-down'
   import ChevronUp from '@lucide/svelte/icons/chevron-up'
-  import FolderOpen from '@lucide/svelte/icons/folder-open'
+  import Upload from '@lucide/svelte/icons/upload'
   import SquareArrowOutUpRight from '@lucide/svelte/icons/square-arrow-out-up-right'
   import X from '@lucide/svelte/icons/x'
   import { getContent } from '../../lib/api/workspace'
@@ -178,7 +178,7 @@
   {:else if items === null}
     <div class="empty">
       <p>Open the folder the log came from to see this file.</p>
-      <Button size="sm" icon={FolderOpen} tone="open" onclick={() => ws.chooseFolder()}>Open folder…</Button>
+      <Button size="sm" icon={Upload} tone="open" onclick={() => ws.chooseFolder()}>Open folder…</Button>
     </div>
   {:else if items.length === 0}
     <p class="empty">{empty ?? 'No file of that name in the open folder'}{ws.info?.name ? ` (${ws.info.name})` : ''}.</p>

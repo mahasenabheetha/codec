@@ -93,7 +93,7 @@
     <div class="focus" style:--phase={color}>
       <section class="hero" aria-label="Focus timer">
         <div class="phase" class:rest={isBreak}>
-          {#if isBreak}<Coffee size={14} strokeWidth={2} />{:else}<Brain size={14} strokeWidth={2} />{/if}
+          {#if isBreak}<Coffee size={14} />{:else}<Brain size={14} />{/if}
           {phaseLabel[focus.phase]}
           <span class="sep">·</span>
           <span>Round {focus.round} of {lengths.rounds}</span>
@@ -140,7 +140,7 @@
             title="Space"
             onclick={() => focus.toggle()}
           >
-            {#if t.state === 'running'}<Pause size={26} strokeWidth={2} />{:else}<Play size={26} strokeWidth={2} />{/if}
+            {#if t.state === 'running'}<Pause size={26} />{:else}<Play size={26} />{/if}
           </button>
           <IconButton icon={SkipForward} label="Skip to {phaseLabel[next].toLowerCase()}" size="md" onclick={() => focus.skip()} />
           <span class="spacer-btn"></span>

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import KeyRound from '@lucide/svelte/icons/key-round'
+  import Key from '@lucide/svelte/icons/key'
   import Play from '@lucide/svelte/icons/play'
   import type CodeView from '../../lib/components/CodeView.svelte'
   import Button from '../../lib/components/Button.svelte'
@@ -64,7 +64,7 @@
   {#snippet output()}
     <OutputPane
       {session}
-      emptyIcon={KeyRound}
+      emptyIcon={Key}
       emptyTitle="Decoded claims appear here"
       emptyDescription="Expiry is checked against your clock. Signatures are never verified."
       onsample={() => (session.input = samples.jwt)}

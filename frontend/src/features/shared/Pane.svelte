@@ -1,7 +1,8 @@
 <script lang="ts">
   import type { Snippet } from 'svelte'
 
-  // A titled panel: header (title, meta, actions) over a flexible body.
+  // A titled panel: header (title, meta, actions) over a flexible body,
+  // with a line in the tool's colour along the top.
   interface Props {
     title: string
     meta?: Snippet
@@ -9,12 +10,14 @@
     children: Snippet
     /** false: as tall as its content, for one-column tools. */
     grow?: boolean
+    /** false: no line along the top, for a pane beside the main ones. */
+    top?: boolean
   }
 
-  let { title, meta, actions, children, grow = true }: Props = $props()
+  let { title, meta, actions, children, grow = true, top = true }: Props = $props()
 </script>
 
-<section class="pane" class:fit={!grow} aria-label={title}>
+<section class="pane" class:fit={!grow} class:top aria-label={title}>
   <header>
     <h2>{title}</h2>
     {#if meta}<div class="meta">{@render meta()}</div>{/if}
@@ -38,25 +41,23 @@
   .pane.fit {
     flex: none;
   }
+  /* The accent outside a tool and with tool colours off. */
+  .pane.top {
+    border-top: 3px solid var(--tool-accent, var(--accent));
+  }
   header {
     flex: 0 0 auto;
     display: flex;
     align-items: center;
-    gap: var(--s-3);
-    height: 38px;
+    gap: var(--s-2);
+    height: 40px;
     padding: 0 var(--s-2) 0 var(--s-3);
     border-bottom: 1px solid var(--border);
-    background: var(--bg-1);
-    /* A thin line in the tool's colour along the top, where the theme
-       shows it (Dusk); none otherwise. */
-    box-shadow: inset 0 2px 0 color-mix(in oklab, var(--tool-accent, var(--accent)) calc(var(--tint-fill) * 0.7), transparent);
   }
   h2 {
     font-size: var(--fs-sm);
     font-weight: var(--fw-semibold);
-    color: var(--fg-1);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
+    color: var(--fg-0);
   }
   .meta {
     display: flex;

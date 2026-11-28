@@ -179,7 +179,7 @@
 <div class="preview" bind:this={el} {onclick} {onauxclick}>
   {#if blocked && !allowRemote}
     <div class="blocked" role="status">
-      <ImageOff size={14} strokeWidth={1.75} />
+      <ImageOff size={14} />
       <span>{blocked} remote image{blocked === 1 ? '' : 's'} not loaded: showing them tells another server this file was opened.</span>
       <Button size="sm" onclick={loadRemote}>Load images</Button>
     </div>
@@ -214,21 +214,18 @@
     flex: 1;
     min-width: 0;
   }
-  /* Colour (3.10.3): headings in three hues, h1 to h3, then the text
-     colour; with Tool colours off (--tint-tool 0%) they are all the text
-     colour, as the rest of the interface goes to one accent. Every hue
-     is checked on this ground (bg-2) in each theme. */
+  /* Colour (3.10.3) sits in the grounds: code, quotes, table heads and
+     callouts carry a touch of the accent or of their status. Headings
+     are the text colour in bold, as page titles are (3.11.0); list
+     marks keep a hue, the text colour's grey with Tool colours off. */
   .md {
-    --md-h1: color-mix(in oklab, var(--hue-violet) var(--tint-tool), var(--fg-0));
-    --md-h2: color-mix(in oklab, var(--hue-indigo) var(--tint-tool), var(--fg-0));
-    --md-h3: color-mix(in oklab, var(--hue-teal) var(--tint-tool), var(--fg-0));
     --md-mark: color-mix(in oklab, var(--hue-indigo) var(--tint-tool), var(--fg-2));
-    max-width: 880px;
+    max-width: 860px;
     margin: 0 auto;
-    padding: var(--s-6) var(--s-8) var(--s-12);
+    padding: var(--s-6) var(--s-12) var(--s-12);
     font-family: var(--font-ui);
     font-size: var(--fs-lg);
-    line-height: 1.6;
+    line-height: 1.65;
     color: var(--fg-0);
     overflow-wrap: break-word;
   }
@@ -245,21 +242,20 @@
     line-height: 1.25;
     scroll-margin-top: var(--s-4);
   }
+  .md :global(:is(h1, h2)) {
+    font-weight: var(--fw-bold);
+  }
   .md :global(h1) {
     font-size: var(--fs-3xl);
+    letter-spacing: -0.02em;
     padding-bottom: var(--s-2);
-    color: var(--md-h1);
-    border-bottom: 2px solid color-mix(in oklab, var(--md-h1) 40%, var(--border));
+    border-bottom: 1px solid var(--border);
   }
   .md :global(h2) {
     font-size: var(--fs-2xl);
-    padding-bottom: var(--s-2);
-    color: var(--md-h2);
-    border-bottom: 1px solid color-mix(in oklab, var(--md-h2) 30%, var(--border));
   }
   .md :global(h3) {
     font-size: var(--fs-xl);
-    color: var(--md-h3);
   }
   .md :global(:is(h4, h5, h6)) {
     font-size: var(--fs-lg);
@@ -337,17 +333,18 @@
   .md :global(blockquote) {
     padding: var(--s-2) var(--s-4);
     color: var(--fg-1);
+    font-style: italic;
     background: var(--md-quote-bg);
-    border-left: 3px solid var(--accent);
-    border-radius: 0 var(--r-md) var(--r-md) 0;
+    border-radius: var(--r-lg);
   }
   .md :global(blockquote > :last-child) {
     margin-bottom: 0;
   }
   .md :global(code) {
-    padding: 0.15em 0.4em;
+    padding: 0.1em 0.45em;
     font-family: var(--font-mono);
     font-size: 0.86em;
+    color: var(--fg-0);
     background: var(--md-code-bg);
     border-radius: var(--r-sm);
   }
@@ -358,8 +355,8 @@
     margin: 0 0 var(--s-4);
     padding: var(--s-2) var(--s-4) var(--s-3);
     background: var(--alert-bg);
-    border-left: 3px solid var(--alert);
-    border-radius: 0 var(--r-md) var(--r-md) 0;
+    border: 1px solid color-mix(in srgb, var(--alert) 35%, var(--border));
+    border-radius: var(--r-lg);
   }
   .md :global(.alert > :last-child) {
     margin-bottom: 0;
@@ -369,6 +366,7 @@
     align-items: center;
     gap: var(--s-2);
     margin: 0 0 var(--s-1);
+    font-size: var(--fs-sm);
     font-weight: var(--fw-semibold);
     color: var(--alert);
   }
@@ -383,27 +381,27 @@
   .md :global(.alert-note) {
     --alert: var(--info);
     --alert-bg: var(--md-note-bg);
-    --alert-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 16v-4'/%3E%3Cpath d='M12 8h.01'/%3E%3C/svg%3E");
+    --alert-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M12 16v-4'/%3E%3Cpath d='M12 8h.01'/%3E%3C/svg%3E");
   }
   .md :global(.alert-tip) {
     --alert: var(--ok);
     --alert-bg: var(--md-tip-bg);
-    --alert-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5'/%3E%3Cpath d='M9 18h6'/%3E%3Cpath d='M10 22h4'/%3E%3C/svg%3E");
+    --alert-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5'/%3E%3Cpath d='M9 18h6'/%3E%3Cpath d='M10 22h4'/%3E%3C/svg%3E");
   }
   .md :global(.alert-important) {
     --alert: var(--hue-violet);
     --alert-bg: var(--md-important-bg);
-    --alert-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z'/%3E%3Cpath d='M12 15h.01'/%3E%3Cpath d='M12 7v4'/%3E%3C/svg%3E");
+    --alert-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z'/%3E%3Cpath d='M12 15h.01'/%3E%3Cpath d='M12 7v4'/%3E%3C/svg%3E");
   }
   .md :global(.alert-warning) {
     --alert: var(--warn);
     --alert-bg: var(--md-warning-bg);
-    --alert-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3'/%3E%3Cpath d='M12 9v4'/%3E%3Cpath d='M12 17h.01'/%3E%3C/svg%3E");
+    --alert-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3'/%3E%3Cpath d='M12 9v4'/%3E%3Cpath d='M12 17h.01'/%3E%3C/svg%3E");
   }
   .md :global(.alert-caution) {
     --alert: var(--err);
     --alert-bg: var(--md-caution-bg);
-    --alert-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 16h.01'/%3E%3Cpath d='M12 8v4'/%3E%3Cpath d='M15.312 2a2 2 0 0 1 1.414.586l4.688 4.688A2 2 0 0 1 22 8.688v6.624a2 2 0 0 1-.586 1.414l-4.688 4.688a2 2 0 0 1-1.414.586H8.688a2 2 0 0 1-1.414-.586l-4.688-4.688A2 2 0 0 1 2 15.312V8.688a2 2 0 0 1 .586-1.414l4.688-4.688A2 2 0 0 1 8.688 2z'/%3E%3C/svg%3E");
+    --alert-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 16h.01'/%3E%3Cpath d='M12 8v4'/%3E%3Cpath d='M15.312 2a2 2 0 0 1 1.414.586l4.688 4.688A2 2 0 0 1 22 8.688v6.624a2 2 0 0 1-.586 1.414l-4.688 4.688a2 2 0 0 1-1.414.586H8.688a2 2 0 0 1-1.414-.586l-4.688-4.688A2 2 0 0 1 2 15.312V8.688a2 2 0 0 1 .586-1.414l4.688-4.688A2 2 0 0 1 8.688 2z'/%3E%3C/svg%3E");
   }
   .md :global(pre) {
     padding: var(--s-3) var(--s-4);
@@ -412,7 +410,7 @@
     line-height: var(--lh-code);
     background: var(--bg-1);
     border: 1px solid var(--border);
-    border-radius: var(--r-md);
+    border-radius: var(--r-lg);
   }
   .md :global(pre code) {
     padding: 0;
@@ -420,30 +418,42 @@
     background: none;
     border-radius: 0;
   }
+  /* A table in a rounded frame: the frame draws the outer edge, the
+     cells only the lines between them. */
   .md :global(table) {
     display: block;
     width: max-content;
     max-width: 100%;
     overflow: auto;
-    border-collapse: collapse;
+    font-size: var(--fs-md);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    border-collapse: separate;
+    border-spacing: 0;
   }
   .md :global(:is(th, td)) {
-    padding: var(--s-1) var(--s-3);
-    border: 1px solid var(--border);
+    padding: var(--s-2) var(--s-3);
+    border-bottom: 1px solid var(--border);
+  }
+  .md :global(:is(th, td) + :is(th, td)) {
+    border-left: 1px solid var(--border);
+  }
+  .md :global(tr:last-child td) {
+    border-bottom: none;
   }
   .md :global(th) {
     font-weight: var(--fw-semibold);
     text-align: left;
+    color: var(--fg-1);
     background: var(--md-th-bg);
-    border-bottom: 2px solid color-mix(in oklab, var(--accent) 35%, var(--border));
   }
   .md :global(tr:nth-child(2n) td) {
     background: var(--md-stripe-bg);
   }
   .md :global(hr) {
-    height: 2px;
+    height: 1px;
     margin: var(--s-6) 0;
-    background: linear-gradient(90deg, color-mix(in oklab, var(--md-h2) 45%, var(--border)), var(--border) 60%);
+    background: var(--border);
     border: none;
   }
   .md :global(img) {
@@ -464,7 +474,7 @@
     overflow: auto;
     text-align: center;
     border: 1px solid var(--border);
-    border-radius: var(--r-md);
+    border-radius: var(--r-lg);
   }
   .md :global(.mermaid-block svg) {
     max-width: 100%;

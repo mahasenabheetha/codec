@@ -23,7 +23,7 @@
     <!-- Bundled SVG from assets/logos, not user content. -->
     {@html look.logo}
   {:else if look.icon}
-    <look.icon size={size} strokeWidth={1.75} />
+    <look.icon size={size} />
   {/if}
 </span>
 

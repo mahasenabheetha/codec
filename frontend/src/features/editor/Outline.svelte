@@ -89,7 +89,7 @@
   {#if !session.isYAML}
     <p class="hint">Outline is available for YAML files.</p>
   {:else if session.symbols.length === 0}
-    <p class="hint"><ListTree size={14} strokeWidth={1.75} /> Nothing to outline yet.</p>
+    <p class="hint"><ListTree size={14} /> Nothing to outline yet.</p>
   {:else}
     {#if session.analysis?.outlineTrimmed}
       <p class="hint trimmed">Shortened: this file is too big to outline every key.</p>
@@ -125,6 +125,8 @@
   }
   .detail {
     min-width: 0;
+    margin-left: auto;
+    padding-right: var(--s-2);
     overflow: hidden;
     text-overflow: ellipsis;
     font-size: var(--fs-xs);
@@ -137,8 +139,8 @@
     height: 16px;
     font-family: var(--font-ui);
     font-size: 10px;
-    color: var(--accent);
-    background: var(--accent-soft);
+    color: var(--tool-ink, var(--accent));
+    background: var(--tool-accent-soft, var(--accent-soft));
     border-radius: var(--r-sm);
   }
   .hint {

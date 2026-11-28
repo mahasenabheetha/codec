@@ -132,7 +132,7 @@
     <span class="head">
       {#if r.kind !== 'recipe'}<span class="kind">{kindLabel[r.kind]}</span>{/if}
       <span class="title">{r.kind === 'recipe' ? r.title : r.summary}</span>
-      {#if r.danger}<span class="danger {r.danger.level}" title={r.danger.note}><TriangleAlert size={12} strokeWidth={2} /></span>{/if}
+      {#if r.danger}<span class="danger {r.danger.level}" title={r.danger.note}><TriangleAlert size={12} /></span>{/if}
       {#if showTool}<span class="tool">{r.tool}</span>{/if}
       <span class="more">
         <Popover side="bottom" align="end" bind:open={() => menuFor === key, (o) => (menuFor = o ? key : null)}>
@@ -140,8 +140,8 @@
             <IconButton {...props} icon={Ellipsis} label="More" size="sm" />
           {/snippet}
           <div class="menu">
-            <button type="button" onclick={() => ((menuFor = null), onbuild(r.command))}><Hammer size={14} strokeWidth={1.75} /> Open in Build</button>
-            <button type="button" onclick={() => ((menuFor = null), copyText(r.command.trim(), 'Command'))}><Copy size={14} strokeWidth={1.75} /> Copy the command</button>
+            <button type="button" onclick={() => ((menuFor = null), onbuild(r.command))}><Hammer size={14} /> Open in Build</button>
+            <button type="button" onclick={() => ((menuFor = null), copyText(r.command.trim(), 'Command'))}><Copy size={14} /> Copy the command</button>
           </div>
         </Popover>
       </span>
@@ -204,7 +204,7 @@
         {@const names = sec.categories.flatMap((c) => c.tools.map((t) => t.name))}
         <section class="area">
           <button type="button" class="area-head" aria-expanded={open} onclick={() => toggle(sec.group)} disabled={!!tool}>
-            <span class="chev" class:open><ChevronRight size={14} strokeWidth={2} /></span>
+            <span class="chev" class:open><ChevronRight size={14} /></span>
             <span class="area-name">{sec.label}</span>
             <span class="area-count">{sec.count === 1 ? names[0] : `${sec.count} tools`} · {recipeCount(names)} recipes</span>
           </button>

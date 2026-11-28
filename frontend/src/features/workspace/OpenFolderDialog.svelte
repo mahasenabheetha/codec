@@ -113,12 +113,12 @@
     <nav class="places" aria-label="Places">
       {#if places.home}
         <button type="button" class="place" onclick={() => browse(places.home!)}>
-          <House size={14} strokeWidth={1.75} /> Home
+          <House size={14} /> Home
         </button>
       {/if}
       {#each places.roots as r (r)}
         <button type="button" class="place" onclick={() => browse(r)}>
-          <HardDrive size={14} strokeWidth={1.75} />
+          <HardDrive size={14} />
           {r}
         </button>
       {/each}
@@ -126,7 +126,7 @@
         <div class="section">Recent</div>
         {#each ws.info.recent as dir (dir)}
           <button type="button" class="place recent" title={dir} onclick={() => open(dir)}>
-            <Clock size={14} strokeWidth={1.75} />
+            <Clock size={14} />
             <span>{nameOf(dir)}</span>
           </button>
         {/each}
@@ -143,7 +143,7 @@
             disabled={!listing.parent}
             onclick={() => listing?.parent && browse(listing.parent)}
           >
-            <ArrowUp size={14} strokeWidth={1.75} />
+            <ArrowUp size={14} />
           </button>
           {#each crumbs as c, i (c.path)}
             {#if i > 0}<span class="sep">/</span>{/if}
@@ -155,9 +155,9 @@
             <li>
               <button type="button" class="dir" ondblclick={() => open(d.path)} onclick={() => browse(d.path)}>
                 {#if d.repo}
-                  <span class="repo-icon"><GitBranch size={14} strokeWidth={1.75} /></span>
+                  <span class="repo-icon"><GitBranch size={14} /></span>
                 {:else}
-                  <span class="dir-icon"><Folder size={14} strokeWidth={1.75} /></span>
+                  <span class="dir-icon"><Folder size={14} /></span>
                 {/if}
                 <span class="dir-name">{d.name}</span>
               </button>

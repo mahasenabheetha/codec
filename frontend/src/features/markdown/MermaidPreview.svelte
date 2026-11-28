@@ -1,6 +1,5 @@
 <script lang="ts">
   import { untrack } from 'svelte'
-  import Copy from '@lucide/svelte/icons/copy'
   import Maximize from '@lucide/svelte/icons/maximize'
   import Minus from '@lucide/svelte/icons/minus'
   import Plus from '@lucide/svelte/icons/plus'
@@ -9,6 +8,7 @@
   import Working from '../../lib/components/Working.svelte'
   import { toolColours } from '../../lib/stores/colour.svelte'
   import { theme } from '../../lib/stores/theme.svelte'
+  import { toast } from '../../lib/stores/toast.svelte'
   import { copyText } from '../../lib/utils/clipboard'
   import { drawMermaid } from './mermaid'
 
@@ -16,14 +16,51 @@
   // drag, zoom (wheel, + and -) and fit again (0), redrawn a moment
   // after the text changes (what-if edits too) and when the theme does.
   // A diagram that doesn't parse shows why, over the last one that did.
+  // The file's header copies it as SVG and saves it as PNG (3.11.0).
   interface Props {
     text: string
+    /** The file's name, for the PNG's. */
+    name?: string
+    /** The kind of diagram drawn (flowchart, sequence…), for the header. */
+    kind?: string
   }
-  let { text }: Props = $props()
+  let { text, name = 'diagram', kind = $bindable('') }: Props = $props()
 
   let svg = $state('')
   let error = $state('')
   let busy = $state(false)
+
+  export function copySVG() {
+    if (svg) copyText(svg, 'SVG')
+  }
+
+  // Drawn in the page, nothing fetched: the diagram as it shows (its
+  // size set below) on a canvas at twice its size, on the pane's ground
+  // so its text stays readable whatever opens the file.
+  export async function savePNG() {
+    const el = stage?.querySelector('svg')
+    if (!el || !host) return
+    const w = Number(el.getAttribute('width')) || el.getBoundingClientRect().width
+    const h = Number(el.getAttribute('height')) || el.getBoundingClientRect().height
+    const scale = Math.min(2, 8192 / Math.max(w, h))
+    const img = new Image()
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(el))
+    try {
+      await img.decode()
+      const canvas = Object.assign(document.createElement('canvas'), { width: Math.round(w * scale), height: Math.round(h * scale) })
+      const g = canvas.getContext('2d')!
+      g.fillStyle = getComputedStyle(host).backgroundColor
+      g.fillRect(0, 0, canvas.width, canvas.height)
+      g.drawImage(img, 0, 0, canvas.width, canvas.height)
+      const blob = await new Promise<Blob | null>((done) => canvas.toBlob(done, 'image/png'))
+      if (!blob) throw new Error('the browser could not make the PNG')
+      const url = URL.createObjectURL(blob)
+      Object.assign(document.createElement('a'), { href: url, download: `${name.replace(/\.[^.]+$/, '')}.png` }).click()
+      setTimeout(() => URL.revokeObjectURL(url), 1000)
+    } catch (e) {
+      toast(`Couldn't save the PNG: ${e instanceof Error ? e.message : String(e)}`, 'err')
+    }
+  }
 
   $effect(() => {
     const src = text
@@ -39,7 +76,7 @@
       if (!live) return
       busy = false
       if ('error' in r) error = r.error
-      else ((svg = r.svg), (error = ''))
+      else ((svg = r.svg), (kind = r.kind.replace(/-v\d+$/, '')), (error = ''))
     }, first ? 0 : 250)
     return () => {
       live = false
@@ -165,11 +202,11 @@
       <pre>{error}</pre>
     </div>
   {/if}
+  {#if svg}<div class="legend">{kind ? `${kind} · ` : ''}{Math.round(view.k * 100)}%</div>{/if}
   <div class="controls">
-    <IconButton icon={Plus} label="Zoom in" shortcut="+" size="sm" onclick={() => zoom(1.25)} />
-    <IconButton icon={Minus} label="Zoom out" shortcut="-" size="sm" onclick={() => zoom(0.8)} />
-    <IconButton icon={Maximize} label="Fit to view" shortcut="0" size="sm" onclick={fit} />
-    <IconButton icon={Copy} label="Copy as SVG" size="sm" disabled={!svg} onclick={() => copyText(svg, 'SVG')} />
+    <IconButton icon={Plus} label="Zoom in" shortcut="+" size="sm" side="left" onclick={() => zoom(1.25)} />
+    <IconButton icon={Minus} label="Zoom out" shortcut="-" size="sm" side="left" onclick={() => zoom(0.8)} />
+    <IconButton icon={Maximize} label="Fit to view" shortcut="0" size="sm" side="left" onclick={fit} />
   </div>
 </div>
 
@@ -180,7 +217,13 @@
     min-height: 0;
     height: 100%;
     overflow: hidden;
-    background: var(--bg-2);
+    /* A faint grid behind the diagram, as on graph paper. */
+    background-color: var(--bg-2);
+    background-image:
+      linear-gradient(color-mix(in srgb, var(--border) 70%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, var(--border) 70%, transparent) 1px, transparent 1px);
+    background-size: var(--s-6) var(--s-6);
+    background-position: -1px -1px;
     cursor: grab;
     touch-action: none;
   }
@@ -212,7 +255,7 @@
     position: absolute;
     left: var(--s-3);
     right: var(--s-3);
-    bottom: var(--s-3);
+    top: var(--s-3);
     padding: var(--s-2) var(--s-3);
     background: var(--bg-1);
     border: 1px solid var(--border);
@@ -232,16 +275,26 @@
     color: var(--fg-1);
     white-space: pre-wrap;
   }
-  .controls {
+  .controls,
+  .legend {
     position: absolute;
-    right: var(--s-2);
-    top: var(--s-2);
-    display: flex;
-    gap: 2px;
-    padding: 2px;
+    bottom: var(--s-4);
     background: var(--bg-1);
     border: 1px solid var(--border);
-    border-radius: var(--r-md);
+    border-radius: var(--r-lg);
     cursor: auto;
+  }
+  .controls {
+    right: var(--s-4);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: var(--s-1);
+  }
+  .legend {
+    left: var(--s-4);
+    padding: var(--s-1) var(--s-3);
+    font-size: var(--fs-xs);
+    color: var(--fg-1);
   }
 </style>

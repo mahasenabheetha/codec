@@ -47,15 +47,17 @@ button {
    writes what differs. :where() gives these rules no weight: any rule
    of a component wins. A field with no frame of its own (inside a
    framed search box) sets box-shadow: none and lets its frame show the
-   focus. */
+   focus. A field whose value is wrong takes aria-invalid: the error
+   colour for the border and the ring, the reason in an inline ErrorNote
+   under it. */
 :where(input:not([type]), input[type='text'], input[type='search'], input[type='number'], input[type='password'], input[type='url'], input[type='email'], input[type='time'], input[type='date'], textarea, select) {
   min-width: 0;
-  height: var(--control-h-sm);
+  height: var(--control-h);
   padding: 0 var(--s-2);
   color: var(--fg-0);
-  background: var(--bg-0);
+  background: var(--bg-1);
   border: 1px solid var(--border-strong);
-  border-radius: var(--r-sm);
+  border-radius: var(--r-md);
   transition:
     border-color var(--dur) var(--ease),
     box-shadow var(--dur) var(--ease);
@@ -68,13 +70,61 @@ button {
 :where(input:not([type]), input[type='text'], input[type='search'], input[type='number'], input[type='password'], input[type='url'], input[type='email'], input[type='time'], input[type='date'], textarea, select)::placeholder {
   color: var(--fg-2);
 }
+:where(input:not([type]), input[type='text'], input[type='search'], input[type='number'], input[type='password'], input[type='url'], input[type='email'], input[type='time'], input[type='date'], textarea, select):where(:hover:not(:disabled)) {
+  border-color: var(--fg-2);
+}
 :where(input:not([type]), input[type='text'], input[type='search'], input[type='number'], input[type='password'], input[type='url'], input[type='email'], input[type='time'], input[type='date'], textarea, select):focus-visible {
   outline: none;
   border-color: var(--tool-accent, var(--accent));
   box-shadow: var(--focus-ring);
 }
+:where(input:not([type]), input[type='text'], input[type='search'], input[type='number'], input[type='password'], input[type='url'], input[type='email'], input[type='time'], input[type='date'], textarea, select)[aria-invalid='true'] {
+  border-color: var(--err);
+  box-shadow: var(--invalid-ring);
+}
 :where(input:not([type]), input[type='text'], input[type='search'], input[type='number'], input[type='password'], input[type='url'], input[type='email'], input[type='time'], input[type='date'], textarea, select):disabled {
-  opacity: 0.55;
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Checks: a native checkbox drawn as a small frame, filled in the tool's
+   colour with a tick when on. No weight, like the fields. */
+:where(input[type='checkbox']) {
+  appearance: none;
+  position: relative;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
+  background: transparent;
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  transition:
+    background var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease);
+}
+:where(input[type='checkbox']):where(:hover:not(:disabled)) {
+  border-color: var(--fg-2);
+}
+:where(input[type='checkbox']:checked) {
+  background: var(--tool-accent, var(--accent));
+  border-color: var(--tool-accent, var(--accent));
+}
+/* The tick: two borders of a box, turned. */
+:where(input[type='checkbox']:checked)::after {
+  content: '';
+  position: absolute;
+  left: 30%;
+  top: 8%;
+  width: 30%;
+  height: 58%;
+  border: solid var(--accent-fg);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+:where(input[type='checkbox']:disabled) {
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
@@ -103,13 +153,14 @@ p {
   background: var(--accent-soft);
 }
 
-/* Keyboard focus is always visible; mouse focus stays quiet. */
+/* Keyboard focus is always visible; mouse focus stays quiet. Inside a
+   tool the outline takes the tool's colour. */
 :focus {
   outline: none;
 }
 :focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
+  outline: 2px solid var(--tool-accent, var(--accent));
+  outline-offset: 2px;
   border-radius: var(--r-sm);
 }
 
@@ -151,13 +202,52 @@ p {
 /* Something that belongs to a tool (a tool page, its rail entry, its
    Home card) sets --tool to its hue and takes this class. The values are
    worked out here, where --tool is known, and inherited by what is
-   inside; at --tint-tool 0% they are exactly the accent and the text
-   colour (decision 94). */
+   inside; at --tint-tool 0% (tool colours off) they are the accent's
+   (decision 94). */
 .hued {
   --tool-accent: color-mix(in oklab, var(--tool) var(--tint-tool), var(--accent));
-  --tool-accent-hover: color-mix(in oklab, var(--tool) var(--tint-tool), var(--accent-hover));
-  --tool-accent-soft: color-mix(in oklab, rgb(from var(--tool) r g b / 0.16) var(--tint-tool), var(--accent-soft));
-  --tool-icon: color-mix(in oklab, var(--tool) var(--tint-tool), currentColor);
+  --tool-accent-soft: color-mix(in oklab, color-mix(in srgb, var(--tool) var(--soft), transparent) var(--tint-tool), var(--accent-soft));
+  --tool-icon: var(--tool-accent);
+  /* Spectrum (3.11.0): a ground washed with the tool's colour (a tool
+     page's header, a selected card) and a line in it (a pane's top
+     edge, a card's hue edge). With tool colours off the ground is the
+     plain panel and the line the accent's. */
+  --tool-wash: color-mix(in oklab, color-mix(in srgb, var(--tool) var(--wash), var(--bg-1)) var(--tint-tool), var(--bg-1));
+  --tool-line: color-mix(in srgb, var(--tool-accent) 45%, var(--border));
+  /* Words in the tool's colour on its soft fill (an accent badge): the
+     hue taken toward the text colour where the theme needs it (--ink). */
+  --tool-ink: color-mix(in srgb, var(--tool-accent) var(--ink), var(--fg-0));
+}
+
+/* A view header's dots (PanelHeader, the file view's header): in the
+   view's colour, fading out to the left. None outside a .hued view or
+   with tool colours off. What is in the header sits above them. */
+.dotted {
+  position: relative;
+  overflow: hidden;
+}
+.dotted::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: min(420px, 40%);
+  pointer-events: none;
+  background-image: radial-gradient(color-mix(in srgb, var(--tool-accent, transparent) 55%, transparent) 1px, transparent 1.5px);
+  background-size: var(--s-3) var(--s-3);
+  mask-image: linear-gradient(to left, rgb(0 0 0 / 0.55), transparent);
+}
+:root[data-colour='plain'] .dotted::after {
+  display: none;
+}
+.dotted > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Every Lucide icon has the one stroke (Spectrum, 3.11.0); CSS beats the
+   stroke-width attribute, so components don't pass strokeWidth. */
+svg.lucide-icon {
+  stroke-width: var(--icon-stroke);
 }
 
 /* Interface size: every Lucide icon grows from the size written in the
@@ -236,8 +326,8 @@ svg.lucide-icon[width='28'] {
   transform: translateX(-50%);
   z-index: var(--z-dialog);
   width: min(640px, calc(100vw - 32px));
-  background: var(--bg-1);
-  border-radius: var(--r-lg);
+  background: var(--bg-2);
+  border-radius: var(--r-xl);
   box-shadow: var(--shadow-pop);
   overflow: hidden;
   animation: palette-in 140ms var(--ease);
@@ -250,10 +340,13 @@ svg.lucide-icon[width='28'] {
   color: var(--fg-2);
   border-bottom: 1px solid var(--border);
 }
+.codec-palette-search > .lucide-icon {
+  color: var(--accent);
+}
 .codec-palette-input {
   flex: 1;
-  height: 48px;
-  font-size: var(--fs-lg);
+  height: calc(var(--control-h) + var(--s-6));
+  font-size: var(--fs-xl);
   color: var(--fg-0);
   background: none;
   border: none;
@@ -269,7 +362,7 @@ svg.lucide-icon[width='28'] {
   padding: var(--s-2);
 }
 .codec-palette-heading {
-  padding: var(--s-2) var(--s-2) var(--s-1);
+  padding: var(--s-3) var(--s-2) var(--s-1);
   font-size: var(--fs-xs);
   font-weight: var(--fw-semibold);
   color: var(--fg-2);
@@ -287,13 +380,27 @@ svg.lucide-icon[width='28'] {
   border-radius: var(--r-md);
   cursor: pointer;
 }
+.codec-palette-item + .codec-palette-item {
+  margin-top: 2px;
+}
+/* The highlighted row in its colour (a tile row's tool or view), as
+   much of it as the theme shows (--tint-fill). */
 .codec-palette-item[data-selected] {
   color: var(--fg-0);
-  background: var(--bg-3);
+  background: color-mix(in oklab, var(--tool-accent-soft, var(--accent-soft)) var(--tint-fill), var(--bg-3));
+}
+/* The command palette's rows: a tile, the title and a hint under it. */
+.codec-palette-item.tiled {
+  height: auto;
+  min-height: calc(var(--control-h) + var(--s-3));
+  padding: var(--s-1) var(--s-2);
 }
 .codec-palette-item .title {
   flex: 1;
   min-width: 0;
+}
+.codec-palette-item.tiled[data-selected] .title {
+  font-weight: var(--fw-semibold);
 }
 .codec-palette-empty {
   padding: var(--s-6);

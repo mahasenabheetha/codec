@@ -7,34 +7,34 @@
   color-scheme: dark;
 
   /* Surfaces: depth comes from these steps, not from shadows. */
-  --bg-0: #0b0d12; /* app background, rail */
-  --bg-1: #10131a; /* panels */
-  --bg-2: #161a23; /* editor, cards */
-  --bg-3: #1d2230; /* hover, inputs */
-  --bg-4: #252b3a; /* pressed, selected-on-hover */
+  --bg-0: #0c0e14; /* app background, rail */
+  --bg-1: #11141c; /* panels */
+  --bg-2: #171b25; /* editor, cards */
+  --bg-3: #1f2431; /* hover, inputs */
+  --bg-4: #282e3d; /* pressed, selected-on-hover */
 
-  --border: #252b38;
-  --border-strong: #323a4b;
+  --border: #262c3a;
+  --border-strong: #363e52;
 
   /* Text */
-  --fg-0: #e6e8ee; /* primary */
-  --fg-1: #a9b0bf; /* secondary */
-  --fg-2: #878fa0; /* muted; still 4.5:1 on bg-0 to bg-3 */
+  --fg-0: #eceef4; /* primary */
+  --fg-1: #b0b7c6; /* secondary */
+  --fg-2: #8b94a7; /* muted; still 4.5:1 on bg-0 to bg-3 */
 
   /* Accent */
-  --accent: #7aa2ff;
-  --accent-hover: #93b4ff;
-  --accent-soft: rgb(122 162 255 / 0.14);
-  --accent-fg: #0b0d12; /* text on solid accent */
+  --accent: #7c9cff;
+  --accent-hover: #90abff;
+  --accent-soft: rgb(124 156 255 / 0.14);
+  --accent-fg: #0c0e14; /* text on solid accent */
 
   /* Status */
-  --ok: #3fb971;
-  --ok-soft: rgb(63 185 113 / 0.14);
-  --warn: #e5b449;
-  --warn-soft: rgb(229 180 73 / 0.14);
-  --err: #f06b75;
-  --err-soft: rgb(240 107 117 / 0.14);
-  --err-border: rgb(240 107 117 / 0.35);
+  --ok: #4cd38a;
+  --ok-soft: rgb(76 211 138 / 0.14);
+  --warn: #f2c14e;
+  --warn-soft: rgb(242 193 78 / 0.14);
+  --err: #ff6f7d;
+  --err-soft: rgb(255 111 125 / 0.14);
+  --err-border: rgb(255 111 125 / 0.35);
   --info: #5ab0ff;
   --info-soft: rgb(90 176 255 / 0.14);
 
@@ -54,11 +54,11 @@
   --syn-expr-rt-bg: rgb(255 158 207 / 0.08);
 
   /* Diff lines (compare view) */
-  --diff-add-bg: rgb(63 185 113 / 0.12);
-  --diff-del-bg: rgb(240 107 117 / 0.12);
-  --diff-chg-bg: rgb(229 180 73 / 0.11);
-  --diff-add-strong: rgb(63 185 113 / 0.4); /* changed characters */
-  --diff-del-strong: rgb(240 107 117 / 0.4);
+  --diff-add-bg: rgb(76 211 138 / 0.12);
+  --diff-del-bg: rgb(255 111 125 / 0.12);
+  --diff-chg-bg: rgb(242 193 78 / 0.11);
+  --diff-add-strong: rgb(76 211 138 / 0.4); /* changed characters */
+  --diff-del-strong: rgb(255 111 125 / 0.4);
 
   /* Brand colours for file-type logos, lightened where the official
      colour is too dark on --bg-1 (Helm navy, Terraform purple). */
@@ -74,29 +74,29 @@
   --brand-json: var(--syn-number);
 
   /* Colour roles (decision 94). Each tool has a hue and each action a
-     tone; --tint-tool and --tint-action say how much of them a theme
-     shows: 0% in Dark and Light, which keeps today's look, more in Dusk.
+     tone; --tint-tool and --tint-action say how much of them is shown:
+     100% in every theme, 0% with tool colours off.
      Components never use a hue directly: an element of a tool takes the
      .hued class (global.css) and reads --tool-accent, --tool-accent-soft
      and --tool-icon; IconButton and Button take a tone. Status colours
      keep their own hues, so a tool's colour never reads as an error. */
-  --hue-indigo: #9aa5f5;
-  --hue-violet: #b9a2f0;
-  --hue-orchid: #daa6e2;
-  --hue-pink: #ee9fc8;
-  --hue-peach: #f2b28e;
-  --hue-lime: #b5d68a;
-  --hue-teal: #7fd1c1;
-  --hue-cyan: #82c8e6;
+  --hue-indigo: #8f9dff;
+  --hue-violet: #b794ff;
+  --hue-orchid: #e391f2;
+  --hue-pink: #ff8fc8;
+  --hue-peach: #ffa877;
+  --hue-lime: #b4e06a;
+  --hue-teal: #4fdcc2;
+  --hue-cyan: #5cc6ff;
   /* Working hours in Time → Time zones: work (9–17) teal with dark
      labels, the edges of the day (7–9, 17–22) a softer peach, and the
      hours everyone is at work solid lime; mixed into each theme's panel
      colour so they stay apart on any ground. */
   --hours-work: color-mix(in srgb, var(--hue-teal) 72%, var(--bg-1));
-  --hours-work-fg: #0b0d12;
+  --hours-work-fg: #0c0e14;
   --hours-edge: color-mix(in srgb, var(--hue-peach) 38%, var(--bg-1));
   --hours-together: var(--hue-lime);
-  --hours-together-fg: #0b0d12;
+  --hours-together-fg: #0c0e14;
   --act-copy: var(--hue-cyan);
   --act-clear: var(--hue-pink);
   --act-save: var(--hue-lime);
@@ -139,11 +139,11 @@
 
   /* Editor surfaces (CodeMirror) */
   --editor-active-line: rgb(255 255 255 / 0.025);
-  --editor-selection: rgb(122 162 255 / 0.16);
-  --editor-selection-focused: rgb(122 162 255 / 0.26);
-  --editor-selection-match: rgb(122 162 255 / 0.12);
-  --editor-search-match: rgb(229 180 73 / 0.22);
-  --editor-search-match-current: rgb(229 180 73 / 0.45);
+  --editor-selection: rgb(124 156 255 / 0.16);
+  --editor-selection-focused: rgb(124 156 255 / 0.26);
+  --editor-selection-match: rgb(124 156 255 / 0.12);
+  --editor-search-match: rgb(242 193 78 / 0.22);
+  --editor-search-match-current: rgb(242 193 78 / 0.45);
 
   /* Space: 4px scale */
   --s-1: 4px;
@@ -156,8 +156,8 @@
   --s-12: 48px;
 
   /* Radius */
-  --r-sm: 4px; /* inputs, small marks */
-  --r-md: 8px; /* buttons, rows */
+  --r-sm: 4px; /* small marks: badges, checks, tree rows, tooltips */
+  --r-md: 8px; /* buttons, fields, menu items */
   --r-lg: 12px; /* panels, cards */
   --r-xl: 16px; /* dialogs, the break card */
   --r-full: 999px;
@@ -177,18 +177,22 @@
   --fw-regular: 400;
   --fw-medium: 500;
   --fw-semibold: 600;
+  --fw-bold: 700; /* page titles: Home's, Settings' and its sections', a Markdown preview's h1 and h2 */
 
   /* Layout */
   --rail-collapsed: 48px;
   --rail-expanded: 220px;
-  --tabbar-h: 38px;
-  --statusbar-h: 26px;
+  --tabbar-h: 40px;
+  --statusbar-h: 28px;
   /* Interface size (decision 94): Comfortable here, Compact and Large
      below. Icons keep the size written in the code (the Compact one) and
      grow by --icon-scale (global.css). */
   --icon-scale: 1.125;
   --control-h: 32px;
   --control-h-sm: 28px;
+  /* One stroke for every icon (Spectrum, 3.11.0), in the icon's own
+     24-unit grid, so it thins and thickens with the icon's size. */
+  --icon-stroke: 1.9;
 
   /* Elevation: --shadow-pop for popovers and dialogs; --shadow-raise,
      barely there, for a card that lifts under the pointer. Depth
@@ -200,6 +204,9 @@
   /* Focus: the ring a field shows around its border when it removes the
      outline (the rule: border colour plus this ring). */
   --focus-ring: 0 0 0 3px color-mix(in srgb, var(--tool-accent, var(--accent)) 28%, transparent);
+  /* The same ring in the error colour, on a field whose value is wrong
+     (aria-invalid), with the reason in a line under it. */
+  --invalid-ring: 0 0 0 3px color-mix(in srgb, var(--err) 22%, transparent);
 
   /* Motion: fast for hovers and presses, the default for most changes,
      slow for things that move across the screen. */
@@ -213,6 +220,14 @@
   --z-popover: 50;
   --z-dialog: 60;
   --z-toast: 70;
+
+  /* Spectrum (3.11.0): a soft fill and a tinted ground in the tool's
+     colour, as much of it as this theme shows; and how much of the hue
+     words on its soft fill keep (the rest is the text colour), so they
+     stay readable. */
+  --soft: 16%;
+  --wash: 7%;
+  --ink: 100%;
 }
 
 /*
@@ -244,47 +259,47 @@
 :root[data-theme='mist'] {
   color-scheme: light;
 
-  --bg-0: #f2f3f6; /* app background, rail */
-  --bg-1: #f8f9fb; /* panels */
+  --bg-0: #edf0f6; /* app background, rail */
+  --bg-1: #f6f7fb; /* panels */
   --bg-2: #ffffff; /* editor, cards */
-  --bg-3: #eaecf1; /* hover, inputs */
-  --bg-4: #dfe2e9; /* pressed, selected-on-hover */
+  --bg-3: #e8ebf2; /* hover, inputs */
+  --bg-4: #dce0ea; /* pressed, selected-on-hover */
 
-  --border: #d9dce3;
-  --border-strong: #c3c8d2;
+  --border: #d8dce6;
+  --border-strong: #c1c7d4;
 
-  --fg-0: #1b1f27;
-  --fg-1: #485062;
-  --fg-2: #5f6778; /* 4.8:1 on bg-3 */
+  --fg-0: #151922;
+  --fg-1: #434b5d;
+  --fg-2: #5a6275; /* 4.8:1 on bg-3 */
 
-  --accent: #2b5cd6;
-  --accent-hover: #2350bd;
-  --accent-soft: rgb(43 92 214 / 0.12);
+  --accent: #3756d8;
+  --accent-hover: #2f4aba;
+  --accent-soft: rgb(55 86 216 / 0.12);
   --accent-fg: #ffffff;
 
-  --ok: #16702f;
-  --ok-soft: rgb(22 112 47 / 0.12);
+  --ok: #147b3b;
+  --ok-soft: rgb(20 123 59 / 0.12);
   --warn: #8a5d00;
   --warn-soft: rgb(138 93 0 / 0.12);
-  --err: #c62a35;
-  --err-soft: rgb(198 42 53 / 0.12);
-  --err-border: rgb(198 42 53 / 0.35);
+  --err: #c82835;
+  --err-soft: rgb(200 40 53 / 0.12);
+  --err-border: rgb(200 40 53 / 0.35);
   --info: #0a68cf;
   --info-soft: rgb(10 104 207 / 0.12);
 
   --rest: #0b7268;
   --rest-soft: rgb(11 114 104 / 0.12);
 
-  /* The tool hues on white (3.10.1): one lightness, dark enough to read
-     and to carry white text. Mist has its own below. */
-  --hue-indigo: #5157b1;
-  --hue-violet: #714ca6;
-  --hue-orchid: #874392;
-  --hue-pink: #983c75;
-  --hue-peach: #9f4500;
-  --hue-lime: #517000;
-  --hue-teal: #007b6e;
-  --hue-cyan: #00719e;
+  /* The tool hues on white (Spectrum, 3.11.0): deep jewel tones, dark
+     enough to read and to carry white text. Mist has its own below. */
+  --hue-indigo: #4652d6;
+  --hue-violet: #7444d4;
+  --hue-orchid: #9b3ab0;
+  --hue-pink: #bf2f7a;
+  --hue-peach: #b64d0c;
+  --hue-lime: #4a7400;
+  --hue-teal: #00796a;
+  --hue-cyan: #006da8;
   --hours-together-fg: #ffffff;
 
   --syn-key: #0550ae;
@@ -300,11 +315,11 @@
   --syn-expr-rt: #b0246f;
   --syn-expr-rt-bg: rgb(200 40 130 / 0.08);
 
-  --diff-add-bg: rgb(22 112 47 / 0.1);
-  --diff-del-bg: rgb(198 42 53 / 0.09);
+  --diff-add-bg: rgb(20 123 59 / 0.1);
+  --diff-del-bg: rgb(200 40 53 / 0.09);
   --diff-chg-bg: rgb(160 110 0 / 0.1);
-  --diff-add-strong: rgb(22 112 47 / 0.25);
-  --diff-del-strong: rgb(198 42 53 / 0.22);
+  --diff-add-strong: rgb(20 123 59 / 0.25);
+  --diff-del-strong: rgb(200 40 53 / 0.22);
 
   /* Official colours where they read on white; Helm and Argo adjusted. */
   --brand-kubernetes: #326ce5;
@@ -318,15 +333,21 @@
   --brand-terraform: #7b42bc;
 
   --editor-active-line: rgb(20 30 60 / 0.035);
-  --editor-selection: rgb(43 92 214 / 0.14);
-  --editor-selection-focused: rgb(43 92 214 / 0.22);
-  --editor-selection-match: rgb(43 92 214 / 0.1);
+  --editor-selection: rgb(55 86 216 / 0.14);
+  --editor-selection-focused: rgb(55 86 216 / 0.22);
+  --editor-selection-match: rgb(55 86 216 / 0.1);
   --editor-search-match: rgb(214 150 0 / 0.25);
   --editor-search-match-current: rgb(214 150 0 / 0.5);
 
   --shadow-pop: 0 8px 28px rgb(20 28 45 / 0.14), 0 0 0 1px var(--border-strong);
   --shadow-raise: 0 1px 2px rgb(20 28 45 / 0.08), 0 4px 12px rgb(20 28 45 / 0.06);
   --overlay: rgb(20 28 45 / 0.35);
+
+  /* Spectrum (3.11.0): a soft fill and a tinted ground in the tool's
+     colour, as much of it as this theme shows. */
+  --soft: 12%;
+  --wash: 5%;
+  --ink: 80%;
 }
 
 :root[data-theme='dusk'],
@@ -419,6 +440,11 @@
 
   --shadow-pop: 0 10px 30px rgb(8 8 20 / 0.45), 0 0 0 1px var(--border-strong);
   --overlay: rgb(10 10 24 / 0.5);
+
+  /* Spectrum (3.11.0): a soft fill and a tinted ground in the tool's
+     colour, as much of it as this theme shows. */
+  --soft: 16%;
+  --wash: 9%;
 }
 
 /* Midnight (decision 95): Dusk's colours on a deep navy ground. Only the
@@ -535,22 +561,22 @@
 :root[data-theme='paper'] {
   color-scheme: light;
 
-  --bg-0: #ede7dc;
-  --bg-1: #f3eee5;
-  --bg-2: #f9f5ee;
-  --bg-3: #e7e0d3;
-  --bg-4: #dcd4c4;
+  --bg-0: #eee6d7;
+  --bg-1: #f5efe3;
+  --bg-2: #fbf7ef;
+  --bg-3: #e9e1d1;
+  --bg-4: #ddd3bf;
 
-  --border: #dad1c1;
-  --border-strong: #c7bca8;
+  --border: #dbd0bb;
+  --border-strong: #c6b9a0;
 
-  --fg-0: #2a251f;
-  --fg-1: #574e43;
-  --fg-2: #685e51;
+  --fg-0: #2d261d;
+  --fg-1: #574c3d;
+  --fg-2: #675c4c;
 
-  --accent: #2f5d9e;
-  --accent-hover: #264f88;
-  --accent-soft: rgb(47 93 158 / 0.12);
+  --accent: #2d5fa8;
+  --accent-hover: #26518f;
+  --accent-soft: rgb(45 95 168 / 0.12);
   --accent-fg: #ffffff;
 
   --ok: #2d6a2e;
@@ -595,27 +621,33 @@
   --brand-docker: #1d63ed;
   --brand-terraform: #7b42bc;
 
-  --hue-indigo: #4c5cb4;
-  --hue-violet: #734eac;
-  --hue-orchid: #854d8d;
-  --hue-pink: #a3427a;
-  --hue-peach: #a0552a;
-  --hue-lime: #557024;
-  --hue-teal: #21716a;
-  --hue-cyan: #1f6a8a;
+  --hue-indigo: #4353b5;
+  --hue-violet: #7046ad;
+  --hue-orchid: #8b4490;
+  --hue-pink: #a83a76;
+  --hue-peach: #a3501f;
+  --hue-lime: #50691a;
+  --hue-teal: #1a6f67;
+  --hue-cyan: #1b678c;
   --hours-together-fg: #ffffff;
   --tint-fill: 100%;
 
   --editor-active-line: rgb(60 40 10 / 0.04);
-  --editor-selection: rgb(47 93 158 / 0.14);
-  --editor-selection-focused: rgb(47 93 158 / 0.22);
-  --editor-selection-match: rgb(47 93 158 / 0.1);
+  --editor-selection: rgb(45 95 168 / 0.14);
+  --editor-selection-focused: rgb(45 95 168 / 0.22);
+  --editor-selection-match: rgb(45 95 168 / 0.1);
   --editor-search-match: rgb(200 140 0 / 0.25);
   --editor-search-match-current: rgb(200 140 0 / 0.5);
 
   --shadow-pop: 0 8px 28px rgb(50 35 15 / 0.14), 0 0 0 1px var(--border-strong);
   --shadow-raise: 0 1px 2px rgb(50 35 15 / 0.08), 0 4px 12px rgb(50 35 15 / 0.06);
   --overlay: rgb(50 35 15 / 0.3);
+
+  /* Spectrum (3.11.0): a soft fill and a tinted ground in the tool's
+     colour, as much of it as this theme shows. */
+  --soft: 12%;
+  --wash: 6%;
+  --ink: 80%;
 }
 
 /* Mist (3.10.0): a light theme dimmed, for long days: grey grounds well
@@ -623,22 +655,22 @@
    the tools' colours, deep enough to read on grey. Light's block above
    gives it the rest. */
 :root[data-theme='mist'] {
-  --bg-0: #b4b8c0;
-  --bg-1: #bbbfc6;
-  --bg-2: #c2c5cc;
-  --bg-3: #b0b4bc;
-  --bg-4: #a4a9b2;
+  --bg-0: #b6bac3;
+  --bg-1: #bec2ca;
+  --bg-2: #c7cad1;
+  --bg-3: #b1b5be;
+  --bg-4: #a5aab4;
 
-  --border: #a3a8b1;
-  --border-strong: #898f9b;
+  --border: #a2a7b1;
+  --border-strong: #868c99;
 
   --fg-0: #07090c;
-  --fg-1: #1f242c;
-  --fg-2: #2b313a;
+  --fg-1: #1d222a;
+  --fg-2: #282e37;
 
-  --accent: #1b3b74;
-  --accent-hover: #163262;
-  --accent-soft: rgb(27 59 116 / 0.12);
+  --accent: #1b3b8a;
+  --accent-hover: #163276;
+  --accent-soft: rgb(27 59 138 / 0.12);
   --accent-fg: #ffffff;
 
   --ok: #15481c;
@@ -677,14 +709,14 @@
   --brand-docker: #1548b0;
   --brand-terraform: #5d3191;
 
-  --hue-indigo: #36438f;
-  --hue-violet: #563888;
-  --hue-orchid: #66386d;
-  --hue-pink: #7e2f5c;
-  --hue-peach: #7b3e1c;
-  --hue-lime: #3d5417;
-  --hue-teal: #155650;
-  --hue-cyan: #15516b;
+  --hue-indigo: #2f3d8e;
+  --hue-violet: #533487;
+  --hue-orchid: #64346c;
+  --hue-pink: #7b2b59;
+  --hue-peach: #77391a;
+  --hue-lime: #3a5214;
+  --hue-teal: #11514b;
+  --hue-cyan: #124c66;
   --hours-work-fg: #ffffff;
   --tint-fill: 100%;
 
@@ -694,6 +726,11 @@
   --editor-selection-match: rgb(34 72 138 / 0.12);
 
   --shadow-pop: 0 8px 28px rgb(20 28 45 / 0.18), 0 0 0 1px var(--border-strong);
+
+  /* Spectrum (3.11.0): a soft fill and a tinted ground in the tool's
+     colour, as much of it as this theme shows. */
+  --soft: 14%;
+  --wash: 6%;
 }
 
 /* High contrast (3.10.0): black, white and bright colours, every text at
@@ -702,16 +739,16 @@
 :root[data-theme='contrast'] {
   --bg-0: #000000;
   --bg-1: #050505;
-  --bg-2: #0a0a0a;
+  --bg-2: #0b0b0b;
   --bg-3: #1a1a1a;
   --bg-4: #2b2b2b;
 
   --border: #707070;
-  --border-strong: #a0a0a0;
+  --border-strong: #a8a8a8;
 
   --fg-0: #ffffff;
-  --fg-1: #e8e8e8;
-  --fg-2: #cccccc;
+  --fg-1: #ececec;
+  --fg-2: #d0d0d0;
 
   --accent: #5cc8ff;
   --accent-hover: #85d6ff;
@@ -752,7 +789,7 @@
 
   --hue-indigo: #aab6ff;
   --hue-violet: #cdb8ff;
-  --hue-orchid: #eeb9f6;
+  --hue-orchid: #f0bbf8;
   --hue-pink: #ffb3da;
   --hue-peach: #ffc7a3;
   --hue-lime: #c6ef93;
@@ -770,13 +807,19 @@
   --shadow-pop: 0 0 0 2px var(--border-strong);
   --shadow-raise: 0 0 0 1px var(--border-strong);
   --overlay: rgb(0 0 0 / 0.75);
+
+  /* Spectrum (3.11.0): a soft fill and a tinted ground in the tool's
+     colour, as much of it as this theme shows. */
+  --soft: 22%;
+  --wash: 10%;
+  --ink: 85%;
 }
 
-/* Settings → Tool colours off: every tool and action in the accent and
-   the text colour, in any theme (as Dark and Light were before 3.10.1).
-   Last, so it wins over the theme blocks. */
+/* Settings → Tool colours off: every tool in the accent (its fills, lines
+   and icons; a soft tile grey, a wash gone) and every action in the text
+   colour, in any theme. --tint-fill stays: the fills are the accent's
+   then. Last, so it wins over the theme blocks. */
 :root[data-colour='plain'] {
   --tint-tool: 0%;
   --tint-action: 0%;
-  --tint-fill: 0%;
 }

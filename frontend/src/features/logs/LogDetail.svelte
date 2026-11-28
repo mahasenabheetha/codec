@@ -354,7 +354,7 @@
       disabled={picked.text.length > maxFragment}
       title={picked.text.length > maxFragment ? 'Select a shorter piece of the line to search for' : `Search the open folder for “${picked.text}”`}
       onmousedown={(e) => e.preventDefault()}
-      onclick={search}><TextSearch size={14} strokeWidth={1.75} />Find in workspace</button
+      onclick={search}><TextSearch size={14} />Find in workspace</button
     >
   {/if}
   {#if drawer}

@@ -103,7 +103,7 @@
           <span class="name">{col.name}</span>
           <span class="type {col.type}">{col.type}</span>
           {#if sortBy === c}
-            {#if desc}<ArrowDown size={12} strokeWidth={2} />{:else}<ArrowUp size={12} strokeWidth={2} />{/if}
+            {#if desc}<ArrowDown size={12} />{:else}<ArrowUp size={12} />{/if}
           {/if}
         </button>
       {/each}

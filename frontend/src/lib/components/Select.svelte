@@ -46,7 +46,7 @@
   <Select.Trigger class="codec-select-trigger" aria-label={label}>
     {#if selected?.swatch}{@render chip(selected.swatch)}{/if}
     <span>{selectedLabel}</span>
-    <ChevronDown size={14} strokeWidth={1.75} />
+    <ChevronDown size={14} />
   </Select.Trigger>
   <Select.Portal>
     <Select.Content class="codec-select-content" sideOffset={4}>
@@ -74,7 +74,7 @@
         <span>{item.label}</span>
         {#if item.note}<span class="codec-select-note">{item.note}</span>{/if}
       </span>
-      {#if selected}<Check size={14} strokeWidth={2} />{/if}
+      {#if selected}<Check size={14} />{/if}
     {/snippet}
   </Select.Item>
 {/snippet}
@@ -119,16 +119,18 @@
     font-size: var(--fs-sm);
     color: var(--fg-0);
     background: var(--bg-3);
-    border: 1px solid var(--border-strong);
+    border: 1px solid var(--border);
     border-radius: var(--r-md);
+    transition: background var(--dur-fast) var(--ease);
   }
   :global(.codec-select-trigger:hover:not(:disabled)) {
     background: var(--bg-4);
   }
   :global(.codec-select-trigger:disabled) {
     opacity: 0.45;
-    cursor: default;
+    cursor: not-allowed;
   }
+  /* The list is a menu (ContextMenu.svelte): the same frame and items. */
   :global(.codec-select-content) {
     z-index: var(--z-popover);
     min-width: var(--bits-select-anchor-width);
@@ -136,7 +138,7 @@
     overflow-y: auto;
     padding: var(--s-1);
     background: var(--bg-2);
-    border-radius: var(--r-md);
+    border-radius: var(--r-lg);
     box-shadow: var(--shadow-pop);
   }
   :global(.codec-select-item) {
@@ -147,17 +149,16 @@
     height: 28px;
     padding: 0 var(--s-2);
     font-size: var(--fs-sm);
-    color: var(--fg-1);
-    border-radius: var(--r-sm);
+    color: var(--fg-0);
+    border-radius: var(--r-md);
     cursor: pointer;
     outline: none;
   }
   :global(.codec-select-item[data-highlighted]) {
-    color: var(--fg-0);
-    background: var(--bg-3);
+    background: var(--accent-soft);
   }
-  :global(.codec-select-item[data-selected]) {
-    color: var(--fg-0);
+  :global(.codec-select-item[data-selected] svg) {
+    color: var(--accent);
   }
   :global(.codec-select-heading) {
     padding: var(--s-2) var(--s-2) 2px;

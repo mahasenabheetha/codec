@@ -225,10 +225,10 @@
           <p class="desc">{r.description}</p>
           {#if r.standard}<p class="std">{expr.trim()} is <code>{r.standard}</code></p>{/if}
           {#each r.notes ?? [] as n (n)}
-            <p class="warnline"><TriangleAlert size={14} strokeWidth={2} /> {n}</p>
+            <p class="warnline"><TriangleAlert size={14} /> {n}</p>
           {/each}
           {#each r.skipped as s (s.wall)}
-            <p class="warnline"><TriangleAlert size={14} strokeWidth={2} /> {s.wall} doesn't happen in {r.zone}: the clocks jump over it, so that run is skipped.</p>
+            <p class="warnline"><TriangleAlert size={14} /> {s.wall} doesn't happen in {r.zone}: the clocks jump over it, so that run is skipped.</p>
           {/each}
         </div>
       {:else if !job.error}

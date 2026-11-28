@@ -1,29 +1,29 @@
 <script lang="ts">
   import { Tooltip } from 'bits-ui'
   import { untrack, type Component } from 'svelte'
-  import FolderOpen from '@lucide/svelte/icons/folder-open'
-  import FolderTree from '@lucide/svelte/icons/folder-tree'
+  import Folder from '@lucide/svelte/icons/folder'
+  import Upload from '@lucide/svelte/icons/upload'
   import History from '@lucide/svelte/icons/history'
   import House from '@lucide/svelte/icons/house'
   import Keyboard from '@lucide/svelte/icons/keyboard'
   import PanelLeft from '@lucide/svelte/icons/panel-left'
   import RotateCw from '@lucide/svelte/icons/rotate-cw'
   import Search from '@lucide/svelte/icons/search'
-  import Boxes from '@lucide/svelte/icons/boxes'
+  import Box from '@lucide/svelte/icons/box'
   import GitCompare from '@lucide/svelte/icons/git-compare'
   import Layers from '@lucide/svelte/icons/layers'
   import Workflow from '@lucide/svelte/icons/workflow'
   import GitBranch from '@lucide/svelte/icons/git-branch'
   import Container from '@lucide/svelte/icons/container'
-  import ListTree from '@lucide/svelte/icons/list-tree'
-  import ListChecks from '@lucide/svelte/icons/list-checks'
-  import TextSearch from '@lucide/svelte/icons/text-search'
-  import FilePlus from '@lucide/svelte/icons/file-plus'
-  import CopyPlus from '@lucide/svelte/icons/copy-plus'
+  import ScrollText from '@lucide/svelte/icons/scroll-text'
+  import TriangleAlert from '@lucide/svelte/icons/triangle-alert'
+  import Braces from '@lucide/svelte/icons/braces'
+  import Plus from '@lucide/svelte/icons/plus'
+  import Copy from '@lucide/svelte/icons/copy'
   import Scaling from '@lucide/svelte/icons/scaling'
   import Palette from '@lucide/svelte/icons/palette'
-  import Settings2 from '@lucide/svelte/icons/settings-2'
-  import Ship from '@lucide/svelte/icons/ship'
+  import SlidersHorizontal from '@lucide/svelte/icons/sliders-horizontal'
+  import ShipWheel from '@lucide/svelte/icons/ship-wheel'
   import FlaskConical from '@lucide/svelte/icons/flask-conical'
   import X from '@lucide/svelte/icons/x'
   import ArrowLeft from '@lucide/svelte/icons/arrow-left'
@@ -67,7 +67,8 @@
   import OpenFolderDialog from './features/workspace/OpenFolderDialog.svelte'
   import QuickOpen from './features/workspace/QuickOpen.svelte'
   import { openFolder, openSample, workspace } from './features/workspace/workspace.svelte'
-  import { tools, toolById, toolEntries } from './lib/tools'
+  import { tools, toolById, toolEntries, viewHue } from './lib/tools'
+  import { wantFreshTab } from './features/shared/worktabs.svelte'
   import { ansibleRoute, argoRoute, ciRoute, cloneRoute, compareRoute, composeRoute, isView, k8sRoute, kustomizeRoute, settingsRoute, newRoute, problemsRoute, queryRoute, router, routeAnsible, routeArgo, routeCI, routeClone, routeCompose, routeFile, routeHelm, routeK8s, routeKustomize, routeTool } from './lib/stores/router.svelte'
   import { layout } from './lib/stores/layout.svelte'
   import { shortcut } from './lib/stores/shortcuts.svelte'
@@ -85,7 +86,7 @@
 
   const showHome = $derived(!toolById(router.toolId) && !router.filePath && !routeHelm(router.path) && !isView(router.path))
 
-  // Rule metadata, so findings everywhere can offer "Turn off".
+  // Rule metadata, so findings everywhere can offer "Turn this rule off".
   lint.load()
 
   // Is a newer codec out? The server asks GitHub at most daily, and only
@@ -124,7 +125,8 @@
       id: 'workspace.open',
       title: 'Open folder…',
       group: 'Workspace',
-      icon: FolderOpen,
+      icon: Upload,
+      hue: viewHue.open,
       shortcut: 'Mod+O',
       keywords: ['repo', 'workspace', 'directory'],
       run: () => workspace.chooseFolder(),
@@ -134,6 +136,7 @@
       title: 'Go to file…',
       group: 'Workspace',
       icon: Search,
+      hue: viewHue.explorer,
       shortcut: 'Mod+P',
       keywords: ['find', 'search', 'quick open'],
       run: () => (workspace.quickOpen = true),
@@ -142,7 +145,8 @@
       id: 'lint.workspace',
       title: 'Lint workspace',
       group: 'Workspace',
-      icon: ListChecks,
+      icon: TriangleAlert,
+      hue: viewHue.problems,
       keywords: ['problems', 'check', 'validate', 'schema', 'errors'],
       run: () => {
         layout.open(problemsRoute)
@@ -154,6 +158,7 @@
       title: 'Compare files…',
       group: 'Workspace',
       icon: GitCompare,
+      hue: viewHue.compare,
       keywords: ['diff', 'semantic', 'difference', 'dev prod'],
       run: () => {
         layout.open(compareRoute)
@@ -165,6 +170,7 @@
       title: 'Find in files',
       group: 'Workspace',
       icon: Search,
+      hue: viewHue.search,
       shortcut: 'Mod+Shift+F',
       keywords: ['grep', 'text', 'search', 'find', 'word', 'regex'],
       run: findInFiles,
@@ -174,6 +180,7 @@
       title: 'Compare text',
       group: 'Tools',
       icon: GitCompare,
+      hue: viewHue.compare,
       keywords: ['diff', 'paste', 'kubectl', 'live', 'json'],
       run: () => comparison.pasteBoth(),
     },
@@ -181,7 +188,8 @@
       id: 'query.yaml',
       title: 'Query YAML (jq)…',
       group: 'Workspace',
-      icon: TextSearch,
+      icon: Braces,
+      hue: viewHue.query,
       keywords: ['jq', 'yq', 'search', 'find', 'select'],
       run: () => queries.open(),
     },
@@ -189,7 +197,8 @@
       id: 'scaffold.new',
       title: 'New file from a starter…',
       group: 'Workspace',
-      icon: FilePlus,
+      icon: Plus,
+      hue: viewHue.new,
       keywords: ['new', 'create', 'template', 'starter', 'scaffold', 'generate', 'deployment', 'chart', 'workflow', 'pipeline', 'playbook'],
       run: () => layout.open(newRoute),
     },
@@ -197,7 +206,8 @@
       id: 'scaffold.clone',
       title: 'Clone with a new name…',
       group: 'Workspace',
-      icon: CopyPlus,
+      icon: Copy,
+      hue: viewHue.clone,
       keywords: ['copy', 'duplicate', 'rename', 'clone'],
       run: () => {
         const f = router.filePath
@@ -209,7 +219,7 @@
       id: 'settings.open',
       title: 'Settings',
       group: 'Settings',
-      icon: Settings2,
+      icon: SlidersHorizontal,
       shortcut: 'Mod+,',
       keywords: ['preferences', 'options', 'lint rules', 'schema', 'kubernetes version', 'offline', 'helm profiles', 'editor', 'vs code', 'cursor'],
       run: () => layout.open(settingsRoute),
@@ -227,6 +237,7 @@
       title: 'Refresh file tree',
       group: 'Workspace',
       icon: RotateCw,
+      hue: viewHue.explorer,
       run: () => workspace.loadTree(),
     },
     // One entry per setting: "Settings: Theme" opens the page on its row.
@@ -234,21 +245,32 @@
       id: 'settings.' + e.section + '.' + (e.row ?? ''),
       title: 'Settings: ' + e.title,
       group: 'Settings',
-      icon: Settings2,
+      icon: SlidersHorizontal,
       keywords: ['preferences', 'options', ...e.keywords],
       run: () => {
         layout.open(settingsRoute)
         settingsGoto.to(e)
       },
     })),
-    ...tools.flatMap(toolEntries).map((e) => ({
-      id: `open.${e.key}`,
-      title: `Open ${e.title}`,
-      group: 'Tools',
-      icon: e.icon,
-      keywords: e.keywords,
-      run: () => layout.openTool(e.tool, e.tab),
-    })),
+    ...tools.flatMap(toolEntries).map((e) => {
+      const tool = toolById(e.tool)!
+      return {
+        id: `open.${e.key}`,
+        title: `Open ${e.title}`,
+        group: 'Tools',
+        icon: e.icon,
+        hue: e.hue,
+        hint: e.tab ? `${tool.title} · ${e.description}` : e.description,
+        keywords: e.keywords,
+        run: () => layout.openTool(e.tool, e.tab),
+        runNew: tool.newTab
+          ? () => {
+              wantFreshTab(e.tool)
+              layout.openTool(e.tool, e.tab)
+            }
+          : undefined,
+      }
+    }),
     { id: 'nav.home', title: 'Go to home', group: 'Navigation', icon: House, run: () => router.go('/') },
     {
       id: 'nav.close',
@@ -266,7 +288,7 @@
       id: 'view.explorer',
       title: 'Toggle explorer',
       group: 'View',
-      icon: FolderTree,
+      icon: Folder,
       shortcut: 'Mod+Shift+E',
       run: () => layout.toggleExplorer(),
     },
@@ -333,7 +355,7 @@
         id: `helm.${c.path}`,
         title: `Helm: render ${c.name}${c.path === '.' ? '' : ' (' + c.path + ')'}`,
         group: 'Helm',
-        icon: Ship,
+        icon: ShipWheel,
         keywords: ['helm', 'template', 'chart', c.path],
         run: () => layout.openHelm(c.path),
       })),
@@ -346,7 +368,7 @@
         id: 'k8s.workspace',
         title: 'Kubernetes: resources in this folder',
         group: 'Kubernetes',
-        icon: Boxes,
+        icon: Box,
         keywords: ['k8s', 'graph', 'inventory', 'images', 'references', 'selector'],
         run: () => layout.open(k8sRoute('.')),
       },
@@ -399,7 +421,7 @@
           id: `ansible.${f.path}`,
           title: `Ansible: ${f.path}`,
           group: 'Ansible',
-          icon: ListTree,
+          icon: ScrollText,
           keywords: ['ansible', 'playbook', 'roles', 'tasks', 'inventory', 'variables', f.path],
           run: () => layout.open(ansibleRoute(f.path)),
         })),

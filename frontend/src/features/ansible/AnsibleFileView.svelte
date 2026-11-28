@@ -1,5 +1,5 @@
 <script lang="ts">
-  import ListTree from '@lucide/svelte/icons/list-tree'
+  import ScrollText from '@lucide/svelte/icons/scroll-text'
   import LensView from '../shared/LensView.svelte'
   import AnsiblePanel from './AnsiblePanel.svelte'
 
@@ -8,7 +8,7 @@
   let { path, active }: { path: string; active: boolean } = $props()
 </script>
 
-<LensView {path} {active} icon={ListTree} title="Ansible · {path.split('/').pop()}">
+<LensView {path} {active} icon={ScrollText} title="Ansible · {path.split('/').pop()}">
   {#snippet children(ctx)}
     <AnsiblePanel {path} overrides={ctx.overrides} reload={ctx.reload} onopen={ctx.open} onstatus={ctx.status} />
   {/snippet}

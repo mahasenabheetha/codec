@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Tooltip } from 'bits-ui'
   import type { Snippet } from 'svelte'
-  import Kbd from './Kbd.svelte'
+  import { formatShortcut } from '../utils/platform'
 
   // Wraps any element with an accessible tooltip. The children snippet
   // receives props that MUST be spread onto the trigger element. If the
@@ -28,26 +28,30 @@
   <Tooltip.Portal>
     <Tooltip.Content {side} sideOffset={6} class="codec-tooltip">
       <span>{text}</span>
-      {#if shortcut}<Kbd combo={shortcut} />{/if}
+      {#if shortcut}<span class="codec-tooltip-keys">{formatShortcut(shortcut)}</span>{/if}
     </Tooltip.Content>
   </Tooltip.Portal>
 </Tooltip.Root>
 
 <style>
-  /* Content is portalled to <body>, outside this component's scope. */
+  /* Content is portalled to <body>, outside this component's scope.
+     Inverted (the text colour as its ground), so it never reads as part
+     of the panel under it. */
   :global(.codec-tooltip) {
     z-index: var(--z-popover);
     display: flex;
     align-items: center;
     gap: var(--s-2);
     padding: var(--s-1) var(--s-2);
-    font-size: var(--fs-sm);
-    color: var(--fg-0);
-    background: var(--bg-3);
-    border-radius: var(--r-md);
-    box-shadow: var(--shadow-pop);
+    font-size: var(--fs-xs);
+    color: var(--bg-0);
+    background: var(--fg-0);
+    border-radius: var(--r-sm);
     pointer-events: none;
     animation: tooltip-in var(--dur) var(--ease);
+  }
+  :global(.codec-tooltip-keys) {
+    opacity: 0.7;
   }
   @keyframes tooltip-in {
     from {

@@ -45,7 +45,7 @@
       </button>
       {#if s.danger}
         <p class="callout {s.danger.level}">
-          <TriangleAlert size={14} strokeWidth={2} />
+          <TriangleAlert size={14} />
           <span>{s.danger.note}</span>
           {#if s.danger.safer}
             <span class="safer">Safer: <code>{s.danger.safer}</code></span>

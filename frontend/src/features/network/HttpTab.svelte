@@ -179,7 +179,7 @@
         {#if req?.notes.length}
           <section class="notes" aria-label="Notes">
             {#each req.notes as n (n)}
-              <p><Info size={14} strokeWidth={1.75} /> {n}</p>
+              <p><Info size={14} /> {n}</p>
             {/each}
           </section>
         {/if}

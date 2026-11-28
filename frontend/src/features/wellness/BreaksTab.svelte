@@ -58,7 +58,7 @@
     <div class="breaks">
       <section class="status" class:quiet={!count || paused || !!resumes}>
         <span class="big-icon">
-          {#if !count || paused || resumes}<BellOff size={26} strokeWidth={1.8} />{:else}<UpIcon size={26} strokeWidth={1.8} />{/if}
+          {#if !count || paused || resumes}<BellOff size={26} />{:else}<UpIcon size={26} />{/if}
         </span>
         <div class="line">
           {#if !count}
@@ -97,7 +97,7 @@
           <ReminderCard reminder={r} />
         {/each}
         <button type="button" class="add" onclick={() => reminders.add()}>
-          <Plus size={18} strokeWidth={2} />
+          <Plus size={18} />
           Add your own reminder
         </button>
       </div>

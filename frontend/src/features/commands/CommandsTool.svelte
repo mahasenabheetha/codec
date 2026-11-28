@@ -2,7 +2,7 @@
   import Copy from '@lucide/svelte/icons/copy'
   import Ellipsis from '@lucide/svelte/icons/ellipsis'
   import Eraser from '@lucide/svelte/icons/eraser'
-  import SquareTerminal from '@lucide/svelte/icons/square-terminal'
+  import Terminal from '@lucide/svelte/icons/terminal'
   import { tick, untrack } from 'svelte'
   import { isAbort } from '../../lib/api/client'
   import { commandSuggestions, commandTool, commandTools, explainCommand, type Explanation, type Suggestions, type Tool, type ToolInfo } from '../../lib/api/commands'
@@ -207,7 +207,7 @@
         {/snippet}
         <div class="menu">
           <button type="button" disabled={!line.trim()} onclick={() => ((more = false), copy('powershell'))}>
-            <Copy size={14} strokeWidth={1.75} /> Copy for PowerShell <span class="muted">PowerShell 7: quoted its way, NAME=value as $env:</span>
+            <Copy size={14} /> Copy for PowerShell <span class="muted">PowerShell 7: quoted its way, NAME=value as $env:</span>
           </button>
         </div>
       </Popover>
@@ -239,7 +239,7 @@
           {:else if ref && built}
             <BuildForm tool={ref} {built} {suggest} onchange={change} />
           {:else if seg && !seg.tool && line.trim()}
-            <EmptyState icon={SquareTerminal} title="Not in codec's reference" description="codec can build git, kubectl, helm, docker and the common Linux commands; the explanation still shows this one's parts." />
+            <EmptyState icon={Terminal} title="Not in codec's reference" description="codec can build git, kubectl, helm, docker and the common Linux commands; the explanation still shows this one's parts." />
           {:else}
             <div class="start">
               <p class="hint">Start from a tool, type a command above, or <button type="button" class="link" onclick={openSheet}>find one by what it does</button>.</p>
@@ -267,7 +267,7 @@
           {#if ex.segments.length}
             <ExplainPane {ex} bind:hovered {focus} onfocus={(i) => (focus = i)} />
           {:else}
-            <EmptyState icon={SquareTerminal} title="What a command does" description="Each part of the line gets a sentence: the command, its flags and values, pipes and redirections. Risky ones are marked, with a safer way.">
+            <EmptyState icon={Terminal} title="What a command does" description="Each part of the line gets a sentence: the command, its flags and values, pipes and redirections. Risky ones are marked, with a safer way.">
               <div class="examples">
                 {#each examples as e (e)}
                   <button type="button" class="example" onclick={() => (line = e)}><code>{e}</code></button>

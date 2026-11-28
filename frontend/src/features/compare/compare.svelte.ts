@@ -306,6 +306,8 @@ class Query {
   results = $state.raw<QueryHit[] | null>(null)
   truncated = $state(false)
   timedOut = $state(false)
+  /** How long the last run took, in ms, as the page saw it. */
+  took = $state(0)
   error = $state<string | null>(null)
   running = $state(false)
   private inflight: AbortController | null = null
@@ -334,8 +336,10 @@ class Query {
           ? withBuffer({ kind: 'file', path: this.path }, true)
           : {}
     try {
+      const started = performance.now()
       const r = await runQuery(this.expr, this.scope, side, ctrl.signal)
       if (ctrl.signal.aborted) return
+      this.took = Math.round(performance.now() - started)
       this.results = r.results
       this.truncated = r.truncated
       this.timedOut = r.timedOut

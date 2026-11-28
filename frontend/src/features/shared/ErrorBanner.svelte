@@ -17,14 +17,14 @@
   <!-- The alert is the wrapper: a button cannot be one itself. -->
   <div role="alert">
     <button type="button" class="banner" onclick={() => onjump?.(error.line!, error.column ?? 1)}>
-      <CircleX size={16} strokeWidth={2} />
+      <CircleX size={16} />
       <span class="msg">{error.message}</span>
       <span class="jump">Jump to line {error.line}, col {error.column ?? 1}</span>
     </button>
   </div>
 {:else}
   <div class="banner" role="alert">
-    <CircleX size={16} strokeWidth={2} />
+    <CircleX size={16} />
     <span class="msg">{error.message}</span>
   </div>
 {/if}

@@ -3,10 +3,22 @@
 // paste, Base64 and Compare share this store and the strip that shows
 // it (WorkTabStrip.svelte). Tabs live for the window only: nothing
 // pasted is stored (19).
+import { untrack } from 'svelte'
 import { shortcut } from '../../lib/stores/shortcuts.svelte'
 import { toasts } from '../../lib/stores/toast.svelte'
 
 let nextKey = 0
+
+// Tools asked for a fresh tab (Ctrl+Enter in the palette), served once
+// the tool is open and active: it may not have loaded yet.
+const wanted = new Set<string>()
+let asked = $state(0)
+
+/** Show a fresh tab in this tool (by id) when it is next active. */
+export function wantFreshTab(tool: string) {
+  wanted.add(tool)
+  asked++
+}
 
 /** A key for a new tab, unique for the window. */
 export const newTabKey = () => ++nextKey
@@ -51,6 +63,12 @@ export class WorkTabs<T extends Tab> {
     return tab
   }
 
+  /** Show a tab with nothing in it: the current one if it is empty, else a new one. */
+  fresh(): T {
+    const cur = this.current
+    return cur && this.#undoable && !this.#undoable(cur) ? cur : this.add()
+  }
+
   select(t: T) {
     this.current = t
   }
@@ -92,8 +110,15 @@ export class WorkTabs<T extends Tab> {
 }
 
 /** Alt+T opens a tab and Alt+W closes the current one while `isActive`.
- *  (Ctrl+T and Ctrl+W belong to the browser.) Call during component init. */
-export function workTabShortcuts<T extends Tab>(isActive: () => boolean, tabs: WorkTabs<T>, add: () => void) {
+ *  (Ctrl+T and Ctrl+W belong to the browser.) With the tool's id, a
+ *  fresh tab asked for with wantFreshTab is shown too. Call during
+ *  component init. */
+export function workTabShortcuts<T extends Tab>(isActive: () => boolean, tabs: WorkTabs<T>, add: () => void, tool?: string) {
+  if (tool)
+    $effect(() => {
+      void asked
+      if (isActive()) untrack(() => wanted.delete(tool) && tabs.fresh())
+    })
   $effect(() => {
     const offs = [
       shortcut('Alt+T', add, { when: isActive }),

@@ -1,5 +1,7 @@
 <script lang="ts" generics="T extends string">
   import type { Component } from 'svelte'
+  import CircleX from '@lucide/svelte/icons/circle-x'
+  import TriangleAlert from '@lucide/svelte/icons/triangle-alert'
 
   // Mutually exclusive choice rendered as a pill group (radio semantics).
   interface Option {
@@ -7,16 +9,22 @@
     label: string
     icon?: Component
     title?: string
+    /** A count after the label, in a status colour when it is one. */
+    count?: number
+    countTone?: 'neutral' | 'err' | 'warn'
   }
 
   interface Props {
     options: Option[]
     value: T
     label: string
+    /** The choice in a soft fill rather than solid: for a setting (an
+     *  interface size, local or UTC) rather than what the view shows. */
+    soft?: boolean
     onchange?: (value: T) => void
   }
 
-  let { options, value = $bindable(), label, onchange }: Props = $props()
+  let { options, value = $bindable(), label, soft = false, onchange }: Props = $props()
 
   function select(v: T) {
     if (v === value) return
@@ -38,7 +46,7 @@
   }
 </script>
 
-<div class="segmented" role="radiogroup" aria-label={label} tabindex="-1" {onkeydown}>
+<div class="segmented" class:soft role="radiogroup" aria-label={label} tabindex="-1" {onkeydown}>
   {#each options as opt (opt.value)}
     {@const checked = opt.value === value}
     <button
@@ -50,8 +58,15 @@
       title={opt.title}
       onclick={() => select(opt.value)}
     >
-      {#if opt.icon}<opt.icon size={14} strokeWidth={1.75} />{/if}
+      {#if opt.icon}<opt.icon size={14} />{/if}
       {opt.label}
+      {#if opt.count !== undefined}
+        <!-- The worst of what it counts, by its icon too, not by colour alone. -->
+        <span class="count {opt.countTone ?? 'neutral'}">
+          {#if opt.countTone === 'err'}<CircleX size={10} />{:else if opt.countTone === 'warn'}<TriangleAlert size={10} />{/if}{opt.count}
+          {#if opt.countTone === 'err'}<span class="sr-only">, errors among them</span>{:else if opt.countTone === 'warn'}<span class="sr-only">, warnings</span>{/if}
+        </span>
+      {/if}
     </button>
   {/each}
 </div>
@@ -63,7 +78,8 @@
     gap: 2px;
     background: var(--bg-0);
     border: 1px solid var(--border);
-    border-radius: var(--r-md);
+    /* The buttons' radius plus the padding, so the corners nest. */
+    border-radius: calc(var(--r-md) + 2px);
   }
   button {
     display: inline-flex;
@@ -76,19 +92,49 @@
     color: var(--fg-1);
     background: transparent;
     border: none;
-    border-radius: var(--r-sm);
+    border-radius: var(--r-md);
     transition:
-      background var(--dur) var(--ease),
-      color var(--dur) var(--ease);
+      background var(--dur-fast) var(--ease),
+      color var(--dur-fast) var(--ease);
   }
   button:hover:not(.checked) {
     color: var(--fg-0);
+    background: var(--bg-3);
   }
-  /* A soft pill in the tool's colour where the theme shows it (Dusk),
-     today's grey otherwise (decision 94). */
+  /* Solid in the tool's colour: the accent outside a tool and with tool
+     colours off. */
   button.checked {
-    color: color-mix(in oklab, var(--tool-accent, var(--accent)) var(--tint-fill), var(--fg-0));
-    background: color-mix(in oklab, var(--tool-accent-soft, var(--accent-soft)) var(--tint-fill), var(--bg-3));
-    box-shadow: 0 0 0 1px color-mix(in oklab, var(--tool-accent, var(--accent)) calc(var(--tint-fill) * 0.4), var(--border-strong));
+    font-weight: var(--fw-semibold);
+    color: var(--accent-fg);
+    background: var(--tool-accent, var(--accent));
+  }
+  .soft button.checked {
+    color: var(--fg-0);
+    background: var(--tool-accent-soft, var(--accent-soft));
+  }
+  .count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-width: 16px;
+    padding: 0 var(--s-1);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-semibold);
+    line-height: 16px;
+    text-align: center;
+    border-radius: var(--r-sm);
+  }
+  .count.neutral {
+    color: var(--fg-1);
+    background: var(--bg-3);
+  }
+  .count.err {
+    color: var(--err);
+    background: var(--err-soft);
+  }
+  .count.warn {
+    color: var(--warn);
+    background: var(--warn-soft);
   }
 </style>

@@ -55,6 +55,8 @@ class Workspace {
   dirty = new SvelteSet<string>()
   /** Recently opened files this session, newest first (Go to file). */
   recentFiles = $state<string[]>([])
+  /** When each of them was opened (ms), for Home; never persisted. */
+  openedAt = new SvelteMap<string, number>()
 
   byPath = $derived(new Map(this.files.map((f) => [f.path, f])))
 
@@ -163,6 +165,7 @@ class Workspace {
 
   noteOpened(path: string) {
     this.recentFiles = [path, ...this.recentFiles.filter((p) => p !== path)].slice(0, 20)
+    this.openedAt.set(path, Date.now())
   }
 
   // A different folder than the tabs and expanded folders were saved
@@ -181,6 +184,7 @@ class Workspace {
     this.versions.clear()
     this.deleted.clear()
     this.recentFiles = []
+    this.openedAt.clear()
   }
 
   private connect() {

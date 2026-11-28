@@ -17,7 +17,7 @@
   {#if !session.isYAML}
     <p class="hint">Checks run on YAML files.</p>
   {:else if (session.analysis?.diagnostics.length ?? 0) === 0}
-    <p class="hint ok"><CircleCheck size={14} strokeWidth={1.75} /> No problems found.</p>
+    <p class="hint ok"><CircleCheck size={14} /> No problems found.</p>
   {:else}
     <ul>
       {#each session.analysis!.diagnostics as d, i (i)}

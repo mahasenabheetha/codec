@@ -52,7 +52,7 @@
     <div class="row">
       <span class="label">Volume</span>
       <span class="vol" class:muted={s.muted}>
-        {#if s.muted}<VolumeX size={16} strokeWidth={1.75} />{:else}<Volume2 size={16} strokeWidth={1.75} />{/if}
+        {#if s.muted}<VolumeX size={16} />{:else}<Volume2 size={16} />{/if}
         <input type="range" min="0" max="1" step="0.05" bind:value={s.volume} disabled={s.muted} aria-label="Volume" onchange={() => preview(s.moments.breakStart !== 'none' ? s.moments.breakStart : 'bell')} />
         <span class="pct">{Math.round(s.volume * 100)}%</span>
       </span>

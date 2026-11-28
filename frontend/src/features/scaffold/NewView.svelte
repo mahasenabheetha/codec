@@ -1,19 +1,27 @@
 <script lang="ts">
   import ErrorNote from '../../lib/components/ErrorNote.svelte'
-  import { hueVar, viewHue } from '../../lib/tools'
+  import { hueVar, viewHue, viewIcon, type Hue } from '../../lib/tools'
+  import type { Component } from 'svelte'
+  import Check from '@lucide/svelte/icons/check'
+  import CircleX from '@lucide/svelte/icons/circle-x'
   import Copy from '@lucide/svelte/icons/copy'
   import Download from '@lucide/svelte/icons/download'
-  import FilePlus from '@lucide/svelte/icons/file-plus'
+  import Plus from '@lucide/svelte/icons/plus'
   import FolderCog from '@lucide/svelte/icons/folder-cog'
   import Package from '@lucide/svelte/icons/package'
   import RotateCcw from '@lucide/svelte/icons/rotate-ccw'
+  import TriangleAlert from '@lucide/svelte/icons/triangle-alert'
   import { untrack } from 'svelte'
   import Badge from '../../lib/components/Badge.svelte'
   import Button from '../../lib/components/Button.svelte'
+  import Chip from '../../lib/components/Chip.svelte'
   import CodeView from '../../lib/components/CodeView.svelte'
   import EmptyState from '../../lib/components/EmptyState.svelte'
+  import PanelHeader from '../../lib/components/PanelHeader.svelte'
   import SearchInput from '../../lib/components/SearchInput.svelte'
+  import SegmentedControl from '../../lib/components/SegmentedControl.svelte'
   import Select from '../../lib/components/Select.svelte'
+  import Tile from '../../lib/components/Tile.svelte'
   import Toggle from '../../lib/components/Toggle.svelte'
   import { isAbort } from '../../lib/api/client'
   import { zipFiles, type Field } from '../../lib/api/scaffold'
@@ -56,6 +64,14 @@
     for (const s of starters) out.set(s.category, [...(out.get(s.category) ?? []), s])
     return [...out]
   })
+
+  // A starter looks like the view for what it makes (its category); your
+  // own starters, and any category codec doesn't know, like New.
+  const looks: Record<string, keyof typeof viewHue> = { Kubernetes: 'k8s', Helm: 'helm', CI: 'ci', Compose: 'compose', Argo: 'argo', Ansible: 'ansible' }
+  function lookOf(category: string): { icon: Component; hue: Hue } {
+    const v = looks[category] ?? 'new'
+    return { icon: viewIcon[v], hue: viewHue[v] }
+  }
 
   const visible = (f: Field) => !f.when || nf.form[f.when] === 'true'
   const file = $derived(nf.active >= 0 ? nf.files[nf.active] : undefined)
@@ -175,11 +191,17 @@
     {/if}
     <ul>
       {#each groups as [category, list] (category)}
+        {@const look = lookOf(category)}
         <li class="group">{category}</li>
         {#each list as s (s.id)}
-          <li>
-            <button type="button" class="starter" class:selected={s.id === nf.selected} onclick={() => nf.select(s.id)} title={s.description}>
-              <span>{s.title}</span>
+          {@const on = s.id === nf.selected}
+          <li class="hued" style:--tool={hueVar(look.hue)}>
+            <button type="button" class="starter" class:selected={on} onclick={() => nf.select(s.id)} title={s.description}>
+              <Tile icon={look.icon} size="md" solid={on} />
+              <span class="what">
+                <span class="title">{s.title}</span>
+                {#if s.description}<span class="desc">{s.description}</span>{/if}
+              </span>
               {#if s.personal}<Badge tone="accent">personal</Badge>{/if}
             </button>
           </li>
@@ -188,7 +210,7 @@
     </ul>
     {#if nf.list}
       <div class="personal">
-        <FolderCog size={14} strokeWidth={1.75} />
+        <FolderCog size={14} />
         <div>
           <p>Your own starters go in</p>
           <button type="button" class="dir" title="Copy the path" onclick={() => copyText(nf.list!.personalDir, 'Path')}>{nf.list.personalDir}</button>
@@ -199,137 +221,182 @@
     {/if}
   </aside>
 
-  <section class="form">
+  <main class="work hued" style:--tool={hueVar(lookOf(nf.starter?.category ?? '').hue)}>
     {#if nf.starter}
       {@const s = nf.starter}
-      <header>
-        <h2>{s.title}</h2>
-        {#if s.description}<p class="muted">{s.description}</p>{/if}
-      </header>
-      <form onsubmit={(e) => e.preventDefault()}>
-        {#each s.fields.filter(visible) as f (f.name)}
-          <div class="field" class:invalid={nf.fieldErrors[f.name]}>
-            {#if f.type === 'bool'}
-              <Toggle checked={nf.form[f.name] === 'true'} label={f.label} onchange={(on) => nf.set(f.name, on ? 'true' : 'false')} />
+      <PanelHeader icon={lookOf(s.category).icon} title={s.title}>
+        {#snippet meta()}{s.description ?? ''}{/snippet}
+        {#snippet actions()}
+          <Button size="sm" variant="ghost" icon={RotateCcw} onclick={() => nf.reset()}>Defaults</Button>
+          {#if nf.files.length}
+            {#if nf.active >= 0}
+              <Button size="sm" icon={Copy} tone="copy" onclick={() => copyText(text, file?.path ?? 'File')}>Copy</Button>
             {:else}
-              <label for="{uid}-field-{f.name}">{f.label}{#if f.optional}<span class="muted">{' · optional'}</span>{/if}</label>
-              {#if f.type === 'choice'}
-                <Select items={(f.choices ?? []).map((c) => ({ value: c, label: c }))} value={nf.form[f.name]} label={f.label} onchange={(v) => nf.set(f.name, v)} />
-              {:else}
-                <input
-                  id="{uid}-field-{f.name}"
-                  type="text"
-                  spellcheck="false"
-                  value={nf.form[f.name] ?? ''}
-                  placeholder={f.default}
-                  oninput={(e) => nf.set(f.name, e.currentTarget.value)}
-                />
-              {/if}
+              <Button size="sm" icon={Copy} tone="copy" onclick={() => copyText(chart?.manifest ?? '', 'Rendered manifest')}>Copy</Button>
             {/if}
-            {#if nf.fieldErrors[f.name]}<small class="error">{nf.fieldErrors[f.name]}</small>{:else if f.help}<small class="muted">{f.help}</small>{/if}
-          </div>
-        {/each}
-      </form>
-      <div class="actions">
-        <Button size="sm" variant="ghost" icon={RotateCcw} onclick={() => nf.reset()}>Defaults</Button>
+            <Button size="sm" variant="primary" icon={Download} onclick={download} title={multi ? `Download the ${nf.files.length} files as a zip` : 'Download as a zip'}>Save as zip</Button>
+          {/if}
+        {/snippet}
+      </PanelHeader>
+      <div class="body">
+        <section class="form" aria-label="Fill in">
+          <div class="pane-title">Fill in</div>
+          <form onsubmit={(e) => e.preventDefault()}>
+            {#each s.fields.filter(visible) as f (f.name)}
+              <div class="field">
+                {#if f.type === 'bool'}
+                  <Toggle checked={nf.form[f.name] === 'true'} label={f.label} onchange={(on) => nf.set(f.name, on ? 'true' : 'false')} />
+                {:else}
+                  <!-- A choice names itself (its control's label); a text field is named by this. -->
+                  {#if f.type === 'choice'}
+                    <span class="label">{f.label}{#if f.optional}<span class="muted">{' · optional'}</span>{/if}</span>
+                  {:else}
+                    <label class="label" for="{uid}-field-{f.name}">{f.label}{#if f.optional}<span class="muted">{' · optional'}</span>{/if}</label>
+                  {/if}
+                  {#if f.type === 'choice' && (f.choices?.length ?? 0) <= 4}
+                    <SegmentedControl soft options={(f.choices ?? []).map((c) => ({ value: c, label: c }))} value={nf.form[f.name] ?? ''} label={f.label} onchange={(v) => nf.set(f.name, v)} />
+                  {:else if f.type === 'choice'}
+                    <Select items={(f.choices ?? []).map((c) => ({ value: c, label: c }))} value={nf.form[f.name]} label={f.label} onchange={(v) => nf.set(f.name, v)} />
+                  {:else}
+                    <input
+                      id="{uid}-field-{f.name}"
+                      type="text"
+                      spellcheck="false"
+                      value={nf.form[f.name] ?? ''}
+                      placeholder={f.default}
+                      aria-invalid={nf.fieldErrors[f.name] ? 'true' : undefined}
+                      aria-describedby={nf.fieldErrors[f.name] || f.help ? `${uid}-note-${f.name}` : undefined}
+                      oninput={(e) => nf.set(f.name, e.currentTarget.value)}
+                    />
+                  {/if}
+                {/if}
+                {#if nf.fieldErrors[f.name]}<small id="{uid}-note-{f.name}" class="error">{nf.fieldErrors[f.name]}</small>{:else if f.help}<small id="{uid}-note-{f.name}" class="muted">{f.help}</small>{/if}
+              </div>
+            {/each}
+          </form>
+        </section>
+
+        <section class="preview">
+          {#if nf.renderError}<ErrorNote message={nf.renderError} />{/if}
+          {#if nf.files.length}
+            {#snippet found(c: { errors: number; warnings: number })}
+              {#if c.errors}<Badge tone="err" icon={CircleX}>{c.errors}<span class="sr-only"> {c.errors === 1 ? 'error' : 'errors'}</span></Badge>
+              {:else if c.warnings}<Badge tone="warn" icon={TriangleAlert}>{c.warnings}<span class="sr-only"> {c.warnings === 1 ? 'warning' : 'warnings'}</span></Badge>{/if}
+            {/snippet}
+            <div class="files" role="group" aria-label="Generated files">
+              {#each nf.files as f, i (f.path)}
+                <Chip mono aria-current={nf.active === i ? 'true' : undefined} selected={nf.active === i} onclick={() => (nf.active = i)} title={f.path}>
+                  {f.path}
+                  {@render found(nf.counts(f.path))}
+                </Chip>
+              {/each}
+              {#if chart}
+                <Chip aria-current={nf.active === -1 ? 'true' : undefined} selected={nf.active === -1} onclick={() => (nf.active = -1)} title="helm template output">
+                  <Package size={13} /> Rendered
+                  {@render found(sev(chart.diagnostics))}
+                </Chip>
+              {/if}
+              <span class="note">
+                {#if nf.busy}Rendering…{:else if nf.edited}What-if edits · changing the form starts over{:else}Checked with lint and schemas · edit freely, nothing is saved{/if}
+              </span>
+            </div>
+            <div class="code" class:hidden={nf.active < 0}>
+              <CodeView bind:this={cv} bind:value={text} label="Generated file" language={file ? lang(file.path) : 'text'} extensions={intel} syncDelay={150} />
+            </div>
+            {#if nf.active < 0 && chart}
+              <div class="code">
+                <CodeView bind:this={rendered} value={chart.manifest} label="Rendered chart" language="yaml" readonly />
+              </div>
+            {/if}
+            {#snippet clean(msg: string)}
+              <p class="ok"><Tile icon={Check} size="sm" status="ok" solid />{msg}</p>
+            {/snippet}
+            <div class="problems">
+              {#if nf.active >= 0}
+                {#each problems as d, i (i)}
+                  <button type="button" class="problem {d.severity}" onclick={() => jump(cv?.getView(), d.range.start.line, d.range.start.col)}>
+                    <span class="loc">{d.range.start.line}</span>
+                    <span>{d.message}</span>
+                    {#if d.code}<span class="code-id">{d.code}</span>{/if}
+                  </button>
+                {:else}
+                  {#if isYAML && analysis}{@render clean(`No problems: lint${analysis.docs.some((d) => d.schema?.state === 'ok') ? ' and schema' : ''} clean.`)}{/if}
+                {/each}
+              {:else if chart}
+                {#each chart.diagnostics as d, i (i)}
+                  <button type="button" class="problem {d.severity}" onclick={() => openFinding(d)}>
+                    <span class="loc">{d.file ? `${d.file}:${d.line ?? ''}` : d.manifest ? `line ${d.manifest}` : ''}</span>
+                    <span>{d.message}</span>
+                    <span class="code-id">{d.code}</span>
+                  </button>
+                {:else}
+                  {@render clean('Renders cleanly with helm template; the output passes lint and schema checks.')}
+                {/each}
+              {/if}
+            </div>
+          {:else if !nf.renderError}
+            <p class="muted pad">Fix the form to see the files.</p>
+          {/if}
+        </section>
       </div>
     {:else if nf.list}
-      <EmptyState icon={FilePlus} title="Pick a starter" />
+      <EmptyState icon={Plus} title="Pick a starter" />
     {/if}
-  </section>
-
-  <section class="preview">
-    {#if nf.renderError}<ErrorNote message={nf.renderError} />{/if}
-    {#if nf.files.length}
-      <div class="files" role="tablist" aria-label="Generated files">
-        {#each nf.files as f, i (f.path)}
-          {@const c = nf.counts(f.path)}
-          <button type="button" role="tab" aria-selected={nf.active === i} class="file" onclick={() => (nf.active = i)} title={f.path}>
-            {f.path}
-            {#if c.errors}<span class="count err">{c.errors}</span>{:else if c.warnings}<span class="count warn">{c.warnings}</span>{/if}
-          </button>
-        {/each}
-        {#if chart}
-          {@const c = sev(chart.diagnostics)}
-          <button type="button" role="tab" aria-selected={nf.active === -1} class="file rendered" onclick={() => (nf.active = -1)} title="helm template output">
-            <Package size={13} strokeWidth={1.75} /> Rendered
-            {#if c.errors}<span class="count err">{c.errors}</span>{:else if c.warnings}<span class="count warn">{c.warnings}</span>{/if}
-          </button>
-        {/if}
-      </div>
-      <div class="toolbar">
-        {#if nf.active >= 0}
-          <Button size="sm" icon={Copy} tone="copy" onclick={() => copyText(text, file?.path ?? 'File')}>Copy</Button>
-        {:else}
-          <Button size="sm" icon={Copy} tone="copy" onclick={() => copyText(chart?.manifest ?? '', 'Rendered manifest')}>Copy</Button>
-        {/if}
-        <Button size="sm" variant={multi ? 'primary' : 'secondary'} icon={Download} tone="save" onclick={download}>{multi ? `Download ${nf.files.length} files (.zip)` : 'Download .zip'}</Button>
-        <span class="muted note">
-          {#if nf.busy}Rendering…{:else if nf.edited}What-if edits · changing the form starts over{:else}Checked with lint and schemas · edit freely, nothing is saved{/if}
-        </span>
-      </div>
-      <div class="code" class:hidden={nf.active < 0}>
-        <CodeView bind:this={cv} bind:value={text} label="Generated file" language={file ? lang(file.path) : 'text'} extensions={intel} syncDelay={150} />
-      </div>
-      {#if nf.active < 0 && chart}
-        <div class="code">
-          <CodeView bind:this={rendered} value={chart.manifest} label="Rendered chart" language="yaml" readonly />
-        </div>
-      {/if}
-      <div class="problems">
-        {#if nf.active >= 0}
-          {#each problems as d, i (i)}
-            <button type="button" class="problem {d.severity}" onclick={() => jump(cv?.getView(), d.range.start.line, d.range.start.col)}>
-              <span class="loc">{d.range.start.line}</span>
-              <span>{d.message}</span>
-              {#if d.code}<span class="code-id">{d.code}</span>{/if}
-            </button>
-          {:else}
-            {#if isYAML && analysis}<p class="ok">No problems: lint{analysis.docs.some((d) => d.schema?.state === 'ok') ? ' and schema' : ''} clean.</p>{/if}
-          {/each}
-        {:else if chart}
-          {#each chart.diagnostics as d, i (i)}
-            <button type="button" class="problem {d.severity}" onclick={() => openFinding(d)}>
-              <span class="loc">{d.file ? `${d.file}:${d.line ?? ''}` : d.manifest ? `line ${d.manifest}` : ''}</span>
-              <span>{d.message}</span>
-              <span class="code-id">{d.code}</span>
-            </button>
-          {:else}
-            <p class="ok">Renders cleanly with helm template; the output passes lint and schema checks.</p>
-          {/each}
-        {/if}
-      </div>
-    {:else if !nf.renderError && nf.starter}
-      <p class="muted pad">Fix the form to see the files.</p>
-    {/if}
-  </section>
+  </main>
 </div>
 
 <style>
   .new {
     height: 100%;
     display: grid;
-    grid-template-columns: 230px 300px minmax(0, 1fr);
+    grid-template-columns: 280px minmax(0, 1fr);
     min-height: 0;
   }
   .inactive {
     display: none;
   }
-  aside,
-  .form,
-  .preview {
+  .starters {
+    display: flex;
+    flex-direction: column;
     min-height: 0;
     overflow: auto;
     border-right: 1px solid var(--border);
   }
-  .preview {
-    border-right: none;
+  .work {
     display: flex;
     flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+  }
+  .body {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 340px minmax(0, 1fr);
+    min-height: 0;
+  }
+  .form {
+    min-height: 0;
+    overflow: auto;
+    border-right: 1px solid var(--border);
+    background: var(--bg-1);
+  }
+  .preview {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
     overflow: hidden;
   }
+  .pane-title {
+    display: flex;
+    align-items: center;
+    height: calc(var(--control-h) + var(--s-2));
+    padding: 0 var(--s-4);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-semibold);
+    border-bottom: 1px solid var(--border);
+  }
   .filter {
-    padding: var(--s-2);
+    padding: var(--s-3) var(--s-3) var(--s-1);
   }
   ul {
     list-style: none;
@@ -339,40 +406,69 @@
   .group {
     padding: var(--s-3) var(--s-2) var(--s-1);
     font-size: var(--fs-xs);
+    font-weight: var(--fw-semibold);
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.06em;
     color: var(--fg-2);
   }
+  /* As the rail draws its items: a tile in the starter's colour, solid
+     and on a soft ground for the one chosen. */
   .starter {
     width: 100%;
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: var(--s-2);
+    min-height: calc(var(--control-h) + var(--s-3));
     padding: var(--s-1) var(--s-2);
     text-align: left;
     color: var(--fg-1);
     background: none;
     border: none;
-    border-radius: var(--r-sm);
+    border-radius: var(--r-md);
   }
   .starter:hover {
     background: var(--bg-2);
     color: var(--fg-0);
   }
   .starter.selected {
-    background: var(--accent-soft);
     color: var(--fg-0);
+    background: color-mix(in oklab, var(--tool-accent-soft) var(--tint-fill), var(--bg-3));
+  }
+  .what {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .title,
+  .desc {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .title {
+    font-weight: var(--fw-medium);
+  }
+  .selected .title {
+    font-weight: var(--fw-semibold);
+  }
+  .desc {
+    font-size: var(--fs-xs);
+    color: var(--fg-2);
   }
   .personal {
     display: flex;
     gap: var(--s-2);
-    margin: var(--s-2);
-    padding: var(--s-2);
-    font-size: var(--fs-sm);
+    margin: auto var(--s-3) var(--s-3);
+    padding: var(--s-3);
+    font-size: var(--fs-xs);
     color: var(--fg-1);
     background: var(--bg-1);
-    border-radius: var(--r-md);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+  }
+  .personal :global(svg) {
+    flex: none;
   }
   .personal p {
     margin: 0 0 var(--s-1);
@@ -383,102 +479,51 @@
     padding: 0;
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
-    color: var(--accent);
+    color: var(--tool-accent);
     text-align: left;
     word-break: break-all;
     background: none;
     border: none;
   }
-  .form {
-    padding: var(--s-3);
-  }
-  h2 {
-    margin: 0 0 var(--s-1);
-    font-size: var(--fs-lg);
-  }
-  header p {
-    margin: 0 0 var(--s-3);
-    font-size: var(--fs-sm);
+  form {
+    padding: var(--s-4);
   }
   .field {
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
     gap: var(--s-1);
-    margin-bottom: var(--s-3);
+    margin-bottom: var(--s-4);
   }
-  label {
+  .field > :global(*) {
+    max-width: 100%;
+  }
+  .label {
     font-size: var(--fs-sm);
+    font-weight: var(--fw-medium);
     color: var(--fg-1);
   }
   input {
-    height: var(--control-h);
-    padding: 0 var(--s-2);
+    align-self: stretch;
     font-family: var(--font-mono);
     font-size: var(--fs-sm);
-    color: var(--fg-0);
-    background: var(--bg-0);
-    border: 1px solid var(--border-strong);
-    border-radius: var(--r-sm);
-  }
-  input:focus {
-    outline: none;
-    border-color: var(--accent);
-  }
-  .invalid input {
-    border-color: var(--err);
   }
   small {
     font-size: var(--fs-xs);
   }
   .files {
+    flex: none;
     display: flex;
-    flex-wrap: wrap;
-    gap: 2px;
-    padding: var(--s-2) var(--s-2) 0;
-  }
-  .file {
-    display: inline-flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: var(--s-1);
-    padding: var(--s-1) var(--s-2);
-    font-family: var(--font-mono);
-    font-size: var(--fs-xs);
-    color: var(--fg-1);
-    background: none;
-    border: none;
-    border-radius: var(--r-sm);
-  }
-  .file[aria-selected='true'] {
-    color: var(--fg-0);
-    background: var(--bg-2);
-  }
-  .file.rendered {
-    font-family: var(--font-ui);
-  }
-  .count {
-    min-width: 16px;
-    padding: 0 4px;
-    font-size: var(--fs-xs);
-    border-radius: 8px;
-    text-align: center;
-  }
-  .count.err {
-    color: var(--bg-0);
-    background: var(--err);
-  }
-  .count.warn {
-    color: var(--bg-0);
-    background: var(--warn);
-  }
-  .toolbar {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: var(--s-2);
-    padding: var(--s-2);
+    padding: var(--s-2) var(--s-3);
+    border-bottom: 1px solid var(--border);
   }
   .note {
+    margin-left: auto;
     font-size: var(--fs-xs);
+    color: var(--fg-2);
   }
   .code {
     flex: 1;
@@ -526,11 +571,16 @@
   .code-id {
     margin-left: auto;
   }
+  /* All clear: a strip in the ok colour along the foot. */
   .ok {
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
     margin: 0;
-    padding: var(--s-2) var(--s-3);
+    padding: var(--s-3) var(--s-4);
     font-size: var(--fs-sm);
-    color: var(--ok);
+    color: var(--fg-0);
+    background: color-mix(in srgb, var(--ok) var(--wash), var(--bg-1));
   }
   .error {
     color: var(--err);
@@ -545,10 +595,21 @@
     font-family: var(--font-mono);
   }
   @media (max-width: 900px) {
-    .new {
+    .new,
+    .body {
       grid-template-columns: 1fr;
       grid-auto-rows: auto;
+    }
+    .new {
       overflow: auto;
+    }
+    .starters {
+      max-height: 40vh;
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+    }
+    .form {
+      border-right: none;
     }
     .preview {
       min-height: 480px;

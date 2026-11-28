@@ -13,7 +13,7 @@
   let { active }: { active: boolean } = $props()
 
   const add = () => jsonTabs.add()
-  workTabShortcuts(() => active, jsonTabs, add)
+  workTabShortcuts(() => active, jsonTabs, add, 'json')
 
   // The sub-tab shown is the tool's (layout); a document keeps its own:
   // shown again when its tab is, saved when another is picked.

@@ -6,9 +6,39 @@ UI. The user-facing version is `docs/design.html`. Tokens live in
 
 Dark by default, ten themes in all [81, 94, 95]. Calm, dense, precise —
 a professional dev tool, closer to Linear or VS Code than to a
-marketing site. Refreshed in 3.10.1 and 3.10.2 (decision 105): colour
-in every theme, shared parts in place of copies, panes you can size,
-and a shell built around what you use most.
+marketing site. The look is **Spectrum** (3.11.0, decision 106): every
+tool and view has one of eight hues, and that colour marks what belongs
+to it, while the status colours keep to what is right or wrong. It
+builds on the 3.10.1 and 3.10.2 refresh (decision 105): shared parts in
+place of copies, panes you can size, and a shell built around what you
+use most.
+
+## Spectrum
+
+How a hue shows, the same everywhere:
+
+- **A tile.** A tool's or view's icon sits on a `Tile` in its colour:
+  soft in lists (the rail, the palette, Home, Settings' sections),
+  solid for the one that is open and in the view's own header.
+- **A washed header.** `PanelHeader` (and the file view's header) is on
+  `--tool-wash`, dotted in the hue towards the right (`.dotted`), with
+  the view's tile, its name and what is known under it.
+- **A line or an edge.** A tool's pane has a 3 px line in its colour
+  along the top; a `Card` with `hue` has an edge in it; the current tab
+  a 2 px line along its top.
+- **A fill for what is on.** The selected chip, segment, tree row,
+  menu item and rail entry take the hue's soft fill (solid for a
+  segment that is what the view shows); the primary button is solid
+  in it; focus is outlined in it.
+- **Words in it** sparingly, such as an accent badge (`--tool-ink`).
+  Body text stays the text colours, on any of these grounds.
+- **Status apart.** ok, warn, err and info only for findings and
+  states, always with an icon or a word; no tool takes their hues.
+- **The mark and the strip.** The codec mark (three bars) is the
+  rail's, nothing else's; the eight hues in a row (`Spectrum`) run
+  along the top of the palettes and the foot of each theme card.
+- **Tool colours off** (Settings) puts every hue to the accent: tiles
+  turn grey, washes and dots go, status colours stay.
 
 ## Principles
 
@@ -25,16 +55,17 @@ and a shell built around what you use most.
 
 | Group | Tokens |
 |---|---|
-| Surfaces | `--bg-0 #0b0d12` app/rail · `--bg-1 #10131a` panels · `--bg-2 #161a23` editor/cards · `--bg-3 #1d2230` hover/inputs · `--bg-4 #252b3a` pressed |
-| Borders | `--border #252b38` · `--border-strong #323a4b` |
-| Text | `--fg-0 #e6e8ee` primary · `--fg-1 #a9b0bf` secondary · `--fg-2 #878fa0` muted (≥ 4.5:1 on bg-0…bg-3) |
-| Accent | `--accent #7aa2ff` · `--accent-hover` · `--accent-soft` (14%) · `--accent-fg` text on solid accent |
-| Status | `--ok #3fb971` · `--warn #e5b449` · `--err #f06b75` · `--info #5ab0ff`, each with `-soft` |
+| Surfaces | `--bg-0 #0c0e14` app/rail · `--bg-1 #11141c` panels · `--bg-2 #171b25` editor/cards/dialogs · `--bg-3 #1f2431` hover/inputs · `--bg-4 #282e3d` pressed |
+| Borders | `--border #262c3a` · `--border-strong #363e52` |
+| Text | `--fg-0 #eceef4` primary · `--fg-1 #b0b7c6` secondary · `--fg-2 #8b94a7` muted (≥ 4.5:1 on bg-0…bg-3) |
+| Accent | `--accent #7c9cff` · `--accent-hover` · `--accent-soft` (14%) · `--accent-fg` text on solid accent |
+| Status | `--ok #4cd38a` · `--warn #f2c14e` · `--err #ff6f7d` · `--info #5ab0ff`, each with `-soft` |
+| Hues | indigo `#8f9dff` · violet `#b794ff` · orchid `#e391f2` · pink `#ff8fc8` · peach `#ffa877` · lime `#b4e06a` · teal `#4fdcc2` · cyan `#5cc6ff` |
 | Space | 4px scale: `--s-1 4` `--s-2 8` `--s-3 12` `--s-4 16` `--s-5 20` `--s-6 24` `--s-8 32` `--s-12 48` |
-| Radius | `--r-sm 4` inputs, small marks · `--r-md 8` buttons, rows · `--r-lg 12` panels, cards · `--r-xl 16` dialogs · `--r-full` pills |
-| Type | `--font-ui` Inter, `--font-mono` JetBrains Mono (bundled, OFL). Sizes `--fs-xs 11` `-sm 12` `-md 13` (base) `-lg 14` `-xl 16` `-2xl 20` `-3xl 28`, each a step bigger at Interface size Large (12 … 30); line height 1.5 (code 1.55). Figures are tabular everywhere (`tnum`), so counts and times don't shift. The code font is for code, paths and values, never for sentences |
-| Controls | Interface size (`data-size` on `<html>`): `--control-h` 28 / 32 / 36 and `--control-h-sm` 24 / 28 / 32 for Compact / Comfortable (default) / Large; Lucide icons keep the size written in code (the Compact one) and grow by `--icon-scale` 1 / 1.125 / 1.25, rounded to whole pixels (global.css), so write icon sizes for Compact · `--tabbar-h 38` · `--statusbar-h 26` · rail 48/220 |
-| Focus | `--focus-ring`: the ring a field shows around its border (in the tool's colour inside a tool). The global outline stays for everything else |
+| Radius | `--r-sm 4` small marks (badges, checks, tree rows, tooltips) · `--r-md 8` buttons, fields, menu items · `--r-lg 12` panels, cards, menus · `--r-xl 16` dialogs · `--r-full` pills |
+| Type | `--font-ui` Inter, `--font-mono` JetBrains Mono (bundled, OFL). Sizes `--fs-xs 11` `-sm 12` `-md 13` (base) `-lg 14` `-xl 16` `-2xl 20` `-3xl 28`, each a step bigger at Interface size Large (12 … 30); line height 1.5 (code 1.55). Weights `--fw-regular 400` `-medium 500` `-semibold 600` (headings, titles) `-bold 700` (page titles only: Home's, Settings' and its sections', and a Markdown preview's h1 and h2). Figures are tabular everywhere (`tnum`), so counts and times don't shift. The code font is for code, paths and values, never for sentences |
+| Controls | Interface size (`data-size` on `<html>`): `--control-h` 28 / 32 / 36 and `--control-h-sm` 24 / 28 / 32 for Compact / Comfortable (default) / Large; Lucide icons keep the size written in code (the Compact one) and grow by `--icon-scale` 1 / 1.125 / 1.25, rounded to whole pixels (global.css), so write icon sizes for Compact · `--icon-stroke 1.9`, every icon's stroke · `--tabbar-h 40` · `--statusbar-h 28` · rail 48/220 |
+| Focus | Everything shows a 2 px outline 2 px out, in the tool's colour inside a tool (global.css). A field shows its border colour plus `--focus-ring` (a 3 px ring) instead; a field whose value is wrong (`aria-invalid`), `--err` plus `--invalid-ring` |
 | Match | `--match-bg`, `--match-current-bg`: a search hit, wherever it is drawn (editor, log rows, Find in Files, the source peek) |
 | Motion | `--dur-fast 80ms` hovers and presses · `--dur 120ms` most changes · `--dur-slow 240ms` things that move across the screen · `--ease`; none under `prefers-reduced-motion` |
 | Elevation | `--shadow-pop` for popovers and dialogs; `--shadow-raise`, barely there, for a card that lifts under the pointer; depth otherwise comes from surface steps |
@@ -54,11 +85,12 @@ colours only; space, type, layout and motion are shared:
 
 | Group | Light values |
 |---|---|
-| Surfaces | `--bg-0 #f2f3f6` · `--bg-1 #f8f9fb` · `--bg-2 #ffffff` · `--bg-3 #eaecf1` · `--bg-4 #dfe2e9` |
-| Borders | `--border #d9dce3` · `--border-strong #c3c8d2` |
-| Text | `--fg-0 #1b1f27` · `--fg-1 #485062` · `--fg-2 #5f6778` |
-| Accent | `--accent #2b5cd6` (hover darker) · `--accent-fg #ffffff` |
-| Status | `--ok #16702f` · `--warn #8a5d00` · `--err #c62a35` · `--info #0a68cf`; `-soft` at 12% |
+| Surfaces | `--bg-0 #edf0f6` · `--bg-1 #f6f7fb` · `--bg-2 #ffffff` · `--bg-3 #e8ebf2` · `--bg-4 #dce0ea` |
+| Borders | `--border #d8dce6` · `--border-strong #c1c7d4` |
+| Text | `--fg-0 #151922` · `--fg-1 #434b5d` · `--fg-2 #5a6275` |
+| Accent | `--accent #3756d8` (hover darker) · `--accent-fg #ffffff` |
+| Status | `--ok #147b3b` · `--warn #8a5d00` · `--err #c82835` · `--info #0a68cf`; `-soft` at 12% |
+| Hues | indigo `#4652d6` · violet `#7444d4` · orchid `#9b3ab0` · pink `#bf2f7a` · peach `#b64d0c` · lime `#4a7400` · teal `#00796a` · cyan `#006da8`: deep jewel tones that carry white text |
 | Syntax | key `#0550ae` · string `#1f6f2b` · number `#a64d00` · bool/null `#7c3fd1` · comment `#626b7a` · anchor `#0b7268` · tag `#8a5d00` · template `#875400` · run time `#b0246f` |
 | Logos | official colours where they reach 3:1 on `--bg-1`; Helm `#3346c9` and Argo `#d9592b` adjusted |
 
@@ -109,15 +141,16 @@ value in each theme block (Dusk may inherit Dark's).
 
 **Colour roles** (decision 94). Colour has three jobs, kept apart:
 
-- **Tool hue.** Each tool and workspace view has one (`hue` in
-  `lib/tools.ts`, `viewHue` for the rail's views), from `--hue-indigo`,
+- **Tool hue.** Each tool and view has one (`hue` in `lib/tools.ts`;
+  `viewHue` for the rail's workspace views and the lens views, a file
+  taking the Explorer's), from `--hue-indigo`,
   `-violet`, `-orchid`, `-pink`, `-peach`, `-lime`, `-teal`, `-cyan`
   (eight; no two tools in one group of the rail share one, and none
   sits on a status colour: a blue or a green was left out for that). What belongs to
   the tool (its page, rail entry, Home card) sets `--tool` to
   `hueVar(hue)` and takes the `.hued` class, which works out
-  `--tool-accent`, `--tool-accent-hover`, `--tool-accent-soft` and
-  `--tool-icon` for everything inside. Shared components read
+  `--tool-accent`, `--tool-accent-soft` and `--tool-icon` for
+  everything inside. Shared components read
   `var(--tool-accent, var(--accent))`, so they work outside a tool too.
 - **Action tone.** `tone` on `IconButton` and `Button`: `copy`, `clear`,
   `save`, `swap`, `open`, `add`, `run` (`--act-*`). Only the icon takes
@@ -127,17 +160,43 @@ value in each theme block (Dusk may inherit Dark's).
   action uses, so colour never suggests a problem that isn't there.
 
 How much of the first two a theme shows is `--tint-tool` and
-`--tint-action`, and `--tint-fill` for fills drawn in the tool's colour
-(the selected sub-tab as a soft pill, the selected rail entry's glow, a
-line along the top of a `Pane`). Since 3.10.1 every theme shows them:
+`--tint-action`, and `--tint-fill` for fills the shell draws in the
+tool's colour (the selected rail entry and palette row, a work tab's
+top line). Since 3.10.1 every theme shows them:
 tool and action `100%` everywhere, fills `60%` in Dark and Light (the
 quieter two) and `100%` in the rest; Light has its own hues, dark
 enough for white. Settings → Tool colours off sets
-`data-colour='plain'` on `<html>`, which zeroes all three in any theme
-(Dark and Light as they were before 3.10.1). Workspace views (Compare,
-Query, New, Problems) are `.hued` too, with their `viewHue`. Never use a `--hue-*` or `--act-*` token directly; go through
-the roles, so a theme or the setting can turn them up or down in one
-place. A shared component reads `var(--tool-accent, var(--accent))`.
+`data-colour='plain'` on `<html>`, which zeroes the first two in any
+theme: every tool takes the accent (its fills, lines and icons, so the
+fills `--tint-fill` draws are the accent's), a soft tile turns grey, a
+wash goes, and actions take the text colour; status colours stay.
+Workspace views (the Explorer, Search, Problems, Compare, Query, New,
+Clone, a file and Settings' sections) are `.hued` too, with their
+`viewHue`. Never use a `--hue-*` or `--act-*` token directly; go
+through the roles, so a theme or the setting can turn them up or down
+in one place. A shared component reads `var(--tool-accent, var(--accent))`.
+The one exception is decoration that stands for codec rather than a
+tool, `BrandMark` and `Spectrum`: they draw the hues as they are, and
+keep them with tool colours off.
+
+**Spectrum** (3.11.0, decision 106): Dark and Light take the Spectrum
+values above, livelier than before; the Dusk family keeps its own muted
+ones; Paper, Mist and High contrast took Spectrum's small tweaks. In
+Light, ok, err and peach are a shade deeper than the canvas drew, and
+in Paper the body text a shade softer, so each passes the rules here.
+Two mixing amounts per theme, `--soft` (a soft fill in the tool's
+colour: 16% Dark and the Dusk family, 12% Light and Paper, 14% Mist,
+22% High contrast) and `--wash` (a tinted ground: 5% to 10%), give
+`.hued` two more roles: `--tool-wash`, a ground washed with the tool's
+colour (a tool page's header, a selected card), and `--tool-line`, a
+line in it (a card's hue edge, the edge of a chip that is on). With
+tool colours off the wash is the plain `--bg-1` and the line the
+accent's. `--ink` (100% in Dark and the Dusk family, 80% in Light,
+Mist and Paper, 85% in High contrast) gives `--tool-ink`: the hue taken
+that far toward the text colour, for words on its own soft fill (an
+accent badge), so they stay readable on the lighter themes. The
+contrast script checks text on every hue's wash and soft fill in every
+theme.
 
 Never hard-code a colour, size or font in a component. A new token is a
 change to this file and `tokens.css` together.
@@ -150,35 +209,81 @@ change to this file and `tokens.css` together.
 │    │ tree  │ editor, lens    │ Outline        │
 │    │       │ view or tool    │ Problems       │
 ├────┴───────┴─────────────────┴────────────────┤
-│ status: type · path · counts · folder · ver   │
+│ view │ context · counts  focus · folder · ver │
 └───────────────────────────────────────────────┘
 ```
 
-- **Rail** 48/220 px (`Ctrl+B`): Home, then Pinned (the tools and
-  sub-tabs the user pinned, `lib/stores/usage.svelte.ts`), Workspace,
-  and the tool groups; Settings, Keyboard shortcuts and Collapse are
-  three icons in a row at the bottom. The list scrolls, and fades where
-  it goes on. A tool's menu (right-click, Shift+F10) pins it.
+- **Rail** 48/220 px (`Ctrl+B`): the mark, "codec" and the version
+  (major.minor); Home, then Pinned (the tools and sub-tabs the user
+  pinned, `lib/stores/usage.svelte.ts`), Workspace, and the tool
+  groups, each name followed by a line to the edge (only the line
+  when collapsed). Each entry's icon sits on a tile in its colour,
+  solid for the one that is open, on a soft fill; Problems shows what
+  the last workspace lint found. Settings, Keyboard shortcuts and
+  Collapse are three icons in a row at the bottom. The list scrolls,
+  and fades where it goes on. A tool's menu (right-click, Shift+F10)
+  pins it.
 - **Tabs.** Every view is a tab keyed by its route
   (`lib/stores/router.svelte.ts`); views stay mounted while their tab
-  is open (`active` prop hides them). Tabs that don't fit scroll (the
-  wheel too), the current one stays in view and a count at the end
-  lists them all; a tab drags to a new place and has a menu (close,
-  the others, to the right, all). `Alt+]`, `Alt+[`, `Alt+Shift+W`.
-- **Home** is where a tool is found: a search box, pinned tools, the
-  ones opened lately, the workspace, then every tool by group; a star
-  on a card pins it.
+  is open (`active` prop hides them). The current tab is on `--bg-1`
+  with a 2 px line in its colour along the top. Tabs that don't fit
+  scroll (the wheel too), the current one stays in view and **+N** at
+  the end lists the ones out of sight; a tab drags to a new place (it
+  dims, and a line in the accent marks where it lands) and has a menu
+  (close, the others, to the right, all). `Alt+]`, `Alt+[`,
+  `Alt+Shift+W`. The palette's button sits at the right end.
+- **Status bar.** The view's icon and name on a block of its colour,
+  what the view knows (a tool's line, a file's path and the path at the
+  cursor, what a lens view reads), and errors and warnings where there
+  are some to count; on the right the focus ring and time (Focus &
+  breaks' colour), the folder with its watch state, "Local only" and
+  the version.
+- **Home** is where a tool is found. A hero on `--bg-2`: the mark,
+  "codec", the line under it and the large search box, with a mosaic
+  of eight tools in the eight hues beside it (decoration, gone when
+  narrow); typing shows the tools found in place of the rest. Then
+  three columns: Pinned (a card with a hue edge each), Opened lately
+  (tools and this session's files, newest first, with how long ago)
+  and Workspace (the folder, its watch state, its files by kind as a
+  bar in the lens views' hues, Go to a file and Open another folder,
+  recent folders). Then every tool by group, a line after the name:
+  a group of up to four as cards (a 3 px top line in the tool's
+  colour, a soft tile, a star), a bigger one as tiles (a solid tile,
+  the name, the star under the pointer). On a first run Get started
+  (the sample, your own folder) takes the Workspace column, or the
+  whole row when nothing is pinned or opened yet. Narrow, the columns
+  go two by two and the grids halve.
 - **Panes resize.** Anything with two or three parts is a `SplitPane`
   or `ThreePanes`, never a fixed grid: sizes persist per `id`, a side
   panel keeps its width in px when the window changes (`px`), and the
   parts stack when narrow. Explorer and lens panel resize and collapse.
+- **Narrow** is a window under 1000 px (`narrow` in
+  `lib/stores/narrow.svelte.ts`): the file view's panel goes under the
+  editor (two thirds and one third), a tool's input over its output,
+  and Compare puts its sides one under the other, the changes above
+  the code and one side at a time (Right first). The rail stays as the
+  user left it.
 - **Lens views** (Argo, Pipeline, Compose, Ansible) use `LensView`
   (`PanelHeader`, what-if overrides, reload counter) and `LensGrid` or
   `ThreePanes` (side · main · detail, one remembered size for all of
   them). New lens views follow the same frame.
 - **A view's header** is `PanelHeader`: icon, name, what is known
-  (counts, a **What-if · N** badge with a reset beside it in the lens
-  views), actions on the right.
+  under it (counts, a **What-if · N** badge with a reset beside it in
+  the lens views), actions on the right, the primary one last.
+- **Workspace views** (3.11.0). The file view: breadcrumb, kind and
+  state badges, and **Match N of M** with previous and next while a
+  Search hit is open in it. Problems: three summary cards (by severity,
+  by kind of check, the files with most), then a row per file over its
+  findings, inline. Compare: the sides as cards, left indigo and right
+  pink, the swap between them. Query: results as cards, by file beside
+  them, and a hint for what they show (`queryHint.ts`). New: starters
+  as tiles in their kind's colour, the form beside the preview. Clone:
+  renames, suggestions and checks as panes beside the code; **Save
+  as…** is a download. Settings: sections as tiles on the left, each a
+  bold title over a card of rows; a rule's level is a
+  `SegmentedControl`. Markdown: headings in the text colour, colour in
+  the grounds. Mermaid: a grid behind, zoom at the bottom right, Copy
+  SVG and PNG (drawn in the page) in the file's header.
 - **A view that is drawn again and fails** keeps what it showed and
   says so (`ErrorNote` at the top of its side panel, with Try again);
   a first load that fails is an `EmptyState` with Try again.
@@ -189,16 +294,16 @@ Build once in `frontend/src/lib/components` and reuse:
 
 | Component | Use for |
 |---|---|
-| `Button` | Actions with text (primary, secondary, ghost; `sm`) |
-| `IconButton` | Icon-only actions; always a `label` (also its tooltip) |
-| `Tabs`, `SegmentedControl` | Switching views of the same thing; exclusive choices |
-| `WorkTabStrip` + `WorkTabs` (features/shared) | Several of the same work open at once in one tool (pastes, comparisons, logs; decision 97): one store and strip, each tab's component kept mounted and hidden when not current |
-| `Select`, `Toggle`, `SearchInput` | Form controls (Bits UI underneath) |
-| a plain `<input>`, `<textarea>`, `<select>` | Text fields and native menus: global.css gives every one the same frame and focus (border colour plus `--focus-ring`), with no weight, so a view writes only what differs. A field inside its own framed box sets `box-shadow: none` and the box shows the focus (`:focus-within`) |
-| `Chip` | A small choice in a row: a suggestion (a preset; `selected` marks the one in use) or a toggle (`pressed`: a flag, a weekday), `square` for one letter |
-| `SplitPane` | Two resizable panes: drag, arrow keys (Shift, Home, End), double click or Enter to reset; `direction`, `stackBelow`, `flush` (a line, for panes that touch), `px` (a side panel's width); sizes persisted by `id`, side by side and stacked apart |
+| `Button` | Actions with text (primary, secondary, ghost; `sm`). Primary is solid in the tool's colour, one per view |
+| `IconButton` | Icon-only actions; always a `label` (also its tooltip). `box` frames it, for a row of framed buttons; `active` is on (a soft fill in the tool's colour) |
+| `Tabs`, `SegmentedControl` | Switching views of the same thing; exclusive choices. The choice made is solid in the tool's colour; `soft` gives it a soft fill, for a setting (an interface size, local or UTC) rather than what the view shows. An option's `count` follows its label, `countTone` err or warn when it counts problems |
+| `WorkTabStrip` + `WorkTabs` (features/shared) | Several of the same work open at once in one tool (pastes, comparisons, logs; decision 97): one store and strip, each tab's component kept mounted and hidden when not current. `fresh()` shows an empty one (the current tab if it is); `wantFreshTab(tool)` asks a tool for one once it is open, for the palette's Ctrl+Enter |
+| `Select`, `Toggle`, `SearchInput` | Form controls (Bits UI underneath). `SearchInput` `large` is the one search a page is built around (Home's): taller, bigger text, the icon in the accent; `end` puts something after the field, such as the shortcut that does more |
+| a plain `<input>`, `<textarea>`, `<select>`, checkbox | Text fields and native menus: global.css gives every one the same frame (`--control-h` high, on `--bg-1`), hover and focus (border colour plus `--focus-ring`), with no weight, so a view writes only what differs. A wrong value: `aria-invalid="true"` (the error colour and `--invalid-ring`) and an inline `ErrorNote` under the field saying how to fix it. A field inside its own framed box sets `box-shadow: none` and the box shows the focus (`:focus-within`). A checkbox is a small frame, filled in the tool's colour with a tick when on |
+| `Chip` | A small choice in a row: a suggestion (a preset; `selected` marks the one in use) or a toggle (`pressed`: a flag, a weekday), one look: on, a soft fill, an edge in the tool's colour and a tick. `square` for one letter (no tick), `mono` for code |
+| `SplitPane` | Two resizable panes: drag, arrow keys (Shift, Home, End), double click or Enter to reset; `direction`, `stackBelow`, `flush` (a line, for panes that touch), `px` (a side panel's width), `initialStacked`; sizes persisted by `id`, side by side and stacked apart. Hot (hover, drag, focus), the divider is a soft strip with a line in the tool's colour; while dragging, a badge shows the first pane's share |
 | `ThreePanes` | Side · main · detail, each resizable: the frame of the lens views |
-| `PanelHeader` | The strip at the top of a view: icon (or `lead`, a file-type logo), title, `meta`, `actions`. Every view but the file view uses it; the file view's breadcrumb strip has the same height |
+| `PanelHeader` | The strip at the top of a view: its icon on a solid `lg` `Tile` (or `lead`, a file-type logo), the title with `meta` under it, `actions` on the right. On `--tool-wash`, dotted towards the right (`.dotted` in global.css: the tool's colour, gone with tool colours off). Every view but the file view uses it; the file view's breadcrumb strip has the same ground |
 | `Menu` | A button that opens a menu of named actions: the "…" at the end of a toolbar, for what doesn't earn a button. One main action per view as a button, the rest here |
 | `foldSections` (lib/actions) | On the side panel of a lens view: each `section > h3` folds (remembered per view), and Problems comes first when it has any |
 | `TreeView` | File trees and outlines; keyboard pattern, windowed over 300 rows |
@@ -206,27 +311,46 @@ Build once in `frontend/src/lib/components` and reuse:
 | `CodeView` | Any code or YAML (CodeMirror 6), read-only or editable |
 | `Graph` | Node graphs (dagre layout, colour groups `g-<group>`, dashed edges for run-time links, run status `s-failed/changed/ok/rescued/never` as a glyph as well as a colour). `selected` outlines the node whose details show; `lane` on a node puts it in a named band (a pipeline's stage). Pan by dragging, zoom with the wheel; keyboard: arrows move between nodes (or pan), `+` `-` zoom, `0` fits, Enter selects. A minimap appears when the graph is bigger than its box; the view is kept when the same graph changes (a what-if value) and fitted afresh for a different one. The legend adds what the drawing uses: dashed nodes (`missingNode`), dashed edges (`dashedEdge`), statuses. A cut label's whole text is the node's tooltip |
 | `EffectiveLines` | Config with an origin per line (CI, Compose) |
-| `Popover`, `Dialog`, `Tooltip` | Overlays; dialogs trap focus and close on Esc |
-| `ContextMenu` | Right-click menus (also Shift+F10); entries built per open from the event; sentence case, an icon per entry |
-| `Badge`, `Kbd` | File type with logo; key combos |
-| `EmptyState` | Nothing to show yet: icon, one sentence, the action that fills it |
-| `ErrorNote` | Something failed: icon, the reason, and `retry` (Try again) or other ways forward; `inline` beside a field or a row. Never a bare red paragraph |
+| `Popover`, `Dialog`, `Tooltip` | Overlays on `--bg-2`; dialogs (and the palettes) round by `--r-xl`, trap focus and close on Esc. A tooltip is inverted (the text colour as its ground), its shortcut quieter beside the words |
+| `ContextMenu` | Right-click menus (also Shift+F10); entries built per open from the event; sentence case, an icon per entry. The item under the pointer or keyboard takes a soft fill; `Menu` and `Select` lists look the same |
+| `Badge` | A short label: a count, a state, a rule's code. `tone` neutral (grey), accent (the tool's colour), ok, warn, err, info; `solid` for the one that must stand out (What-if · 2); `mono` for code |
+| `Kbd` | Key combos, as keycaps in the code font |
+| `Tile` | An icon on a rounded square in the tool's colour: soft or `solid`, `size` sm/md/lg/xl (20/28/40/56 at Comfortable, growing with the controls); `status` in place of the tool's colour. A soft tile turns grey with tool colours off |
+| `Card` | A framed block on the panel (a home card, a setting's group). `hue` gives the hue edge, a border in the tool's colour on a washed ground (the selected one, a callout), with `status` in that colour instead; `lift` for one that moves under the pointer |
+| `Pane` (features/shared) | A tool's titled panel: title, `meta`, `actions` over the body, with a 3 px line in the tool's colour along the top; `top={false}` for a pane beside the main ones |
+| `EmptyState` | Nothing to show yet: a soft `Tile`, one sentence, the action that fills it |
+| `ErrorNote` | Something failed: icon, the reason, and `retry` (Try again) or other ways forward; `title` names what failed, the reason quieter under it; `inline` beside a field or a row. Never a bare red paragraph |
+| `ProblemItem` (features/lint) | One finding: severity icon, message, hint, line and column with the rule's code as a mono `Badge`; **Why?** and **Turn this rule off** as small buttons, the second shown on hover or focus. `inline` puts it on one line, for a long list (Problems) |
 | `Skeleton` | Loading placeholders in the content's shape |
-| `Working` | "Working…" in a pane's header while content already shown is worked out again; appears after 250 ms. Never a spinner |
-| `Toaster` / `toast()` | Brief confirmations and non-blocking errors; an optional action ("Cleared · Undo") for undoable clears |
+| `Working` | A dot in the tool's colour and "Working…" in a pane's header while content already shown is worked out again; appears after 250 ms. Never a spinner |
+| `Toaster` / `toast()` | Brief confirmations and non-blocking errors, marked by a small solid tile in the status's colour; an optional action ("Cleared · Undo") for undoable clears |
+| `BrandMark` | The codec mark: three bars (indigo, pink, teal) on a tile. In the rail only |
+| `Spectrum` | The eight hues in a row, 4 px: the top edge of the palettes (`flush`: square, no gaps) and the foot of a theme card (`hues`: that theme's, from `lib/themes.ts`) |
 
 Shell pieces live in `lib/shell` (Rail, TabBar, StatusBar,
 CommandPalette, ShortcutsDialog). New tools register in `lib/tools.ts`
 (rail, home, tabs and palette are generated from it).
 
 Icons: `@lucide/svelte`, imported per icon
-(`@lucide/svelte/icons/<name>`), 16 px, stroke 1.75, `currentColor`.
+(`@lucide/svelte/icons/<name>`), 16 px, `currentColor`. One stroke for
+all, `--icon-stroke` (1.9, set in global.css), so no component passes
+`strokeWidth`. One icon per meaning, wherever it shows (rail, tab,
+header, palette, menu): Explorer `folder`, Open folder `upload`,
+Problems `triangle-alert`, Query and jq `braces`, New `plus`, Clone
+`copy`, Settings `sliders-horizontal`, Kubernetes `box`, Kustomize
+`layers`, Argo `workflow`, Pipeline `git-branch`, Compose `container`,
+Ansible `scroll-text`, Helm `ship-wheel`, Log viewer `list`, JWT
+`key`, Commands `terminal`; the other tools as `lib/tools.ts` has
+them, the views as its `viewIcon`.
 Logos: local SVGs in `frontend/src/assets/logos/`, source and licence
 per file in its `SOURCES.md`; only to label file types.
-App icon: `frontend/public/icon.svg` (also `docs/assets/logo.svg`), a YAML
-key over nested key: value rows in `--accent` to `--syn-anchor`. The PNGs
-beside it (192, 512, maskable 512 with the glyph in the 80% safe zone,
-180 touch icon) and `favicon.ico` (16 + 32) are renders of it; re-render
+App icon, "Spectrum keys": `frontend/public/icon.svg` (also
+`docs/assets/logo.svg`), a YAML key over two nested key: value rows, each
+key and value in its own tool hue (Dark's indigo, pink, teal, peach,
+lime) on `--bg-2`. `BrandMark` draws the same shape in the theme's hues
+for the rail and Home. The PNGs beside it (192, 512, maskable 512 with
+the glyph in the 80% safe zone, 180 touch icon), `favicon.ico` (16 + 32)
+and `desktop/windows/icon.ico` (16 to 256) are renders of it; re-render
 them when it changes, and rename the SVG if browser tabs keep the old one.
 
 ## Patterns
@@ -237,6 +361,14 @@ them when it changes, and rename the SVG if browser tabs keep the old one.
   Error → `ErrorNote`: a plain sentence, the reason, a way forward
   (`retry` wherever the thing can be asked for again); never a raw
   stack, never a spinner.
+- **Interaction states** (Spectrum), the same in every part. Hover: a
+  step up the surfaces (`--bg-4` on buttons, `--bg-3` on rows, chips
+  and choices; a field's border turns `--fg-2`); a primary button
+  mixes in the text colour. Focus: the global outline. Pressed: a
+  button steps down 1 px (a primary darkens toward the ground), an
+  icon button shows its frame. Disabled: 45% opacity and a not-allowed
+  cursor. Selected: a soft fill in the tool's colour (a tree row, a
+  menu item, a chip), solid where it is the one choice (a segment).
 - **Commands and shortcuts.** App-wide commands in `App.svelte`; a view's
   own commands registered while it is active
   (`$effect(() => active && commands.register([...]))`, or
@@ -246,7 +378,10 @@ them when it changes, and rename the SVG if browser tabs keep the old one.
   (`ToolLayout`, `InputPane`, `Pane`) when the input can be a document;
   the two resize, and a button at the end of the toolbar puts the
   input over the output instead (remembered per tool,
-  `features/shared/panes.svelte.ts`). The output pane is `TextOutput`
+  `features/shared/panes.svelte.ts`: auto, or always side by side or
+  stacked). Under 760 px of room or in a narrow window auto stacks
+  them, and the toolbar puts its controls on a second row with a
+  soft Beside · Stacked choice. The output pane is `TextOutput`
   (`OutputPane` is the same, fed from a transform session).
   When it is a value or a small form (a timestamp, a cron expression,
   generator options), one column instead (`ToolLayout` `body`,
@@ -274,7 +409,14 @@ them when it changes, and rename the SVG if browser tabs keep the old one.
   tools and their sub-tabs, files of the open folder's lenses, and one
   entry per setting (`features/settings/goto.svelte.ts`: "Settings:
   Theme" opens the page on its row). The commands run last come first
-  while nothing is typed.
+  while nothing is typed, then each group. A row is a tile in its
+  colour (the command's `hue`, else its group's tool or view, else
+  the accent), the title, a quieter `hint` (a tool's description) and
+  its shortcut; the highlighted one takes its colour. The foot lists
+  the keys and the number of results. `runNew` is the same in a new
+  tab: Ctrl+Enter opens a tool that keeps work tabs (`newTab` in
+  `lib/tools.ts`) on a fresh one, and the foot says so when the
+  highlighted row has it.
 - **API.** Components call the backend only through `lib/api/*`.
   Requests that follow typing are debounced and abortable.
 - **Desktop.** The same UI runs in the desktop window. Anything only it
@@ -288,9 +430,10 @@ them when it changes, and rename the SVG if browser tabs keep the old one.
 ## Accessibility checklist
 
 - Text contrast ≥ 4.5:1 on its surface; don't use `--fg-2` on `--bg-4`.
-- Keyboard focus visible (global 2 px accent ring); a field shows its
-  border colour plus `--focus-ring` (global.css does this for every
-  input); a component that removes either shows an equivalent.
+- Keyboard focus visible (global 2 px outline, in the tool's colour
+  inside a tool); a field shows its border colour plus `--focus-ring`
+  (global.css does this for every input); a component that removes
+  either shows an equivalent.
 - Every interactive element has an accessible name (text, `aria-label`
   or `label`). Icon-only buttons use `IconButton`.
 - An id in a component that can be mounted more than once (every view:
@@ -300,7 +443,19 @@ them when it changes, and rename the SVG if browser tabs keep the old one.
   it goes back where it was. A value that changes every second is a
   `role="timer"`, never a live region.
 - Trees, lists, tabs, radio groups follow WAI-ARIA keyboard patterns.
-- Severity is never colour alone: pair it with an icon or a word.
+  `role="tab"` only where tabs switch a panel; a row of choices of what
+  shows is buttons with `aria-current` (New's files) or a
+  `SegmentedControl`.
+- Severity is never colour alone: pair it with an icon or a word. A
+  count in a status colour shows the severity's icon, and says it to a
+  screen reader (`SegmentedControl` `countTone`, a `Badge` with `icon`
+  and an `sr-only` word); a mark that is only a dot gets an `sr-only`
+  word too.
+- A field's help or error is tied to it with `aria-describedby`, and a
+  wrong value sets `aria-invalid`; a label points at a real control
+  (a choice that names itself gets a plain caption, not a `<label>`).
+- Buttons hold phrasing content only: a value shown in one is a `span`
+  with `white-space: pre-wrap`, not a `<pre>`.
 - Respect `prefers-reduced-motion`.
 
 ## Writing
@@ -319,7 +474,11 @@ them when it changes, and rename the SVG if browser tabs keep the old one.
    `SplitPane` exist for them.
 2. Empty, loading and error states present.
 3. Reachable by keyboard; has a palette entry if it is an action.
-4. Accessible names on controls; contrast checked for new colour pairs.
-5. Works at narrow widths (the app is used side by side with an editor).
-6. `npm --prefix frontend run check` passes; screenshots in `docs/`
+4. Accessible names on controls; contrast checked for new colour pairs
+   (a new ground or text colour goes into `frontend/scripts/contrast.mjs`).
+5. Spectrum: the hue only through `.hued` and its roles; a view's
+   header is `PanelHeader`; tiles, washes and edges as the "Spectrum"
+   section above has them.
+6. Works at narrow widths (the app is used side by side with an editor).
+7. `npm --prefix frontend run check` passes; screenshots in `docs/`
    updated if the view is shown there.

@@ -6,25 +6,28 @@
   import { onDestroy, untrack } from 'svelte'
   import { EditorView } from '@codemirror/view'
   import BookOpen from '@lucide/svelte/icons/book-open'
-  import Boxes from '@lucide/svelte/icons/boxes'
+  import Box from '@lucide/svelte/icons/box'
+  import Braces from '@lucide/svelte/icons/braces'
   import ChevronDown from '@lucide/svelte/icons/chevron-down'
   import ChevronRight from '@lucide/svelte/icons/chevron-right'
+  import ChevronUp from '@lucide/svelte/icons/chevron-up'
   import Code from '@lucide/svelte/icons/code'
   import Copy from '@lucide/svelte/icons/copy'
+  import Download from '@lucide/svelte/icons/download'
   import Eraser from '@lucide/svelte/icons/eraser'
-  import CopyPlus from '@lucide/svelte/icons/copy-plus'
   import ExternalLink from '@lucide/svelte/icons/external-link'
   import FileDiff from '@lucide/svelte/icons/file-diff'
   import FileWarning from '@lucide/svelte/icons/file-warning'
   import GitCompare from '@lucide/svelte/icons/git-compare'
   import Link from '@lucide/svelte/icons/link'
   import LocateFixed from '@lucide/svelte/icons/locate-fixed'
+  import PanelBottom from '@lucide/svelte/icons/panel-bottom'
   import PanelRight from '@lucide/svelte/icons/panel-right'
+  import Play from '@lucide/svelte/icons/play'
   import RefreshCw from '@lucide/svelte/icons/refresh-cw'
   import RotateCcw from '@lucide/svelte/icons/rotate-ccw'
   import ShieldCheck from '@lucide/svelte/icons/shield-check'
   import ShieldOff from '@lucide/svelte/icons/shield-off'
-  import TextSearch from '@lucide/svelte/icons/text-search'
   import Trash from '@lucide/svelte/icons/trash-2'
   import X from '@lucide/svelte/icons/x'
   import Badge from '../../lib/components/Badge.svelte'
@@ -35,10 +38,11 @@
   import SegmentedControl from '../../lib/components/SegmentedControl.svelte'
   import Select from '../../lib/components/Select.svelte'
   import SplitPane from '../../lib/components/SplitPane.svelte'
-  import Tabs from '../../lib/components/Tabs.svelte'
+  import { hueVar, viewHue } from '../../lib/tools'
   import { completeAt, definitionAt, diffFile, hoverAt, type Diagnostic, type Pos } from '../../lib/api/yaml'
   import { commands } from '../../lib/stores/commands.svelte'
   import { layout } from '../../lib/stores/layout.svelte'
+  import { narrow } from '../../lib/stores/narrow.svelte'
   import { ansibleRoute, argoRoute, ciRoute, cloneRoute, composeRoute, k8sRoute, kustomizeRoute } from '../../lib/stores/router.svelte'
   import { neat } from '../../lib/api/k8s'
   import { toast } from '../../lib/stores/toast.svelte'
@@ -52,6 +56,7 @@
   import Outline from '../editor/Outline.svelte'
   import Problems from '../editor/Problems.svelte'
   import { FileSession, type SymbolRef } from '../editor/session.svelte'
+  import { finder } from '../search/search.svelte'
   import FileIcon from './FileIcon.svelte'
   import { editorLang, isSpecific, lookOf } from './filetypes'
   import { workspace as ws } from './workspace.svelte'
@@ -72,6 +77,9 @@
 
 
   let lensTab = $state<'outline' | 'problems'>('outline')
+  const found = $derived(session.analysis?.diagnostics ?? [])
+  // Opened from Find in Files: step through its matches from here.
+  const searchHere = $derived(finder.at >= 0 && finder.result?.matches[finder.at]?.path === path)
 
   const version = $derived(ws.versions.get(path) ?? 0)
   const deleted = $derived(ws.deleted.has(path))
@@ -90,6 +98,8 @@
   const mermaid = $derived(session.disk?.lang === 'mermaid')
   let mdView = $state<'source' | 'preview'>(untrack(() => (path.match(/\.(mmd|mermaid)$/i) ? 'preview' : markdownView.value)))
   const previewing = $derived((markdown || mermaid) && mdView === 'preview')
+  let diagram = $state<MermaidPreview>()
+  let diagramKind = $state('')
   const kindName = $derived(mermaid ? 'Mermaid' : 'Markdown')
   const lines = $derived(session.buffer ? session.buffer.split('\n').length - (session.buffer.endsWith('\n') ? 1 : 0) : 0)
 
@@ -267,13 +277,14 @@
     const out: MenuEntry[] = []
     if (session.isYAML) {
       out.push({ label: session.dirty ? 'Compare what-if edits with disk' : 'Compare with another file…', icon: GitCompare, run: compareThis })
-      out.push({ label: 'Query this file (jq)', icon: TextSearch, run: () => queries.open({ path }) })
-      out.push({ label: 'Clone with a new name…', icon: CopyPlus, run: () => layout.open(cloneRoute(path)) })
+      out.push({ label: 'Query this file (jq)', icon: Braces, run: () => queries.open({ path }) })
+      out.push({ label: 'Clone with a new name…', icon: Copy, run: () => layout.open(cloneRoute(path)) })
     }
     if (kind === 'kubernetes') {
-      out.push({ label: 'Kubernetes resources in this folder', icon: Boxes, run: () => layout.open(k8sRoute(dirOf(path))) })
+      out.push({ label: 'Kubernetes resources in this folder', icon: Box, run: () => layout.open(k8sRoute(dirOf(path))) })
       out.push({ label: 'Copy without cluster noise (neat)', icon: Eraser, run: () => void copyNeat() })
     }
+    if (session.dirty) out.push({ label: 'Copy content (with what-if edits)', icon: Copy, run: () => copyText(liveText(), 'Content') })
     if (out.length) out.push('separator')
     out.push({
       label: 'Reveal in explorer',
@@ -331,48 +342,49 @@
       ...(yaml
         ? [
             { id: 'file.compare', title: session.dirty ? 'Compare what-if edits with disk' : `Compare ${name} with…`, group: 'File', icon: GitCompare, keywords: ['diff'], run: compareThis },
-            { id: 'file.query', title: `Query ${name} (jq)`, group: 'File', icon: TextSearch, run: () => queries.open({ path }) },
-            { id: 'file.clone', title: `Clone ${name} with a new name`, group: 'File', icon: CopyPlus, keywords: ['copy', 'rename', 'duplicate'], run: () => layout.open(cloneRoute(path)) },
+            { id: 'file.query', title: `Query ${name} (jq)`, group: 'File', icon: Braces, run: () => queries.open({ path }) },
+            { id: 'file.clone', title: `Clone ${name} with a new name`, group: 'File', icon: Copy, keywords: ['copy', 'rename', 'duplicate'], run: () => layout.open(cloneRoute(path)) },
           ]
         : []),
     ])
   })
 </script>
 
-<div class="fileview">
-  <header>
-    <nav class="crumbs" aria-label="File path">
-      {#each segments as seg, i (i)}
-        {#if i > 0}<ChevronRight size={12} strokeWidth={1.75} />{/if}
-        {#if i === segments.length - 1}
-          {#if session.disk}<FileIcon file={{ type: kind, lang: session.disk.lang, path: session.disk.path }} />{/if}
-          <span class="file">{seg}</span>
-        {:else}
-          <span class="dir">{seg}</span>
-        {/if}
-      {/each}
-    </nav>
-    {#if isSpecific(kind)}<Badge>{lookOf(kind).title}</Badge>{/if}
-    {#if schema}
-      <span class="schema {schema.state}" title={schema.state === 'ok' ? `Checked against ${schema.url}` : schema.message}>
-        {#if schema.state === 'ok'}
-          <ShieldCheck size={12} strokeWidth={2} />
-        {:else if schema.state !== 'pending'}
-          <ShieldOff size={12} strokeWidth={2} />
-        {/if}
-        {schema.state === 'pending' ? 'Loading schema…' : schema.title}
-      </span>
-    {/if}
-    {#if session.dirty}
-      <span class="whatif" title="Edits here are never saved to disk">
-        <Badge tone="warn">What-if</Badge>
-        <IconButton icon={RotateCcw} label="Reset to disk" size="sm" onclick={() => session.reset()} />
-        <IconButton icon={Copy} tone="copy" label="Copy content" size="sm" onclick={() => copyText(liveText(), 'Content')} />
-        <IconButton icon={FileDiff} label="Copy diff (for git apply)" size="sm" onclick={copyDiff} />
-      </span>
-    {/if}
-    {#if updated}<span class="updated" role="status"><RefreshCw size={12} strokeWidth={2} /> Updated from disk</span>{/if}
+<div class="fileview hued" style:--tool={hueVar(viewHue.explorer)}>
+  <header class="dotted">
+    {#if session.disk}<span class="mark"><FileIcon file={{ type: kind, lang: session.disk.lang, path: session.disk.path }} size={16} /></span>{/if}
+    <div class="heading">
+      <nav class="crumbs" aria-label="File path">
+        {#each segments as seg, i (i)}
+          {#if i > 0}<ChevronRight size={12} />{/if}
+          <span class={i === segments.length - 1 ? 'file' : 'dir'}>{seg}</span>
+        {/each}
+      </nav>
+      {#if isSpecific(kind) || schema || session.dirty || updated}
+        <div class="badges">
+          {#if isSpecific(kind)}<Badge tone="accent">{lookOf(kind).title}{mermaid && previewing && diagramKind ? ` · ${diagramKind}` : ''}</Badge>{/if}
+          {#if schema}
+            <span class="schema" title={schema.state === 'ok' ? `Checked against ${schema.url}` : schema.message}>
+              {#if schema.state === 'ok'}
+                <Badge tone="ok" icon={ShieldCheck}>{schema.title}</Badge>
+              {:else if schema.state === 'pending'}
+                <Badge>Loading schema…</Badge>
+              {:else}
+                <Badge tone="warn" icon={ShieldOff}>{schema.title}</Badge>
+              {/if}
+            </span>
+          {/if}
+          {#if session.dirty}<span title="Edits here are never saved to disk"><Badge tone="warn" solid>What-if</Badge></span>{/if}
+          {#if updated}<span class="updated" role="status"><RefreshCw size={12} /> Updated from disk</span>{/if}
+        </div>
+      {/if}
+    </div>
     <div class="spacer"></div>
+    {#if searchHere}
+      <span class="match" role="status">Match {finder.at + 1} of {finder.result?.matches.length}</span>
+      <IconButton icon={ChevronUp} label="Previous match" size="sm" box onclick={() => finder.go(finder.at - 1)} />
+      <IconButton icon={ChevronDown} label="Next match" size="sm" box onclick={() => finder.go(finder.at + 1)} />
+    {/if}
     {#if markdown || mermaid}
       <SegmentedControl
         label="{kindName} view"
@@ -382,6 +394,10 @@
           { value: 'preview', label: 'Preview', icon: BookOpen, title: mermaid ? 'The diagram; shows what-if edits too' : 'Rendered; shows what-if edits too' },
         ]}
       />
+    {/if}
+    {#if previewing && mermaid}
+      <Button size="sm" icon={Copy} tone="copy" onclick={() => diagram?.copySVG()}>Copy SVG</Button>
+      <Button size="sm" icon={Download} tone="save" title="Save the diagram as a PNG (a download)" onclick={() => diagram?.savePNG()}>PNG</Button>
     {/if}
     {#if docItems.length > 1}
       <div class="docs">
@@ -396,17 +412,20 @@
         />
       </div>
     {/if}
-    {#if session.disk}
-      <span class="meta">
-        {lines} lines{session.disk.crlf ? ' · CRLF' : ''}{session.disk.bom ? ' · BOM' : ''}
-      </span>
+    {#if session.dirty}
+      <Button size="sm" variant="ghost" icon={RotateCcw} tone="clear" onclick={() => session.reset()}>Reset to disk</Button>
+      <Button size="sm" icon={FileDiff} tone="copy" title="Copy diff (for git apply)" onclick={copyDiff}>Copy diff</Button>
     {/if}
     <!-- One main action for the file's type: its view. A second one
          (a chart's Argo document) stays quiet beside it. -->
     {#each lens as l, i (l.label)}
-      <Button size="sm" variant={i === 0 ? 'secondary' : 'ghost'} onclick={l.run} title={l.title}>
-        <span class="render"><FileIcon file={l.icon} /> {l.label}</span>
-      </Button>
+      {#if i === 0}
+        <Button variant="primary" icon={Play} onclick={l.run} title={l.title}>{l.label}</Button>
+      {:else}
+        <Button size="sm" variant="ghost" onclick={l.run} title={l.title}>
+          <span class="render"><FileIcon file={l.icon} /> {l.label}</span>
+        </Button>
+      {/if}
     {/each}
     <div class="actions">
       <span class="open-in">
@@ -418,20 +437,20 @@
         />
         <Menu label="Choose editor" icon={ChevronDown} slim items={editorItems} />
       </span>
-      <IconButton icon={PanelRight} label="Outline and problems" size="sm" active={lensOpen.value} onclick={() => (lensOpen.value = !lensOpen.value)} />
+      <IconButton icon={narrow.current ? PanelBottom : PanelRight} label="Outline and problems" size="sm" active={lensOpen.value} onclick={() => (lensOpen.value = !lensOpen.value)} />
       <Menu label="More actions for this file" items={more} />
     </div>
   </header>
 
   {#if session.pendingDisk}
     <div class="banner warn" role="alert">
-      <RefreshCw size={14} strokeWidth={1.75} />
+      <RefreshCw size={14} />
       <span>The file changed on disk while you were editing.</span>
       <Button size="sm" onclick={() => session.reloadFromDisk()}>Reload from disk</Button>
       <Button size="sm" variant="ghost" onclick={() => session.keepEdits()}>Keep my edits</Button>
     </div>
   {:else if deleted}
-    <div class="banner warn" role="alert"><Trash size={14} strokeWidth={1.75} /> This file was deleted on disk. What you see is the last version codec read.</div>
+    <div class="banner warn" role="alert"><Trash size={14} /> This file was deleted on disk. What you see is the last version codec read.</div>
   {/if}
 
   <div class="body">
@@ -441,30 +460,42 @@
       </EmptyState>
     {:else if session.disk}
       {#snippet editor()}
-        <div class="source" class:hidden={previewing}>
-          <CodeView
-            bind:this={cv}
-            bind:value={session.buffer}
-            syncDelay={100}
-            label={path}
-            language={editorLang(session.disk!.lang, kind, session.disk!.path)}
-            extensions={session.isYAML ? intel : []}
-          />
+        <div class="editor">
+          <div class="source" class:hidden={previewing}>
+            <CodeView
+              bind:this={cv}
+              bind:value={session.buffer}
+              syncDelay={100}
+              label={path}
+              language={editorLang(session.disk!.lang, kind, session.disk!.path)}
+              extensions={session.isYAML ? intel : []}
+            />
+          </div>
+          {#if previewing && mermaid}<MermaidPreview bind:this={diagram} bind:kind={diagramKind} text={session.buffer} name={segments[segments.length - 1]} />{:else if previewing}<MarkdownPreview text={session.buffer} {path} {active} />{/if}
+          <div class="foot">
+            <span>{lines} {lines === 1 ? 'line' : 'lines'} · {session.disk!.crlf ? 'CRLF' : 'LF'} · UTF-8{session.disk!.bom ? ' with BOM' : ''}</span>
+            {#if session.isYAML && session.crumbs.length && !previewing}<span class="at">{session.crumbs.join('.')}</span>{/if}
+          </div>
         </div>
-        {#if previewing && mermaid}<MermaidPreview text={session.buffer} />{:else if previewing}<MarkdownPreview text={session.buffer} {path} {active} />{/if}
       {/snippet}
       {#if lensOpen.value}
-        <SplitPane id="file-lens" initial={0.74} min={220}>
+        <SplitPane id="file-lens" initial={0.74} initialStacked={0.66} min={220} direction={narrow.current ? 'column' : 'auto'}>
           {#snippet first()}{@render editor()}{/snippet}
           {#snippet second()}
-            <aside class="lens" aria-label="Outline and problems">
+            <aside class="lens hued" aria-label="Outline and problems" style:--tool={hueVar(lensTab === 'problems' ? viewHue.problems : viewHue.explorer)}>
               <div class="lens-head">
-                <Tabs
+                <SegmentedControl
+                  soft
                   bind:value={lensTab}
                   label="File panels"
-                  tabs={[
+                  options={[
                     { value: 'outline', label: 'Outline' },
-                    { value: 'problems', label: 'Problems', count: session.analysis?.diagnostics.length ?? 0 },
+                    {
+                      value: 'problems',
+                      label: 'Problems',
+                      count: found.length,
+                      countTone: found.some((d) => d.severity === 'error') ? 'err' : found.length ? 'warn' : 'neutral',
+                    },
                   ]}
                 />
                 <IconButton icon={X} label="Close panel" size="sm" onclick={() => (lensOpen.value = false)} />
@@ -500,17 +531,35 @@
     flex-direction: column;
     min-width: 0;
   }
+  /* A view header (PanelHeader's wash and dots) a little lower: the
+     file's mark, its path, and what is known about it under the path. */
   header {
     display: flex;
     align-items: center;
-    gap: var(--s-3);
-    /* As PanelHeader, so every view's strip is one height. */
-    min-height: calc(var(--control-h) + var(--s-2));
-    padding: 0 var(--s-2) 0 var(--s-4);
+    gap: var(--s-2);
+    min-height: calc(var(--control-h) + var(--s-6));
+    padding: var(--s-2) var(--s-3) var(--s-2) var(--s-4);
     border-bottom: 1px solid var(--border);
-    background: var(--bg-1);
+    background: var(--tool-wash);
     flex: 0 0 auto;
     min-width: 0;
+  }
+  .mark {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: calc(var(--control-h) - 4px);
+    height: calc(var(--control-h) - 4px);
+    margin-right: var(--s-1);
+    background: var(--bg-2);
+    border: 1px solid var(--tool-line);
+    border-radius: var(--r-md);
+  }
+  .heading {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-1);
   }
   .crumbs {
     display: flex;
@@ -519,7 +568,7 @@
     min-width: 0;
     overflow: hidden;
     white-space: nowrap;
-    font-size: var(--fs-md);
+    font-size: var(--fs-sm);
     color: var(--fg-2);
   }
   .dir {
@@ -527,12 +576,14 @@
   }
   .file {
     color: var(--fg-0);
-    font-weight: var(--fw-medium);
+    font-weight: var(--fw-semibold);
   }
-  .whatif {
-    display: inline-flex;
+  .badges {
+    display: flex;
     align-items: center;
-    gap: 2px;
+    gap: var(--s-2);
+    min-width: 0;
+    overflow: hidden;
   }
   .updated {
     display: inline-flex;
@@ -544,32 +595,19 @@
   }
   .schema {
     display: inline-flex;
-    align-items: center;
-    gap: var(--s-1);
     min-width: 0;
     overflow: hidden;
-    font-size: var(--fs-sm);
-    color: var(--fg-2);
-    white-space: nowrap;
-    text-overflow: ellipsis;
-  }
-  .schema.ok :global(svg) {
-    color: var(--ok);
-  }
-  .schema.unavailable :global(svg) {
-    color: var(--warn);
   }
   .spacer {
     flex: 1;
   }
+  .match {
+    font-size: var(--fs-xs);
+    color: var(--fg-1);
+    white-space: nowrap;
+  }
   .docs :global(.codec-select-trigger) {
     max-width: 220px;
-  }
-  .meta {
-    font-size: var(--fs-sm);
-    color: var(--fg-2);
-    white-space: nowrap;
-    font-variant-numeric: tabular-nums;
   }
   .render {
     display: inline-flex;
@@ -602,15 +640,41 @@
     display: flex;
     flex-direction: column;
   }
+  .editor {
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
   .source {
     flex: 1;
     min-height: 0;
-    height: 100%;
     display: flex;
     flex-direction: column;
   }
   .source.hidden {
     display: none;
+  }
+  /* Under the editor: what the file is, and where the cursor is. */
+  .foot {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+    height: var(--statusbar-h);
+    padding: 0 var(--s-4);
+    font-size: var(--fs-xs);
+    color: var(--fg-2);
+    background: var(--bg-2);
+    border-top: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  .at {
+    margin-left: auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: var(--font-mono);
   }
   .lens {
     height: 100%;
@@ -620,20 +684,22 @@
     background: var(--bg-1);
     border-left: 1px solid var(--border);
   }
+  /* Under the editor (narrow, or a narrow view). */
+  :global(.split.stacked) .lens {
+    border-left: none;
+    border-top: 1px solid var(--border);
+  }
   .lens-head {
+    flex: none;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 var(--s-1) 0 var(--s-2);
+    height: calc(var(--control-h) + var(--s-3));
+    padding: 0 var(--s-1) 0 var(--s-3);
     border-bottom: 1px solid var(--border);
   }
   .lens-body {
     flex: 1;
     min-height: 0;
-  }
-  @media (max-width: 900px) {
-    .meta {
-      display: none;
-    }
   }
 </style>

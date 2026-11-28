@@ -1,9 +1,10 @@
 // How a tool lays its input and output out: side by side when there is
-// room (auto), or always one over the other. A display preference per
-// tool, persisted; the sizes themselves are SplitPane's.
+// room (auto), or always side by side (row) or one over the other
+// (column). A display preference per tool, persisted; the sizes
+// themselves are SplitPane's.
 import { persisted } from '../../lib/stores/persist.svelte'
 
-export type PaneLayout = 'auto' | 'column'
+export type PaneLayout = 'auto' | 'row' | 'column'
 
 const prefs = persisted<Record<string, PaneLayout>>('paneLayout', {})
 

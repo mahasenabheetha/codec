@@ -32,7 +32,7 @@
   .block {
     display: block;
     border-radius: var(--r-sm);
-    background: var(--bg-3);
+    background: linear-gradient(90deg, var(--bg-3), var(--bg-4), var(--bg-3));
     animation: pulse 1.2s var(--ease) infinite alternate;
   }
   @keyframes pulse {

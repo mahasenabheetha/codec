@@ -1,26 +1,33 @@
 <script lang="ts">
+  import Braces from '@lucide/svelte/icons/braces'
   import CaseSensitive from '@lucide/svelte/icons/case-sensitive'
   import ChevronRight from '@lucide/svelte/icons/chevron-right'
   import ChevronsDownUp from '@lucide/svelte/icons/chevrons-down-up'
-  import FolderOpen from '@lucide/svelte/icons/folder-open'
+  import Eraser from '@lucide/svelte/icons/eraser'
+  import ListFilter from '@lucide/svelte/icons/list-filter'
+  import Upload from '@lucide/svelte/icons/upload'
   import Regex from '@lucide/svelte/icons/regex'
   import RotateCw from '@lucide/svelte/icons/rotate-cw'
+  import Search from '@lucide/svelte/icons/search'
   import TextSearch from '@lucide/svelte/icons/text-search'
   import WholeWord from '@lucide/svelte/icons/whole-word'
+  import Badge from '../../lib/components/Badge.svelte'
   import Button from '../../lib/components/Button.svelte'
   import EmptyState from '../../lib/components/EmptyState.svelte'
   import IconButton from '../../lib/components/IconButton.svelte'
+  import Tile from '../../lib/components/Tile.svelte'
   import type { SearchMatch } from '../../lib/api/search'
   import { layout } from '../../lib/stores/layout.svelte'
   import { queryRoute } from '../../lib/stores/router.svelte'
-  import { editorNav } from '../editor/active.svelte'
+  import { hueVar, viewHue } from '../../lib/tools'
   import FileIcon from '../workspace/FileIcon.svelte'
   import { workspace as ws } from '../workspace/workspace.svelte'
   import { finder as f } from './search.svelte'
 
   // Find in Files, in the sidebar panel beside the Explorer: text across
   // every listed file, grouped by file. Clicking a line opens the file
-  // with the hit selected. Read-only: there is no replace (decision 3).
+  // beside the results with the hit selected; its header steps on to
+  // the next. Read-only: there is no replace (decision 3).
 
   // Focus the box when asked (Ctrl+Shift+F), not on every mount.
   let input = $state<HTMLInputElement>()
@@ -41,11 +48,9 @@
   })
 
   const r = $derived(f.result)
-
-  function open(m: SearchMatch) {
-    layout.openFile(m.path)
-    editorNav.request(m.path, m.line, m.col, m.endCol)
-  }
+  // Each match's place in the result, to open it and mark the current one.
+  const index = $derived(new Map((r?.matches ?? []).map((m, i) => [m, i])))
+  const current = $derived(f.at >= 0 ? r?.matches[f.at] : undefined)
 
   /** The line, without its indentation, split into plain and
    *  highlighted pieces. */
@@ -73,26 +78,30 @@
   }
 </script>
 
-<aside class="search" aria-label="Find in files">
+<aside class="search hued" aria-label="Find in files" style:--tool={hueVar(viewHue.search)}>
   <header>
-    <span class="name">Search</span>
-    <div class="actions">
-      {#if f.byFile.length > 1}
-        <IconButton icon={ChevronsDownUp} label="Collapse all" size="sm" onclick={() => (f.collapsed = new Set(f.byFile.map((g) => g.path)))} />
-      {/if}
-      <IconButton icon={RotateCw} label="Search again" size="sm" disabled={!f.query.trim()} onclick={() => f.schedule(true)} />
+    <Tile icon={Search} size="md" solid />
+    <div class="heading">
+      <span class="name">Search</span>
+      {#if ws.info?.open}<span class="sub" title={ws.info.root}>{ws.info.name} · {plural(ws.files.length, 'file')}</span>{/if}
     </div>
+    {#if f.byFile.length > 1}
+      <IconButton icon={ChevronsDownUp} label="Collapse all" size="sm" onclick={() => (f.collapsed = new Set(f.byFile.map((g) => g.path)))} />
+    {/if}
+    <IconButton icon={RotateCw} label="Search again" size="sm" disabled={!f.query.trim()} onclick={() => f.schedule(true)} />
+    <IconButton icon={Eraser} tone="clear" label="Clear the search" size="sm" disabled={!f.query} onclick={() => f.reset()} />
   </header>
 
   {#if !ws.info?.open}
     <div class="empty-wrap">
       <EmptyState icon={TextSearch} title="No folder open" description="Find in Files searches the text of every file in the open folder.">
-        <Button variant="primary" size="sm" icon={FolderOpen} tone="open" onclick={() => ws.chooseFolder()}>Open folder</Button>
+        <Button variant="primary" size="sm" icon={Upload} tone="open" onclick={() => ws.chooseFolder()}>Open folder</Button>
       </EmptyState>
     </div>
   {:else}
     <div class="form">
-      <div class="query">
+      <div class="field">
+        <Search size={14} />
         <input
           bind:this={input}
           bind:value={f.query}
@@ -107,30 +116,40 @@
         <IconButton icon={WholeWord} label="Whole word" size="sm" active={f.wholeWord} aria-pressed={f.wholeWord} onclick={() => ((f.wholeWord = !f.wholeWord), f.schedule(true))} />
         <IconButton icon={Regex} label="Regular expression" size="sm" active={f.regex} aria-pressed={f.regex} onclick={() => ((f.regex = !f.regex), f.schedule(true))} />
       </div>
-      <input
-        class="globs"
-        bind:value={f.globs}
-        type="text"
-        placeholder="Files, e.g. charts/**, *.yaml, !**/tests/**"
-        aria-label="Files to include; start with ! to exclude"
-        title="Comma-separated globs. ** spans folders; a bare name matches at any depth, /name only at the top; [ab] is a class; ! excludes."
-        spellcheck="false"
-        oninput={() => f.schedule()}
-        {onkeydown}
-      />
-    </div>
+      <div class="field globs">
+        <ListFilter size={14} />
+        <input
+          bind:value={f.globs}
+          type="text"
+          placeholder="Files, e.g. charts/**, *.yaml, !**/tests/**"
+          aria-label="Files to include; start with ! to exclude"
+          title="Comma-separated globs. ** spans folders; a bare name matches at any depth, /name only at the top; [ab] is a class; ! excludes."
+          spellcheck="false"
+          oninput={() => f.schedule()}
+          {onkeydown}
+        />
+      </div>
 
-    <div class="summary" aria-live="polite">
-      {#if f.error}
-        <span class="error">{f.error}</span>
-      {:else if f.running && !r}
-        Searching…
-      {:else if r}
-        {#if r.matches.length === 0}
-          No results in {plural(r.searched, 'file')}.
-        {:else}
-          {plural(r.matches.length, 'line')} in {plural(r.files, 'file')}{r.truncated ? ' — showing the first ones; narrow the search' : ''}{r.timedOut ? ' — stopped after 20 s' : ''}
+      <div class="summary" aria-live="polite">
+        {#if f.error}
+          <span class="error">{f.error}</span>
+        {:else if f.running && !r}
+          Searching…
+        {:else if r}
+          {#if r.matches.length === 0}
+            No results in {plural(r.searched, 'file')}.
+          {:else}
+            <b>{plural(r.matches.length, 'line')}</b>
+            <span>in {plural(r.files, 'file')}{r.truncated ? ' — showing the first ones; narrow the search' : ''}{r.timedOut ? ' — stopped after 20 s' : ''}</span>
+          {/if}
         {/if}
+        <button type="button" class="link" onclick={() => layout.open(queryRoute)}><Braces size={12} />Query</button>
+      </div>
+      {#if f.byFile.length > 1}
+        <!-- How the lines split between the files, in their order below. -->
+        <div class="bar" aria-hidden="true">
+          {#each f.byFile as g (g.path)}<i style:flex={g.matches.length}></i>{/each}
+        </div>
       {/if}
     </div>
 
@@ -138,15 +157,15 @@
       {#each f.byFile as g (g.path)}
         {@const open_ = !f.collapsed.has(g.path)}
         <button type="button" class="file" aria-expanded={open_} title={g.path} onclick={() => f.toggleFile(g.path)}>
-          <span class="twisty" class:open={open_}><ChevronRight size={14} strokeWidth={1.75} /></span>
+          <span class="twisty" class:open={open_}><ChevronRight size={14} /></span>
           <FileIcon file={ws.byPath.get(g.path) ?? { lang: 'text' }} />
           <span class="fname">{g.path.split('/').pop()}</span>
           <span class="dir">{dirOf(g.path)}</span>
-          <span class="count">{g.matches.length}</span>
+          <Badge>{g.matches.length}</Badge>
         </button>
         {#if open_}
           {#each g.matches as m (m.line)}
-            <button type="button" class="hit" title="{g.path}:{m.line}" onclick={() => open(m)}>
+            <button type="button" class="hit" class:on={m === current} aria-current={m === current ? 'true' : undefined} title="{g.path}:{m.line}" onclick={() => f.go(index.get(m) ?? 0)}>
               <span class="ln">{m.line}</span>
               <span class="text">{#each pieces(m) as p, i (i)}{#if p.hit}<mark>{p.text}</mark>{:else}{p.text}{/if}{/each}</span>
             </button>
@@ -171,25 +190,32 @@
     background: var(--bg-1);
   }
   header {
+    flex: 0 0 auto;
     display: flex;
     align-items: center;
-    gap: var(--s-2);
-    height: var(--tabbar-h);
-    padding: 0 var(--s-1) 0 var(--s-3);
+    gap: var(--s-1);
+    min-height: calc(var(--control-h) + var(--s-6));
+    padding: var(--s-2) var(--s-2) var(--s-2) var(--s-3);
+    background: var(--tool-wash);
     border-bottom: 1px solid var(--border);
-    flex: 0 0 auto;
+  }
+  .heading {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    margin-left: var(--s-2);
   }
   .name {
-    flex: 1;
-    font-size: var(--fs-xs);
+    font-size: var(--fs-lg);
     font-weight: var(--fw-semibold);
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
   }
-  .actions {
-    display: flex;
-    align-items: center;
-    gap: 2px;
+  .sub {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--fs-xs);
+    color: var(--fg-1);
   }
   .empty-wrap {
     padding: var(--s-6) var(--s-2);
@@ -198,27 +224,32 @@
     display: flex;
     flex-direction: column;
     gap: var(--s-2);
-    padding: var(--s-2) var(--s-2) var(--s-1);
+    padding: var(--s-3);
+    border-bottom: 1px solid var(--border);
   }
-  .query {
+  /* A box with its icon in front: the search text with its three
+     switches, and the files to search. */
+  .field {
     display: flex;
     align-items: center;
     gap: 2px;
-    padding-right: 2px;
+    padding: 0 2px 0 var(--s-2);
+    color: var(--fg-2);
     background: var(--bg-0);
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-strong);
     border-radius: var(--r-md);
     transition: border-color var(--dur) var(--ease);
   }
-  .query:focus-within,
-  .globs:focus {
-    border-color: var(--tool-accent, var(--accent));
+  .field:focus-within {
+    border-color: var(--tool-accent);
     box-shadow: var(--focus-ring);
   }
   input {
+    flex: 1;
     min-width: 0;
     height: var(--control-h);
     padding: 0 var(--s-2);
+    font-family: var(--font-mono);
     font-size: var(--fs-sm);
     color: var(--fg-0);
     background: none;
@@ -226,24 +257,46 @@
     box-shadow: none;
     outline: none;
   }
-  .query input {
-    flex: 1;
-  }
-  .globs {
+  .globs input {
     height: var(--control-h-sm);
     font-size: var(--fs-xs);
-    background: var(--bg-0);
-    border: 1px solid var(--border);
-    border-radius: var(--r-md);
   }
   input::placeholder {
+    font-family: var(--font-ui);
     color: var(--fg-2);
   }
   .summary {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0 var(--s-1);
     min-height: 20px;
-    padding: 0 var(--s-3) var(--s-1);
     font-size: var(--fs-xs);
-    color: var(--fg-2);
+    color: var(--fg-1);
+  }
+  .summary b {
+    font-weight: var(--fw-semibold);
+    color: var(--fg-0);
+  }
+  .summary .link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-1);
+    margin-left: auto;
+    font-weight: var(--fw-medium);
+  }
+  .bar {
+    display: flex;
+    gap: 2px;
+    height: 6px;
+    overflow: hidden;
+    border-radius: var(--r-full);
+  }
+  .bar i {
+    background: var(--tool-accent);
+  }
+  .bar i:nth-child(even) {
+    opacity: 0.6;
   }
   .error {
     color: var(--err);
@@ -252,7 +305,7 @@
     flex: 1;
     min-height: 0;
     overflow: auto;
-    padding-bottom: var(--s-4);
+    padding: var(--s-2) var(--s-2) var(--s-4);
     transition: opacity var(--dur) var(--ease);
   }
   .results.stale {
@@ -262,9 +315,9 @@
   .hit {
     display: flex;
     align-items: center;
-    gap: var(--s-1);
+    gap: var(--s-2);
     width: 100%;
-    height: 24px;
+    height: 26px;
     padding: 0 var(--s-2);
     font-size: var(--fs-md);
     color: var(--fg-1);
@@ -272,15 +325,23 @@
     white-space: nowrap;
     background: none;
     border: none;
+    border-radius: var(--r-sm);
+  }
+  .file {
+    color: var(--fg-0);
   }
   .file:hover,
   .hit:hover {
     color: var(--fg-0);
     background: var(--bg-2);
   }
+  .hit.on {
+    color: var(--fg-0);
+    background: var(--tool-accent-soft);
+  }
   .file:focus-visible,
   .hit:focus-visible {
-    outline: 1px solid var(--accent);
+    outline: 1px solid var(--tool-accent);
     outline-offset: -1px;
   }
   .twisty {
@@ -296,6 +357,7 @@
   }
   .fname {
     flex: 0 0 auto;
+    font-weight: var(--fw-medium);
   }
   .dir {
     flex: 1;
@@ -305,26 +367,16 @@
     font-size: var(--fs-xs);
     color: var(--fg-2);
   }
-  .count {
-    flex: 0 0 auto;
-    min-width: 18px;
-    padding: 0 5px;
-    font-size: var(--fs-xs);
-    text-align: center;
-    color: var(--fg-1);
-    background: var(--bg-3);
-    border-radius: 9px;
-  }
   .hit {
-    gap: var(--s-2);
     padding-left: calc(var(--s-2) + 20px);
     font-family: var(--font-mono);
     font-size: var(--fs-sm);
   }
   .ln {
     flex: 0 0 auto;
-    min-width: 2.5ch;
+    min-width: 3ch;
     text-align: right;
+    font-size: var(--fs-xs);
     color: var(--fg-2);
   }
   .text {
@@ -346,7 +398,7 @@
   .link {
     padding: 0;
     font: inherit;
-    color: var(--accent);
+    color: var(--tool-accent);
     background: none;
     border: none;
   }

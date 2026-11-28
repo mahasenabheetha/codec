@@ -1,18 +1,23 @@
 <script lang="ts">
   import type { Component, Snippet } from 'svelte'
 
+  // A short label: a count, a state, a rule's code. `accent` is in the
+  // tool's colour (the accent outside a tool), a status in its own;
+  // `neutral` is grey. `solid` fills it, for the one that must stand out
+  // (What-if · 2, FAILED); `mono` is for code.
   interface Props {
-    tone?: 'neutral' | 'accent' | 'ok' | 'warn' | 'err'
+    tone?: 'neutral' | 'accent' | 'ok' | 'warn' | 'err' | 'info'
     icon?: Component
     solid?: boolean
+    mono?: boolean
     children: Snippet
   }
 
-  let { tone = 'neutral', icon: Icon, solid = false, children }: Props = $props()
+  let { tone = 'neutral', icon: Icon, solid = false, mono = false, children }: Props = $props()
 </script>
 
-<span class="badge {tone}" class:solid>
-  {#if Icon}<Icon size={12} strokeWidth={2} />{/if}
+<span class="badge {tone}" class:solid class:mono>
+  {#if Icon}<Icon size={12} />{/if}
   {@render children()}
 </span>
 
@@ -27,15 +32,20 @@
     font-weight: var(--fw-semibold);
     letter-spacing: 0.02em;
     white-space: nowrap;
-    border-radius: var(--r-full);
+    border-radius: var(--r-sm);
+  }
+  .mono {
+    font-family: var(--font-mono);
+    font-weight: var(--fw-medium);
+    letter-spacing: 0;
   }
   .neutral {
     color: var(--fg-1);
     background: var(--bg-3);
   }
   .accent {
-    color: var(--accent);
-    background: var(--accent-soft);
+    color: var(--tool-ink, var(--accent));
+    background: var(--tool-accent-soft, var(--accent-soft));
   }
   .ok {
     color: var(--ok);
@@ -49,16 +59,26 @@
     color: var(--err);
     background: var(--err-soft);
   }
+  .info {
+    color: var(--info);
+    background: var(--info-soft);
+  }
+  .solid {
+    color: var(--accent-fg);
+  }
+  .solid.accent {
+    background: var(--tool-accent, var(--accent));
+  }
   .solid.ok {
-    color: var(--bg-0);
     background: var(--ok);
   }
+  .solid.warn {
+    background: var(--warn);
+  }
   .solid.err {
-    color: var(--bg-0);
     background: var(--err);
   }
-  .solid.warn {
-    color: var(--bg-0);
-    background: var(--warn);
+  .solid.info {
+    background: var(--info);
   }
 </style>

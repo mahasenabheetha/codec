@@ -592,3 +592,15 @@ Settled unless the user reopens them. Add new ones at the bottom:
     grows with Interface size; a pane's size is a display preference
     and is remembered, a tool's input still is not [19]. New features
     the review suggested wait under "Later" (2026-11-12).
+106. Spectrum, the interface redesign, is two minor releases, 3.11.0
+    and 3.12.0 (asked for 2026-11-27, from the owner's design canvas):
+    the look redrawn, the information architecture kept, frontend
+    only, so a minor release by 73 and not a major one; nothing
+    breaks. Colours by option 3 of the canvas: Dark and Light take the
+    Spectrum values, the Dusk family keeps today's, Paper, Mist and
+    High contrast take its small tweaks; the contrast rules stay as
+    they are. 3.11.0 is the system, the shell and the workspace;
+    3.12.0 the lens views, logs, tools and wellness. Small additions
+    the artboards show are in (a Problems summary, the cron week, the
+    CIDR bit grid, Mermaid as PNG and the like); behaviour they don't
+    show is not (2026-11-27).

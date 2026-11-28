@@ -8,7 +8,7 @@
   let { active }: { active: boolean } = $props()
 
   const add = () => base64Tabs.add()
-  workTabShortcuts(() => active, base64Tabs, add)
+  workTabShortcuts(() => active, base64Tabs, add, 'base64')
 </script>
 
 {#snippet strip()}

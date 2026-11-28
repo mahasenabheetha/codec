@@ -89,7 +89,7 @@
   <tr><td>A file</td><td><code>values.yaml</code> vs <code>values-prod.yaml</code>; one document of a multi-document file vs another. Choose it with the search, drag it from the explorer onto a side, or use the explorer's right-click menu: <strong>Select for compare</strong> on one file, then <strong>Compare with …</strong> on another — or <kbd>Ctrl</kbd>+click two files and <strong>Compare selected</strong>.</td></tr>
   <tr><td>What-if edits vs disk</td><td>"Compare what-if edits with disk" on a file with edits — the semantic view of your change.</td></tr>
   <tr><td>A Helm render</td><td>The same chart with two profiles — what actually changes between dev and prod.</td></tr>
-  <tr><td>Pasted text</td><td>A live object (<code>kubectl get deploy api -o yaml</code>) against the file in the repo, or two API responses. Pick <strong>Paste</strong> for a side and paste into the box that opens. Two pasted sides need no folder: <strong>Compare text</strong> on Home or in the palette starts there.</td></tr>
+  <tr><td>Pasted text</td><td>A live object (<code>kubectl get deploy api -o yaml</code>) against the file in the repo, or two API responses. Pick <strong>Paste</strong> for a side and paste into the box that opens. Two pasted sides need no folder: <strong>Compare text</strong> in the palette, or <strong>Paste two texts</strong> in an empty Compare, starts there.</td></tr>
 </table></div>
 <p>The <strong>×</strong> next to a side clears it; <strong>Clear</strong> empties both sides and the result. Ignored paths stay. Pasted text is never saved — it is gone after a reload — so clearing it offers <strong>Undo</strong> for a few seconds.</p>
 
@@ -102,7 +102,7 @@ spec.template.spec.containers[*].image</code></pre>
 
 <h2 id="query">Query<a class="anchor" href="#query">#</a></h2>
 <figure>
-  <img src="images/query.png" alt="Query view: .spec.template.spec.containers[].image over the workspace, three results with file, line and path" width="1400" height="820" loading="lazy">
+  <img src="images/query.png" alt="Query view: .spec.template.spec.containers[].image over the workspace, three results with file and line, the results by file, and a hint that one image has no fixed tag" width="1400" height="820" loading="lazy">
   <figcaption>Every container image in the sample, with the file, line and path of each.</figcaption>
 </figure>
 <p>Query runs <a href="https://jqlang.github.io/jq/manual/">jq</a> expressions (through gojq, a pure-Go jq) where each YAML document is one input. Choose the scope — the whole <strong>workspace</strong>, the current <strong>file</strong>, or a <strong>Helm render</strong> with a profile — press <kbd>Enter</kbd>, and click any result to open the file at that line. Example expressions are one click away:</p>
@@ -111,6 +111,7 @@ select(.kind == "Deployment") | .spec.replicas            <span class="c"># repl
 select(.kind == "Ingress") | .spec.rules[].host           <span class="c"># every host</span>
 .. | .image? | strings                                    <span class="c"># any "image" field anywhere</span></code></pre>
 <p>Results carry their position because codec asks jq for the path of every result and maps it back to the YAML tree. Environment variables are not available to expressions.</p>
+<p>Beside the results, a list shows how they spread over files. When the results are images and some use <code>latest</code> or no tag, a hint says how many: pin a tag so a pull can't change them.</p>
 
 <h2 id="cli">From the command line<a class="anchor" href="#cli">#</a></h2>
 <pre><code>codec yaml diff charts/shop/values.yaml charts/shop/values-prod.yaml    <span class="c"># exit 2 when different</span>

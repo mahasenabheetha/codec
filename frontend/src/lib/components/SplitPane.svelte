@@ -1,5 +1,6 @@
 <script lang="ts">
   import { untrack, type Snippet } from 'svelte'
+  import Badge from './Badge.svelte'
 
   // Two resizable panes: drag the divider, or focus it and use the
   // arrow keys (Shift for bigger steps, Home and End for the limits);
@@ -10,6 +11,8 @@
   interface Props {
     id: string
     initial?: number // share of the first pane, 0..1
+    /** The first pane's share when stacked, if not `initial`. */
+    initialStacked?: number
     min?: number // minimum pane size in px
     /** auto: side by side unless narrower than `stackBelow`. */
     direction?: 'auto' | 'row' | 'column'
@@ -24,23 +27,24 @@
     second: Snippet
   }
 
-  let { id, initial = 0.5, min = 180, direction = 'auto', stackBelow = 760, flush = false, px, first, second }: Props = $props()
+  let { id, initial = 0.5, initialStacked, min = 180, direction = 'auto', stackBelow = 760, flush = false, px, first, second }: Props = $props()
 
   // A pane's identity is fixed for its lifetime, so the key is read once.
   const key = untrack(() => `codec:split:${id}`)
+  const initialFor = (isStacked: boolean) => (isStacked ? (initialStacked ?? initial) : initial)
 
-  function loadRatio(k: string): number {
+  function loadRatio(k: string, fallback: number): number {
     try {
       const v = Number(localStorage.getItem(k))
-      return v > 0 && v < 1 ? v : initial
+      return v > 0 && v < 1 ? v : fallback
     } catch {
-      return initial
+      return fallback
     }
   }
 
   // One share for each way of laying the panes out: what suits a wide
   // row rarely suits a column.
-  let ratios = $state({ row: loadRatio(key), column: loadRatio(key + ':stacked') })
+  let ratios = $state(untrack(() => ({ row: loadRatio(key, initialFor(false)), column: loadRatio(key + ':stacked', initialFor(true)) })))
   let width = $state(
     untrack(() => {
       try {
@@ -107,7 +111,7 @@
 
   function reset() {
     if (fixed) width = px!
-    else set(initial)
+    else set(initialFor(stacked))
   }
 
   function onkeydown(e: KeyboardEvent) {
@@ -145,7 +149,10 @@
     onpointercancel={() => (dragging = false)}
     ondblclick={reset}
     {onkeydown}
-  ><span class="grip" aria-hidden="true"></span></div>
+  >
+    <span class="grip" aria-hidden="true"></span>
+    {#if dragging}<span class="share" aria-hidden="true"><Badge tone="accent" solid>{Math.round(ratio * 100)}%</Badge></span>{/if}
+  </div>
   <div class="pane" style="flex-basis: {fixed ? '0' : (1 - ratio) * 100 + '%'}">{@render second()}</div>
 </div>
 
@@ -182,21 +189,28 @@
     position: relative;
     flex: 0 0 var(--s-2);
     cursor: col-resize;
-    border-radius: var(--r-full);
+    border-radius: var(--r-sm);
+    transition: background var(--dur) var(--ease);
   }
   .stacked > .divider {
     cursor: row-resize;
   }
-  /* Thin visual line inside a wider hit area. */
+  /* Hot (hovered, dragged, focused): a soft strip with a line down it,
+     in the tool's colour. */
+  .divider:hover,
+  .dragging > .divider,
+  .divider:focus-visible {
+    background: var(--tool-accent-soft, var(--accent-soft));
+  }
   .divider::after {
     content: '';
     position: absolute;
-    inset: var(--s-3) 3px;
+    inset: 0 3px;
     border-radius: var(--r-full);
     transition: background var(--dur) var(--ease);
   }
   .stacked > .divider::after {
-    inset: 3px var(--s-3);
+    inset: 3px 0;
   }
   .divider:hover::after,
   .dragging > .divider::after,
@@ -212,16 +226,25 @@
     position: absolute;
     left: 50%;
     top: 50%;
-    width: 4px;
-    height: 28px;
+    width: 2px;
+    height: 32px;
     transform: translate(-50%, -50%);
     background: var(--border-strong);
     border-radius: var(--r-full);
     transition: background var(--dur) var(--ease);
   }
   .stacked > .divider .grip {
-    width: 28px;
-    height: 4px;
+    width: 32px;
+    height: 2px;
+  }
+  /* While dragging, the first pane's share. */
+  .share {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: var(--z-sticky);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
   }
   .divider:hover .grip,
   .dragging > .divider .grip,

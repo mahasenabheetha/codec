@@ -28,7 +28,7 @@
           {/if}
         </div>
         <Dialog.Close class="codec-dialog-close" aria-label="Close">
-          <X size={16} strokeWidth={1.75} />
+          <X size={16} />
         </Dialog.Close>
       </header>
       <div class="body">{@render children()}</div>
@@ -53,8 +53,8 @@
     max-height: 72vh;
     display: flex;
     flex-direction: column;
-    background: var(--bg-1);
-    border-radius: var(--r-lg);
+    background: var(--bg-2);
+    border-radius: var(--r-xl);
     box-shadow: var(--shadow-pop);
     animation: dialog-in 160ms var(--ease);
   }

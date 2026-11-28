@@ -13,6 +13,7 @@
   import Popover from '../../lib/components/Popover.svelte'
   import { commands } from '../../lib/stores/commands.svelte'
   import { layout } from '../../lib/stores/layout.svelte'
+  import { hueVar, toolById } from '../../lib/tools'
   import { clock, formatClock } from './clock.svelte'
   import { focus, phaseLabel } from './focus.svelte'
   import { kindIcon } from './kinds'
@@ -32,8 +33,9 @@
   const shown = $derived(focus.active || reminders.enabled.length > 0)
   const UpIcon = $derived(up ? kindIcon[up.reminder.kind] : Bell)
 
-  const R = 6
+  const R = 5.5
   const C = 2 * Math.PI * R
+  const hue = hueVar(toolById('wellness')!.hue)
 
   // The time left in the window title while a session runs, so it shows
   // on the taskbar and the browser tab.
@@ -80,21 +82,22 @@
       <button
         {...props}
         type="button"
-        class="widget"
+        class="widget hued"
         class:rest={isBreak && focus.active}
+        style:--tool={hue}
         title={focus.active ? `${phaseLabel[focus.phase]}: ${formatClock(focus.left)} left` : up && !paused ? `${up.reminder.name} in ${formatClock(up.at - clock.now)}` : reminders.resting ? 'Breaks resting until your active hours' : 'Focus & breaks'}
       >
         {#if focus.active}
-          <svg viewBox="0 0 16 16" aria-hidden="true">
-            <circle cx="8" cy="8" r={R} class="track" />
-            <circle cx="8" cy="8" r={R} class="arc" stroke-dasharray={C} stroke-dashoffset={C * (1 - t.progress)} transform="rotate(-90 8 8)" />
+          <svg viewBox="0 0 14 14" aria-hidden="true">
+            <circle cx="7" cy="7" r={R} class="track" />
+            <circle cx="7" cy="7" r={R} class="arc" stroke-dasharray={C} stroke-dashoffset={C * (1 - t.progress)} transform="rotate(-90 7 7)" />
           </svg>
           <span class="time">{formatClock(focus.left)}</span>
-          {#if t.state === 'paused'}<Pause size={11} strokeWidth={2.5} />{/if}
+          {#if t.state === 'paused'}<Pause size={11} />{/if}
         {:else if paused}
-          <BellOff size={12} strokeWidth={2} /> Paused
+          <BellOff size={12} /> Paused
         {:else if up}
-          <UpIcon size={12} strokeWidth={2} />
+          <UpIcon size={12} />
           <span class="time">{formatClock(up.at - clock.now)}</span>
         {/if}
       </button>
@@ -103,7 +106,7 @@
       <section>
         <header>
           <span class="tag" class:rest={isBreak}>
-            {#if isBreak}<Coffee size={12} strokeWidth={2} />{:else}<Brain size={12} strokeWidth={2} />{/if}
+            {#if isBreak}<Coffee size={12} />{:else}<Brain size={12} />{/if}
             {phaseLabel[focus.phase]}
           </span>
           <span class="big">{formatClock(focus.left)}</span>
@@ -145,7 +148,7 @@
         </p>
       {/if}
       <button type="button" class="open" onclick={() => openTool(focus.active ? 'focus' : 'breaks')}>
-        <Leaf size={13} strokeWidth={2} /> Open Focus &amp; breaks
+        <Leaf size={13} /> Open Focus &amp; breaks
       </button>
     </div>
   </Popover>
@@ -163,7 +166,8 @@
     background: none;
     border: none;
     border-radius: var(--r-sm);
-    --ring: var(--accent);
+    /* The ring in Focus & breaks' colour; a break's in the rest colour. */
+    --ring: var(--tool-accent);
   }
   .widget.rest {
     --ring: var(--rest);
@@ -179,12 +183,12 @@
   .track {
     fill: none;
     stroke: var(--bg-4);
-    stroke-width: 2.5;
+    stroke-width: 2;
   }
   .arc {
     fill: none;
     stroke: var(--ring);
-    stroke-width: 2.5;
+    stroke-width: 2;
     stroke-linecap: round;
     transition: stroke-dashoffset 300ms linear;
   }

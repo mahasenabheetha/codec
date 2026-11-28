@@ -124,7 +124,7 @@
           height: '1em',
           fill: 'none',
           stroke: 'currentColor',
-          strokeWidth: '2',
+          strokeWidth: 'var(--icon-stroke)',
           strokeLinecap: 'round',
           strokeLinejoin: 'round',
         },

@@ -247,7 +247,7 @@
           ontoggle(r.id)
         }}
       >
-        {#if r.expandable}<ChevronRight size={14} strokeWidth={1.75} />{/if}
+        {#if r.expandable}<ChevronRight size={14} />{/if}
       </span>
       {@render row(r.data, r)}
     </div>
@@ -276,6 +276,7 @@
     font-size: var(--fs-md);
     color: var(--fg-1);
     white-space: nowrap;
+    border-radius: var(--r-sm);
     cursor: pointer;
     user-select: none;
   }
@@ -290,19 +291,21 @@
   }
   .row:hover {
     color: var(--fg-0);
-    background: var(--bg-2);
-  }
-  .row.active {
-    color: var(--fg-0);
     background: var(--bg-3);
   }
+  /* The open file: a soft fill in the tool's colour. Rows picked with
+     Ctrl+click add an edge in it, so the two stay apart. */
+  .row.active,
   .row.selected {
     color: var(--fg-0);
-    background: var(--accent-soft);
+    background: var(--tool-accent-soft, var(--accent-soft));
+  }
+  .row.selected {
+    box-shadow: inset 0 0 0 1px var(--tool-line, color-mix(in srgb, var(--accent) 45%, var(--border)));
   }
   .row:focus-visible {
-    outline: 1px solid var(--accent);
-    outline-offset: -1px;
+    outline: 2px solid var(--tool-accent, var(--accent));
+    outline-offset: -2px;
   }
   .twisty {
     flex: 0 0 auto;

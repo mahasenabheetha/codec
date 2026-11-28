@@ -72,6 +72,57 @@ keep the UI consistent and polished. Work efficiently: read only what a
 task needs and run only the tests for packages touched (the full suite
 runs once, at step 4).
 
+### 3.11.0 and 3.12.0: Spectrum, the interface redesign
+
+Asked for 2026-11-27 (decision 106), from the owner's "codec · Spectrum
+revamp" design canvas (65 artboards on seven pages: themes and parts;
+shell and workspace; lens views; logs; tools; wellness; states, sizes
+and modes). It redraws what codec has, with the information
+architecture kept: the same rail groups, views, tabs and tool hues. It
+is a redesign of the look, frontend only: no engine, API, CLI or
+settings change, nothing persisted that decision 19 rules out, and no
+new dependency. The canvas is the reference for every task: each view
+is built to its artboard, its parts to "Parts" and "Interaction
+states", and its sizes, narrow layouts and Tool colours off to the
+"States, sizes & modes" page.
+
+Colours (option 3 of the canvas's "Palette decision"): Dark and Light
+take the Spectrum values (grounds, text, accent, the eight hues and the
+four status colours); Dusk, Midnight, Forest, Rosé and Ocean keep
+today's values, since their point is being muted; Paper, Mist and High
+contrast take Spectrum's small tweaks (at most 11 per channel). The
+contrast script stays the gate, unchanged in its rules.
+
+Views the canvas does not draw follow from its parts and states: the
+Open folder dialog, Go to file, the shortcuts overlay, first-run Home,
+the changed and deleted file banners, the Source drawer, Send to, and
+the tool sub-tabs it leaves out (Case and names, Test data, URL, Hex,
+Checksum, Secrets, UUID, htpasswd; Network's IP, URL builder and HTTP;
+JSON's Convert, Diff, Paths, Schema and Query; Helm's Values, Resources
+and Notes; the Ansible map; the Argo CD panel).
+
+Open before T1: whether the three-colour bars of the canvas become the
+app icon too (favicon, PWA icons, the desktop exe and the docs), or
+stay the rail's brand mark only. Until answered, the rail only.
+
+**3.11.0: the system, the shell and the workspace** is released (see
+[Done](#done)); its plan is in git history.
+
+**3.12.0: the views** (`feature/mab/v3.12.0`, from `main` after 3.11.0)
+
+| Task | What |
+|---|---|
+| T1 | Graphs: nodes with a hue tile, a title and a line under it; edges by kind (hot, run time, dashed for missing); selection, legend and minimap restyled; for Resources, Argo, the pipeline view, Compose and the Ansible map |
+| T2 | Lens views: Helm, Kustomize (its layers and patches, in order), Resources (inventory, images, requests and limits as bars), Argo, the pipeline view, Compose, Ansible |
+| T3 | Logs: the Log viewer, Steps (a timeline with the longest step), Fields (filled and distinct), Pins (where the pins sit in the run), Compare (a table of what changed between runs), the Ansible log |
+| T4 | Tools, decoding and text: Smart paste (what it detected, most likely first), Base64, JSON & YAML (all tabs), JWT, and Text & data (Text diff, CSV & TSV with a profile per column, Sanitize, Quote, Case & names, Test data) |
+| T5 | Tools, utilities: Time (Timestamp with a month and "around the world", Zones, Formats with each part one colour in every language, Cron with the week it fires in), Encode & hash (the hash fingerprint, Password, the other tabs), Network (the CIDR bit grid, the other tabs), Commands, Regex, QR code, Colour (harmony) |
+| T6 | Wellness: Focus, Breaks, Today, the break itself |
+| T7 | Consistency and accessibility pass over every view, docs and screenshots; release |
+
+Not in these two: the ideas under "Later" below, and any change to what
+a view does beyond what its artboard shows.
+
 ### Later
 The rest of "Next", picked up when it fits.
 
@@ -82,9 +133,7 @@ on the log chart; undo for closing a pasted log (it is released on the
 server at once); the trees in JSON, steps and fields on the tree
 pattern; Argo's and the pipeline view's own copies of the lens styles
 merged into the shared ones; a filter and a reset for lint rules in
-Settings; Base64, JWT and Smart paste as Send-to targets; the docs
-screenshots of Compare, Query and Problems (they need steps the
-capture script does not do, and Problems a lint run).
+Settings; Base64, JWT and Smart paste as Send-to targets.
 
 Ideas from the 3.10.1 review: what-if diff on a graph (nodes added,
 removed or skipped by a parameter); a run replayed over the Argo or
@@ -137,6 +186,7 @@ script or a Makefile target.
 
 | Version | Items |
 |---|---|
+| 3.11.0 | The interface redesign, Spectrum, first part (decision 106): livelier Dark and Light, each tool colour as a tile, a wash, a line and a soft fill, with words on it kept readable; one icon per thing with one stroke, the codec mark on the rail and the eight-colour strip; shared parts redrawn (tiles, segmented controls with counts, chips, fields, panes with a top line, cards with an edge, menus, toasts, tooltips); the rail with tiles, the version and the Problems count, tabs with a +N list and a drop line, a status bar led by the view, a palette with tiles and Ctrl+Enter for a fresh tab; narrow layouts and Tool colours off checked; Home with a search hero, Pinned, Opened lately and the folder's files by kind; the workspace views on washed headers (Problems summary, Query by file with a hint, Compare cards, New, Find in Files with Match N of M, Clone's Save as…, Markdown and Mermaid previews, Mermaid to PNG); an accessibility pass, the design language for Spectrum, new screenshots |
 | 3.10.3 | Mermaid diagrams: `.mmd` and `.mermaid` files and ```` ```mermaid ```` blocks in a Markdown preview, drawn by the bundled Mermaid at its strict security level with its SVG cleaned again, redrawn on edits and theme changes; the Markdown preview in colour (headings, lists, quotes, code, tables, task boxes) with GitHub alerts as callouts; a file tab's effect loop fixed; CI downloads Go modules with retries |
 | 3.10.2 | The interface refresh, second part (decision 105): Esc scoped to the main input and Undo after every clear and delete; each view's actions in the palette; a file toolbar with one main action and a menu, explorer marks and menus per kind; graphs with keyboard, minimap, stage lanes, a kept view and status glyphs; lens views whose sections fold, with Problems first, a What-if reset and Try again; a log chart with a range window and a floor for rare errors, options that fold away; a diff with signs, a coloured unified view and gaps in steps; Send to between tools, a copy per value in JWT and URL, Regex and Commands on the shared frame; themes as a swatch grid, a Wellness section in Settings, breaks as a real dialog; unique field ids |
 | 3.10.1 | The interface refresh, first part (decision 105): each tool and action in its own colour in every theme, with a Tool colours setting; text that grows with Interface size Large, tabular figures, rounder shapes; one look for fields, errors (with Try again), chips, view headers and the output pane, no spinners; panes you can size everywhere (lens views, Helm, Compare, the Source drawer; input over output per tool); pinned and recent tools on the rail and Home, Home's search, tabs that overflow, move and have a menu and shortcuts, a palette that remembers and lists every setting; fixes to graphs, the Helm panel, fold arrows and the log list |

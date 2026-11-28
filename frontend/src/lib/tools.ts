@@ -6,12 +6,12 @@ import type { Component } from 'svelte'
 import Sparkles from '@lucide/svelte/icons/sparkles'
 import Binary from '@lucide/svelte/icons/binary'
 import Braces from '@lucide/svelte/icons/braces'
-import KeyRound from '@lucide/svelte/icons/key-round'
+import Key from '@lucide/svelte/icons/key'
 import SquareAsterisk from '@lucide/svelte/icons/square-asterisk'
 import QuoteIcon from '@lucide/svelte/icons/quote'
 import ScrollText from '@lucide/svelte/icons/scroll-text'
 import ShieldCheck from '@lucide/svelte/icons/shield-check'
-import Logs from '@lucide/svelte/icons/logs'
+import List from '@lucide/svelte/icons/list'
 import Clock from '@lucide/svelte/icons/clock'
 import CalendarClock from '@lucide/svelte/icons/calendar-clock'
 import CalendarSync from '@lucide/svelte/icons/calendar-sync'
@@ -48,7 +48,19 @@ import GitCompare from '@lucide/svelte/icons/git-compare'
 import Route from '@lucide/svelte/icons/route'
 import FileJson from '@lucide/svelte/icons/file-braces'
 import TextSearch from '@lucide/svelte/icons/text-search'
-import SquareTerminal from '@lucide/svelte/icons/square-terminal'
+import Terminal from '@lucide/svelte/icons/terminal'
+import Folder from '@lucide/svelte/icons/folder'
+import Search from '@lucide/svelte/icons/search'
+import Upload from '@lucide/svelte/icons/upload'
+import TriangleAlert from '@lucide/svelte/icons/triangle-alert'
+import Plus from '@lucide/svelte/icons/plus'
+import ShipWheel from '@lucide/svelte/icons/ship-wheel'
+import Box from '@lucide/svelte/icons/box'
+import Layers from '@lucide/svelte/icons/layers'
+import Workflow from '@lucide/svelte/icons/workflow'
+import GitBranch from '@lucide/svelte/icons/git-branch'
+import Container from '@lucide/svelte/icons/container'
+import Copy from '@lucide/svelte/icons/copy'
 
 /** A tool's colour (decision 94): a `--hue-*` token. How much of it shows
  *  is up to the theme (`--tint-tool`): none in Dark and Light. */
@@ -59,7 +71,9 @@ export function hueVar(h: Hue): string {
   return `var(--hue-${h})`
 }
 
-/** Hues of the workspace views on the rail, which aren't in the registry. */
+/** Hues of the views that aren't in the registry: the workspace views on
+ *  the rail, and the lens views over a folder or a file. A file is the
+ *  Explorer's. */
 export const viewHue = {
   explorer: 'indigo',
   search: 'cyan',
@@ -68,7 +82,34 @@ export const viewHue = {
   compare: 'peach',
   query: 'teal',
   new: 'lime',
+  helm: 'violet',
+  k8s: 'indigo',
+  kustomize: 'indigo',
+  argo: 'peach',
+  ci: 'teal',
+  compose: 'cyan',
+  ansible: 'pink',
+  clone: 'lime',
 } as const satisfies Record<string, Hue>
+
+/** Their icons, for the tab bar, the status bar and the palette. */
+export const viewIcon: Record<keyof typeof viewHue, Component> = {
+  explorer: Folder,
+  search: Search,
+  open: Upload,
+  problems: TriangleAlert,
+  compare: GitCompare,
+  query: Braces,
+  new: Plus,
+  helm: ShipWheel,
+  k8s: Box,
+  kustomize: Layers,
+  argo: Workflow,
+  ci: GitBranch,
+  compose: Container,
+  ansible: ScrollText,
+  clone: Copy,
+}
 
 /** A sub-tab of a tool; Home and the palette list it by its own name. */
 export interface ToolTab {
@@ -89,6 +130,9 @@ export interface ToolDef {
   keywords: string[]
   /** Sub-tabs, the first by default; the last one shown is remembered. */
   tabs?: ToolTab[]
+  /** Its work tabs (decision 97) start empty, so Ctrl+Enter in the
+   *  palette can open it on a fresh one. */
+  newTab?: boolean
   load: () => Promise<{ default: Component<{ active: boolean }> }>
 }
 
@@ -101,6 +145,7 @@ export const tools: ToolDef[] = [
     icon: Sparkles,
     hue: 'violet',
     keywords: ['auto', 'detect', 'paste'],
+    newTab: true,
     load: () => import('../features/smart/SmartPaste.svelte'),
   },
   {
@@ -111,6 +156,7 @@ export const tools: ToolDef[] = [
     icon: Binary,
     hue: 'indigo',
     keywords: ['b64', 'encode', 'decode', 'secret'],
+    newTab: true,
     load: () => import('../features/base64/Base64Tool.svelte'),
   },
   {
@@ -121,6 +167,7 @@ export const tools: ToolDef[] = [
     icon: Braces,
     hue: 'peach',
     keywords: ['json', 'yaml', 'json5', 'jsonc', 'format', 'pretty', 'minify', 'validate', 'lint'],
+    newTab: true,
     tabs: [
       { id: 'format', title: 'Format', description: 'Pretty-print, minify or validate JSON, JSONC or JSON5, with keys sorted if you like.', icon: Braces, keywords: ['pretty', 'minify', 'validate', 'sort keys', 'indent'] },
       { id: 'tree', title: 'Tree', description: 'JSON as a tree to fold, search and copy paths from.', icon: ListTree, keywords: ['explore', 'browse', 'path', 'viewer'] },
@@ -137,7 +184,7 @@ export const tools: ToolDef[] = [
     title: 'JWT',
     group: 'Encode & decode',
     description: 'Decode a JSON Web Token into readable claims, with expiry at a glance.',
-    icon: KeyRound,
+    icon: Key,
     hue: 'pink',
     keywords: ['token', 'jws', 'claims', 'auth', 'bearer'],
     load: () => import('../features/jwt/JwtTool.svelte'),
@@ -150,6 +197,7 @@ export const tools: ToolDef[] = [
     icon: ScrollText,
     hue: 'teal',
     keywords: ['log', 'playbook', 'task', 'failure', 'error', 'pipeline'],
+    newTab: true,
     load: () => import('../features/ansible/AnsibleTool.svelte'),
   },
   {
@@ -157,7 +205,7 @@ export const tools: ToolDef[] = [
     title: 'Log viewer',
     group: 'Logs',
     description: 'Read ECS, JSON, logfmt, klog and text logs: filter, chart, error groups and fields, across several files merged by time.',
-    icon: Logs,
+    icon: List,
     hue: 'lime',
     keywords: ['log', 'ecs', 'json', 'logfmt', 'klog', 'argo', 'kubectl', 'slog', 'zap', 'logrus', 'kibana', 'error', 'trace'],
     load: () => import('../features/logs/LogViewer.svelte'),
@@ -369,7 +417,7 @@ export const tools: ToolDef[] = [
     title: 'Commands',
     group: 'Utilities',
     description: 'What every part of a git, kubectl, helm, docker or Linux command does, and a form to build one, each following the other.',
-    icon: SquareTerminal,
+    icon: Terminal,
     hue: 'indigo',
     keywords: ['command', 'cli', 'shell', 'bash', 'explain', 'build', 'flags', 'options', 'git', 'kubectl', 'helm', 'docker', 'linux', 'cheat sheet', 'man'],
     load: () => import('../features/commands/CommandsTool.svelte'),

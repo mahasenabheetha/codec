@@ -8,9 +8,13 @@
   // there is one, a way forward (design language: "Error → plain
   // sentence, the reason, a way forward"). One look everywhere, in
   // place of a bare red paragraph. `inline` is the small form for a
-  // row or a field; the default is a block inside a panel.
+  // row or a field (the line under a field with aria-invalid); the
+  // default is a block inside a panel.
   interface Props {
     message: string
+    /** What failed, in a few words ("Render failed"); the message then
+     *  gives the reason under it, quieter. */
+    title?: string
     /** Try the failed thing again. */
     retry?: () => void
     retryLabel?: string
@@ -20,15 +24,19 @@
     children?: Snippet
   }
 
-  let { message, retry, retryLabel = 'Try again', inline = false, children }: Props = $props()
+  let { message, title, retry, retryLabel = 'Try again', inline = false, children }: Props = $props()
+  const titled = $derived(!!title && !inline)
 </script>
 
 <div class="note" class:inline role="alert">
-  <CircleX size={inline ? 13 : 15} strokeWidth={2} />
-  <span class="msg">{message}</span>
+  <CircleX size={inline ? 13 : 15} />
+  <span class="text">
+    {#if titled}<span class="title">{title}</span>{/if}
+    <span class="msg" class:sub={titled}>{message}</span>
+  </span>
   {#if retry || children}
     <span class="actions">
-      {#if retry}<Button size="sm" icon={RotateCw} onclick={retry}>{retryLabel}</Button>{/if}
+      {#if retry}<Button size="sm" icon={RotateCw} tone="run" onclick={retry}>{retryLabel}</Button>{/if}
       {#if children}{@render children()}{/if}
     </span>
   {/if}
@@ -38,7 +46,7 @@
   .note {
     display: flex;
     align-items: flex-start;
-    gap: var(--s-2);
+    gap: var(--s-3);
     margin: var(--s-3);
     padding: var(--s-2) var(--s-3);
     font-size: var(--fs-md);
@@ -52,11 +60,24 @@
     margin-top: 3px;
     color: var(--err);
   }
-  .msg {
+  .text {
     flex: 1;
     min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-1);
+  }
+  .title {
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-semibold);
+  }
+  .msg {
     overflow-wrap: anywhere;
     white-space: pre-wrap;
+  }
+  .msg.sub {
+    font-size: var(--fs-xs);
+    color: var(--fg-1);
   }
   .actions {
     flex: 0 0 auto;
@@ -64,9 +85,10 @@
     gap: var(--s-2);
   }
   .inline {
+    gap: var(--s-2);
     margin: var(--s-1) 0 0;
     padding: 0;
-    font-size: var(--fs-sm);
+    font-size: var(--fs-xs);
     color: var(--err);
     background: none;
     border: none;

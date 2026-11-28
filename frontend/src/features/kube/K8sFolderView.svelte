@@ -4,7 +4,7 @@
   import PanelHeader from '../../lib/components/PanelHeader.svelte'
   import ErrorNote from '../../lib/components/ErrorNote.svelte'
   import { untrack } from 'svelte'
-  import Boxes from '@lucide/svelte/icons/boxes'
+  import Box from '@lucide/svelte/icons/box'
   import RefreshCw from '@lucide/svelte/icons/refresh-cw'
   import IconButton from '../../lib/components/IconButton.svelte'
   import Skeleton from '../../lib/components/Skeleton.svelte'
@@ -71,7 +71,7 @@
 </script>
 
 <div class="k8s" class:inactive={!active}>
-  <PanelHeader icon={Boxes} title="Kubernetes · {path === '.' ? (ws.info?.name ?? 'workspace') : path}">
+  <PanelHeader icon={Box} title="Kubernetes · {path === '.' ? (ws.info?.name ?? 'workspace') : path}">
     {#snippet meta()}
       {#if data}<span>{data.cards.length} objects</span>{/if}
       {#if loading && data}<Working label="Reading…" />{/if}

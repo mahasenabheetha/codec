@@ -1,35 +1,41 @@
 <script lang="ts">
-  import ArrowRight from '@lucide/svelte/icons/arrow-right'
-  import GitCompare from '@lucide/svelte/icons/git-compare'
-  import FolderGit from '@lucide/svelte/icons/folder-git-2'
-  import FolderOpen from '@lucide/svelte/icons/folder-open'
-  import History from '@lucide/svelte/icons/history'
-  import ShieldCheck from '@lucide/svelte/icons/shield-check'
+  import type { Component } from 'svelte'
+  import Check from '@lucide/svelte/icons/check'
+  import Clock from '@lucide/svelte/icons/clock'
+  import File from '@lucide/svelte/icons/file'
   import FlaskConical from '@lucide/svelte/icons/flask-conical'
+  import History from '@lucide/svelte/icons/history'
+  import RefreshCw from '@lucide/svelte/icons/refresh-cw'
+  import Search from '@lucide/svelte/icons/search'
   import Star from '@lucide/svelte/icons/star'
+  import Upload from '@lucide/svelte/icons/upload'
+  import Badge from '../../lib/components/Badge.svelte'
+  import BrandMark from '../../lib/components/BrandMark.svelte'
   import Button from '../../lib/components/Button.svelte'
+  import Card from '../../lib/components/Card.svelte'
   import Kbd from '../../lib/components/Kbd.svelte'
   import SearchInput from '../../lib/components/SearchInput.svelte'
+  import Tile from '../../lib/components/Tile.svelte'
   import { layout } from '../../lib/stores/layout.svelte'
+  import { narrow } from '../../lib/stores/narrow.svelte'
   import { usage } from '../../lib/stores/usage.svelte'
-  import { entryByKey, hueVar, toolEntries, toolGroups, tools, viewHue, type ToolEntry } from '../../lib/tools'
-  import { comparison } from '../compare/compare.svelte'
+  import { entryByKey, hueVar, toolById, toolEntries, toolGroups, tools, viewHue, viewIcon, type Hue, type ToolDef, type ToolEntry } from '../../lib/tools'
   import { openFolder, openSample, workspace as ws } from '../workspace/workspace.svelte'
+  import { since } from './since'
 
-  const groups = toolGroups()
-  // Recent folders other than the open one.
-  const recent = $derived((ws.info?.recent ?? []).filter((d) => d !== ws.info?.root).slice(0, 4))
-  // First run: nothing open and nothing opened before.
-  const firstRun = $derived(ws.info !== null && !ws.info.open && ws.info.recent.length === 0)
-  let opening = $state(false)
-  async function trySample() {
-    opening = true
-    await openSample()
-    opening = false
-  }
+  // A sub-tab goes by its tool's name too: "Time · Cron".
+  const name = (e: ToolEntry) => (e.tab ? `${toolById(e.tool)?.title} · ${e.title}` : e.title)
+  const known = (keys: string[]) => keys.map(entryByKey).filter((e): e is ToolEntry => !!e)
 
-  // Find a tool by its name, what it does or a keyword; pinned ones and
-  // the ones opened last come first (3.10.1).
+  // Whole tools, by group: up to four get a card each, more a tile.
+  const sections = toolGroups().map((g) => ({ group: g.group, entries: known(g.tools.map((t) => t.id)) }))
+  const ROOMY = 4
+  // The hero's mosaic: eight tools in the eight hues, there to look at.
+  const mosaic = ['base64', 'smart', 'encode', 'jwt', 'json', 'logs', 'network', 'time'].map(toolById).filter((t): t is ToolDef => !!t)
+
+  const uid = $props.id()
+
+  // Find a tool by its name, what it does or a keyword.
   let query = $state('')
   const all = tools.flatMap(toolEntries)
   const words = $derived(query.toLowerCase().split(/\s+/).filter(Boolean))
@@ -41,154 +47,300 @@
         })
       : [],
   )
-  const known = (keys: string[]) => keys.map(entryByKey).filter((e): e is ToolEntry => !!e)
+
   const pinned = $derived(known(usage.pinned))
-  const lately = $derived(known(usage.recent).filter((e) => !usage.isPinned(e.key)).slice(0, 4))
+
+  // Tools and this session's files, newest first. Tools opened before
+  // their times were kept (3.11.0) have none and go last.
+  interface Recent {
+    key: string
+    label: string
+    title?: string
+    icon: Component
+    hue: Hue
+    at: number
+    open: () => void
+  }
+  const LATELY = 5
+  const lately = $derived.by(() => {
+    const fromTools: Recent[] = known(usage.recent)
+      .filter((e) => !usage.isPinned(e.key))
+      .map((e) => ({ key: e.key, label: name(e), icon: e.icon, hue: e.hue, at: usage.openedAt(e.key), open: () => layout.openTool(e.tool, e.tab) }))
+    const fromFiles: Recent[] = ws.recentFiles
+      .filter((p) => ws.byPath.has(p))
+      .slice(0, LATELY)
+      .map((p) => ({ key: 'file:' + p, label: p.split('/').pop() ?? p, title: p, icon: File, hue: viewHue.explorer, at: ws.openedAt.get(p) ?? 0, open: () => layout.openFile(p) }))
+    return [...fromTools, ...fromFiles].sort((a, b) => b.at - a.at).slice(0, LATELY)
+  })
+  let now = $state(Date.now())
+  $effect(() => {
+    const t = setInterval(() => (now = Date.now()), 60_000)
+    return () => clearInterval(t)
+  })
+
+  // The open folder's files by kind, for the bar: each lens view's types.
+  type Lens = 'k8s' | 'helm' | 'ansible' | 'argo' | 'ci' | 'compose'
+  const lensOf: Record<string, Lens> = {
+    kubernetes: 'k8s',
+    kustomize: 'k8s',
+    'helm-chart': 'helm',
+    'helm-template': 'helm',
+    'helm-values': 'helm',
+    'ansible-playbook': 'ansible',
+    'ansible-inventory': 'ansible',
+    'argo-workflows': 'argo',
+    argocd: 'argo',
+    'github-actions': 'ci',
+    'gitlab-ci': 'ci',
+    'azure-pipelines': 'ci',
+    compose: 'compose',
+  }
+  const lensTitle: Record<Lens, string> = { k8s: 'Kubernetes', helm: 'Helm', ansible: 'Ansible', argo: 'Argo', ci: 'CI', compose: 'Compose' }
+  const kinds = $derived.by(() => {
+    const n = new Map<Lens, number>()
+    for (const f of ws.files) {
+      const l = f.type ? lensOf[f.type] : undefined
+      if (l) n.set(l, (n.get(l) ?? 0) + 1)
+    }
+    return [...n].sort((a, b) => b[1] - a[1]).map(([l, count]) => ({ lens: l, title: lensTitle[l], count, hue: viewHue[l] }))
+  })
+
+  // Recent folders other than the open one.
+  const recentDirs = $derived((ws.info?.recent ?? []).filter((d) => d !== ws.info?.root).slice(0, 3))
+  // First run: nothing open and nothing opened before. With nothing
+  // pinned or opened yet either, Get started takes the whole row.
+  const firstRun = $derived(ws.info !== null && !ws.info.open && ws.info.recent.length === 0)
+  const bare = $derived(firstRun && !pinned.length && !lately.length)
+  let opening = $state(false)
+  async function trySample() {
+    opening = true
+    await openSample()
+    opening = false
+  }
 </script>
 
-{#snippet toolCard(t: ToolEntry, small = false)}
-  {@const on = usage.isPinned(t.key)}
-  <div class="card tool" class:small class:pinned={on}>
-    <button type="button" class="open" onclick={() => layout.openTool(t.tool, t.tab)}>
-      <span class="icon hued" style:--tool={hueVar(t.hue)}><t.icon size={18} strokeWidth={1.75} /></span>
+{#snippet star(e: ToolEntry, at: 'full' | 'compact' | 'row')}
+  {@const on = usage.isPinned(e.key)}
+  <button type="button" class="pin {at}" class:on aria-pressed={on} aria-label="{on ? 'Unpin' : 'Pin'} {name(e)}" title={on ? 'Unpin from the top' : 'Pin to the top of Home and the rail'} onclick={() => usage.togglePin(e.key)}>
+    <Star size={14} fill={on ? 'currentColor' : 'none'} />
+  </button>
+{/snippet}
+
+{#snippet toolCard(e: ToolEntry)}
+  <Card class="tool full hued" style="--tool: {hueVar(e.hue)}">
+    <button type="button" class="open full" onclick={() => layout.openTool(e.tool, e.tab)}>
+      <Tile icon={e.icon} size="lg" />
       <span class="text">
-        <span class="title">{t.title}</span>
-        {#if !small}<span class="desc">{t.description}</span>{/if}
+        <span class="title">{name(e)}</span>
+        <span class="desc">{e.description}</span>
       </span>
     </button>
-    <button type="button" class="pin" aria-pressed={on} aria-label="{on ? 'Unpin' : 'Pin'} {t.title}" title={on ? 'Unpin from the top' : 'Pin to the top of Home and the rail'} onclick={() => usage.togglePin(t.key)}>
-      <Star size={14} strokeWidth={1.75} fill={on ? 'currentColor' : 'none'} />
+    {@render star(e, 'full')}
+  </Card>
+{/snippet}
+
+{#snippet toolTile(e: ToolEntry)}
+  <Card class="tool hued" style="--tool: {hueVar(e.hue)}">
+    <button type="button" class="open compact" title={e.description} onclick={() => layout.openTool(e.tool, e.tab)}>
+      <Tile icon={e.icon} size="lg" solid />
+      <span class="title">{name(e)}</span>
     </button>
-  </div>
+    {@render star(e, 'compact')}
+  </Card>
+{/snippet}
+
+{#snippet folderRow(dir: string)}
+  <button type="button" class="item" title={dir} onclick={() => openFolder(dir)}>
+    <Tile icon={History} size="sm" />
+    <span class="name">{dir.split(/[\\/]/).filter(Boolean).pop()}</span>
+    <span class="where">{dir}</span>
+  </button>
 {/snippet}
 
 <div class="home">
-  <div class="inner">
-    <header class="hero">
-      <img src="/icon.svg" alt="" width="44" height="44" />
-      <div>
-        <h1>codec</h1>
-        <p>A read-only workbench for your YAML, and tools for the text you handle all day.</p>
+  <div class="inner" class:narrow={narrow.current}>
+    <section class="hero" aria-labelledby="{uid}-home">
+      <div class="intro">
+        <div class="brand">
+          <BrandMark size={44} />
+          <h1 id="{uid}-home">codec</h1>
+        </div>
+        <p class="tagline">A read-only workbench for your YAML, and tools for the text you handle all day.</p>
+        <SearchInput large bind:value={query} placeholder="Find a tool: base64, cron, diff, password…" label="Find a tool">
+          {#snippet end()}<Kbd combo="Mod+K" />{/snippet}
+        </SearchInput>
+        <p class="hint"><Kbd combo="Mod+K" /> searches everything · <Kbd combo="?" /> shows shortcuts</p>
       </div>
-    </header>
-
-    <div class="find">
-      <SearchInput bind:value={query} placeholder="Find a tool: base64, cron, diff, password…" label="Find a tool" />
-      <p class="hint"><Kbd combo="Mod+K" /> searches everything · <Kbd combo="?" /> shortcuts</p>
-    </div>
+      {#if !narrow.current}
+        <div class="mosaic" aria-hidden="true">
+          {#each mosaic as t, i (t.id)}
+            <span class="hued" style:--tool={hueVar(t.hue)}><Tile icon={t.icon} size="xl" solid={i % 3 === 0} /></span>
+          {/each}
+        </div>
+      {/if}
+    </section>
 
     {#if words.length}
-      <h2>{found.length} {found.length === 1 ? 'tool' : 'tools'}</h2>
-      {#if found.length}
-        <div class="grid">
-          {#each found as t (t.key)}{@render toolCard(t)}{/each}
+      <section class="col">
+        <div class="group-head">
+          <h2>{found.length} {found.length === 1 ? 'tool' : 'tools'}</h2>
+          <span class="rule"></span>
         </div>
-      {:else}
-        <p class="none">No tool matches "{query}". <Kbd combo="Mod+K" /> also searches files, charts and actions.</p>
-      {/if}
-    {:else}
-
-    {#if firstRun}
-      <section class="welcome" aria-labelledby="welcome-title">
-        <h2 id="welcome-title">Get started</h2>
-        <ol>
-          <li>
-            <span class="step">1</span>
-            <span class="text">
-              <span class="title">Try the sample repository</span>
-              <span class="desc">A small made-up service with a Helm chart, Kubernetes, Argo, CI, Compose and Ansible files. It opens on the chart, rendered.</span>
-            </span>
-            <Button variant="primary" icon={FlaskConical} disabled={opening} onclick={trySample}>Open the sample</Button>
-          </li>
-          <li>
-            <span class="step">2</span>
-            <span class="text">
-              <span class="title">Open your own folder</span>
-              <span class="desc">A repository on this machine. codec reads it and never writes to it.</span>
-            </span>
-            <Button icon={FolderOpen} tone="open" onclick={() => ws.chooseFolder()}>Open folder…</Button>
-          </li>
-        </ol>
+        {#if found.length}
+          <div class="grid results">
+            {#each found as e (e.key)}{@render toolCard(e)}{/each}
+          </div>
+        {:else}
+          <p class="none">No tool matches "{query}". <Kbd combo="Mod+K" /> also searches files, charts and actions.</p>
+        {/if}
       </section>
-    {/if}
+    {:else}
+      <div class="row">
+        {#if !bare}
+          <section class="col" aria-labelledby="{uid}-pinned">
+            <div class="head">
+              <span class="mark warn"><Star size={14} fill="currentColor" /></span>
+              <h2 id="{uid}-pinned">Pinned</h2>
+            </div>
+            {#each pinned as e (e.key)}
+              <Card hue class="tool pinned hued" style="--tool: {hueVar(e.hue)}">
+                <button type="button" class="open" onclick={() => layout.openTool(e.tool, e.tab)}>
+                  <Tile icon={e.icon} size="lg" solid />
+                  <span class="text">
+                    <span class="title">{name(e)}</span>
+                    <span class="desc">{e.description}</span>
+                  </span>
+                </button>
+                {@render star(e, 'row')}
+              </Card>
+            {:else}
+              <Card><p class="empty">Star a tool to keep it here and at the top of the rail.</p></Card>
+            {/each}
+          </section>
 
-    {#if pinned.length}
-      <h2>Pinned</h2>
-      <div class="grid compact">
-        {#each pinned as t (t.key)}{@render toolCard(t, true)}{/each}
-      </div>
-    {/if}
-    {#if lately.length}
-      <h2>Opened lately</h2>
-      <div class="grid compact">
-        {#each lately as t (t.key)}{@render toolCard(t, true)}{/each}
-      </div>
-    {/if}
-
-    {#if !firstRun}
-      <h2>Workspace</h2>
-      <div class="grid">
-        {#if ws.info?.open}
-          <button type="button" class="card" onclick={() => (ws.quickOpen = true)}>
-            <span class="icon"><FolderGit size={18} strokeWidth={1.75} /></span>
-            <span class="text">
-              <span class="title">{ws.info.name}</span>
-              <span class="desc path">{ws.info.root}</span>
-              <span class="desc">Go to a file with <Kbd combo="Mod+P" /></span>
-            </span>
-            <span class="go"><ArrowRight size={16} strokeWidth={1.75} /></span>
-          </button>
+          <section class="col" aria-labelledby="{uid}-lately">
+            <div class="head">
+              <span class="mark"><Clock size={14} /></span>
+              <h2 id="{uid}-lately">Opened lately</h2>
+            </div>
+            <Card class="list">
+              {#each lately as r (r.key)}
+                <button type="button" class="item hued" style:--tool={hueVar(r.hue)} title={r.title} onclick={r.open}>
+                  <Tile icon={r.icon} size="sm" />
+                  <span class="name">{r.label}</span>
+                  <span class="when">{since(r.at, now)}</span>
+                </button>
+              {:else}
+                <p class="empty inset">Tools and files you open show here.</p>
+              {/each}
+            </Card>
+          </section>
         {/if}
-        <button type="button" class="card" onclick={() => ws.chooseFolder()}>
-          <span class="icon"><FolderOpen size={18} strokeWidth={1.75} /></span>
-          <span class="text">
-            <span class="title">{ws.info?.open ? 'Open another folder' : 'Open a folder'}</span>
-            <span class="desc">Browse a repository's Kubernetes, Helm, Argo and CI YAML. codec only reads it.</span>
-          </span>
-          <span class="go"><ArrowRight size={16} strokeWidth={1.75} /></span>
-        </button>
-        {#if !ws.info?.sample}
-          <button type="button" class="card" onclick={trySample} disabled={opening}>
-            <span class="icon muted"><FlaskConical size={18} strokeWidth={1.75} /></span>
-            <span class="text">
-              <span class="title">Sample repository</span>
-              <span class="desc">Every file type codec understands, in a made-up repo. Opens on a rendered Helm chart.</span>
-            </span>
-            <span class="go"><ArrowRight size={16} strokeWidth={1.75} /></span>
-          </button>
-        {/if}
-        {#each recent as dir (dir)}
-          <button type="button" class="card" onclick={() => openFolder(dir)}>
-            <span class="icon muted"><History size={18} strokeWidth={1.75} /></span>
-            <span class="text">
-              <span class="title">{dir.split(/[\\/]/).filter(Boolean).pop()}</span>
-              <span class="desc path">{dir}</span>
-            </span>
-            <span class="go"><ArrowRight size={16} strokeWidth={1.75} /></span>
-          </button>
-        {/each}
-      </div>
-    {/if}
 
-    {#each groups as g, i (g.group)}
-      <h2>{g.group}</h2>
-      <div class="grid">
-        {#if i === 0}
-          <button type="button" class="card" onclick={() => comparison.pasteBoth()}>
-            <span class="icon hued" style:--tool={hueVar(viewHue.compare)}><GitCompare size={18} strokeWidth={1.75} /></span>
-            <span class="text">
-              <span class="title">Compare text</span>
-              <span class="desc">Paste two YAML, JSON or plain texts and see what differs. No folder needed.</span>
-            </span>
-            <span class="go"><ArrowRight size={16} strokeWidth={1.75} /></span>
-          </button>
-        {/if}
-        {#each g.tools.flatMap(toolEntries) as t (t.key)}{@render toolCard(t)}{/each}
+        <section class="col folder hued" class:wide={bare} style:--tool={hueVar(viewHue.explorer)} aria-labelledby="{uid}-folder">
+          <div class="head">
+            <span class="mark tool"><viewIcon.explorer size={14} /></span>
+            <h2 id="{uid}-folder">{firstRun ? 'Get started' : 'Workspace'}</h2>
+          </div>
+          {#if firstRun}
+            <div class="steps">
+              <Card hue class="step">
+                <div class="step-head">
+                  <Tile icon={FlaskConical} size="lg" solid />
+                  <span class="text">
+                    <span class="title">Try the sample repository</span>
+                    <span class="desc">A small made-up service with a Helm chart, Kubernetes, Argo, CI, Compose and Ansible files. It opens on the chart, rendered.</span>
+                  </span>
+                </div>
+                <Button variant="primary" icon={FlaskConical} disabled={opening} onclick={trySample}>Open the sample</Button>
+              </Card>
+              <Card hue class="step hued" style="--tool: {hueVar(viewHue.open)}">
+                <div class="step-head">
+                  <Tile icon={Upload} size="lg" solid />
+                  <span class="text">
+                    <span class="title">Open your own folder</span>
+                    <span class="desc">A repository on this machine. codec reads it and never writes to it.</span>
+                  </span>
+                </div>
+                <Button icon={Upload} tone="open" onclick={() => ws.chooseFolder()}>Open folder…</Button>
+              </Card>
+            </div>
+          {:else}
+            <Card class="ws">
+              {#if ws.info?.open}
+                <div class="ws-head">
+                  <Tile icon={viewIcon.explorer} size="lg" solid />
+                  <span class="text">
+                    <span class="title big">{ws.info.name}</span>
+                    <span class="where">{ws.info.root}</span>
+                  </span>
+                  {#if ws.info.watch === 'native'}
+                    <span title="Watching for changes (native events)."><Badge tone="ok" icon={Check}>watching</Badge></span>
+                  {:else if ws.info.watch === 'poll'}
+                    <span title="Watching for changes by polling every second."><Badge tone="warn" icon={RefreshCw}>polling</Badge></span>
+                  {/if}
+                </div>
+                {#if kinds.length}
+                  <div class="kinds">
+                    <div class="bar" aria-hidden="true">
+                      {#each kinds as k (k.lens)}<span class="hued" style:--tool={hueVar(k.hue)} style:flex={k.count}></span>{/each}
+                    </div>
+                    <ul class="legend" aria-label="Files by kind">
+                      {#each kinds as k (k.lens)}
+                        <li class="hued" style:--tool={hueVar(k.hue)}><span class="swatch"></span>{k.title} <span class="n">{k.count}</span></li>
+                      {/each}
+                    </ul>
+                  </div>
+                {/if}
+                <div class="actions">
+                  <Button size="sm" icon={Search} tone="open" onclick={() => (ws.quickOpen = true)}>Go to a file <Kbd combo="Mod+P" /></Button>
+                  <Button size="sm" variant="ghost" icon={Upload} tone="open" onclick={() => ws.chooseFolder()}>Open another folder</Button>
+                  {#if !ws.info.sample}
+                    <Button size="sm" variant="ghost" icon={FlaskConical} tone="open" disabled={opening} onclick={trySample}>Sample repository</Button>
+                  {/if}
+                </div>
+              {:else}
+                <div class="ws-head">
+                  <Tile icon={viewIcon.explorer} size="lg" />
+                  <span class="text">
+                    <span class="title big">No folder open</span>
+                    <span class="desc">Browse a repository's Kubernetes, Helm, Argo and CI YAML. codec only reads it.</span>
+                  </span>
+                </div>
+                <div class="actions">
+                  <Button size="sm" icon={Upload} tone="open" onclick={() => ws.chooseFolder()}>Open a folder</Button>
+                  {#if !ws.info?.sample}
+                    <Button size="sm" variant="ghost" icon={FlaskConical} tone="open" disabled={opening} onclick={trySample}>Sample repository</Button>
+                  {/if}
+                </div>
+              {/if}
+              {#if recentDirs.length}
+                <div class="dirs">
+                  <span class="sub">Recent folders</span>
+                  {#each recentDirs as dir (dir)}{@render folderRow(dir)}{/each}
+                </div>
+              {/if}
+            </Card>
+          {/if}
+        </section>
       </div>
-    {/each}
-    {/if}
 
-    <p class="privacy"><ShieldCheck size={14} strokeWidth={2} /> Everything runs on this machine. Nothing you paste leaves it.</p>
+      {#each sections as s (s.group)}
+        {@const roomy = s.entries.length <= ROOMY}
+        <section class="col" aria-label={s.group}>
+          <div class="group-head">
+            <h2>{s.group}</h2>
+            <span class="count">{s.entries.length} {s.entries.length === 1 ? 'tool' : 'tools'}</span>
+            <span class="rule"></span>
+          </div>
+          <div class="grid" class:compact={!roomy}>
+            {#each s.entries as e (e.key)}
+              {#if roomy}{@render toolCard(e)}{:else}{@render toolTile(e)}{/if}
+            {/each}
+          </div>
+        </section>
+      {/each}
+    {/if}
   </div>
 </div>
 
@@ -198,241 +350,406 @@
     overflow-y: auto;
   }
   .inner {
-    max-width: 1040px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-6);
+    max-width: 1280px;
     margin: 0 auto;
-    padding: var(--s-8) var(--s-6) var(--s-12);
+    padding: var(--s-6) var(--s-8) var(--s-12);
   }
-  .find {
+
+  /* The hero: who codec is, the search, and the hues. */
+  .hero {
     display: flex;
     align-items: center;
-    flex-wrap: wrap;
-    gap: var(--s-3) var(--s-4);
-    margin-top: var(--s-6);
-  }
-  .find > :global(.search) {
-    flex: 1 1 320px;
-    max-width: 520px;
-    height: calc(var(--control-h) + 4px);
-  }
-  .none {
-    color: var(--fg-1);
-  }
-  .grid.compact {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  }
-  /* A tool's card: the card opens it, the star pins it. */
-  .card.tool {
-    position: relative;
-    padding: 0;
-  }
-  .card.tool:hover,
-  .card.tool:focus-within {
+    gap: var(--s-8);
+    padding: var(--s-6) var(--s-8);
     background: var(--bg-2);
-    border-color: var(--border-strong);
-    box-shadow: var(--shadow-raise);
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    overflow: hidden;
   }
-  .open {
+  .intro {
     flex: 1;
     min-width: 0;
     display: flex;
-    align-items: flex-start;
+    flex-direction: column;
     gap: var(--s-3);
-    padding: var(--s-4);
+  }
+  .intro > :global(.search) {
+    max-width: 560px;
+    margin-top: var(--s-1);
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+  }
+  h1 {
+    font-size: var(--fs-3xl);
+    font-weight: var(--fw-bold);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+  .tagline {
+    max-width: 520px;
+    font-size: var(--fs-lg);
+    color: var(--fg-1);
+  }
+  .hint {
+    font-size: var(--fs-xs);
+    color: var(--fg-2);
+  }
+  .mosaic {
+    flex: none;
+    display: grid;
+    grid-template-columns: repeat(4, auto);
+    gap: var(--s-3);
+    margin-right: var(--s-2);
+    transform: rotate(-6deg);
+  }
+  .mosaic > span {
+    display: flex;
+  }
+
+  /* Pinned, Opened lately, Workspace. */
+  .row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.25fr);
+    gap: var(--s-4);
+    align-items: start;
+  }
+  .narrow .row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .narrow .folder,
+  .wide {
+    grid-column: 1 / -1;
+  }
+  .col {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-2);
+  }
+  .head {
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+  }
+  h2 {
+    font-size: var(--fs-lg);
+    font-weight: var(--fw-semibold);
+  }
+  .mark {
+    display: inline-flex;
+    color: var(--fg-2);
+  }
+  .mark.warn {
+    color: var(--warn);
+  }
+  .mark.tool {
+    color: var(--tool-icon);
+  }
+  .empty {
+    font-size: var(--fs-sm);
+    color: var(--fg-2);
+  }
+  .home :global(.card.list) {
+    display: flex;
+    flex-direction: column;
+    padding: var(--s-1);
+  }
+  .empty.inset {
+    padding: var(--s-2) var(--s-3);
+  }
+  .item {
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+    min-width: 0;
+    padding: var(--s-2);
+    text-align: left;
+    color: var(--fg-0);
+    background: none;
+    border: none;
+    border-radius: var(--r-md);
+  }
+  .item:hover {
+    background: var(--bg-3);
+  }
+  .name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--fs-sm);
+  }
+  .when {
+    flex: none;
+    font-size: var(--fs-xs);
+    color: var(--fg-2);
+  }
+
+  /* A tool's card: the card opens it, the star pins it. */
+  .home :global(.card.tool) {
+    position: relative;
+    padding: 0;
+    transition:
+      border-color var(--dur) var(--ease),
+      box-shadow var(--dur) var(--ease);
+  }
+  .home :global(.card.tool:hover),
+  .home :global(.card.tool:focus-within) {
+    box-shadow: var(--shadow-raise);
+  }
+  .home :global(.card.tool:not(.hue):hover),
+  .home :global(.card.tool:not(.hue):focus-within) {
+    border-color: var(--border-strong);
+  }
+  .home :global(.card.full) {
+    border-top: 3px solid var(--tool-accent);
+  }
+  .open {
+    width: 100%;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+    padding: var(--s-3);
     padding-right: var(--s-8);
     text-align: left;
     color: inherit;
     background: none;
     border: none;
-    border-radius: var(--r-lg);
+    border-radius: inherit;
   }
-  .small .open {
-    align-items: center;
-    padding: var(--s-2) var(--s-8) var(--s-2) var(--s-3);
+  .open.full {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: var(--s-4);
   }
-  .small .title {
-    font-size: var(--fs-md);
+  .open.compact {
+    flex-direction: column;
+    gap: var(--s-2);
+    padding: var(--s-3) var(--s-2);
+    text-align: center;
+  }
+  .text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .title {
+    font-weight: var(--fw-semibold);
+  }
+  .title.big {
+    font-size: var(--fs-lg);
+  }
+  .compact .title {
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-medium);
+  }
+  .desc {
+    font-size: var(--fs-xs);
+    color: var(--fg-1);
   }
   .pin {
     position: absolute;
-    top: var(--s-2);
+    top: 50%;
     right: var(--s-2);
     display: grid;
     place-items: center;
-    width: 24px;
-    height: 24px;
+    width: var(--control-h-sm);
+    height: var(--control-h-sm);
     padding: 0;
     color: var(--fg-2);
     background: none;
     border: none;
     border-radius: var(--r-sm);
+    transform: translateY(-50%);
     opacity: 0;
     transition: opacity var(--dur) var(--ease);
   }
-  .small .pin {
-    top: 50%;
-    transform: translateY(-50%);
+  .pin.full {
+    top: calc(var(--s-4) + 4px);
+    right: var(--s-3);
+    transform: none;
   }
-  .card.tool:hover .pin,
+  .pin.compact {
+    top: var(--s-1);
+    right: var(--s-1);
+    transform: none;
+  }
+  /* A tile's star shows under the pointer or once it's on; a card's always. */
+  .pin.full,
+  .pin.row,
+  .pin.on,
+  .pin:hover,
   .pin:focus-visible,
-  .pinned .pin {
+  .open:hover + .pin,
+  .open:focus-visible + .pin {
     opacity: 1;
   }
   .pin:hover {
     color: var(--fg-0);
     background: var(--bg-3);
   }
-  .pinned .pin {
+  .pin.on {
     color: var(--warn);
   }
-  .hero {
+
+  /* The folder, its files by kind, and what to do next. */
+  .home :global(.card.ws) {
     display: flex;
-    align-items: center;
-    gap: var(--s-4);
-  }
-  h1 {
-    font-size: var(--fs-3xl);
-    font-weight: var(--fw-semibold);
-    letter-spacing: -0.03em;
-    line-height: 1.1;
-  }
-  .hero p {
-    margin-top: var(--s-1);
-    font-size: var(--fs-lg);
-    color: var(--fg-1);
-  }
-  .hint {
-    font-size: var(--fs-sm);
-    color: var(--fg-2);
-  }
-  h2 {
-    margin: var(--s-8) 0 var(--s-3);
-    font-size: var(--fs-xs);
-    font-weight: var(--fw-semibold);
-    color: var(--fg-2);
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-  }
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    flex-direction: column;
     gap: var(--s-3);
   }
-  .card {
+  .ws-head {
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+  }
+  .where {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--fg-2);
+  }
+  .kinds {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-2);
+  }
+  .bar {
+    display: flex;
+    gap: 2px;
+    height: var(--s-2);
+    border-radius: var(--r-full);
+    overflow: hidden;
+  }
+  .bar > span,
+  .swatch {
+    background: var(--tool-accent);
+  }
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-1) var(--s-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--fs-xs);
+    color: var(--fg-1);
+  }
+  .legend li {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-1);
+  }
+  .swatch {
+    width: var(--s-2);
+    height: var(--s-2);
+    border-radius: var(--r-sm);
+  }
+  .n {
+    color: var(--fg-2);
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-2);
+  }
+  .dirs {
+    display: flex;
+    flex-direction: column;
+    padding-top: var(--s-2);
+    border-top: 1px solid var(--border);
+  }
+  .sub {
+    padding: 0 var(--s-2) var(--s-1);
+    font-size: var(--fs-xs);
+    color: var(--fg-2);
+  }
+  .dirs .where {
+    flex: 0 1 auto;
+    max-width: 55%;
+  }
+
+  /* First run: the sample and your own folder. */
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--s-3);
+  }
+  .home :global(.card.step) {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--s-3);
+  }
+  .step-head {
     display: flex;
     align-items: flex-start;
     gap: var(--s-3);
-    padding: var(--s-4);
-    text-align: left;
-    background: var(--bg-1);
-    border: 1px solid var(--border);
-    border-radius: var(--r-lg);
-    transition:
-      background var(--dur) var(--ease),
-      border-color var(--dur) var(--ease);
   }
-  button.card:hover {
-    background: var(--bg-2);
-    border-color: var(--border-strong);
-  }
-  .icon {
-    flex: 0 0 auto;
-    display: grid;
-    place-items: center;
-    width: 34px;
-    height: 34px;
-    color: var(--accent);
-    background: var(--accent-soft);
-    border-radius: var(--r-md);
-  }
-  .text {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: var(--s-1);
-  }
-  .title {
-    font-size: var(--fs-lg);
-    font-weight: var(--fw-medium);
-  }
-  .desc {
-    font-size: var(--fs-sm);
-    color: var(--fg-1);
-  }
-  .go {
-    color: var(--fg-2);
-    opacity: 0;
-    transform: translateX(-4px);
-    transition:
-      opacity var(--dur) var(--ease),
-      transform var(--dur) var(--ease);
-  }
-  button.card:focus-visible .go,
-  button.card:hover .go {
-    opacity: 1;
-    transform: none;
-  }
-  .welcome {
-    margin-top: var(--s-6);
-    padding: var(--s-4);
-    background: var(--bg-1);
-    border: 1px solid var(--border-strong);
-    border-radius: var(--r-lg);
-  }
-  .welcome h2 {
-    margin: 0 0 var(--s-3);
-  }
-  ol {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: var(--s-4);
-  }
-  li {
-    display: flex;
-    align-items: center;
-    gap: var(--s-3);
-  }
-  .step {
-    flex: 0 0 auto;
-    display: grid;
-    place-items: center;
-    width: 24px;
-    height: 24px;
-    font-size: var(--fs-sm);
-    font-weight: var(--fw-semibold);
-    color: var(--accent);
-    background: var(--accent-soft);
-    border-radius: 50%;
-  }
-  @media (max-width: 640px) {
-    li {
-      flex-wrap: wrap;
-    }
-  }
-  .path {
-    font-family: var(--font-mono);
-    font-size: var(--fs-xs);
-    word-break: break-all;
-  }
-  .icon.hued {
-    color: var(--tool-accent);
-    background: var(--tool-accent-soft);
-  }
-  .icon.muted {
-    color: var(--fg-1);
-    background: var(--bg-3);
-  }
-  .privacy {
+
+  /* The tool sections. */
+  .group-head {
     display: flex;
     align-items: center;
     gap: var(--s-2);
-    margin-top: var(--s-12);
-    font-size: var(--fs-sm);
+  }
+  .count {
+    font-size: var(--fs-xs);
     color: var(--fg-2);
   }
-  .privacy :global(svg) {
-    color: var(--ok);
+  .rule {
+    flex: 1;
+    height: 1px;
+    margin-left: var(--s-2);
+    background: var(--border);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--s-3);
+  }
+  .grid.compact {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: var(--s-2);
+  }
+  .grid.results {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+  .narrow .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .narrow .grid.compact {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .none {
+    color: var(--fg-1);
+  }
+  @media (max-width: 640px) {
+    .inner {
+      padding: var(--s-4);
+    }
+    .hero {
+      padding: var(--s-4);
+    }
+    .narrow .row,
+    .narrow .grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .narrow .grid.compact {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
   }
 </style>

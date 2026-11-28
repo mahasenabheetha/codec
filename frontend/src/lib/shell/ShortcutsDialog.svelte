@@ -30,6 +30,10 @@
       ],
     },
     {
+      title: 'In the palette',
+      items: [['Mod+Enter', 'Open a tool on a fresh tab (where it keeps several)']],
+    },
+    {
       title: 'Focus timer',
       items: [['Space', 'Start, pause or resume']],
     },

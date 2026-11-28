@@ -5,7 +5,7 @@
   import type { Histogram } from '../../lib/api/logs'
   import Download from '@lucide/svelte/icons/download'
   import GitCompareArrows from '@lucide/svelte/icons/git-compare-arrows'
-  import Logs from '@lucide/svelte/icons/logs'
+  import List from '@lucide/svelte/icons/list'
   import Search from '@lucide/svelte/icons/search'
   import X from '@lucide/svelte/icons/x'
   import Button from '../../lib/components/Button.svelte'
@@ -331,9 +331,9 @@
 {#if !viewer.opened || !s}
   <div class="empty">
     {#if viewer.opening}
-      <EmptyState icon={Logs} title="Reading the log…" description={viewer.sources.map(sourceName).join(', ')} />
+      <EmptyState icon={List} title="Reading the log…" description={viewer.sources.map(sourceName).join(', ')} />
     {:else}
-      <EmptyState icon={Logs} title="Can't read this log" description={viewer.error ?? ''}>
+      <EmptyState icon={List} title="Can't read this log" description={viewer.error ?? ''}>
         <Button onclick={() => logTabs.close(viewer)}>Close this tab</Button>
       </EmptyState>
     {/if}

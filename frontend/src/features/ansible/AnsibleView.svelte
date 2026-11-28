@@ -53,7 +53,7 @@
   {#if task.cause}
     <div class="cause">
       <div class="cause-label">
-        <Lightbulb size={14} strokeWidth={2} />
+        <Lightbulb size={14} />
         Probable cause <span class="src">from {task.cause.source}</span>
       </div>
       <p class="cause-text">{task.cause.text}</p>
@@ -91,7 +91,7 @@
         aria-expanded={!collapsed[sec.title]}
         onclick={() => (collapsed[sec.title] = !collapsed[sec.title])}
       >
-        <span class="chev" class:open={!collapsed[sec.title]}><ChevronRight size={14} strokeWidth={2} /></span>
+        <span class="chev" class:open={!collapsed[sec.title]}><ChevronRight size={14} /></span>
         {sec.title}
         <span class="meta">
           {sec.lines.length} line{sec.lines.length === 1 ? '' : 's'}

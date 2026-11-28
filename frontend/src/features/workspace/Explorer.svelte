@@ -6,25 +6,24 @@
   import GitCompare from '@lucide/svelte/icons/git-compare'
   import SquareDashedMousePointer from '@lucide/svelte/icons/square-dashed-mouse-pointer'
   import Folder from '@lucide/svelte/icons/folder'
-  import FolderOpen from '@lucide/svelte/icons/folder-open'
   import FolderSearch from '@lucide/svelte/icons/folder-search'
   import FlaskConical from '@lucide/svelte/icons/flask-conical'
   import ListFilter from '@lucide/svelte/icons/list-filter'
-  import Logs from '@lucide/svelte/icons/logs'
+  import List from '@lucide/svelte/icons/list'
   import RotateCw from '@lucide/svelte/icons/rotate-cw'
   import Search from '@lucide/svelte/icons/search'
-  import Boxes from '@lucide/svelte/icons/boxes'
+  import Box from '@lucide/svelte/icons/box'
+  import Braces from '@lucide/svelte/icons/braces'
   import CircleX from '@lucide/svelte/icons/circle-x'
   import Container from '@lucide/svelte/icons/container'
   import Copy from '@lucide/svelte/icons/copy'
-  import CopyPlus from '@lucide/svelte/icons/copy-plus'
   import GitBranch from '@lucide/svelte/icons/git-branch'
   import Layers from '@lucide/svelte/icons/layers'
   import Link from '@lucide/svelte/icons/link'
-  import ListTree from '@lucide/svelte/icons/list-tree'
   import PencilLine from '@lucide/svelte/icons/pencil-line'
-  import Ship from '@lucide/svelte/icons/ship'
-  import TextSearch from '@lucide/svelte/icons/text-search'
+  import ScrollText from '@lucide/svelte/icons/scroll-text'
+  import ShipWheel from '@lucide/svelte/icons/ship-wheel'
+  import Upload from '@lucide/svelte/icons/upload'
   import TriangleAlert from '@lucide/svelte/icons/triangle-alert'
   import Workflow from '@lucide/svelte/icons/workflow'
   import Button from '../../lib/components/Button.svelte'
@@ -42,6 +41,8 @@
   import { toast } from '../../lib/stores/toast.svelte'
   import { comparison } from '../compare/compare.svelte'
   import { logTabs } from '../logs/viewer.svelte'
+  import Tile from '../../lib/components/Tile.svelte'
+  import { hueVar, viewHue, viewIcon } from '../../lib/tools'
   import FileIcon from './FileIcon.svelte'
   import { kindOf, lookOf } from './filetypes'
   import { folderIconUrl } from './icons.svelte'
@@ -131,10 +132,10 @@
   function folderMenu(path: string): MenuEntry[] {
     const out: MenuEntry[] = []
     const chart = charts.byPath(path)
-    if (chart) out.push({ label: `Render the chart ${chart.name}`, icon: Ship, run: () => layout.openHelm(chart.path) })
+    if (chart) out.push({ label: `Render the chart ${chart.name}`, icon: ShipWheel, run: () => layout.openHelm(chart.path) })
     if (['kustomization.yaml', 'kustomization.yml', 'Kustomization'].some((n) => ws.byPath.has(path + '/' + n)))
       out.push({ label: 'Build this kustomization', icon: Layers, run: () => layout.open(kustomizeRoute(path)) })
-    out.push({ label: 'Kubernetes resources in this folder', icon: Boxes, run: () => layout.open(k8sRoute(path)) })
+    out.push({ label: 'Kubernetes resources in this folder', icon: Box, run: () => layout.open(k8sRoute(path)) })
     out.push('separator', ...pathEntries(path))
     return out
   }
@@ -144,11 +145,11 @@
     const type = ws.byPath.get(path)?.type ?? ''
     const out: MenuEntry[] = []
     const chart = charts.of(path)
-    if (chart) out.push({ label: `Render the chart ${chart.name}`, icon: Ship, run: () => layout.openHelm(chart.path) })
+    if (chart) out.push({ label: `Render the chart ${chart.name}`, icon: ShipWheel, run: () => layout.openHelm(chart.path) })
     else if (type === 'kustomize') out.push({ label: 'Build this kustomization', icon: Layers, run: () => layout.open(kustomizeRoute(path.includes('/') ? path.slice(0, path.lastIndexOf('/')) : '.')) })
     if (type === 'github-actions' || type === 'gitlab-ci' || type === 'azure-pipelines') out.push({ label: 'Open as a pipeline', icon: GitBranch, run: () => layout.open(ciRoute(path)) })
     if (type === 'compose') out.push({ label: 'Open the Compose view', icon: Container, run: () => layout.open(composeRoute(path)) })
-    if (type === 'ansible-playbook' || type === 'ansible-inventory') out.push({ label: 'Open the Ansible view', icon: ListTree, run: () => layout.open(ansibleRoute(path)) })
+    if (type === 'ansible-playbook' || type === 'ansible-inventory') out.push({ label: 'Open the Ansible view', icon: ScrollText, run: () => layout.open(ansibleRoute(path)) })
     if (type === 'argo-workflows' || type === 'argocd') out.push({ label: 'Open the Argo view', icon: Workflow, run: () => layout.open(argoRoute(path)) })
     return out
   }
@@ -164,7 +165,7 @@
     if (isLog(path)) {
       out.push({
         label: 'Open in Log viewer',
-        icon: Logs,
+        icon: List,
         run: () => {
           logTabs.open([{ kind: 'path', path }])
           layout.openTool('logs')
@@ -190,8 +191,8 @@
     })
     if (/\.(ya?ml|json)$/i.test(path)) {
       out.push('separator')
-      out.push({ label: 'Query this file (jq)', icon: TextSearch, run: () => queries.open({ path }) })
-      out.push({ label: 'Clone with a new name…', icon: CopyPlus, run: () => layout.open(cloneRoute(path)) })
+      out.push({ label: 'Query this file (jq)', icon: Braces, run: () => queries.open({ path }) })
+      out.push({ label: 'Clone with a new name…', icon: Copy, run: () => layout.open(cloneRoute(path)) })
     }
     out.push('separator', ...pathEntries(path))
     return out
@@ -203,8 +204,9 @@
   }
 </script>
 
-<aside class="explorer" aria-label="Explorer">
+<aside class="explorer hued" aria-label="Explorer" style:--tool={hueVar(viewHue.explorer)}>
   <header>
+    <Tile icon={viewIcon.explorer} size="sm" solid={!!ws.info?.open} />
     {#if ws.info?.open}
       <span class="name" title={ws.info.root}>{ws.info.name}</span>
     {:else}
@@ -216,7 +218,7 @@
         <Popover side="bottom" align="end">
           {#snippet trigger(props)}
             <button {...props} type="button" class="filter-btn" class:active={filtering} aria-label="Filter by type">
-              <ListFilter size={14} strokeWidth={1.75} />
+              <ListFilter size={14} />
             </button>
           {/snippet}
           <div class="filter">
@@ -237,7 +239,7 @@
         <IconButton icon={ChevronsDownUp} label="Collapse folders" size="sm" onclick={() => ws.expanded.clear()} />
         <IconButton icon={RotateCw} label="Refresh" size="sm" onclick={() => ws.loadTree()} />
       {/if}
-      <IconButton icon={FolderOpen} tone="open" label="Open folder…" shortcut="Mod+O" size="sm" onclick={() => ws.chooseFolder()} />
+      <IconButton icon={Upload} tone="open" label="Open folder…" shortcut="Mod+O" size="sm" onclick={() => ws.chooseFolder()} />
     </div>
   </header>
 
@@ -245,7 +247,7 @@
     {#if !ws.info?.open}
       <div class="empty-wrap">
         <EmptyState icon={FolderSearch} title="No folder open" description="Open a repository to browse its YAML. codec only reads it.">
-          <Button variant="primary" size="sm" icon={FolderOpen} tone="open" onclick={() => ws.chooseFolder()}>Open folder</Button>
+          <Button variant="primary" size="sm" icon={Upload} tone="open" onclick={() => ws.chooseFolder()}>Open folder</Button>
           <Button size="sm" icon={FlaskConical} onclick={openSample}>Try the sample</Button>
         </EmptyState>
       </div>
@@ -254,7 +256,7 @@
           <div class="section">Recent</div>
           {#each ws.info.recent.slice(0, 6) as dir (dir)}
             <button type="button" class="recent-item" title={dir} onclick={() => openFolder(dir)}>
-              <Folder size={14} strokeWidth={1.75} />
+              <Folder size={14} />
               <span>{dir.split(/[\\/]/).filter(Boolean).pop()}</span>
             </button>
           {/each}
@@ -287,7 +289,7 @@
               <span class="label" title={node.path + ' · ' + lookOf(node.file).title}>{node.name}</span>
             {:else}
               <span class="folder">
-                {#if folderSrc}<img src={folderSrc} alt="" draggable="false" />{:else}<Folder size={14} strokeWidth={1.75} />{/if}
+                {#if folderSrc}<img src={folderSrc} alt="" draggable="false" />{:else}<Folder size={14} />{/if}
               </span>
               <span class="label">{node.name}</span>
             {/if}
@@ -295,10 +297,10 @@
             {#if m}
               <span class="marks">
                 {#if m.whatif}
-                  <span class="wi" title={node.file ? 'What-if edits (not saved)' : `${plural(m.whatif, 'file')} with what-if edits`}><PencilLine size={11} strokeWidth={2} /><span class="sr-only">what-if edits</span></span>
+                  <span class="wi" title={node.file ? 'What-if edits (not saved)' : `${plural(m.whatif, 'file')} with what-if edits`}><PencilLine size={11} />{node.file ? 'what-if' : m.whatif}<span class="sr-only"> what-if edits</span></span>
                 {/if}
-                {#if m.e}<span class="e" title={plural(m.e, 'error')}><CircleX size={11} strokeWidth={2} />{m.e}<span class="sr-only"> errors</span></span>{/if}
-                {#if m.w}<span class="w" title={plural(m.w, 'warning')}><TriangleAlert size={11} strokeWidth={2} />{m.w}<span class="sr-only"> warnings</span></span>{/if}
+                {#if m.e}<span class="e" title={plural(m.e, 'error')}><CircleX size={11} />{m.e}<span class="sr-only"> errors</span></span>{/if}
+                {#if m.w}<span class="w" title={plural(m.w, 'warning')}><TriangleAlert size={11} />{m.w}<span class="sr-only"> warnings</span></span>{/if}
               </span>
             {/if}
           {/snippet}
@@ -323,7 +325,7 @@
     display: flex;
     align-items: center;
     gap: var(--s-2);
-    height: var(--tabbar-h);
+    height: calc(var(--control-h) + var(--s-3));
     padding: 0 var(--s-1) 0 var(--s-3);
     border-bottom: 1px solid var(--border);
     flex: 0 0 auto;
@@ -334,10 +336,8 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-size: var(--fs-xs);
+    font-size: var(--fs-sm);
     font-weight: var(--fw-semibold);
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
   }
   .muted {
     color: var(--fg-2);
@@ -362,8 +362,8 @@
     background: var(--bg-3);
   }
   .filter-btn.active {
-    color: var(--accent);
-    background: var(--accent-soft);
+    color: var(--tool-accent);
+    background: var(--tool-accent-soft);
   }
   .filter {
     display: flex;
@@ -405,7 +405,6 @@
     background: var(--bg-3);
   }
   .kind input {
-    accent-color: var(--accent);
     margin: 0;
   }
   .kind-title {
@@ -437,21 +436,27 @@
     flex: 0 0 auto;
     display: inline-flex;
     align-items: center;
-    gap: var(--s-2);
-    padding: 0 var(--s-2) 0 var(--s-1);
+    gap: var(--s-1);
+    padding: 0 var(--s-1);
     font-size: var(--fs-xs);
+    font-weight: var(--fw-semibold);
   }
   .marks > span {
     display: inline-flex;
     align-items: center;
     gap: 2px;
+    height: 16px;
+    padding: 0 var(--s-1);
+    border-radius: var(--r-sm);
   }
   .wi,
   .w {
     color: var(--warn);
+    background: var(--warn-soft);
   }
   .e {
     color: var(--err);
+    background: var(--err-soft);
   }
   .folder {
     display: grid;
