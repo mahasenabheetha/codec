@@ -1,16 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <defs>
-    <linearGradient id="k" gradientUnits="userSpaceOnUse" x1="12" y1="14" x2="52" y2="50">
-      <stop offset="0" stop-color="#7aa2ff"/>
-      <stop offset="1" stop-color="#4fd1c5"/>
-    </linearGradient>
-  </defs>
-  <rect width="64" height="64" rx="14" fill="#161a23"/>
+  <!-- Spectrum keys (3.11.0): a YAML key over two nested key: value rows,
+       each key and value in its own tool hue (Dark theme values). -->
+  <rect width="64" height="64" rx="14" fill="#171b25"/>
   <g stroke-linecap="round" stroke-width="7" fill="none">
-    <path d="M15.5 19.5h15" stroke="url(#k)"/>
-    <path d="M24.5 32h9" stroke="url(#k)"/>
-    <path d="M24.5 44.5h9" stroke="url(#k)"/>
-    <path d="M42.5 32h6" stroke="#a9b0bf" stroke-opacity=".6"/>
-    <path d="M42.5 44.5h6" stroke="#a9b0bf" stroke-opacity=".6"/>
+    <path d="M15.5 19.5h15" stroke="#8f9dff"/>
+    <path d="M24.5 32h9" stroke="#ff8fc8"/>
+    <path d="M24.5 44.5h9" stroke="#4fdcc2"/>
+    <path d="M42.5 32h6" stroke="#ffa877"/>
+    <path d="M42.5 44.5h6" stroke="#b4e06a"/>
   </g>
 </svg>

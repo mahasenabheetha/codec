@@ -344,10 +344,13 @@ Ansible `scroll-text`, Helm `ship-wheel`, Log viewer `list`, JWT
 them, the views as its `viewIcon`.
 Logos: local SVGs in `frontend/src/assets/logos/`, source and licence
 per file in its `SOURCES.md`; only to label file types.
-App icon: `frontend/public/icon.svg` (also `docs/assets/logo.svg`), a YAML
-key over nested key: value rows in `--accent` to `--syn-anchor`. The PNGs
-beside it (192, 512, maskable 512 with the glyph in the 80% safe zone,
-180 touch icon) and `favicon.ico` (16 + 32) are renders of it; re-render
+App icon, "Spectrum keys": `frontend/public/icon.svg` (also
+`docs/assets/logo.svg`), a YAML key over two nested key: value rows, each
+key and value in its own tool hue (Dark's indigo, pink, teal, peach,
+lime) on `--bg-2`. `BrandMark` draws the same shape in the theme's hues
+for the rail and Home. The PNGs beside it (192, 512, maskable 512 with
+the glyph in the 80% safe zone, 180 touch icon), `favicon.ico` (16 + 32)
+and `desktop/windows/icon.ico` (16 to 256) are renders of it; re-render
 them when it changes, and rename the SVG if browser tabs keep the old one.
 
 ## Patterns

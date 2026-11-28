@@ -6,6 +6,13 @@ All notable changes to codec are documented here. The format follows
 
 ## [Unreleased]
 
+### Changed
+
+- **New app icon, Spectrum keys.** The YAML-key mark now shows each
+  key and value in its own tool colour, on the app icon, the browser
+  tab, the desktop app and installer, the docs and the rail. In the
+  rail it follows the theme.
+
 ## [3.11.0] - 2026-11-27
 
 The interface redesign, Spectrum, first part (decision 106): the

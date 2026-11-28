@@ -1,14 +1,20 @@
 <script lang="ts">
-  // The codec mark (Spectrum, 3.11.0): three bars in three tool hues on a
-  // tile. Decorative, so it keeps its colours with Tool colours off.
+  // The codec mark, "Spectrum keys" (3.11.0): the app icon's geometry (a
+  // YAML key over two nested key: value rows) with each key and value in
+  // its own tool hue, so it follows the theme. Decorative, so it keeps its
+  // colours with Tool colours off.
   let { size = 28 }: { size?: number } = $props()
 </script>
 
-<svg class="mark" width={size} height={size} viewBox="0 0 28 28" aria-hidden="true">
-  <rect class="tile" x="0.5" y="0.5" width="27" height="27" rx="7.5" />
-  <rect class="bar indigo" x="7" y="5" width="10" height="4" rx="2" />
-  <rect class="bar pink" x="9" y="12" width="12" height="4" rx="2" />
-  <rect class="bar teal" x="11" y="19" width="9" height="4" rx="2" />
+<svg class="mark" width={size} height={size} viewBox="0 0 64 64" aria-hidden="true">
+  <rect class="tile" x="1" y="1" width="62" height="62" rx="14" />
+  <g class="bars">
+    <path class="indigo" d="M15.5 19.5h15" />
+    <path class="pink" d="M24.5 32h9" />
+    <path class="teal" d="M24.5 44.5h9" />
+    <path class="peach" d="M42.5 32h6" />
+    <path class="lime" d="M42.5 44.5h6" />
+  </g>
 </svg>
 
 <style>
@@ -16,16 +22,28 @@
     flex: none;
   }
   .tile {
-    fill: var(--bg-3);
+    fill: var(--bg-2);
     stroke: var(--border-strong);
+    stroke-width: 2;
+  }
+  .bars {
+    fill: none;
+    stroke-width: 7;
+    stroke-linecap: round;
   }
   .indigo {
-    fill: var(--hue-indigo);
+    stroke: var(--hue-indigo);
   }
   .pink {
-    fill: var(--hue-pink);
+    stroke: var(--hue-pink);
   }
   .teal {
-    fill: var(--hue-teal);
+    stroke: var(--hue-teal);
+  }
+  .peach {
+    stroke: var(--hue-peach);
+  }
+  .lime {
+    stroke: var(--hue-lime);
   }
 </style>
